@@ -29,11 +29,13 @@ import com.hazelcast.jet.Traversers;
 import com.hazelcast.jet.core.ProcessorMetaSupplier;
 import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.impl.pipeline.transform.AbstractTransform;
+import com.hazelcast.jet.impl.pipeline.transform.BroadcastJoinTransform;
 import com.hazelcast.jet.impl.pipeline.transform.FlatMapStatefulTransform;
 import com.hazelcast.jet.impl.pipeline.transform.FlatMapTransform;
 import com.hazelcast.jet.impl.pipeline.transform.GlobalFlatMapStatefulTransform;
 import com.hazelcast.jet.impl.pipeline.transform.GlobalMapStatefulTransform;
 import com.hazelcast.jet.impl.pipeline.transform.HashJoinTransform;
+import com.hazelcast.jet.impl.pipeline.transform.IncrementalJoinTransform;
 import com.hazelcast.jet.impl.pipeline.transform.MapStatefulTransform;
 import com.hazelcast.jet.impl.pipeline.transform.MapTransform;
 import com.hazelcast.jet.impl.pipeline.transform.MergeTransform;
@@ -46,6 +48,7 @@ import com.hazelcast.jet.impl.pipeline.transform.TimestampTransform;
 import com.hazelcast.jet.impl.pipeline.transform.Transform;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.GeneralStage;
+import com.hazelcast.jet.pipeline.GeneralStageWithKey;
 import com.hazelcast.jet.pipeline.JoinClause;
 import com.hazelcast.jet.pipeline.ServiceFactory;
 import com.hazelcast.jet.pipeline.Sink;
@@ -242,7 +245,7 @@ public abstract class ComputeStageImplBase<T> extends AbstractStage {
             throw new IllegalStateException("Cannot use time-to-live on a non-timestamped stream");
         }
         FlatMapStatefulTransform<T, K, S, R> flatMapStatefulTransform = new FlatMapStatefulTransform(
-                transform,
+                singletonList(transform),
                 ttl,
                 fnAdapter.adaptKeyFn(keyFn),
                 fnAdapter.adaptTimestampFn(),
@@ -250,6 +253,79 @@ public abstract class ComputeStageImplBase<T> extends AbstractStage {
                 fnAdapter.adaptStatefulFlatMapFn(flatMapFn),
                 onEvictFn != null ? fnAdapter.adaptOnEvictFlatMapFn(onEvictFn) : null);
         return attach(flatMapStatefulTransform, fnAdapter);
+    }
+
+    @Nonnull
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    <K, U, S, R, RET> RET attachBroadcastJoin(
+            long ttl,
+            @Nonnull FunctionEx<? super T, ? extends K> keyFn,
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStage<U> broadcastStage,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+      ComputeStageImplBase castBroadcastStage = (ComputeStageImplBase) broadcastStage;
+
+        checkSerializable(keyFn, "keyFn");
+        checkSerializable(createFn, "createFn");
+        checkSerializable(flatMapFn, "mapFn");
+        checkSerializable(broadcastFn, "broadcastFn");
+        if (ttl > 0 && fnAdapter == DO_NOT_ADAPT) {
+            throw new IllegalStateException("Cannot use time-to-live on a non-timestamped stream");
+        }
+        BroadcastJoinTransform<T, U, K, S, R>
+                broadcastJoinTransform = new BroadcastJoinTransform(
+                transform,
+                castBroadcastStage.transform,
+                ttl,
+                fnAdapter.adaptKeyFn(keyFn),
+                fnAdapter.adaptTimestampFn(),
+                fnAdapter.adaptTimestampFn(),
+                createFn,
+                fnAdapter.adaptStatefulFlatMapFn(flatMapFn),
+                fnAdapter.adaptStatefulFlatMapFn(broadcastFn),
+                onEvictFn != null ? fnAdapter.adaptOnEvictFlatMapFn(onEvictFn) : null);
+        return attach(broadcastJoinTransform, singletonList(broadcastStage), fnAdapter);
+    }
+
+    @Nonnull
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    <K, U, S, R, RET> RET attachIncrementalJoin(
+            long ttl,
+            @Nonnull FunctionEx<? super T, ? extends K> keyFn,
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+        FunctionEx<? super U, ? extends K> keyFn1 = stage1.keyFn();
+        StageWithGroupingBase castStage1 = (StageWithGroupingBase) stage1;
+
+        checkSerializable(keyFn, "keyFn");
+        checkSerializable(keyFn1, "keyFn1");
+        checkSerializable(createFn, "createFn");
+        checkSerializable(flatMapFn, "mapFn");
+        checkSerializable(flatMapFn1, "mapFn1");
+        if (ttl > 0 && fnAdapter == DO_NOT_ADAPT) {
+            throw new IllegalStateException("Cannot use time-to-live on a non-timestamped stream");
+        }
+        IncrementalJoinTransform<T, U, K, S, R>
+            incrementalJoinTransform = new IncrementalJoinTransform(
+                transform,
+                castStage1.computeStage.transform,
+                ttl,
+                fnAdapter.adaptKeyFn(keyFn),
+                fnAdapter.adaptKeyFn(keyFn1),
+                fnAdapter.adaptTimestampFn(),
+                fnAdapter.adaptTimestampFn(),
+                createFn,
+                fnAdapter.adaptStatefulFlatMapFn(flatMapFn),
+                fnAdapter.adaptStatefulFlatMapFn(flatMapFn1),
+                onEvictFn != null ? fnAdapter.adaptOnEvictFlatMapFn(onEvictFn) : null);
+        return attachKeyed(incrementalJoinTransform, singletonList(stage1), fnAdapter);
     }
 
     @Nonnull
@@ -566,6 +642,16 @@ public abstract class ComputeStageImplBase<T> extends AbstractStage {
             @Nonnull FunctionAdapter fnAdapter
     ) {
         pipelineImpl.connect(this, moreInputStages, transform);
+        return newStage(transform, fnAdapter);
+    }
+
+    @Nonnull
+    final <RET> RET attachKeyed(
+            @Nonnull AbstractTransform transform,
+            @Nonnull List<? extends GeneralStageWithKey<?, ?>> moreInputStages,
+            @Nonnull FunctionAdapter fnAdapter
+    ) {
+        pipelineImpl.connectKeyed(this, moreInputStages, transform);
         return newStage(transform, fnAdapter);
     }
 

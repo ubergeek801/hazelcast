@@ -78,6 +78,15 @@ public class BatchStageWithKeyImpl<T, K> extends StageWithGroupingBase<T, K> imp
     }
 
     @Nonnull @Override
+    public <S, R, U> BatchStage<R> incrementalJoin(
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull BatchStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1) {
+        return attachIncrementalJoin(0, createFn, flatMapFn, stage1, flatMapFn1, null);
+    }
+
+    @Nonnull @Override
     public BatchStage<T> distinct() {
         return computeStage.attach(new DistinctTransform<>(computeStage.transform, keyFn()), DO_NOT_ADAPT);
     }

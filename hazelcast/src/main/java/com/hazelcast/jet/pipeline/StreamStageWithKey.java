@@ -253,6 +253,56 @@ public interface StreamStageWithKey<T, K> extends GeneralStageWithKey<T, K> {
             @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn
     );
 
+  /**
+   * Attaches a stage that performs a broadcast join operation. Constraints are as
+   * with {@link #flatMapStateful}.
+   *
+   * @param createFn       function that returns the state object
+   * @param flatMapFn      function that receives the state object and the keyed input
+   *                       item and outputs the result items. It may modify the state
+   *                       object. It must not return null traverser, but can
+   *                       return an {@linkplain Traversers#empty() empty traverser}.
+   * @param broadcastStage the broadcast stage to join
+   * @param broadcastFn    function that receives the state object and the broadcast input
+   *                       item and outputs the result items. It may modify the state
+   *                       object. It must not return null traverser, but can
+   *                       return an {@linkplain Traversers#empty() empty traverser}.
+   * @param <S>            type of the state object
+   * @param <R>            type of the result
+   * @param <U>            type of the joined stream items
+   */
+    @Nonnull
+    <S, R, U> StreamStage<R> broadcastJoin(
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStage<U> broadcastStage,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn
+    );
+
+    /**
+     * Attaches a stage that performs an incremental join operation. Constraints are as
+     * with {@link #flatMapStateful}.
+     *
+     * @param createFn   function that returns the state object
+     * @param flatMapFn  function that receives the state object and the input item and
+     *                   outputs the result items. It may modify the state
+     *                   object. It must not return null traverser, but can
+     *                   return an {@linkplain Traversers#empty() empty traverser}.
+     * @param stage1     the stage to join
+     * @param flatMapFn1 function that receives the state object and the second input
+     *                   item and outputs the result items. It may modify the state
+     *                   object. It must not return null traverser, but can
+     *                   return an {@linkplain Traversers#empty() empty traverser}.
+     * @param <S>        type of the state object
+     * @param <R>        type of the result
+     * @param <U>        type of the joined stream items
+     */
+    @Nonnull
+    <S, R, U> StreamStage<R> incrementalJoin(@Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1);
+
     @Nonnull @Override
     default <A, R> StreamStage<Entry<K, R>> rollingAggregate(
             @Nonnull AggregateOperation1<? super T, A, ? extends R> aggrOp

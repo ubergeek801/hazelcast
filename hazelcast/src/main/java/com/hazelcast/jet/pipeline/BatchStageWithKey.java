@@ -20,6 +20,7 @@ import com.hazelcast.function.BiFunctionEx;
 import com.hazelcast.function.BiPredicateEx;
 import com.hazelcast.function.SupplierEx;
 import com.hazelcast.jet.Traverser;
+import com.hazelcast.jet.Traversers;
 import com.hazelcast.jet.aggregate.AggregateOperation1;
 import com.hazelcast.jet.aggregate.AggregateOperation2;
 import com.hazelcast.jet.aggregate.AggregateOperation3;
@@ -87,6 +88,29 @@ public interface BatchStageWithKey<T, K> extends GeneralStageWithKey<T, K> {
             @Nonnull SupplierEx<? extends S> createFn,
             @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn
     );
+
+    /**
+     * Attaches a stage that performs an incremental join operation. Constraints are as
+     * with {@link #flatMapStateful}.
+     *
+     * @param createFn   function that returns the state object
+     * @param flatMapFn  function that receives the state object and the input item and
+     *                   outputs the result items. It may modify the state
+     *                   object. It must not return null traverser, but can
+     *                   return an {@linkplain Traversers#empty() empty traverser}.
+     * @param stage1     the other stage
+     * @param flatMapFn1 function that receives the state object and the second input
+     *                   item and outputs the result items. It may modify the state
+     *                   object. It must not return null traverser, but can
+     *                   return an {@linkplain Traversers#empty() empty traverser}.
+     * @param <S>        type of the state object
+     * @param <R>        type of the result
+     */
+    @Nonnull
+    <S, R, U> BatchStage<R> incrementalJoin(@Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull BatchStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1);
 
     @Nonnull @Override
     default <A, R> BatchStage<Entry<K, R>> rollingAggregate(

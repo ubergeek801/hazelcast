@@ -22,6 +22,8 @@ import com.hazelcast.function.SupplierEx;
 import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.function.TriPredicate;
+import com.hazelcast.jet.pipeline.GeneralStage;
+import com.hazelcast.jet.pipeline.GeneralStageWithKey;
 import com.hazelcast.jet.pipeline.ServiceFactory;
 
 import javax.annotation.Nonnull;
@@ -69,6 +71,32 @@ class StageWithGroupingBase<T, K> {
             @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
     ) {
         return computeStage.attachFlatMapStateful(ttl, keyFn(), createFn, flatMapFn, onEvictFn);
+    }
+
+    @Nonnull
+    <S, R, U, RET> RET attachBroadcastJoin(
+            long ttl,
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStage<U> broadcastStage,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+        return computeStage.attachBroadcastJoin(ttl, keyFn(), createFn, flatMapFn, broadcastStage,
+                flatMapFn1, onEvictFn);
+    }
+
+    @Nonnull
+    <S, R, U, RET> RET attachIncrementalJoin(
+            long ttl,
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+        return computeStage.attachIncrementalJoin(ttl, keyFn(), createFn, flatMapFn, stage1,
+                flatMapFn1, onEvictFn);
     }
 
     @Nonnull

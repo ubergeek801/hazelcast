@@ -19,6 +19,7 @@ package com.hazelcast.jet.impl.pipeline.transform;
 import com.hazelcast.function.FunctionEx;
 import com.hazelcast.function.ToLongFunctionEx;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
@@ -35,7 +36,7 @@ abstract class StatefulKeyedTransformBase<T, K, S> extends AbstractTransform {
 
     StatefulKeyedTransformBase(
             @Nonnull String name,
-            @Nonnull Transform upstream,
+            @Nonnull List<Transform> upstream,
             long ttl,
             @Nonnull FunctionEx<? super T, ? extends K> keyFn,
             @Nonnull ToLongFunctionEx<? super T> timestampFn,

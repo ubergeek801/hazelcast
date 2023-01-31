@@ -25,6 +25,7 @@ import com.hazelcast.jet.impl.pipeline.transform.Transform;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.GeneralStage;
+import com.hazelcast.jet.pipeline.GeneralStageWithKey;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sink;
 import com.hazelcast.jet.pipeline.SinkStage;
@@ -166,6 +167,18 @@ public class PipelineImpl implements Pipeline {
     ) {
         List<ComputeStageImplBase> allStages =
                 moreStages.stream().map(ComputeStageImplBase.class::cast).collect(toList());
+        allStages.add(0, stage0);
+        connect(allStages, toTransform);
+    }
+
+    @SuppressWarnings("rawtypes")
+    public void connectKeyed(
+            @Nonnull ComputeStageImplBase stage0,
+            @Nonnull List<? extends GeneralStageWithKey<?, ?>> moreStages,
+            @Nonnull AbstractTransform toTransform
+    ) {
+        List<ComputeStageImplBase> allStages =
+                moreStages.stream().map(s -> ((StageWithGroupingBase) s).computeStage).collect(toList());
         allStages.add(0, stage0);
         connect(allStages, toTransform);
     }

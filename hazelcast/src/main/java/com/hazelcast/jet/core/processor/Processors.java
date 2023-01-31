@@ -40,7 +40,9 @@ import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.impl.processor.AggregateP;
 import com.hazelcast.jet.impl.processor.AsyncTransformUsingServiceOrderedP;
 import com.hazelcast.jet.impl.processor.AsyncTransformUsingServiceUnorderedP;
+import com.hazelcast.jet.impl.processor.BroadcastJoinP;
 import com.hazelcast.jet.impl.processor.GroupP;
+import com.hazelcast.jet.impl.processor.IncrementalJoinP;
 import com.hazelcast.jet.impl.processor.InsertWatermarksP;
 import com.hazelcast.jet.impl.processor.NoopP;
 import com.hazelcast.jet.impl.processor.ProcessorSuppliers;
@@ -914,6 +916,116 @@ public final class Processors {
                 timestampFn,
                 createFn,
                 statefulFlatMapFn,
+                onEvictFn
+        );
+    }
+
+    /**
+     * Returns a supplier of processors for a vertex that performs a broadcast
+     * join of its inputs. {@code createFn} returns the object that holds the
+     * state. The processor passes this object along with each input item to
+     * {@code statefulFlatMapFn} or {@code broadcastFn}, which can update the
+     * object's state. For each grouping key there's a separate state object.
+     * The state object will be included in the state snapshot, so it survives
+     * job restarts. For this reason the object must be serializable.
+     * <p>
+     * If the given {@code ttl} is greater than zero, the processor will
+     * consider the state object stale if its time-to-live has expired. The
+     * time-to-live refers to the event time as kept by the watermark: each
+     * time it processes an event, the processor compares the state object's
+     * timestamp with the current watermark. If it is less than {@code
+     * wm - ttl}, it discards the state object. Otherwise it updates the
+     * timestamp with the current watermark.
+     *
+     * @param ttl                   state object's time to live
+     * @param keyFn                 function to extract the key from a keyed input item
+     * @param timestampFn           function that extracts the timestamp from a keyed input item
+     * @param broadcastTimestampFn  function that extracts the timestamp from a broadcast input item
+     * @param createFn              supplier of the state object
+     * @param statefulFlatMapFn     the stateful flat-mapping function for the keyed stream
+     * @param broadcastFn           the stateful flat-mapping function for the broadcast stream
+     * @param onEvictFn             function that Jet calls when evicting a state object
+     * @param <T>                   type of the keyed input item
+     * @param <U>                   type of the broadcast input item
+     * @param <K>                   type of the key
+     * @param <S>                   type of the state object
+     * @param <R>                   type of the mapping function's result
+     */
+    @Nonnull
+    public static <T, U, K, S, R> SupplierEx<Processor> broadcastJoinP(
+            long ttl,
+            @Nonnull FunctionEx<? super T, ? extends K> keyFn,
+            @Nonnull ToLongFunctionEx<? super T> timestampFn,
+            @Nonnull ToLongFunctionEx<? super U> broadcastTimestampFn,
+            @Nonnull Supplier<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> statefulFlatMapFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+      return () -> new BroadcastJoinP<>(
+          ttl,
+          keyFn,
+          timestampFn,
+          broadcastTimestampFn,
+          createFn,
+          statefulFlatMapFn,
+          broadcastFn,
+          onEvictFn
+      );
+    }
+
+    /**
+     * Returns a supplier of processors for a vertex that performs an
+     * incremental join of its inputs. {@code createFn} returns the object
+     * that holds the state. The processor passes this object along with each
+     * input item to {@code statefulFlatMapFn} or {@code statefulFlatMapFn1},
+     * which can update the object's state. For each grouping key there's a
+     * separate state object. The state object will be included in the state
+     * snapshot, so it survives job restarts. For this reason the object must
+     * be serializable.
+     * <p>
+     * If the given {@code ttl} is greater than zero, the processor will
+     * consider the state object stale if its time-to-live has expired. The
+     * time-to-live refers to the event time as kept by the watermark: each
+     * time it processes an event, the processor compares the state object's
+     * timestamp with the current watermark. If it is less than {@code
+     * wm - ttl}, it discards the state object. Otherwise it updates the
+     * timestamp with the current watermark.
+     *
+     * @param ttl                state object's time to live
+     * @param keyFn              function to extract the key from an input item (first stream)
+     * @param keyFn1             function to extract the key from an input item (second stream)
+     * @param createFn           supplier of the state object
+     * @param statefulFlatMapFn  the first stateful mapping function
+     * @param statefulFlatMapFn1 the second stateful mapping function
+     * @param <T>                type of the first input item
+     * @param <U>                type of the second input item
+     * @param <K>                type of the key
+     * @param <S>                type of the state object
+     * @param <R>                type of the mapping function's result
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    @Nonnull
+    public static <T, U, K, S, R> SupplierEx<Processor> incrementalJoinP(
+            long ttl,
+            @Nonnull FunctionEx<? super T, ? extends K> keyFn,
+            @Nonnull FunctionEx<? super U, ? extends K> keyFn1,
+            @Nonnull ToLongFunctionEx<? super T> timestampFn,
+            @Nonnull ToLongFunctionEx<? super U> timestampFn1,
+            @Nonnull Supplier<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> statefulFlatMapFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> statefulFlatMapFn1,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn
+    ) {
+        return () -> new IncrementalJoinP<>(
+                ttl,
+                keyFn,
+                keyFn1,
+                timestampFn,
+                timestampFn1,
+                createFn,
+                statefulFlatMapFn,
+                statefulFlatMapFn1,
                 onEvictFn
         );
     }

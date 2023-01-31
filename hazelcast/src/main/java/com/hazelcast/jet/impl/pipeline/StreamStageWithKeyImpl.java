@@ -24,6 +24,8 @@ import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.core.ProcessorMetaSupplier;
 import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.function.TriPredicate;
+import com.hazelcast.jet.pipeline.GeneralStage;
+import com.hazelcast.jet.pipeline.GeneralStageWithKey;
 import com.hazelcast.jet.pipeline.ServiceFactory;
 import com.hazelcast.jet.pipeline.StreamStage;
 import com.hazelcast.jet.pipeline.StreamStageWithKey;
@@ -90,6 +92,24 @@ public class StreamStageWithKeyImpl<T, K> extends StageWithGroupingBase<T, K> im
             @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn
     ) {
         return attachFlatMapStateful(0, createFn, flatMapFn, null);
+    }
+
+    @Nonnull @Override
+    public <S, R, U> StreamStage<R> broadcastJoin(
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStage<U> broadcastStage,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn) {
+      return attachBroadcastJoin(0, createFn, flatMapFn, broadcastStage, broadcastFn, null);
+    }
+
+    @Nonnull @Override
+    public <S, R, U> StreamStage<R> incrementalJoin(
+            @Nonnull SupplierEx<? extends S> createFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull GeneralStageWithKey<U, ? extends K> stage1,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> flatMapFn1) {
+        return attachIncrementalJoin(0, createFn, flatMapFn, stage1, flatMapFn1, null);
     }
 
     @Nonnull @Override

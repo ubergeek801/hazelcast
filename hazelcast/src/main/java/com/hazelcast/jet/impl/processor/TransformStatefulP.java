@@ -53,24 +53,25 @@ public class TransformStatefulP<T, K, S, R> extends AbstractProcessor {
     private static final Watermark FLUSHING_WATERMARK = new Watermark(Long.MAX_VALUE);
 
     @Probe(name = "lateEventsDropped")
-    private final Counter lateEventsDropped = SwCounter.newSwCounter();
+    final Counter lateEventsDropped = SwCounter.newSwCounter();
 
-    private final long ttl;
+    final long ttl;
+    final Map<K, TimestampedItem<S>> keyToState =
+            new LinkedHashMap<>(HASH_MAP_INITIAL_CAPACITY, HASH_MAP_LOAD_FACTOR, true);
+    long currentWm = Long.MIN_VALUE;
+
     private final Function<? super T, ? extends K> keyFn;
     private final ToLongFunction<? super T> timestampFn;
     private final Function<K, TimestampedItem<S>> createIfAbsentFn;
     private final TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> statefulFlatMapFn;
     @Nullable
     private final TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn;
-    private final Map<K, TimestampedItem<S>> keyToState =
-            new LinkedHashMap<>(HASH_MAP_INITIAL_CAPACITY, HASH_MAP_LOAD_FACTOR, true);
     private final FlatMapper<T, R> flatMapper = flatMapper(this::flatMapEvent);
 
     private final FlatMapper<Watermark, Object> wmFlatMapper = flatMapper(this::flatMapWm);
     private final EvictingTraverser evictingTraverser = new EvictingTraverser();
     private final Traverser<?> evictingTraverserFlattened = evictingTraverser.flatMap(x -> x);
 
-    private long currentWm = Long.MIN_VALUE;
     private Traverser<? extends Entry<?, ?>> snapshotTraverser;
     private boolean inComplete;
 
@@ -104,7 +105,9 @@ public class TransformStatefulP<T, K, S, R> extends AbstractProcessor {
     }
 
     @Nonnull
-    private Traverser<R> flatMapEvent(T event) {
+    protected <E> Traverser<R> flatMapEvent(E event, Function<? super E, ? extends K> keyFn,
+            ToLongFunction<? super E> timestampFn,
+            TriFunction<? super S, ? super K, ? super E, ? extends Traverser<R>> statefulFlatMapFn) {
         long timestamp = timestampFn.applyAsLong(event);
         if (timestamp < currentWm && ttl != Long.MAX_VALUE) {
             logLateEvent(getLogger(), (byte) 0, currentWm, event);
@@ -122,6 +125,11 @@ public class TransformStatefulP<T, K, S, R> extends AbstractProcessor {
         tsAndState.setTimestamp(max(tsAndState.timestamp(), timestamp));
         S state = tsAndState.item();
         return statefulFlatMapFn.apply(state, key, event);
+    }
+
+    @Nonnull
+    private Traverser<R> flatMapEvent(T event) {
+        return flatMapEvent(event, keyFn, timestampFn, statefulFlatMapFn);
     }
 
     @Override

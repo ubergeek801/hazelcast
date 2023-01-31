@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2022, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2021, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,46 +18,54 @@ package com.hazelcast.jet.impl.pipeline.transform;
 
 import com.hazelcast.function.FunctionEx;
 import com.hazelcast.function.ToLongFunctionEx;
+import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.impl.pipeline.PipelineImpl.Context;
 import com.hazelcast.jet.impl.pipeline.Planner;
 import com.hazelcast.jet.impl.pipeline.Planner.PlannerVertex;
-import com.hazelcast.jet.impl.pipeline.PipelineImpl.Context;
 
-import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 import static com.hazelcast.jet.core.Vertex.LOCAL_PARALLELISM_USE_DEFAULT;
-import static com.hazelcast.jet.core.processor.Processors.mapStatefulP;
+import static com.hazelcast.jet.core.processor.Processors.broadcastJoinP;
+import static java.util.Arrays.asList;
 
-public class MapStatefulTransform<T, K, S, R> extends StatefulKeyedTransformBase<T, K, S> {
+public class BroadcastJoinTransform<T, U, K, S, R> extends FlatMapStatefulTransform<T, K, S, R> {
 
-    private static final long serialVersionUID = 1L;
+    private final ToLongFunctionEx<? super U> timestampFn1;
+    private final TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn;
 
-    private final TriFunction<? super S, ? super K, ? super T, ? extends R> statefulMapFn;
-    @Nullable private TriFunction<? super S, ? super K, ? super Long, ? extends R> onEvictFn;
-
-    public MapStatefulTransform(
+    public BroadcastJoinTransform(
             @Nonnull Transform upstream,
+            @Nonnull Transform upstream1,
             long ttl,
             @Nonnull FunctionEx<? super T, ? extends K> keyFn,
             @Nonnull ToLongFunctionEx<? super T> timestampFn,
+            @Nonnull ToLongFunctionEx<? super U> broadcastTimestampFn,
             @Nonnull Supplier<? extends S> createFn,
-            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends R> statefulMapFn,
-            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends R> onEvictFn
-    ) {
-        super("map-stateful-keyed", Arrays.asList(upstream), ttl, keyFn, timestampFn, createFn);
-        this.statefulMapFn = statefulMapFn;
-        this.onEvictFn = onEvictFn;
+            @Nonnull TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> flatMapFn,
+            @Nonnull TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn,
+            @Nullable TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn) {
+        super(asList(upstream, upstream1), ttl, keyFn, timestampFn, createFn, flatMapFn, onEvictFn);
+        this.timestampFn1 = broadcastTimestampFn;
+        this.broadcastFn = broadcastFn;
     }
 
     @Override
     public void addToDag(Planner p, Context context) {
         determineLocalParallelism(LOCAL_PARALLELISM_USE_DEFAULT, context, false);
         PlannerVertex pv = p.addVertex(this, name(), determinedLocalParallelism(),
-                mapStatefulP(ttl, keyFn, timestampFn, createFn, statefulMapFn, onEvictFn));
-        p.addEdges(this, pv.v, edge -> edge.partitioned(keyFn).distributed());
+                broadcastJoinP(ttl, keyFn, timestampFn, timestampFn1, createFn,
+                        statefulFlatMapFn, broadcastFn, onEvictFn));
+        p.addEdges(this, pv.v, edge -> {
+            if (edge.getDestOrdinal() == 0) {
+                edge.partitioned(keyFn);
+            } else {
+                edge.broadcast();
+            }
+            edge.distributed();
+        });
     }
 }
