@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Hazelcast Inc.
+ * Copyright 2023 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,6 +256,10 @@ public interface SqlConnector {
      * }</pre>
      * Then the projection will be {@code {1}} and the predicate will be {@code
      * {2}=10}.
+     * <p>
+     * If the implementation cannot generate watermarks, it should throw, if the
+     * {@code eventTimePolicyProvider} is not null. Streaming sources should
+     * support it, batch sources don't have to.
      *
      * @param table                   the table object
      * @param predicate               SQL expression to filter the rows

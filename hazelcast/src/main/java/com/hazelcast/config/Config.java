@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2022, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -778,7 +778,9 @@ public class Config {
      * @see #getConfigPatternMatcher()
      */
     public MapConfig getMapConfig(String name) {
-        return ConfigUtils.getConfig(configPatternMatcher, mapConfigs, name, MapConfig.class);
+        MapConfig config = ConfigUtils.getConfig(configPatternMatcher, mapConfigs, name, MapConfig.class);
+        DataPersistenceAndHotRestartMerger.merge(config.getHotRestartConfig(), config.getDataPersistenceConfig());
+        return config;
     }
 
     /**
@@ -3131,7 +3133,7 @@ public class Config {
      * <p>
      * Example:
      * <pre>{@code
-     *      Config config = smallInstanceConfig();
+     *      Config config = new Config();
      *      Properties properties = new Properties();
      *      properties.put("jdbcUrl", jdbcUrl);
      *      properties.put("username", username);

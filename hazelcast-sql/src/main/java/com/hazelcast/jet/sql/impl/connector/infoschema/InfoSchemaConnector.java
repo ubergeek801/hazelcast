@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Hazelcast Inc.
+ * Copyright 2023 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,6 +130,11 @@ final class InfoSchemaConnector implements SqlConnector {
         @Override
         public boolean complete() {
             return emitFromTraverser(traverser);
+        }
+
+        @Override
+        public boolean closeIsCooperative() {
+            return true;
         }
     }
 }
