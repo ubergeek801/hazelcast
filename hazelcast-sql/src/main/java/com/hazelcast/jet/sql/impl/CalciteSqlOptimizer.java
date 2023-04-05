@@ -17,6 +17,8 @@
 package com.hazelcast.jet.sql.impl;
 
 import com.hazelcast.cluster.memberselector.MemberSelectors;
+import com.hazelcast.datalink.impl.InternalDataLinkService;
+import com.hazelcast.core.HazelcastException;
 import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.AlterJobPlan;
@@ -26,6 +28,7 @@ import com.hazelcast.jet.sql.impl.SqlPlanImpl.CreateSnapshotPlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.CreateTypePlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.CreateViewPlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.DmlPlan;
+import com.hazelcast.jet.sql.impl.SqlPlanImpl.DropDataLinkPlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.DropJobPlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.DropMappingPlan;
 import com.hazelcast.jet.sql.impl.SqlPlanImpl.DropSnapshotPlan;
@@ -66,12 +69,14 @@ import com.hazelcast.jet.sql.impl.opt.physical.UpdateByKeyMapPhysicalRel;
 import com.hazelcast.jet.sql.impl.parse.QueryConvertResult;
 import com.hazelcast.jet.sql.impl.parse.QueryParseResult;
 import com.hazelcast.jet.sql.impl.parse.SqlAlterJob;
+import com.hazelcast.jet.sql.impl.parse.SqlCreateDataLink;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateIndex;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateJob;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateMapping;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateSnapshot;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateType;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateView;
+import com.hazelcast.jet.sql.impl.parse.SqlDropDataLink;
 import com.hazelcast.jet.sql.impl.parse.SqlDropIndex;
 import com.hazelcast.jet.sql.impl.parse.SqlDropJob;
 import com.hazelcast.jet.sql.impl.parse.SqlDropMapping;
@@ -80,9 +85,11 @@ import com.hazelcast.jet.sql.impl.parse.SqlDropType;
 import com.hazelcast.jet.sql.impl.parse.SqlDropView;
 import com.hazelcast.jet.sql.impl.parse.SqlExplainStatement;
 import com.hazelcast.jet.sql.impl.parse.SqlShowStatement;
+import com.hazelcast.jet.sql.impl.schema.DataLinkStorage;
+import com.hazelcast.jet.sql.impl.schema.DataLinksResolver;
 import com.hazelcast.jet.sql.impl.schema.HazelcastTable;
+import com.hazelcast.jet.sql.impl.schema.RelationsStorage;
 import com.hazelcast.jet.sql.impl.schema.TableResolverImpl;
-import com.hazelcast.jet.sql.impl.schema.TablesStorage;
 import com.hazelcast.jet.sql.impl.schema.TypeDefinitionColumn;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.security.permission.ActionConstants;
@@ -129,15 +136,17 @@ import org.apache.calcite.tools.RuleSets;
 import javax.annotation.Nullable;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.hazelcast.internal.cluster.Versions.V5_3;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
+import static com.hazelcast.jet.sql.impl.SqlPlanImpl.CreateDataLinkPlan;
 import static com.hazelcast.jet.sql.impl.SqlPlanImpl.CreateIndexPlan;
 import static com.hazelcast.jet.sql.impl.SqlPlanImpl.DropIndexPlan;
 import static com.hazelcast.jet.sql.impl.SqlPlanImpl.ExplainStatementPlan;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -205,30 +214,46 @@ import static java.util.stream.Collectors.toList;
 public class CalciteSqlOptimizer implements SqlOptimizer {
 
     private final NodeEngine nodeEngine;
+    private final SqlConnectorCache connectorCache;
 
     private final IMapResolver iMapResolver;
     private final List<TableResolver> tableResolvers;
     private final PlanExecutor planExecutor;
-    private final TablesStorage tablesStorage;
+    private final RelationsStorage relationsStorage;
+    private final DataLinkStorage dataLinkStorage;
 
     private final ILogger logger;
 
     public CalciteSqlOptimizer(NodeEngine nodeEngine, QueryResultRegistry resultRegistry) {
         this.nodeEngine = nodeEngine;
+        this.connectorCache = new SqlConnectorCache(nodeEngine);
 
         this.iMapResolver = new MetadataResolver(nodeEngine);
-        this.tablesStorage = new TablesStorage(nodeEngine);
+        this.relationsStorage = new RelationsStorage(nodeEngine);
+        this.dataLinkStorage = new DataLinkStorage(nodeEngine);
 
-        TableResolverImpl tableResolverImpl = mappingCatalog(nodeEngine, this.tablesStorage);
-        this.tableResolvers = singletonList(tableResolverImpl);
-        this.planExecutor = new PlanExecutor(tableResolverImpl, nodeEngine.getHazelcastInstance(), resultRegistry);
+        TableResolverImpl tableResolverImpl = mappingCatalog(nodeEngine, this.relationsStorage, this.connectorCache);
+        DataLinksResolver dataLinksResolver = dataLinkCatalog(nodeEngine.getDataLinkService(), this.dataLinkStorage);
+        this.tableResolvers = Arrays.asList(tableResolverImpl, dataLinksResolver);
+        this.planExecutor = new PlanExecutor(
+                nodeEngine,
+                tableResolverImpl,
+                dataLinksResolver,
+                resultRegistry
+        );
 
         this.logger = nodeEngine.getLogger(getClass());
     }
 
-    private static TableResolverImpl mappingCatalog(NodeEngine nodeEngine, TablesStorage tablesStorage) {
-        SqlConnectorCache connectorCache = new SqlConnectorCache(nodeEngine);
-        return new TableResolverImpl(nodeEngine, tablesStorage, connectorCache);
+    private static TableResolverImpl mappingCatalog(
+            NodeEngine nodeEngine,
+            RelationsStorage relationsStorage,
+            SqlConnectorCache connectorCache) {
+        return new TableResolverImpl(nodeEngine, relationsStorage, connectorCache);
+    }
+
+    private static DataLinksResolver dataLinkCatalog(InternalDataLinkService dataLinkService, DataLinkStorage storage) {
+        return new DataLinksResolver(dataLinkService, storage);
     }
 
     @Nullable
@@ -243,8 +268,13 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
         return tableResolvers;
     }
 
-    public TablesStorage tablesStorage() {
-        return tablesStorage;
+    public RelationsStorage relationsStorage() {
+        return relationsStorage;
+    }
+
+    // for tests
+    public PlanExecutor getPlanExecutor() {
+        return planExecutor;
     }
 
     @Override
@@ -290,6 +320,10 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
             return toCreateIndexPlan(planKey, (SqlCreateIndex) node);
         } else if (node instanceof SqlDropIndex) {
             return toDropIndexPlan(planKey, (SqlDropIndex) node);
+        } else if (node instanceof SqlCreateDataLink) {
+            return toCreateDataLinkPlan(planKey, (SqlCreateDataLink) node);
+        } else if (node instanceof SqlDropDataLink) {
+            return toDropDataLinkPlan(planKey, (SqlDropDataLink) node);
         } else if (node instanceof SqlCreateJob) {
             return toCreateJobPlan(planKey, parseResult, context, task.getSql());
         } else if (node instanceof SqlAlterJob) {
@@ -325,23 +359,54 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
         }
     }
 
-    private SqlPlan toCreateMappingPlan(PlanKey planKey, SqlCreateMapping sqlCreateMapping) {
-        List<MappingField> mappingFields = sqlCreateMapping.columns()
+    private SqlPlan toCreateMappingPlan(PlanKey planKey, SqlCreateMapping node) {
+        List<MappingField> mappingFields = node.columns()
                 .map(field -> new MappingField(field.name(), field.type(), field.externalName()))
                 .collect(toList());
-        Mapping mapping = new Mapping(
-                sqlCreateMapping.nameWithoutSchema(),
-                sqlCreateMapping.externalName(),
-                sqlCreateMapping.type(),
+
+        Mapping mapping;
+        if (nodeEngine.getVersion().asVersion().isLessThan(V5_3)
+                && (node.dataLinkNameWithoutSchema() != null || node.objectType() != null)) {
+            throw new HazelcastException("Cannot create a mapping with a data link or an object type " +
+                    "until the cluster is upgraded to 5.3");
+        }
+        mapping = new Mapping(
+                node.nameWithoutSchema(),
+                node.externalName(),
+                node.dataLinkNameWithoutSchema(),
+                node.connectorType(),
+                node.objectType(),
                 mappingFields,
-                sqlCreateMapping.options()
+                node.options()
         );
 
         return new CreateMappingPlan(
                 planKey,
                 mapping,
-                sqlCreateMapping.getReplace(),
-                sqlCreateMapping.ifNotExists(),
+                node.getReplace(),
+                node.ifNotExists(),
+                planExecutor
+        );
+    }
+
+    private SqlPlan toCreateDataLinkPlan(PlanKey planKey, SqlCreateDataLink sqlCreateDataLink) {
+        return new CreateDataLinkPlan(
+                planKey,
+                sqlCreateDataLink.getReplace(),
+                sqlCreateDataLink.ifNotExists,
+                sqlCreateDataLink.nameWithoutSchema(),
+                sqlCreateDataLink.type(),
+                sqlCreateDataLink.shared(),
+                sqlCreateDataLink.options(),
+                planExecutor
+        );
+    }
+
+    private SqlPlan toDropDataLinkPlan(PlanKey planKey, SqlDropDataLink sqlDropDataLink) {
+        return new DropDataLinkPlan(
+                planKey,
+                sqlDropDataLink.name(),
+                sqlDropDataLink.ifExists(),
                 planExecutor
         );
     }
@@ -395,7 +460,13 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
     }
 
     private SqlPlan toAlterJobPlan(PlanKey planKey, SqlAlterJob sqlAlterJob) {
-        return new AlterJobPlan(planKey, sqlAlterJob.name(), sqlAlterJob.getOperation(), planExecutor);
+        return new AlterJobPlan(
+                planKey,
+                sqlAlterJob.name(),
+                sqlAlterJob.getDeltaConfig(),
+                sqlAlterJob.getOperation(),
+                planExecutor
+        );
     }
 
     private SqlPlan toDropJobPlan(PlanKey planKey, SqlDropJob sqlDropJob) {
@@ -442,7 +513,7 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
     }
 
     private SqlPlan toShowStatementPlan(PlanKey planKey, SqlShowStatement sqlNode) {
-        return new ShowStatementPlan(planKey, sqlNode.getTarget(), planExecutor);
+        return new ShowStatementPlan(planKey, sqlNode.getTarget(), sqlNode.getDataLinkNameWithoutSchema(), planExecutor);
     }
 
     private SqlPlan toExplainStatementPlan(
@@ -469,7 +540,7 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
                 .collect(toList());
         return new CreateTypePlan(
                 planKey,
-                sqlNode.getName(),
+                sqlNode.typeName(),
                 sqlNode.getReplace(),
                 sqlNode.ifNotExists(),
                 columns,
@@ -519,7 +590,8 @@ public class CalciteSqlOptimizer implements SqlOptimizer {
                     insert.mapName(),
                     insert.entriesFn(),
                     planExecutor,
-                    permissions
+                    permissions,
+                    insert.keyParamIndex()
             );
         } else if (physicalRel instanceof SinkMapPhysicalRel) {
             assert !isCreateJob;

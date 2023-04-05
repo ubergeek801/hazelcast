@@ -23,12 +23,13 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.hazelcast.jet.sql.impl.connector.jdbc.JdbcSqlConnector.OPTION_EXTERNAL_DATASTORE_REF;
+import static com.hazelcast.jet.sql.impl.connector.jdbc.JdbcSqlConnector.OPTION_DATA_LINK_NAME;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class InsertJdbcSqlConnectorTest extends JdbcSqlTestSupport {
 
     private String tableName;
+    private String alternativeSchemaTable;
 
     @BeforeClass
     public static void beforeClass() {
@@ -38,6 +39,9 @@ public class InsertJdbcSqlConnectorTest extends JdbcSqlTestSupport {
     @Before
     public void setUp() throws Exception {
         tableName = randomTableName();
+        String schemaName = randomName();
+        executeJdbc("CREATE SCHEMA " + schemaName);
+        alternativeSchemaTable = schemaName + "." + tableName;
     }
 
     @Test
@@ -71,7 +75,7 @@ public class InsertJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                         + ") "
                         + "TYPE " + JdbcSqlConnector.TYPE_NAME + ' '
                         + "OPTIONS ( "
-                        + " '" + OPTION_EXTERNAL_DATASTORE_REF + "'='" + TEST_DATABASE_REF + "'"
+                        + " '" + OPTION_DATA_LINK_NAME + "'='" + TEST_DATABASE_REF + "'"
                         + ")"
         );
 
@@ -103,7 +107,7 @@ public class InsertJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                         + ") "
                         + "TYPE " + JdbcSqlConnector.TYPE_NAME + ' '
                         + "OPTIONS ( "
-                        + " '" + OPTION_EXTERNAL_DATASTORE_REF + "'='" + TEST_DATABASE_REF + "'"
+                        + " '" + OPTION_DATA_LINK_NAME + "'='" + TEST_DATABASE_REF + "'"
                         + ")"
         );
 
@@ -155,7 +159,7 @@ public class InsertJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 "CREATE MAPPING " + tableName
                         + " TYPE " + JdbcSqlConnector.TYPE_NAME + ' '
                         + " OPTIONS ( "
-                        + " '" + OPTION_EXTERNAL_DATASTORE_REF + "'='" + TEST_DATABASE_REF + "'"
+                        + " '" + OPTION_DATA_LINK_NAME + "'='" + TEST_DATABASE_REF + "'"
                         + ")"
         );
 

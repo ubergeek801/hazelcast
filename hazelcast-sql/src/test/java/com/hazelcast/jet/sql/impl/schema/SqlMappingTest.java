@@ -31,6 +31,7 @@ import java.util.List;
 
 import static com.hazelcast.function.ConsumerEx.noop;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -154,6 +155,29 @@ public class SqlMappingTest extends SqlTestSupport {
     }
 
     @Test
+    public void when_dataLinkDoesNotExist_then_fail() {
+        String dlName = randomName();
+        String mappingName = randomName();
+        assertThatThrownBy(() ->
+                instance().getSql().execute("CREATE OR REPLACE MAPPING " + mappingName +
+                        " DATA LINK " + dlName + "\nOPTIONS ()"))
+                .isInstanceOf(HazelcastSqlException.class)
+                .hasMessageContaining("Data link '" + dlName + "' not found");
+    }
+
+    @Test
+    public void when_dataLinkUnknown_then_fail() {
+        String dlName = randomName();
+        String mappingName = randomName();
+        createDataLink(instance(), dlName, "DUMMY", false, emptyMap());
+        assertThatThrownBy(() ->
+                instance().getSql().execute("CREATE OR REPLACE MAPPING " + mappingName +
+                        " DATA LINK " + dlName + "\nOPTIONS ()"))
+                .isInstanceOf(HazelcastSqlException.class)
+                .hasMessageContaining("Unknown data link class: ");
+    }
+
+    @Test
     public void test_alias_int_integer() {
         test_alias(Integer.class.getName(), "int", "integer");
     }
@@ -179,9 +203,9 @@ public class SqlMappingTest extends SqlTestSupport {
                     "OPTIONS('keyFormat'='java', 'keyJavaClass'='" + javaClassName + "', 'valueFormat'='json-flat')");
         }
 
-        TablesStorage tablesStorage = new TablesStorage(getNodeEngineImpl(instance()));
-        assertEquals(aliases.length, tablesStorage.allObjects().size());
-        Iterator<Object> iterator = tablesStorage.allObjects().iterator();
+        RelationsStorage relationsStorage = new RelationsStorage(getNodeEngineImpl(instance()));
+        assertEquals(aliases.length, relationsStorage.allObjects().size());
+        Iterator<Object> iterator = relationsStorage.allObjects().iterator();
 
         // the two mappings must be equal, except for their name & objectName
         Object firstMapping = iterator.next();

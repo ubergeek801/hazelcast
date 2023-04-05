@@ -16,7 +16,7 @@
 
 package com.hazelcast.jet.impl.connector;
 
-import com.hazelcast.datastore.impl.CloseableDataSource;
+import com.hazelcast.datalink.impl.JdbcDataLink;
 import com.hazelcast.function.BiConsumerEx;
 import com.hazelcast.function.FunctionEx;
 import com.hazelcast.function.PredicateEx;
@@ -77,6 +77,7 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
     private ILogger logger;
     private XAConnection xaConnection;
     private Connection connection;
+    private Context context;
     private PreparedStatement statement;
     private int idleCount;
     private boolean supportsBatch;
@@ -128,6 +129,11 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
         checkSerializable(bindFn, "bindFn");
         checkPositive(batchLimit, "batchLimit");
 
+        // In some cases we don't know the JDBC URL yet (jdbcUrl is null),
+        // so only the 'jdbc:' prefix is used as ConnectorPermission name.
+        // Additional permission check with the correct URL retrieved from
+        // the JDBC connection metadata is performed in the
+        // #connectAndPrepareStatement() instance method.
         return ProcessorMetaSupplier.preferLocalParallelismOne(
                 ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE),
                 new ProcessorSupplier() {
@@ -140,13 +146,61 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
 
                     @Override
                     public void close(Throwable error) throws Exception {
-                        if (dataSource instanceof CloseableDataSource) {
-                            ((CloseableDataSource) dataSource).close();
+                        if (dataSource instanceof AutoCloseable) {
+                            ((AutoCloseable) dataSource).close();
                         }
                     }
 
                     @Nonnull
                     @Override
+                    public Collection<? extends Processor> get(int count) {
+                        return IntStream.range(0, count)
+                                .mapToObj(i -> new WriteJdbcP<>(updateQuery, dataSource, bindFn,
+                                        exactlyOnce, batchLimit))
+                                .collect(Collectors.toList());
+                    }
+
+                    @Override
+                    public List<Permission> permissions() {
+                        return singletonList(ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE));
+                    }
+                });
+    }
+
+    /**
+     * Use {@link SinkProcessors#writeJdbcP}.
+     */
+    public static <T> ProcessorMetaSupplier metaSupplier(
+            @Nullable String jdbcUrl,
+            @Nonnull String updateQuery,
+            @Nonnull String dataLinkName,
+            @Nonnull BiConsumerEx<? super PreparedStatement, ? super T> bindFn,
+            boolean exactlyOnce,
+            int batchLimit
+    ) {
+        checkSerializable(bindFn, "bindFn");
+        checkPositive(batchLimit, "batchLimit");
+
+        return ProcessorMetaSupplier.preferLocalParallelismOne(
+                ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE),
+                new ProcessorSupplier() {
+                    private transient JdbcDataLink dataLink;
+                    private transient CommonDataSource dataSource;
+
+                    @Override
+                    public void init(@Nonnull Context context) {
+                        dataLink = context.dataLinkService().getAndRetainDataLink(dataLinkName, JdbcDataLink.class);
+                        dataSource = new DataSourceFromConnectionSupplier(dataLink::getConnection);
+                    }
+
+                    @Override
+                    public void close(Throwable error) throws Exception {
+                        if (dataLink != null) {
+                            dataLink.release();
+                        }
+                    }
+
+                    @Nonnull @Override
                     public Collection<? extends Processor> get(int count) {
                         return IntStream.range(0, count)
                                 .mapToObj(i -> new WriteJdbcP<>(updateQuery, dataSource, bindFn,
@@ -167,6 +221,7 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
         // workaround for https://github.com/hazelcast/hazelcast-jet/issues/2603
         DriverManager.getDrivers();
         logger = context.logger();
+        this.context = context;
         connectAndPrepareStatement();
     }
 
@@ -250,6 +305,9 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
                 throw new JetException("The dataSource implements neither " + DataSource.class.getName() + " nor "
                         + XADataSource.class.getName());
             }
+
+            String url = connection.getMetaData().getURL();
+            context.checkPermission(ConnectorPermission.jdbc(url, ACTION_WRITE));
 
             supportsBatch = connection.getMetaData().supportsBatchUpdates();
 

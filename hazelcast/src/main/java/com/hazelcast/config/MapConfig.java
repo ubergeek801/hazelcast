@@ -16,6 +16,7 @@
 
 package com.hazelcast.config;
 
+import com.hazelcast.internal.cluster.Versions;
 import com.hazelcast.internal.config.ConfigDataSerializerHook;
 import com.hazelcast.internal.config.DataPersistenceAndHotRestartMerger;
 import com.hazelcast.internal.partition.IPartition;
@@ -23,6 +24,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import com.hazelcast.nio.serialization.impl.Versioned;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -35,13 +37,14 @@ import static com.hazelcast.internal.serialization.impl.SerializationUtil.writeN
 import static com.hazelcast.internal.util.Preconditions.checkAsyncBackupCount;
 import static com.hazelcast.internal.util.Preconditions.checkBackupCount;
 import static com.hazelcast.internal.util.Preconditions.checkFalse;
+import static com.hazelcast.internal.util.Preconditions.checkNoNullInside;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.internal.util.Preconditions.isNotNull;
 
 /**
  * Contains the configuration for an {@link IMap}.
  */
-public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
+public class MapConfig implements IdentifiedDataSerializable, NamedConfig, Versioned {
 
     /**
      * The minimum number of backups
@@ -140,6 +143,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
             .setMaxSizePolicy(DEFAULT_MAX_SIZE_POLICY)
             .setSize(DEFAULT_MAX_SIZE);
     private TieredStoreConfig tieredStoreConfig = new TieredStoreConfig();
+    private List<PartitioningAttributeConfig> partitioningAttributeConfigs;
 
     public MapConfig() {
     }
@@ -178,6 +182,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         this.merkleTreeConfig = new MerkleTreeConfig(config.merkleTreeConfig);
         this.eventJournalConfig = new EventJournalConfig(config.eventJournalConfig);
         this.tieredStoreConfig = new TieredStoreConfig(config.tieredStoreConfig);
+        this.partitioningAttributeConfigs = new ArrayList<>(config.getPartitioningAttributeConfigs());
     }
 
     /**
@@ -265,6 +270,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
      * 0 means no sync backup.
      *
      * @param backupCount the number of synchronous backups to set for this {@link IMap}
+     * @return the updated MapConfig
      * @see #setAsyncBackupCount(int)
      */
     public MapConfig setBackupCount(final int backupCount) {
@@ -286,7 +292,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
      * Sets the number of asynchronous backups. 0 means no backups.
      *
      * @param asyncBackupCount the number of asynchronous synchronous backups to set
-     * @return the updated CacheConfig
+     * @return the updated MapConfig
      * @throws IllegalArgumentException if asyncBackupCount smaller than
      *                                  0, or larger than the maximum number of backup or the sum of the
      *                                  backups and async backups is larger than the maximum number of backups
@@ -807,6 +813,27 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         return this;
     }
 
+    /**
+     * Get Partition Attribute configs used for creation of
+     * {@link com.hazelcast.partition.strategy.AttributePartitioningStrategy}
+     *
+     * @return list of partitioning attribute configs
+     */
+    public List<PartitioningAttributeConfig> getPartitioningAttributeConfigs() {
+        if (partitioningAttributeConfigs == null) {
+            partitioningAttributeConfigs = new ArrayList<>();
+        }
+
+        return partitioningAttributeConfigs;
+    }
+
+    public MapConfig setPartitioningAttributeConfigs(final List<PartitioningAttributeConfig> partitioningAttributeConfigs) {
+        checkNoNullInside(partitioningAttributeConfigs,
+                "PartitioningAttributeConfig elements can not be null");
+        this.partitioningAttributeConfigs = partitioningAttributeConfigs;
+        return this;
+    }
+
     @Override
     @SuppressWarnings("checkstyle:methodlength")
     public final boolean equals(Object o) {
@@ -899,6 +926,9 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         if (!tieredStoreConfig.equals(that.tieredStoreConfig)) {
             return false;
         }
+        if (!getPartitioningAttributeConfigs().equals(that.getPartitioningAttributeConfigs())) {
+            return false;
+        }
 
         return hotRestartConfig.equals(that.hotRestartConfig);
     }
@@ -933,6 +963,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         result = 31 * result + hotRestartConfig.hashCode();
         result = 31 * result + dataPersistenceConfig.hashCode();
         result = 31 * result + tieredStoreConfig.hashCode();
+        result = 31 * result + getPartitioningAttributeConfigs().hashCode();
         return result;
     }
 
@@ -965,6 +996,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
                 + ", statisticsEnabled=" + statisticsEnabled
                 + ", entryStatsEnabled=" + perEntryStatsEnabled
                 + ", tieredStoreConfig=" + tieredStoreConfig
+                + ", partitioningAttributeConfigs=" + partitioningAttributeConfigs
                 + '}';
     }
 
@@ -1008,6 +1040,9 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         out.writeBoolean(perEntryStatsEnabled);
         out.writeObject(dataPersistenceConfig);
         out.writeObject(tieredStoreConfig);
+        if (out.getVersion().isGreaterOrEqual(Versions.V5_3)) {
+            writeNullableList(partitioningAttributeConfigs, out);
+        }
     }
 
     @Override
@@ -1040,5 +1075,8 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig {
         perEntryStatsEnabled = in.readBoolean();
         setDataPersistenceConfig(in.readObject());
         setTieredStoreConfig(in.readObject());
+        if (in.getVersion().isGreaterOrEqual(Versions.V5_3)) {
+            partitioningAttributeConfigs = readNullableList(in);
+        }
     }
 }

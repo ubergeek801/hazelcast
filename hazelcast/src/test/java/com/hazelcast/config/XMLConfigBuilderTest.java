@@ -19,6 +19,8 @@ package com.hazelcast.config;
 import com.google.common.collect.ImmutableSet;
 import com.hazelcast.config.LoginModuleConfig.LoginModuleUsage;
 import com.hazelcast.config.PermissionConfig.PermissionType;
+import com.hazelcast.config.tpc.TpcConfig;
+import com.hazelcast.config.tpc.TpcSocketConfig;
 import com.hazelcast.config.cp.CPSubsystemConfig;
 import com.hazelcast.config.cp.FencedLockConfig;
 import com.hazelcast.config.cp.RaftAlgorithmConfig;
@@ -4343,6 +4345,9 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
                 + "      <send-buffer-size-kb>34</send-buffer-size-kb>\n"
                 + "      <receive-buffer-size-kb>67</receive-buffer-size-kb>\n"
                 + "      <linger-seconds>11</linger-seconds>\n"
+                + "      <keep-count>12</keep-count>\n"
+                + "      <keep-interval-seconds>13</keep-interval-seconds>\n"
+                + "      <keep-idle-seconds>14</keep-idle-seconds>\n"
                 + "    </socket-options>\n"
                 + "    <symmetric-encryption enabled=\"true\">\n"
                 + "      <algorithm>Algorithm</algorithm>\n"
@@ -4513,35 +4518,153 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
 
     @Override
     @Test
-    public void testExternalDataStoreConfigs() {
+    public void testDataLinkConfigs() {
         String xml = HAZELCAST_START_TAG
-                + "    <external-data-store name=\"mysql-database\">\n"
-                + "        <class-name>com.hazelcast.datastore.JdbcDataStore</class-name>\n"
+                + "    <data-link name=\"mysql-database\">\n"
+                + "        <type>jdbc</type>\n"
                 + "        <properties>\n"
                 + "            <property name=\"jdbcUrl\">jdbc:mysql://dummy:3306</property>\n"
                 + "            <property name=\"some.property\">dummy-value</property>\n"
                 + "        </properties>\n"
                 + "      <shared>true</shared>\n"
-                + "    </external-data-store>"
-                + "    <external-data-store name=\"other-database\">\n"
-                + "        <class-name>com.hazelcast.datastore.OtherDataStore</class-name>\n"
-                + "    </external-data-store>"
+                + "    </data-link>"
+                + "    <data-link name=\"other-database\">\n"
+                + "        <type>other</type>\n"
+                + "    </data-link>"
                 + HAZELCAST_END_TAG;
 
-        Map<String, ExternalDataStoreConfig> externalDataStoreConfigs = buildConfig(xml).getExternalDataStoreConfigs();
+        Map<String, DataLinkConfig> dataLinkConfigs = buildConfig(xml).getDataLinkConfigs();
 
-        assertThat(externalDataStoreConfigs).hasSize(2);
-        assertThat(externalDataStoreConfigs).containsKey("mysql-database");
-        ExternalDataStoreConfig mysqlDataStoreConfig = externalDataStoreConfigs.get("mysql-database");
-        assertThat(mysqlDataStoreConfig.getClassName()).isEqualTo("com.hazelcast.datastore.JdbcDataStore");
-        assertThat(mysqlDataStoreConfig.getName()).isEqualTo("mysql-database");
-        assertThat(mysqlDataStoreConfig.isShared()).isTrue();
-        assertThat(mysqlDataStoreConfig.getProperty("jdbcUrl")).isEqualTo("jdbc:mysql://dummy:3306");
-        assertThat(mysqlDataStoreConfig.getProperty("some.property")).isEqualTo("dummy-value");
+        assertThat(dataLinkConfigs).hasSize(2);
+        assertThat(dataLinkConfigs).containsKey("mysql-database");
+        DataLinkConfig mysqlDataLinkConfig = dataLinkConfigs.get("mysql-database");
+        assertThat(mysqlDataLinkConfig.getType()).isEqualTo("jdbc");
+        assertThat(mysqlDataLinkConfig.getName()).isEqualTo("mysql-database");
+        assertThat(mysqlDataLinkConfig.isShared()).isTrue();
+        assertThat(mysqlDataLinkConfig.getProperty("jdbcUrl")).isEqualTo("jdbc:mysql://dummy:3306");
+        assertThat(mysqlDataLinkConfig.getProperty("some.property")).isEqualTo("dummy-value");
 
-        assertThat(externalDataStoreConfigs).containsKey("other-database");
-        ExternalDataStoreConfig otherDataStoreConfig = externalDataStoreConfigs.get("other-database");
-        assertThat(otherDataStoreConfig.getClassName()).isEqualTo("com.hazelcast.datastore.OtherDataStore");
+        assertThat(dataLinkConfigs).containsKey("other-database");
+        DataLinkConfig otherDataLinkConfig = dataLinkConfigs.get("other-database");
+        assertThat(otherDataLinkConfig.getType()).isEqualTo("other");
+    }
+
+    @Override
+    @Test
+    public void testTpcConfig() {
+        String xml = HAZELCAST_START_TAG
+                + "    <tpc enabled=\"true\">\n"
+                + "        <eventloop-count>12</eventloop-count>\n"
+                + "    </tpc>"
+                + HAZELCAST_END_TAG;
+
+        TpcConfig tpcConfig = buildConfig(xml).getTpcConfig();
+
+        assertThat(tpcConfig.isEnabled()).isTrue();
+        assertThat(tpcConfig.getEventloopCount()).isEqualTo(12);
+    }
+
+    @Override
+    @Test
+    public void testTpcSocketConfig() {
+        String xml = HAZELCAST_START_TAG
+                + "    <network>"
+                + "        <tpc-socket>\n"
+                + "            <port-range>14000-16000</port-range>\n"
+                + "            <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "            <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "        </tpc-socket>\n"
+                + "    </network>"
+                + HAZELCAST_END_TAG;
+
+        TpcSocketConfig tpcSocketConfig = buildConfig(xml).getNetworkConfig().getTpcSocketConfig();
+
+        assertThat(tpcSocketConfig.getPortRange()).isEqualTo("14000-16000");
+        assertThat(tpcSocketConfig.getReceiveBufferSizeKB()).isEqualTo(256);
+        assertThat(tpcSocketConfig.getSendBufferSizeKB()).isEqualTo(256);
+    }
+
+    @Test
+    public void testTpcSocketConfigAdvanced() {
+        String xml = HAZELCAST_START_TAG
+                + "    <advanced-network enabled=\"true\">\n"
+                + "        <member-server-socket-endpoint-config>\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </member-server-socket-endpoint-config>\n"
+                + "        <client-server-socket-endpoint-config>\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </client-server-socket-endpoint-config>\n"
+                + "        <memcache-server-socket-endpoint-config>\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </memcache-server-socket-endpoint-config>\n"
+                + "        <rest-server-socket-endpoint-config>\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </rest-server-socket-endpoint-config>\n"
+                + "        <wan-endpoint-config name=\"tokyo\">\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </wan-endpoint-config>\n"
+                + "        <wan-server-socket-endpoint-config name=\"london\">\n"
+                + "            <tpc-socket>\n"
+                + "                <port-range>14000-16000</port-range>\n"
+                + "                <receive-buffer-size-kb>256</receive-buffer-size-kb>\n"
+                + "                <send-buffer-size-kb>256</send-buffer-size-kb>\n"
+                + "            </tpc-socket>\n"
+                + "        </wan-server-socket-endpoint-config>\n"
+                + "    </advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        Map<EndpointQualifier, EndpointConfig> endpointConfigs = buildConfig(xml)
+                .getAdvancedNetworkConfig()
+                .getEndpointConfigs();
+
+        assertThat(endpointConfigs).hasSize(6);
+
+        endpointConfigs.forEach((endpointQualifier, endpointConfig) -> {
+            TpcSocketConfig tpcSocketConfig = endpointConfig.getTpcSocketConfig();
+
+            assertThat(tpcSocketConfig.getPortRange()).isEqualTo("14000-16000");
+            assertThat(tpcSocketConfig.getReceiveBufferSizeKB()).isEqualTo(256);
+            assertThat(tpcSocketConfig.getSendBufferSizeKB()).isEqualTo(256);
+        });
+    }
+
+    @Override
+    @Test
+    public void testPartitioningAttributeConfigs() {
+        String xml = HAZELCAST_START_TAG
+                + "<map name=\"test\">"
+                + "     <partition-attributes>"
+                + "         <attribute>attr1</attribute>"
+                + "         <attribute>attr2</attribute>"
+                + "     </partition-attributes>"
+                + "</map>"
+                + HAZELCAST_END_TAG;
+
+        final MapConfig mapConfig = buildConfig(xml).getMapConfig("test");
+        assertThat(mapConfig.getPartitioningAttributeConfigs()).containsExactly(
+                new PartitioningAttributeConfig("attr1"),
+                new PartitioningAttributeConfig("attr2")
+        );
     }
 
     @Override

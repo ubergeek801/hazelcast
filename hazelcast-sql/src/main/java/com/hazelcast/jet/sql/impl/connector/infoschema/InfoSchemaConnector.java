@@ -20,11 +20,11 @@ import com.hazelcast.function.FunctionEx;
 import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.Traversers;
 import com.hazelcast.jet.core.AbstractProcessor;
-import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.core.EventTimePolicy;
 import com.hazelcast.jet.core.ProcessorSupplier;
 import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.sql.impl.ExpressionUtil;
+import com.hazelcast.jet.sql.impl.connector.HazelcastRexNode;
 import com.hazelcast.jet.sql.impl.connector.SqlConnector;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.sql.impl.QueryException;
@@ -68,7 +68,7 @@ final class InfoSchemaConnector implements SqlConnector {
             @Nonnull NodeEngine nodeEngine,
             @Nonnull Map<String, String> options,
             @Nonnull List<MappingField> userFields,
-            @Nonnull String externalName
+            @Nonnull String[] externalName
     ) {
         throw new UnsupportedOperationException();
     }
@@ -78,7 +78,7 @@ final class InfoSchemaConnector implements SqlConnector {
             @Nonnull NodeEngine nodeEngine,
             @Nonnull String schemaName,
             @Nonnull String mappingName,
-            @Nonnull String externalName,
+            @Nonnull String[] externalName,
             @Nonnull Map<String, String> options,
             @Nonnull List<MappingField> resolvedFields
     ) {
@@ -87,21 +87,23 @@ final class InfoSchemaConnector implements SqlConnector {
 
     @Nonnull @Override
     public Vertex fullScanReader(
-            @Nonnull DAG dag,
-            @Nonnull Table table0,
-            @Nullable Expression<Boolean> predicate,
-            @Nonnull List<Expression<?>> projection,
+            @Nonnull DagBuildContext context,
+            @Nullable HazelcastRexNode predicate,
+            @Nonnull List<HazelcastRexNode> projection,
             @Nullable FunctionEx<ExpressionEvalContext, EventTimePolicy<JetSqlRow>> eventTimePolicyProvider
     ) {
         if (eventTimePolicyProvider != null) {
             throw QueryException.error("Ordering functions are not supported on top of " + TYPE_NAME + " mappings");
         }
 
-        InfoSchemaTable table = (InfoSchemaTable) table0;
+        InfoSchemaTable table = (InfoSchemaTable) context.getTable();
         List<Object[]> rows = table.rows();
-        return dag.newUniqueVertex(
+        Expression<Boolean> convertedPredicate = context.convertFilter(predicate);
+        List<Expression<?>> convertedProjection = context.convertProjection(projection);
+        return context.getDag().newUniqueVertex(
                 table.toString(),
-                forceTotalParallelismOne(ProcessorSupplier.of(() -> new StaticSourceP(predicate, projection, rows)))
+                forceTotalParallelismOne(ProcessorSupplier.of(() ->
+                        new StaticSourceP(convertedPredicate, convertedProjection, rows)))
         );
     }
 
@@ -125,6 +127,11 @@ final class InfoSchemaConnector implements SqlConnector {
             List<JetSqlRow> processedRows = ExpressionUtil.evaluate(predicate, projection,
                     rows.stream().map(row -> new JetSqlRow(evalContext.getSerializationService(), row)), evalContext);
             traverser = Traversers.traverseIterable(processedRows);
+        }
+
+        @Override
+        public boolean isCooperative() {
+            return (predicate == null || predicate.isCooperative()) && projection.stream().allMatch(Expression::isCooperative);
         }
 
         @Override

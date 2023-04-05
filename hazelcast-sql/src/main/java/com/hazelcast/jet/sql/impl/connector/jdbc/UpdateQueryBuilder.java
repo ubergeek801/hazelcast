@@ -23,8 +23,9 @@ import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
 
@@ -33,26 +34,29 @@ class UpdateQueryBuilder {
     private final String query;
     private final ParamCollectingVisitor paramCollectingVisitor = new ParamCollectingVisitor();
 
-    UpdateQueryBuilder(JdbcTable table, List<String> pkFields, Map<String, RexNode> updates) {
+    UpdateQueryBuilder(JdbcTable table, List<String> pkFields, List<String> fieldNames, List<RexNode> expressions) {
         SqlDialect dialect = table.sqlDialect();
         SimpleContext simpleContext = new SimpleContext(dialect, value -> {
             JdbcTableField field = table.getField(value);
             return new SqlIdentifier(field.externalName(), SqlParserPos.ZERO);
         });
 
-        String setSqlFragment = updates.entrySet().stream()
-                                       .map(entry -> {
-                                           SqlNode sqlNode = simpleContext.toSql(null, entry.getValue());
+        assert fieldNames.size() == expressions.size();
+        String setSqlFragment = IntStream.range(0, fieldNames.size()).boxed()
+                                       .map(i -> {
+                                           SqlNode sqlNode = simpleContext.toSql(null, expressions.get(i));
                                            sqlNode.accept(paramCollectingVisitor);
-                                           return '\"' + table.getField(entry.getKey()).externalName() + "\" ="
+                                           String externalFieldName = table.getField(fieldNames.get(i)).externalName();
+                                           return dialect.quoteIdentifier(externalFieldName)
+                                                   + "="
                                                    + sqlNode.toSqlString(dialect).toString();
                                        })
                                        .collect(joining(", "));
 
-        String whereClause = pkFields.stream().map(e -> '\"' + e + "\" = ?")
+        String whereClause = pkFields.stream().map(e ->  dialect.quoteIdentifier(e) + " = ?")
                                      .collect(joining(" AND "));
 
-        query = "UPDATE " + table.getExternalName() +
+        query = "UPDATE " + dialect.quoteIdentifier(new StringBuilder(), Arrays.asList(table.getExternalName())) +
                 " SET " + setSqlFragment +
                 " WHERE " + whereClause;
     }

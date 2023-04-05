@@ -16,11 +16,9 @@
 
 package com.hazelcast.jet.sql.impl.connector.jdbc;
 
-import com.hazelcast.datastore.ExternalDataStoreFactory;
-import com.hazelcast.datastore.ExternalDataStoreService;
-import com.hazelcast.datastore.impl.CloseableDataSource;
-import com.hazelcast.instance.impl.HazelcastInstanceImpl;
+import com.hazelcast.datalink.impl.JdbcDataLink;
 import com.hazelcast.jet.core.ProcessorSupplier;
+import com.hazelcast.jet.impl.connector.DataSourceFromConnectionSupplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,31 +28,27 @@ import static java.util.Objects.requireNonNull;
 
 abstract class AbstractJdbcSqlConnectorProcessorSupplier implements ProcessorSupplier {
 
-    protected String externalDataStoreRef;
+    protected String dataLinkName;
 
+    protected transient JdbcDataLink dataLink;
     protected transient DataSource dataSource;
 
     AbstractJdbcSqlConnectorProcessorSupplier() {
     }
 
-    AbstractJdbcSqlConnectorProcessorSupplier(String externalDataStoreRef) {
-        this.externalDataStoreRef = requireNonNull(externalDataStoreRef, "externalDataStoreRef must not be null");
+    AbstractJdbcSqlConnectorProcessorSupplier(String dataLinkName) {
+        this.dataLinkName = requireNonNull(dataLinkName, "dataLinkName must not be null");
     }
 
     public void init(@Nonnull Context context) throws Exception {
-        ExternalDataStoreService externalDataStoreService = ((HazelcastInstanceImpl) context.hazelcastInstance())
-                .node.getNodeEngine().getExternalDataStoreService();
-
-        ExternalDataStoreFactory<DataSource> factory = externalDataStoreService
-                .getExternalDataStoreFactory(externalDataStoreRef);
-
-        dataSource = factory.getDataStore();
+        dataLink = context.dataLinkService().getAndRetainDataLink(dataLinkName, JdbcDataLink.class);
+        dataSource = new DataSourceFromConnectionSupplier(dataLink::getConnection);
     }
 
     @Override
     public void close(@Nullable Throwable error) throws Exception {
-        if (dataSource instanceof CloseableDataSource) {
-            ((CloseableDataSource) dataSource).close();
+        if (dataLink != null) {
+            dataLink.release();
         }
     }
 }

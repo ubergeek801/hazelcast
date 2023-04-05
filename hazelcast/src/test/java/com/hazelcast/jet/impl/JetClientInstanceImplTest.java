@@ -47,15 +47,12 @@ public class JetClientInstanceImplTest extends JetTestSupport {
         // When
         List<DistributedObjectInfo> objects = client.getDistributedObjects();
 
-
         // Then
         assertFalse(objects.isEmpty());
         DistributedObjectInfo info = objects.stream()
-                                            .filter(i -> mapName.equals(i.getName()))
-                                            .findFirst()
-                                            .orElseThrow(AssertionError::new);
+                .filter(i -> mapName.equals(i.getName()))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
         assertEquals(MapService.SERVICE_NAME, info.getServiceName());
     }
-
-
 }

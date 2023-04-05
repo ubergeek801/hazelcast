@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,16 +45,14 @@ public class HazelcastBootstrapTest {
         cleanUpHazelcastBootstrapSupplier();
     }
 
-    private static void cleanUpHazelcastBootstrapSupplier() throws NoSuchFieldException, IllegalAccessException {
+    private static void cleanUpHazelcastBootstrapSupplier() {
         // Set the static instance supplier field of HazelcastBootstrap
         // to null. Because of the lifetime of this field spans many
         // test classes run on the same JVM, HazelcastBootstrapTest
         // and HazelcastCommandLineTest were interfering with each
         // other before this cleanup step added.
         // See: https://github.com/hazelcast/hazelcast/issues/18725
-        Field field = HazelcastBootstrap.class.getDeclaredField("supplier");
-        field.setAccessible(true);
-        field.set(null, null);
+        HazelcastBootstrap.resetRemembered();
     }
 
     @Test
