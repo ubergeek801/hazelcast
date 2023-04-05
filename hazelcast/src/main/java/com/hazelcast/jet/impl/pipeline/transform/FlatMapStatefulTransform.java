@@ -35,8 +35,8 @@ import static com.hazelcast.jet.core.processor.Processors.flatMapStatefulP;
 public class FlatMapStatefulTransform<T, K, S, R> extends StatefulKeyedTransformBase<T, K, S> {
     private static final long serialVersionUID = 1L;
 
-    private final TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> statefulFlatMapFn;
-    private final TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn;
+    protected final TriFunction<? super S, ? super K, ? super T, ? extends Traverser<R>> statefulFlatMapFn;
+    protected final TriFunction<? super S, ? super K, ? super Long, ? extends Traverser<R>> onEvictFn;
 
     public FlatMapStatefulTransform(
             @Nonnull List<Transform> upstream,

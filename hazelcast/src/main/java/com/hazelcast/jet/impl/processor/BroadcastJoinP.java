@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2021, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class BroadcastJoinP<T, U, K, S, R> extends TransformStatefulP<T, K, S, R
         // TODO this logic is common with TransformStatefulP#flatMapEvent()
         long timestamp = broadcastTimestampFn.applyAsLong(event);
         if (timestamp < currentWm && ttl != Long.MAX_VALUE) {
-            logLateEvent(getLogger(), currentWm, event);
+            logLateEvent(getLogger(), (byte) 0, currentWm, event);
             lateEventsDropped.inc();
             return Traversers.empty();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2021, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import static com.hazelcast.jet.core.processor.Processors.incrementalJoinP;
 import static java.util.Arrays.asList;
 
 public class IncrementalJoinTransform<T, U, K, S, R> extends FlatMapStatefulTransform<T, K, S, R> {
+    private static final long serialVersionUID = 1L;
 
     private final FunctionEx<? super U, ? extends K> keyFn1;
     private final ToLongFunctionEx<? super U> timestampFn1;

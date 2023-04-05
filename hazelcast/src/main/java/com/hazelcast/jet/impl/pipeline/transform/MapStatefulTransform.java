@@ -22,7 +22,6 @@ import com.hazelcast.jet.function.TriFunction;
 import com.hazelcast.jet.impl.pipeline.PipelineImpl.Context;
 import com.hazelcast.jet.impl.pipeline.Planner;
 import com.hazelcast.jet.impl.pipeline.Planner.PlannerVertex;
-import com.hazelcast.jet.impl.pipeline.PipelineImpl.Context;
 
 import java.util.Arrays;
 import javax.annotation.Nonnull;

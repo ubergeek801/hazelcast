@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2021, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import static com.hazelcast.jet.core.processor.Processors.broadcastJoinP;
 import static java.util.Arrays.asList;
 
 public class BroadcastJoinTransform<T, U, K, S, R> extends FlatMapStatefulTransform<T, K, S, R> {
+    private static final long serialVersionUID = 1L;
 
     private final ToLongFunctionEx<? super U> timestampFn1;
     private final TriFunction<? super S, ? super K, ? super U, ? extends Traverser<R>> broadcastFn;
