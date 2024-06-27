@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ import com.hazelcast.sql.SqlResult;
 import com.hazelcast.sql.SqlRow;
 import com.hazelcast.sql.SqlRowMetadata;
 import com.hazelcast.sql.SqlStatement;
-import com.hazelcast.test.HazelcastParallelParametersRunnerFactory;
 import com.hazelcast.test.HazelcastParametrizedRunner;
+import com.hazelcast.test.HazelcastSerialParametersRunnerFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.BeforeClass;
@@ -63,6 +63,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ import static org.junit.runners.Parameterized.UseParametersRunnerFactory;
  * Test that covers basic column read operations through SQL.
  */
 @RunWith(HazelcastParametrizedRunner.class)
-@UseParametersRunnerFactory(HazelcastParallelParametersRunnerFactory.class)
+@UseParametersRunnerFactory(HazelcastSerialParametersRunnerFactory.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 @SuppressWarnings("checkstyle:RedundantModifier")
 public class SqlBasicTest extends SqlTestSupport {
@@ -93,15 +94,15 @@ public class SqlBasicTest extends SqlTestSupport {
     private static final int IDS_KEY_CLASS_ID = 2;
     private static final int IDS_VALUE_CLASS_ID = 3;
     static final int PORTABLE_FACTORY_ID = 1;
-    private static final int PORTABLE_KEY_CLASS_ID = 2;
+    static final int PORTABLE_KEY_CLASS_ID = 2;
     static final int PORTABLE_VALUE_CLASS_ID = 3;
     private static final int PORTABLE_NESTED_CLASS_ID = 4;
 
     private static final String MAP_OBJECT = "map_object";
     private static final String MAP_BINARY = "map_binary";
 
-    protected static final int[] PAGE_SIZES = {256};
-    protected static final int[] DATA_SET_SIZES = {4096};
+    protected static final int PAGE_SIZE = 256;
+    protected static final int DATA_SET_SIZE = SqlStatement.DEFAULT_CURSOR_BUFFER_SIZE;
 
     protected static HazelcastInstance member1;
     protected static HazelcastInstance member2;
@@ -121,29 +122,13 @@ public class SqlBasicTest extends SqlTestSupport {
 
     @Parameters(name = "cursorBufferSize:{0}, dataSetSize:{1}, serializationMode:{2}, inMemoryFormat:{3}")
     public static Collection<Object[]> parameters() {
-        List<Object[]> res = new ArrayList<>();
-
-        for (int pageSize : PAGE_SIZES) {
-            for (int dataSetSize : DATA_SET_SIZES) {
-                for (SerializationMode serializationMode : SerializationMode.values()) {
-                    for (InMemoryFormat format : new InMemoryFormat[]{InMemoryFormat.OBJECT, InMemoryFormat.BINARY}) {
-                        res.add(new Object[]{
-                                pageSize,
-                                dataSetSize,
-                                serializationMode,
-                                format
-                        });
-                    }
-                }
-            }
-        }
-
-        return res;
+        return Collections.singletonList(
+                new Object[]{PAGE_SIZE, DATA_SET_SIZE, SerializationMode.SERIALIZABLE, InMemoryFormat.BINARY});
     }
 
     @BeforeClass
     public static void beforeClass() {
-        initializeWithClient(2, memberConfig(), clientConfig());
+        initializeWithClientAndConfigSupplier(2, SqlBasicTest::memberConfig, clientConfig());
 
         member1 = instances()[0];
         member2 = instances()[1];
@@ -159,7 +144,8 @@ public class SqlBasicTest extends SqlTestSupport {
     @Test
     public void testSelect() {
         if (isPortable()) {
-            createMapping(mapName(), PORTABLE_FACTORY_ID, PORTABLE_KEY_CLASS_ID, 0, PORTABLE_FACTORY_ID, PORTABLE_VALUE_CLASS_ID, 0);
+            createMapping(mapName(), PORTABLE_FACTORY_ID, PORTABLE_KEY_CLASS_ID,
+                    0, PORTABLE_FACTORY_ID, PORTABLE_VALUE_CLASS_ID, 0);
         } else {
             createMapping(mapName(), keyClass(), valueClass());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static java.util.Collections.synchronizedList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -105,9 +106,9 @@ public class JetClassLoaderTest extends JetTestSupport {
 
         Job job = instance.getJet().newJob(dag, jobConfig);
 
-        assertJobStatusEventually(job, JobStatus.RUNNING);
+        assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
         job.suspend();
-        assertJobStatusEventually(job, JobStatus.SUSPENDED);
+        assertThat(job).eventuallyHasStatus(JobStatus.SUSPENDED);
         job.resume();
         job.join();
 

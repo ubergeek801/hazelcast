@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.jet.core.TestProcessors.MockP;
 import com.hazelcast.jet.impl.util.ImdgUtil;
 import com.hazelcast.spi.properties.ClusterProperty;
+import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.NightlyTest;
 import org.junit.Test;
@@ -69,8 +70,8 @@ public class MemberReconnectionStressTest extends JetTestSupport {
             while (!terminated.get()) {
                 Connection connection = null;
                 while (connection == null || !terminated.get()) {
-                    connection = ImdgUtil.getMemberConnection(getNodeEngineImpl(inst1),
-                            getNodeEngineImpl(inst2).getThisAddress());
+                    connection = ImdgUtil.getMemberConnection(Accessors.getNodeEngineImpl(inst1),
+                            Accessors.getNodeEngineImpl(inst2).getThisAddress());
                 }
                 connection.close("test", new Exception("test failure"));
                 logger.info("connection closed");

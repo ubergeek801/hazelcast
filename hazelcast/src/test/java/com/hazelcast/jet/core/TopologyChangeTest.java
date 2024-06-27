@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.internal.cluster.MemberInfo;
 import com.hazelcast.internal.cluster.impl.ClusterDataSerializerHook;
 import com.hazelcast.internal.partition.impl.PartitionDataSerializerHook;
+import com.hazelcast.internal.serialization.impl.HeapData;
 import com.hazelcast.jet.Job;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.core.TestProcessors.MockPS;
@@ -43,13 +44,12 @@ import com.hazelcast.test.annotation.SlowTest;
 import com.hazelcast.version.Version;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,6 +63,7 @@ import static com.hazelcast.internal.cluster.impl.ClusterDataSerializerHook.MEMB
 import static com.hazelcast.internal.partition.impl.PartitionDataSerializerHook.SHUTDOWN_REQUEST;
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.config.ProcessingGuarantee.NONE;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.FAILED;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.core.JobStatus.STARTING;
@@ -94,9 +95,6 @@ public class TopologyChangeTest extends JetTestSupport {
 
     @Parameterized.Parameter
     public boolean[] liteMemberFlags;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     private int nodeCount;
 
@@ -231,7 +229,7 @@ public class TopologyChangeTest extends JetTestSupport {
         instances[2].getLifecycleService().terminate();
         NoOutputSourceP.proceedLatch.countDown();
 
-        assertJobStatusEventually(job, snapshotted ? SUSPENDED : FAILED, 10);
+        assertThat(job).eventuallyHasStatus(snapshotted ? SUSPENDED : FAILED, Duration.ofSeconds(10));
         if (!snapshotted) {
             try {
                 job.join();
@@ -397,7 +395,7 @@ public class TopologyChangeTest extends JetTestSupport {
 
 
         // Then
-        assertJobStatusEventually(job, STARTING);
+        assertThat(job).eventuallyHasStatus(STARTING);
         assertTrueAllTheTime(() -> assertEquals(STARTING, job.getStatus()), 5);
 
         resetPacketFiltersFrom(instances[0]);
@@ -478,7 +476,7 @@ public class TopologyChangeTest extends JetTestSupport {
         spawn(() -> instances[2].shutdown());
 
         // Then, it restarts until the shutting down node is gone
-        assertJobStatusEventually(job, STARTING);
+        assertThat(job).eventuallyHasStatus(STARTING);
         assertTrueAllTheTime(() -> assertEquals(STARTING, job.getStatus()), 5);
 
         resetPacketFiltersFrom(instances[2]);
@@ -497,7 +495,7 @@ public class TopologyChangeTest extends JetTestSupport {
 
         DAG dag = new DAG().vertex(new Vertex("test", new MockPS(TestProcessors.Identity::new, nodeCount - 1)));
         Job job = instances[0].getJet().newJob(dag);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         // When a participant shuts down during execution
         instances[2].getLifecycleService().terminate();
@@ -514,14 +512,15 @@ public class TopologyChangeTest extends JetTestSupport {
         int memberListVersion = Accessors.getClusterService(master).getMemberListVersion();
         Set<MemberInfo> memberInfos = new HashSet<>();
         for (int i = 1; i < instances.length; i++) {
-            memberInfos.add(new MemberInfo(getNode(instances[i]).getLocalMember()));
+            memberInfos.add(new MemberInfo(Accessors.getNode(instances[i]).getLocalMember()));
         }
 
         Version version = instances[0].getCluster().getLocalMember().getVersion().asVersion();
         JobRecord jobRecord = new JobRecord(version, jobId, null, "", new JobConfig(), Collections.emptySet(), null);
         instances[0].getMap(JOB_RECORDS_MAP_NAME).put(jobId, jobRecord);
 
-        InitExecutionOperation op = new InitExecutionOperation(jobId, executionId, memberListVersion, version, memberInfos, null, false);
+        InitExecutionOperation op = InitExecutionOperation.forNormalJob(jobId, executionId, memberListVersion, version,
+                memberInfos, new HeapData());
         Future<Object> future = Accessors.getOperationService(master)
                 .createInvocationBuilder(JetServiceBackend.SERVICE_NAME, op, Accessors.getAddress(master))
                 .invoke();

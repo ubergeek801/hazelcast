@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.internal.serialization.impl.compact;
 
 import com.hazelcast.config.CompactSerializationConfig;
+import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.SerializationService;
@@ -43,6 +44,8 @@ import example.serialization.MainDTO;
 import example.serialization.MainDTOSerializer;
 import example.serialization.NamedDTO;
 import example.serialization.NodeDTO;
+import example.serialization.CompactWithInnerFieldAsUuid;
+import example.serialization.CustomUUIDSerializer;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -56,6 +59,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static com.hazelcast.internal.serialization.impl.compact.CompactTestUtil.createCompactGenericRecord;
 import static com.hazelcast.internal.serialization.impl.compact.CompactTestUtil.createFixedSizeFieldsDTO;
@@ -283,8 +287,8 @@ public class CompactStreamSerializerTest {
     public void testBits() throws IOException {
         // Share schemaService to make schema available to ss2
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
-        InternalSerializationService ss1 = (InternalSerializationService) createSerializationService(schemaService);
-        InternalSerializationService ss2 = (InternalSerializationService) createSerializationService(schemaService);
+        InternalSerializationService ss1 = createSerializationService(schemaService);
+        InternalSerializationService ss2 = createSerializationService(schemaService);
 
         BitsDTO bitsDTO = new BitsDTO();
         bitsDTO.a = true;
@@ -467,6 +471,31 @@ public class CompactStreamSerializerTest {
         assertEquals(employeeDTO, actual);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testCompactInnerFieldCanNotOverrideDefaultSerializer() {
+        testUsageOfCompactClassInnerFieldAsCustomSerializer(false);
+    }
+
+    @Test
+    public void testCompactInnerFieldCanOverrideDefaultSerializer() {
+        testUsageOfCompactClassInnerFieldAsCustomSerializer(true);
+    }
+
+    private void testUsageOfCompactClassInnerFieldAsCustomSerializer(boolean allowOverrideDefaultSerializers) {
+        final SerializationConfig config = new SerializationConfig().setAllowOverrideDefaultSerializers(allowOverrideDefaultSerializers);
+
+        config.getCompactSerializationConfig().addSerializer(new CustomUUIDSerializer());
+
+        final SerializationService ss = createSerializationService(config);
+
+        UUID innerField = UUID.randomUUID();
+        CompactWithInnerFieldAsUuid compactWithUuidField = new CompactWithInnerFieldAsUuid(innerField);
+        final Data d = ss.toData(compactWithUuidField);
+        final CompactWithInnerFieldAsUuid deserializedAnswer = ss.toObject(d);
+
+        assertEquals(compactWithUuidField, deserializedAnswer);
+    }
+
     @Test
     public void testDeserializedToGenericRecordWhenClassNotFoundOnClassPath() {
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
@@ -567,7 +596,7 @@ public class CompactStreamSerializerTest {
     public void testSchemaEvolution_variableSizeFieldAdded() {
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
         //Using this type of serializer to mimic schema evolution. This is usage is not advised.
-        CompactSerializer<EmployeeDTO> serializer = new CompactSerializer<EmployeeDTO>() {
+        CompactSerializer<EmployeeDTO> serializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public EmployeeDTO read(@Nonnull CompactReader reader) {
@@ -625,7 +654,7 @@ public class CompactStreamSerializerTest {
     public void testSchemaEvolution_fixedSizeFieldAdded() {
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
         //Using this type of serializer to mimic schema evolution. This is usage is not advised.
-        CompactSerializer<EmployeeDTO> serializer = new CompactSerializer<EmployeeDTO>() {
+        CompactSerializer<EmployeeDTO> serializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public EmployeeDTO read(@Nonnull CompactReader in) {
@@ -681,7 +710,7 @@ public class CompactStreamSerializerTest {
     public void testSchemaEvolution_fixedSizeFieldRemoved() {
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
         //Using this type of serializer to mimic schema evolution. This is usage is not advised.
-        CompactSerializer<EmployeeDTO> newSerializer = new CompactSerializer<EmployeeDTO>() {
+        CompactSerializer<EmployeeDTO> newSerializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public EmployeeDTO read(@Nonnull CompactReader reader) {
@@ -707,7 +736,7 @@ public class CompactStreamSerializerTest {
             }
         };
 
-        CompactSerializer<EmployeeDTO> oldSerializer = new CompactSerializer<EmployeeDTO>() {
+        CompactSerializer<EmployeeDTO> oldSerializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public EmployeeDTO read(@Nonnull CompactReader reader) {
@@ -761,7 +790,7 @@ public class CompactStreamSerializerTest {
     public void testSchemaEvolution_variableSizeFieldRemoved() {
         SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
         //Using this type of serializer to mimic schema evolution. This is usage is not advised.
-        CompactSerializer<NodeDTO> newSerializer = new CompactSerializer<NodeDTO>() {
+        CompactSerializer<NodeDTO> newSerializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public NodeDTO read(@Nonnull CompactReader in) {
@@ -787,7 +816,7 @@ public class CompactStreamSerializerTest {
             }
         };
 
-        CompactSerializer<NodeDTO> oldSerializer = new CompactSerializer<NodeDTO>() {
+        CompactSerializer<NodeDTO> oldSerializer = new CompactSerializer<>() {
             @Nonnull
             @Override
             public NodeDTO read(@Nonnull CompactReader in) {

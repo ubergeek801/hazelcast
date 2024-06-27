@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.UUID;
 
 /**
  * Only key is set and other values are omitted. Only used to check whether
- * a {@link DelayedEntry} for the key is exist.
+ * a {@link DelayedEntry} for the key exists.
  *
  * @param <K> the key type.
  * @param <V> the value type
@@ -93,11 +93,10 @@ class NullValueDelayedEntry<K, V> implements DelayedEntry<K, V> {
             return true;
         }
 
-        if (!(o instanceof NullValueDelayedEntry)) {
+        if (!(o instanceof NullValueDelayedEntry<?, ?> that)) {
             return false;
         }
 
-        NullValueDelayedEntry<?, ?> that = (NullValueDelayedEntry<?, ?>) o;
         return Objects.equals(key, that.key);
 
     }

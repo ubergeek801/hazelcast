@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.internal.serialization.BinaryInterface;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
 @BinaryInterface
 public class RegexPredicate extends AbstractPredicate {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private String regex;
@@ -89,11 +91,10 @@ public class RegexPredicate extends AbstractPredicate {
         if (!super.equals(o)) {
             return false;
         }
-        if (!(o instanceof RegexPredicate)) {
+        if (!(o instanceof RegexPredicate that)) {
             return false;
         }
 
-        RegexPredicate that = (RegexPredicate) o;
         if (!that.canEqual(this)) {
             return false;
         }

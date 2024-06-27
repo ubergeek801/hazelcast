@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.hazelcast.internal.serialization.impl.defaultserializers.DelayQueueSt
 import com.hazelcast.internal.serialization.impl.defaultserializers.HashMapStreamSerializer;
 import com.hazelcast.internal.serialization.impl.defaultserializers.HashSetStreamSerializer;
 import com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers;
+import com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers.ByteBufferSerializer;
 import com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers.EnumSerializer;
 import com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers.OptionalSerializer;
 import com.hazelcast.internal.serialization.impl.defaultserializers.LinkedBlockingQueueStreamSerializer;
@@ -72,6 +73,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -106,9 +108,6 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.hazelcast.internal.serialization.impl.DataSerializableSerializer.EE_FLAG;
-import static com.hazelcast.internal.serialization.impl.DataSerializableSerializer.IDS_FLAG;
-import static com.hazelcast.internal.serialization.impl.DataSerializableSerializer.isFlagSet;
 import static com.hazelcast.internal.serialization.impl.SerializationUtil.createSerializerAdapter;
 import static com.hazelcast.internal.serialization.impl.defaultserializers.ConstantSerializers.BooleanArraySerializer;
 import static com.hazelcast.internal.serialization.impl.defaultserializers.ConstantSerializers.CharArraySerializer;
@@ -138,11 +137,10 @@ import static com.hazelcast.internal.serialization.impl.defaultserializers.JavaD
 import static com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers.LocalTimeSerializer;
 import static com.hazelcast.internal.serialization.impl.defaultserializers.JavaDefaultSerializers.OffsetDateTimeSerializer;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
+import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings({"ClassDataAbstractionCoupling", "ClassFanOutComplexity"})
 public class SerializationServiceV1 extends AbstractSerializationService {
-
-    private static final int FACTORY_AND_CLASS_ID_BYTE_LENGTH = 8;
-    private static final int EE_BYTE_LENGTH = 2;
 
     private final PortableContextImpl portableContext;
     private final PortableSerializer portableSerializer;
@@ -155,15 +153,28 @@ public class SerializationServiceV1 extends AbstractSerializationService {
             portableContext.registerClassDefinition(cd);
         }
 
-        dataSerializerAdapter = createSerializerAdapter(new DataSerializableSerializer(
-                builder.dataSerializableFactories, builder.getClassLoader()));
+        if (builder.versionedSerializationEnabled) {
+            ClusterVersionAware clusterVersionAware =
+                    requireNonNull(builder.clusterVersionAware, "ClusterVersionAware can't be null");
+            dataSerializerAdapter = createSerializerAdapter(new VersionedDataSerializableSerializer(
+                    builder.dataSerializableFactories, builder.getClassLoader(), clusterVersionAware));
+        } else {
+            dataSerializerAdapter = createSerializerAdapter(new DataSerializableSerializer(
+                    builder.dataSerializableFactories, builder.getClassLoader()));
+        }
+
         portableSerializer = new PortableSerializer(portableContext, loader.getFactories());
         portableSerializerAdapter = createSerializerAdapter(portableSerializer);
 
         javaSerializerAdapter = createSerializerAdapter(
-                new JavaSerializer(builder.enableSharedObject, builder.enableCompression, builder.classNameFilter));
+                new JavaSerializer(builder.enableSharedObject, builder.enableCompression, builder.classNameSerializationFilter)
+        );
         javaExternalizableAdapter = createSerializerAdapter(
-                new JavaDefaultSerializers.ExternalizableSerializer(builder.enableCompression, builder.classNameFilter));
+                new JavaDefaultSerializers.ExternalizableSerializer(
+                    builder.enableCompression,
+                    builder.classNameSerializationFilter
+                )
+        );
         registerConstantSerializers(builder.isCompatibility());
         registerJavaTypeSerializers(builder.isCompatibility());
 
@@ -298,6 +309,7 @@ public class SerializationServiceV1 extends AbstractSerializationService {
             registerConstant(LinkedHashSet.class, new LinkedHashSetStreamSerializer());
             registerConstant(CopyOnWriteArraySet.class, new CopyOnWriteArraySetStreamSerializer());
             registerConstant(ConcurrentSkipListSet.class, new ConcurrentSkipListSetStreamSerializer());
+
             registerConstant(ArrayDeque.class, new ArrayDequeStreamSerializer());
             registerConstant(LinkedBlockingQueue.class, new LinkedBlockingQueueStreamSerializer());
             registerConstant(ArrayBlockingQueue.class, new ArrayBlockingQueueStreamSerializer());
@@ -320,6 +332,7 @@ public class SerializationServiceV1 extends AbstractSerializationService {
         safeRegister(Serializable.class, javaSerializerAdapter);
         safeRegister(Externalizable.class, javaExternalizableAdapter);
         safeRegister(HazelcastJsonValue.class, new HazelcastJsonValueSerializer());
+        safeRegister(ByteBuffer.class, new ByteBufferSerializer());
     }
 
     public void registerClassDefinitions(Collection<ClassDefinition> classDefinitions) {
@@ -381,14 +394,14 @@ public class SerializationServiceV1 extends AbstractSerializationService {
     public ObjectDataInput initDataSerializableInputAndSkipTheHeader(Data data) throws IOException {
         ObjectDataInput input = createObjectDataInput(data);
         byte header = input.readByte();
-        if (isFlagSet(header, IDS_FLAG)) {
-            skipBytesSafely(input, FACTORY_AND_CLASS_ID_BYTE_LENGTH);
+        if (DataSerializableHeader.isIdentifiedDataSerializable(header)) {
+            skipBytesSafely(input, DataSerializableHeader.FACTORY_AND_CLASS_ID_BYTE_LENGTH);
         } else {
             input.readString();
         }
 
-        if (isFlagSet(header, EE_FLAG)) {
-            skipBytesSafely(input, EE_BYTE_LENGTH);
+        if (DataSerializableHeader.isVersioned(header)) {
+            skipBytesSafely(input, DataSerializableHeader.EE_BYTE_LENGTH);
         }
         return input;
     }
@@ -410,8 +423,10 @@ public class SerializationServiceV1 extends AbstractSerializationService {
         private Map<Integer, ? extends PortableFactory> portableFactories = Collections.emptyMap();
         private boolean enableCompression;
         private boolean enableSharedObject;
-        private ClassNameFilter classNameFilter;
+        private ClassNameFilter classNameSerializationFilter;
         private boolean checkClassDefErrors;
+        private boolean versionedSerializationEnabled;
+        private ClusterVersionAware clusterVersionAware;
 
         protected AbstractBuilder() {
         }
@@ -447,13 +462,31 @@ public class SerializationServiceV1 extends AbstractSerializationService {
         }
 
         public final T withClassNameFilter(ClassNameFilter classNameFilter) {
-            this.classNameFilter = classNameFilter;
+            this.classNameSerializationFilter = classNameFilter;
             return self();
         }
 
         public final T withCheckClassDefErrors(boolean checkClassDefErrors) {
             this.checkClassDefErrors = checkClassDefErrors;
             return self();
+        }
+
+        public final T withVersionedSerializationEnabled(boolean versionedSerializationEnabled) {
+            this.versionedSerializationEnabled = versionedSerializationEnabled;
+            return self();
+        }
+
+        public final T withClusterVersionAware(ClusterVersionAware clusterVersionAware) {
+            this.clusterVersionAware = clusterVersionAware;
+            return self();
+        }
+
+        public boolean isVersionedSerializationEnabled() {
+            return versionedSerializationEnabled;
+        }
+
+        public ClusterVersionAware getClusterVersionAware() {
+            return clusterVersionAware;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,14 +121,14 @@ public class TransactionManagerServiceImpl implements TransactionManagerService,
             return value;
         } catch (Throwable e) {
             context.rollbackTransaction();
-            if (e instanceof TransactionException) {
-                throw (TransactionException) e;
+            if (e instanceof TransactionException exception) {
+                throw exception;
             }
-            if (e.getCause() instanceof TransactionException) {
-                throw (TransactionException) e.getCause();
+            if (e.getCause() instanceof TransactionException transactionException) {
+                throw transactionException;
             }
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
+            if (e instanceof RuntimeException exception) {
+                throw exception;
             }
             throw new TransactionException(e);
         }
@@ -221,10 +221,10 @@ public class TransactionManagerServiceImpl implements TransactionManagerService,
                 logger.finest("Rolling-back transaction[id:" + txnId + ", state:ACTIVE] of endpoint " + uuid);
             }
             Collection<Member> memberList = nodeEngine.getClusterService().getMembers();
-            Collection<Future> futures = new ArrayList<>(memberList.size());
+            Collection<Future<Object>> futures = new ArrayList<>(memberList.size());
             for (Member member : memberList) {
                 Operation op = new BroadcastTxRollbackOperation(txnId);
-                Future f = operationService.invokeOnTarget(SERVICE_NAME, op, member.getAddress());
+                Future<Object> f = operationService.invokeOnTarget(SERVICE_NAME, op, member.getAddress());
                 futures.add(f);
             }
 

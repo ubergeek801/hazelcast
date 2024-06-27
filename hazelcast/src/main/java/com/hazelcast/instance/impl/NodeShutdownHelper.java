@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public final class NodeShutdownHelper {
      * {@link com.hazelcast.core.LifecycleEvent.LifecycleState#SHUTTING_DOWN}
      * or {@link com.hazelcast.core.LifecycleEvent.LifecycleState#SHUTDOWN} events.
      *
-     * @param node      Node to shutdown.
+     * @param node      Node to shut down.
      * @param terminate <code>false</code> for graceful shutdown, <code>true</code> for terminate (un-graceful shutdown)
      */
     public static void shutdownNodeByFiringEvents(Node node, boolean terminate) {

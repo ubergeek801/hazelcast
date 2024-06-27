@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,11 +103,14 @@ public class WanReplicationServiceImpl implements WanReplicationService,
     }
 
     @Override
+    public boolean hasWanReplicationScheme(String wanReplicationScheme) {
+       return wanReplications.containsKey(wanReplicationScheme)
+               || node.getConfig().getWanReplicationConfig(wanReplicationScheme) != null;
+    }
+
+
+    @Override
     public DelegatingWanScheme getWanReplicationPublishers(String wanReplicationScheme) {
-        if (!wanReplications.containsKey(wanReplicationScheme)
-                && node.getConfig().getWanReplicationConfig(wanReplicationScheme) == null) {
-            return null;
-        }
         return getOrPutSynchronized(wanReplications, wanReplicationScheme, this, publisherDelegateConstructor);
     }
 
@@ -181,8 +184,8 @@ public class WanReplicationServiceImpl implements WanReplicationService,
         String publisherId = null;
         if (!isNullOrEmptyAfterTrim(publisherConfig.getPublisherId())) {
             publisherId = publisherConfig.getPublisherId();
-        } else if (publisherConfig instanceof WanBatchPublisherConfig) {
-            publisherId = ((WanBatchPublisherConfig) publisherConfig).getClusterName();
+        } else if (publisherConfig instanceof WanBatchPublisherConfig config) {
+            publisherId = config.getClusterName();
         }
         if (publisherId == null) {
             throw new InvalidConfigurationException("Publisher ID or group name is not specified for " + publisherConfig);
@@ -230,6 +233,11 @@ public class WanReplicationServiceImpl implements WanReplicationService,
     public UUID syncAllMaps(String wanReplicationName, String wanPublisherId) {
         node.getManagementCenterService().log(
                 WanSyncIgnoredEvent.enterpriseOnly(wanReplicationName, wanPublisherId, null));
+        throw new UnsupportedOperationException("WAN sync is not supported.");
+    }
+
+    @Override
+    public WanSyncStateResult getSyncResult(UUID syncUUID) {
         throw new UnsupportedOperationException("WAN sync is not supported.");
     }
 
@@ -400,17 +408,18 @@ public class WanReplicationServiceImpl implements WanReplicationService,
 
     private WanPublisher getPublisherOrNull(String wanReplicationName,
                                             String wanPublisherId) {
-        DelegatingWanScheme publisherDelegate = getWanReplicationPublishers(wanReplicationName);
-        return publisherDelegate != null
-                ? publisherDelegate.getPublisher(wanPublisherId)
-                : null;
+        if (!hasWanReplicationScheme(wanReplicationName)) {
+            return null;
+        }
+
+        return getWanReplicationPublishers(wanReplicationName).getPublisher(wanPublisherId);
     }
 
     private void notifyMigrationAwarePublishers(Consumer<WanMigrationAwarePublisher> publisherConsumer) {
         for (DelegatingWanScheme wanReplication : wanReplications.values()) {
             for (WanPublisher publisher : wanReplication.getPublishers()) {
-                if (publisher instanceof WanMigrationAwarePublisher) {
-                    publisherConsumer.accept((WanMigrationAwarePublisher) publisher);
+                if (publisher instanceof WanMigrationAwarePublisher awarePublisher) {
+                    publisherConsumer.accept(awarePublisher);
                 }
             }
         }

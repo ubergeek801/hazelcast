@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class AzureDiscoveryStrategyTest {
 
     @Before
     public void setUp() {
-        Map<String, Comparable> properties = new HashMap<String, Comparable>();
+        Map<String, Comparable> properties = new HashMap<>();
         properties.put("hz-port", String.format("%s-%s", PORT1, PORT2));
         azureDiscoveryStrategy = new AzureDiscoveryStrategy(properties, azureClient);
     }
@@ -72,7 +72,7 @@ public class AzureDiscoveryStrategyTest {
     @Test
     public void newValidProperties() {
         // given
-        Map<String, Comparable> properties = new HashMap<String, Comparable>();
+        Map<String, Comparable> properties = new HashMap<>();
         properties.put("tenant-id", "subscription-id-1");
         properties.put("client-id", "subscription-id-1");
         properties.put("client-secret", "subscription-id-1");
@@ -92,7 +92,7 @@ public class AzureDiscoveryStrategyTest {
     @Test(expected = InvalidConfigurationException.class)
     public void newInvalidPortRangeProperty() {
         // given
-        Map<String, Comparable> properties = new HashMap<String, Comparable>();
+        Map<String, Comparable> properties = new HashMap<>();
         properties.put("hz-port", "invalid");
 
         // when
@@ -113,24 +113,24 @@ public class AzureDiscoveryStrategyTest {
         Iterable<DiscoveryNode> nodes = azureDiscoveryStrategy.discoverNodes();
 
         // then
-        Iterator<DiscoveryNode> iter = nodes.iterator();
+        Iterator<DiscoveryNode> iterator = nodes.iterator();
 
-        DiscoveryNode node1 = iter.next();
+        DiscoveryNode node1 = iterator.next();
         assertEquals(azureAddress1.getPrivateAddress(), node1.getPrivateAddress().getHost());
         assertEquals(azureAddress1.getPublicAddress(), node1.getPublicAddress().getHost());
         assertEquals(PORT1, node1.getPrivateAddress().getPort());
 
-        DiscoveryNode node2 = iter.next();
+        DiscoveryNode node2 = iterator.next();
         assertEquals(azureAddress1.getPrivateAddress(), node2.getPrivateAddress().getHost());
         assertEquals(azureAddress1.getPublicAddress(), node2.getPublicAddress().getHost());
         assertEquals(PORT2, node2.getPrivateAddress().getPort());
 
-        DiscoveryNode node3 = iter.next();
+        DiscoveryNode node3 = iterator.next();
         assertEquals(azureAddress2.getPrivateAddress(), node3.getPrivateAddress().getHost());
         assertEquals(azureAddress2.getPublicAddress(), node3.getPublicAddress().getHost());
         assertEquals(PORT1, node3.getPrivateAddress().getPort());
 
-        DiscoveryNode node4 = iter.next();
+        DiscoveryNode node4 = iterator.next();
         assertEquals(azureAddress2.getPrivateAddress(), node4.getPrivateAddress().getHost());
         assertEquals(azureAddress2.getPublicAddress(), node4.getPublicAddress().getHost());
         assertEquals(PORT2, node4.getPrivateAddress().getPort());
@@ -139,7 +139,7 @@ public class AzureDiscoveryStrategyTest {
     @Test
     public void discoverNodesEmpty() {
         // given
-        given(azureClient.getAddresses()).willReturn(new ArrayList<AzureAddress>());
+        given(azureClient.getAddresses()).willReturn(new ArrayList<>());
 
         // when
         Iterable<DiscoveryNode> nodes = azureDiscoveryStrategy.discoverNodes();

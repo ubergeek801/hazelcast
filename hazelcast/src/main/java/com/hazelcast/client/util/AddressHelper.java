@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client.util;
 
 import com.hazelcast.client.impl.connection.Addresses;
-import com.hazelcast.client.impl.management.ClientConnectionProcessListenerRunner;
+import com.hazelcast.client.impl.management.ClientConnectionProcessListenerRegistry;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.internal.util.AddressUtil;
@@ -50,7 +50,7 @@ public final class AddressHelper {
                 : addressHolder.getAddress();
     }
 
-    public static Addresses getSocketAddresses(String address, ClientConnectionProcessListenerRunner listenerRunner) {
+    public static Addresses getSocketAddresses(String address, ClientConnectionProcessListenerRegistry listenerRunner) {
         AddressHolder addressHolder = AddressUtil.getAddressHolder(address, -1);
         String scopedAddress = getScopedHostName(addressHolder);
 
@@ -63,7 +63,7 @@ public final class AddressHelper {
     }
 
     public static Addresses getPossibleSocketAddresses(int port, String scopedAddress, int portTryCount,
-                                                       ClientConnectionProcessListenerRunner listenerRunner) {
+                                                       ClientConnectionProcessListenerRegistry listenerRunner) {
         InetAddress inetAddress = null;
         try {
             inetAddress = InetAddress.getByName(scopedAddress);
@@ -75,7 +75,7 @@ public final class AddressHelper {
         if (possiblePort == -1) {
             possiblePort = INITIAL_FIRST_PORT;
         }
-        LinkedList<Address> addressList = new LinkedList<Address>();
+        LinkedList<Address> addressList = new LinkedList<>();
 
         if (inetAddress == null) {
             for (int i = 0; i < portTryCount; i++) {
@@ -90,8 +90,8 @@ public final class AddressHelper {
             for (int i = 0; i < portTryCount; i++) {
                 addressList.add(new Address(scopedAddress, inetAddress, possiblePort + i));
             }
-        } else if (inetAddress instanceof Inet6Address) {
-            Collection<Inet6Address> possibleInetAddresses = getPossibleInetAddressesFor((Inet6Address) inetAddress);
+        } else if (inetAddress instanceof Inet6Address address) {
+            Collection<Inet6Address> possibleInetAddresses = getPossibleInetAddressesFor(address);
             for (Inet6Address inet6Address : possibleInetAddresses) {
                 for (int i = 0; i < portTryCount; i++) {
                     addressList.add(new Address(scopedAddress, inet6Address, possiblePort + i));
@@ -103,7 +103,7 @@ public final class AddressHelper {
 
     private static Addresses toAddresses(List<Address> addressList) {
         Addresses result = new Addresses();
-        if (addressList.size() > 0) {
+        if (!addressList.isEmpty()) {
             result.primary().add(addressList.remove(0));
             result.secondary().addAll(addressList);
         }

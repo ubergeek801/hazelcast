@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.hazelcast.internal.monitor.impl.PerIndexStats;
 import com.hazelcast.query.impl.getters.Extractors;
 
 /**
- * Provides storage-specific indexes to {@link com.hazelcast.query.impl.Indexes
+ * Provides storage-specific indexes to {@link IndexRegistry
  * Indexes}.
  */
 public interface IndexProvider {
@@ -43,6 +43,7 @@ public interface IndexProvider {
      * @param mapName      the name of the map being indexed
      * @return the created index instance.
      */
+    @SuppressWarnings("checkstyle:ParameterNumber")
     InternalIndex createIndex(
             Node node,
             IndexConfig config,
@@ -51,5 +52,6 @@ public interface IndexProvider {
             IndexCopyBehavior copyBehavior,
             PerIndexStats stats,
             int partitionCount,
+            int partitionId,
             String mapName);
 }

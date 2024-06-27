@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class CRDTReplicationConfig {
     /**
      * Sets the period between two replications of CRDT states in milliseconds.
      * A lower value will increase the speed at which changes are disseminated
-     * to other cluster members at the expense of burst-like behaviour - less
+     * to other cluster members at the expense of burst-like behaviour - fewer
      * updates will be batched together in one replication message and one
      * update to a CRDT may cause a sudden burst of replication messages in a
      * short time interval.

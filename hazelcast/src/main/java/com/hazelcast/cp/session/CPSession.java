@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import com.hazelcast.cluster.Address;
  * then a session owner could be considered crashed very quickly and its
  * resources can be released prematurely. On the other hand, if a large value
  * is set, a session could be kept alive for an unnecessarily long duration
- * even if its owner actually crashes. However, it is a safer approach to
+ * even if its owner actually crashes. However, it is a safer approach
  * not to use a small session time to live duration. If a session owner is
  * known to be crashed, its session could be closed manually via
  * {@link CPSessionManagementService#forceCloseSession(String, long)}.

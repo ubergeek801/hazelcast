@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,8 @@ import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -44,15 +42,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.hazelcast.query.Predicates.greaterThan;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class MapAggregateTest extends HazelcastTestSupport {
-
-    @Rule
-    public ExpectedException expected = ExpectedException.none();
 
     @Test(expected = NullPointerException.class)
     public void null_aggregator() {
@@ -61,7 +57,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
 
     @Test(expected = NullPointerException.class)
     public void null_predicate() {
-        getMapWithNodeCount(1).aggregate(new DoubleAverageAggregator(), null);
+        getMapWithNodeCount(1).aggregate(new DoubleAverageAggregator<>(), null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -71,9 +67,8 @@ public class MapAggregateTest extends HazelcastTestSupport {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @SuppressWarnings("RedundantCast")
     public void pagingPredicate_fails() {
-        getMapWithNodeCount(1).aggregate(new DoubleAverageAggregator(), Predicates.pagingPredicate(1));
+        getMapWithNodeCount(1).aggregate(new DoubleAverageAggregator<>(), Predicates.pagingPredicate(1));
     }
 
     @Test
@@ -81,7 +76,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Double> map = getMapWithNodeCount(1);
         populateMap(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Double>>());
+        Double avg = map.aggregate(new DoubleAverageAggregator<>());
         assertEquals(Double.valueOf(4.0d), avg);
     }
 
@@ -90,7 +85,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Double> map = getMapWithNodeCount(3);
         populateMap(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Double>>());
+        Double avg = map.aggregate(new DoubleAverageAggregator<>());
         assertEquals(Double.valueOf(4.0d), avg);
     }
 
@@ -99,10 +94,10 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Double> map = getMapWithNodeCount(3);
         populateMap(map);
 
-        expected.expect(RuntimeException.class);
-        expected.expectMessage("accumulate() exception");
-
-        map.aggregate(new ExceptionThrowingAggregator<Map.Entry<String, Double>>(true, false, false));
+        ExceptionThrowingAggregator<Object> aggregator = new ExceptionThrowingAggregator<>(true, false, false);
+        assertThatThrownBy(() -> map.aggregate(aggregator))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("accumulate() exception");
     }
 
     @Test
@@ -110,10 +105,10 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Double> map = getMapWithNodeCount(3);
         populateMap(map);
 
-        expected.expect(RuntimeException.class);
-        expected.expectMessage("combine() exception");
-
-        map.aggregate(new ExceptionThrowingAggregator<Map.Entry<String, Double>>(false, true, false));
+        ExceptionThrowingAggregator<Object> aggregator = new ExceptionThrowingAggregator<>(false, true, false);
+        assertThatThrownBy(() -> map.aggregate(aggregator))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("combine() exception");
     }
 
     @Test
@@ -121,10 +116,10 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Double> map = getMapWithNodeCount(3);
         populateMap(map);
 
-        expected.expect(RuntimeException.class);
-        expected.expectMessage("aggregate() exception");
-
-        map.aggregate(new ExceptionThrowingAggregator<Map.Entry<String, Double>>(false, false, true));
+        ExceptionThrowingAggregator<Object> aggregator = new ExceptionThrowingAggregator<>(false, false, true);
+        assertThatThrownBy(() -> map.aggregate(aggregator))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("aggregate() exception");
     }
 
     private IMap<String, Double> populateMap(IMap<String, Double> map) {
@@ -139,7 +134,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Person> map = getMapWithNodeCount(1);
         populateMapWithPersons(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Person>>("age"));
+        Double avg = map.aggregate(new DoubleAverageAggregator<>("age"));
         assertEquals(Double.valueOf(4.0d), avg);
     }
 
@@ -148,7 +143,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Person> map = getMapWithNodeCount(3);
         populateMapWithPersons(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Person>>("age"));
+        Double avg = map.aggregate(new DoubleAverageAggregator<>("age"));
         assertEquals(Double.valueOf(4.0d), avg);
     }
 
@@ -157,7 +152,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Person> map = getMapWithNodeCount(1);
         populateMapWithPersons(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Person>>("age"), greaterThan("age", 2.0d));
+        Double avg = map.aggregate(new DoubleAverageAggregator<>("age"), greaterThan("age", 2.0d));
         assertEquals(Double.valueOf(5.5d), avg);
     }
 
@@ -166,7 +161,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Person> map = getMapWithNodeCount(1);
         populateMapWithPersons(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Person>>("age"),
+        Double avg = map.aggregate(new DoubleAverageAggregator<>("age"),
                 greaterThan("age", 30.0d));
         assertNull(avg);
     }
@@ -176,7 +171,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
         IMap<String, Person> map = getMapWithNodeCount(3);
         populateMapWithPersons(map);
 
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<String, Person>>("age"), greaterThan("age", 2.0d));
+        Double avg = map.aggregate(new DoubleAverageAggregator<>("age"), greaterThan("age", 2.0d));
         assertEquals(Double.valueOf(5.5d), avg);
     }
 
@@ -189,9 +184,9 @@ public class MapAggregateTest extends HazelcastTestSupport {
 
     private static class ExceptionThrowingAggregator<I> implements Aggregator<I, Double> {
 
-        private boolean throwOnAccumulate;
-        private boolean throwOnCombine;
-        private boolean throwOnAggregate;
+        private final boolean throwOnAccumulate;
+        private final boolean throwOnCombine;
+        private final boolean throwOnAggregate;
 
         ExceptionThrowingAggregator(boolean throwOnAccumulate, boolean throwOnCombine, boolean throwOnAggregate) {
             this.throwOnAccumulate = throwOnAccumulate;
@@ -230,7 +225,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
 
         int elementCount = 10000000;
         double value = 0;
-        Map<Long, Double> values = new HashMap<Long, Double>(elementCount);
+        Map<Long, Double> values = new HashMap<>(elementCount);
         for (long i = 0L; i < elementCount; i++) {
             values.put(i, value++);
         }
@@ -253,7 +248,7 @@ public class MapAggregateTest extends HazelcastTestSupport {
 
         System.err.println("Executing");
         long start = System.currentTimeMillis();
-        Double avg = map.aggregate(new DoubleAverageAggregator<Map.Entry<Long, Double>>());
+        Double avg = map.aggregate(new DoubleAverageAggregator<>());
         long stop = System.currentTimeMillis();
         System.err.println("Finished avg in " + (stop - start) + " millis avg=" + avg);
         System.err.flush();

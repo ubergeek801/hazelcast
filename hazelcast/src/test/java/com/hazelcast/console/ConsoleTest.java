@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ public class ConsoleTest {
                 int terminationTimeoutSec = 10;
                 consoleApp.stop();
                 // write new line char to sys.in so that BufferedReader#readLine completes
-                String lineSep = System.getProperty("line.separator");
+                String lineSep = System.lineSeparator();
                 pipeOut.write(lineSep.getBytes(StandardCharsets.UTF_8));
                 tp.shutdownNow();
                 boolean terminated = tp.awaitTermination(terminationTimeoutSec, TimeUnit.SECONDS);

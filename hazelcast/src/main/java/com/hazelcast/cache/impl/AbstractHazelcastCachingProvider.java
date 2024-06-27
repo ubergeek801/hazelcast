@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.cache.impl;
 
-import com.hazelcast.cache.HazelcastCachingProvider;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.logging.ILogger;
@@ -32,7 +31,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -44,7 +42,6 @@ import static com.hazelcast.cache.HazelcastCachingProvider.HAZELCAST_INSTANCE_NA
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getProperty;
-import static java.util.Collections.unmodifiableSet;
 
 /**
  * Abstract {@link CachingProvider} implementation providing shared
@@ -76,7 +73,7 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
      */
     public static final String NAMED_JCACHE_HZ_INSTANCE = "hazelcast.named.jcache.instance";
 
-    protected static final ILogger LOGGER = Logger.getLogger(HazelcastCachingProvider.class);
+    protected static final ILogger LOGGER = Logger.getLogger(AbstractHazelcastCachingProvider.class);
 
     private static final String INVALID_HZ_INSTANCE_SPECIFICATION_MESSAGE = "No available Hazelcast instance."
             + " Please specify your Hazelcast configuration file path via"
@@ -86,13 +83,7 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
     private static final Set<String> SUPPORTED_SCHEMES;
 
     static {
-        Set<String> supportedSchemes = new HashSet<>();
-        supportedSchemes.add("classpath");
-        supportedSchemes.add("file");
-        supportedSchemes.add("http");
-        supportedSchemes.add("https");
-        supportedSchemes.add("jar");
-        SUPPORTED_SCHEMES = unmodifiableSet(supportedSchemes);
+        SUPPORTED_SCHEMES = Set.of("classpath", "file", "http", "https", "jar");
     }
 
     protected final boolean namedDefaultHzInstance = parseBoolean(getProperty(NAMED_JCACHE_HZ_INSTANCE, "true"));
@@ -106,7 +97,7 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
 
     protected AbstractHazelcastCachingProvider() {
         // we use a WeakHashMap to prevent strong references to a classLoader to avoid memory leaks
-        this.cacheManagers = new WeakHashMap<ClassLoader, Map<URI, AbstractHazelcastCacheManager>>();
+        this.cacheManagers = new WeakHashMap<>();
         this.defaultClassLoader = getClass().getClassLoader();
         try {
             defaultURI = new URI("hazelcast");
@@ -121,11 +112,8 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
         ClassLoader managerClassLoader = getManagerClassLoader(classLoader);
         Properties managerProperties = properties == null ? new Properties() : properties;
         synchronized (cacheManagers) {
-            Map<URI, AbstractHazelcastCacheManager> cacheManagersByURI = cacheManagers.get(managerClassLoader);
-            if (cacheManagersByURI == null) {
-                cacheManagersByURI = new HashMap<URI, AbstractHazelcastCacheManager>();
-                cacheManagers.put(managerClassLoader, cacheManagersByURI);
-            }
+            Map<URI, AbstractHazelcastCacheManager> cacheManagersByURI = cacheManagers.computeIfAbsent(managerClassLoader,
+                    x -> new HashMap<>());
             AbstractHazelcastCacheManager cacheManager = cacheManagersByURI.get(managerURI);
             if (cacheManager == null || cacheManager.isClosed()) {
                 try {
@@ -304,7 +292,7 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
      * if not found, creates a new {@link HazelcastInstance} with the default
      * configuration and given {@code instanceName}.
      *
-     * @param instanceName name to lookup an existing {@link HazelcastInstance}
+     * @param instanceName name to look up an existing {@link HazelcastInstance}
      *                     or to create a new one
      * @return a {@link HazelcastInstance} with the given {@code instanceName}
      */
@@ -333,7 +321,7 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
                 return getOrCreateFromUri(uri, classLoader, instanceName);
             } catch (Exception e) {
                 if (LOGGER.isFinestEnabled()) {
-                    LOGGER.finest("Could not get or create Hazelcast instance from URI " + uri.toString(), e);
+                    LOGGER.finest("Could not get or create Hazelcast instance from URI " + uri, e);
                 }
             }
             // could not locate the Hazelcast instance, return null and an exception will be thrown by the invoker
@@ -385,5 +373,15 @@ public abstract class AbstractHazelcastCachingProvider implements CachingProvide
             }
         }
         return (scheme != null && SUPPORTED_SCHEMES.contains(scheme.toLowerCase(StringUtil.LOCALE_INTERNAL)));
+    }
+
+    /**
+     * Tests if the configuration file provided is a YAML file. The test is based on the file extension.
+     * @param configURL configuration URL to test.
+     * @return true if the configuration file extension is .yml or .yaml; otherwise, false.
+     */
+    protected static boolean isYamlConfiguration(URL configURL) {
+        String path = configURL.getPath();
+        return path.endsWith(".yml") || path.endsWith(".yaml");
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.client.impl.protocol.task.transactionalmultimap;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.TransactionalMultiMapGetCodec;
 import com.hazelcast.client.impl.protocol.task.AbstractTransactionalMessageTask;
+import com.hazelcast.security.SecurityInterceptorConstants;
 import com.hazelcast.transaction.TransactionalMultiMap;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.multimap.impl.MultiMapService;
@@ -45,7 +46,7 @@ public class TransactionalMultiMapGetMessageTask
         final TransactionContext context = endpoint.getTransactionContext(parameters.txnId);
         TransactionalMultiMap<Object, Object> multiMap = context.getMultiMap(parameters.name);
         Collection<Object> collection = multiMap.get(parameters.key);
-        List<Data> list = new ArrayList<Data>(collection.size());
+        List<Data> list = new ArrayList<>(collection.size());
         for (Object o : collection) {
             list.add(serializationService.toData(o));
         }
@@ -84,7 +85,7 @@ public class TransactionalMultiMapGetMessageTask
 
     @Override
     public String getMethodName() {
-        return "get";
+        return SecurityInterceptorConstants.GET;
     }
 
     @Override

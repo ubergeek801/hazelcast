@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,7 +215,7 @@ public class IsNullPredicateIntegrationTest extends ExpressionTestSupport {
     private Set<Integer> keys(String sql, Object... params) {
         List<SqlRow> rows = execute(sql, params);
 
-        if (rows.size() == 0) {
+        if (rows.isEmpty()) {
             return Collections.emptySet();
         }
 

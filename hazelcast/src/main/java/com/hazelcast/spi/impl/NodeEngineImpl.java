@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.hazelcast.internal.metrics.metricsets.GarbageCollectionMetricSet;
 import com.hazelcast.internal.metrics.metricsets.OperatingSystemMetricSet;
 import com.hazelcast.internal.metrics.metricsets.RuntimeMetricSet;
 import com.hazelcast.internal.metrics.metricsets.ThreadMetricSet;
+import com.hazelcast.internal.namespace.UserCodeNamespaceService;
 import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.partition.InternalPartitionService;
 import com.hazelcast.internal.partition.MigrationInfo;
@@ -52,7 +53,9 @@ import com.hazelcast.internal.tpc.TpcServerBootstrap;
 import com.hazelcast.internal.usercodedeployment.UserCodeDeploymentClassLoader;
 import com.hazelcast.internal.usercodedeployment.UserCodeDeploymentService;
 import com.hazelcast.internal.util.ConcurrencyDetection;
+import com.hazelcast.internal.util.phonehome.PhoneHome;
 import com.hazelcast.jet.impl.JetServiceBackend;
+import com.hazelcast.jet.impl.util.Util;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.LoggingService;
 import com.hazelcast.logging.impl.LoggingServiceImpl;
@@ -120,6 +123,7 @@ public class NodeEngineImpl implements NodeEngine {
     private final LoggingServiceImpl loggingService;
     private final ILogger logger;
     private final MetricsRegistryImpl metricsRegistry;
+    private final PhoneHome phoneHome;
     private final ProxyServiceImpl proxyService;
     private final ServiceManagerImpl serviceManager;
     private final ExecutionServiceImpl executionService;
@@ -149,18 +153,20 @@ public class NodeEngineImpl implements NodeEngine {
             this.loggingService = node.loggingService;
             this.logger = node.getLogger(NodeEngine.class.getName());
             this.metricsRegistry = newMetricRegistry(node);
+            this.phoneHome = new PhoneHome(node);
             this.proxyService = new ProxyServiceImpl(this);
             this.serviceManager = new ServiceManagerImpl(this);
             this.executionService = new ExecutionServiceImpl(this);
-            this.tpcServerBootstrap = new TpcServerBootstrap(this);
+            this.tenantControlService = new TenantControlServiceImpl(this);
+            this.tpcServerBootstrap = node.getNodeExtension().createTpcServerBootstrap();
             this.operationService = new OperationServiceImpl(this);
             this.eventService = new EventServiceImpl(this);
             this.operationParker = new OperationParkerImpl(this);
             UserCodeDeploymentService userCodeDeploymentService = new UserCodeDeploymentService();
             this.configurationService = node.getNodeExtension().createService(ClusterWideConfigurationService.class, this);
             ClassLoader configClassLoader = node.getConfigClassLoader();
-            if (configClassLoader instanceof UserCodeDeploymentClassLoader) {
-                ((UserCodeDeploymentClassLoader) configClassLoader).setUserCodeDeploymentService(userCodeDeploymentService);
+            if (configClassLoader instanceof UserCodeDeploymentClassLoader loader) {
+                loader.setUserCodeDeploymentService(userCodeDeploymentService);
             }
             this.transactionManagerService = new TransactionManagerServiceImpl(this);
             this.wanReplicationService = node.getNodeExtension().createService(WanReplicationService.class);
@@ -180,7 +186,6 @@ public class NodeEngineImpl implements NodeEngine {
 
             checkMapMergePolicies(node);
 
-            this.tenantControlService = new TenantControlServiceImpl(this);
 
             serviceManager.registerService(OperationServiceImpl.SERVICE_NAME, operationService);
             serviceManager.registerService(OperationParker.SERVICE_NAME, operationParker);
@@ -199,12 +204,15 @@ public class NodeEngineImpl implements NodeEngine {
     }
 
     private InternalSqlService createSqlService() {
+        if (!Util.isJetEnabled(this)) {
+            return new MissingSqlService(node.getThisUuid(), false);
+        }
         Class<?> clz;
         try {
             clz = Class.forName("com.hazelcast.sql.impl.SqlServiceImpl");
         } catch (ClassNotFoundException e) {
             // this is normal if the hazelcast-sql module isn't present - return disabled service
-            return new MissingSqlService(node.getThisUuid());
+            return new MissingSqlService(node.getThisUuid(), true);
         }
 
         try {
@@ -217,6 +225,7 @@ public class NodeEngineImpl implements NodeEngine {
         }
     }
 
+    @Override
     public TpcServerBootstrap getTpcServerBootstrap() {
         return tpcServerBootstrap;
     }
@@ -262,12 +271,19 @@ public class NodeEngineImpl implements NodeEngine {
         return new Diagnostics(name, loggingService, getHazelcastInstance().getName(), node.getProperties());
     }
 
+    @Override
     public LoggingService getLoggingService() {
         return loggingService;
     }
 
+    @Override
     public MetricsRegistry getMetricsRegistry() {
         return metricsRegistry;
+    }
+
+    @Override
+    public PhoneHome getPhoneHome() {
+        return phoneHome;
     }
 
     public void start() {
@@ -371,6 +387,7 @@ public class NodeEngineImpl implements NodeEngine {
         return node.getClusterService();
     }
 
+    @Override
     public ManagementCenterService getManagementCenterService() {
         return node.getManagementCenterService();
     }
@@ -501,6 +518,7 @@ public class NodeEngineImpl implements NodeEngine {
         serviceManager.forEachMatchingService(serviceClass, consumer);
     }
 
+    @Override
     public Node getNode() {
         return node;
     }
@@ -511,6 +529,7 @@ public class NodeEngineImpl implements NodeEngine {
         eventService.onMemberLeft(member);
     }
 
+    @Override
     public void onClientDisconnected(UUID clientUuid) {
         operationParker.onClientDisconnected(clientUuid);
     }
@@ -610,6 +629,9 @@ public class NodeEngineImpl implements NodeEngine {
         if (metricsRegistry != null) {
             metricsRegistry.shutdown();
         }
+        if (phoneHome != null) {
+            phoneHome.shutdown();
+        }
         if (diagnostics != null) {
             diagnostics.shutdown();
         }
@@ -635,5 +657,10 @@ public class NodeEngineImpl implements NodeEngine {
                 throw new UnsupportedOperationException("Jet is not enabled on this node");
             };
         }
+    }
+
+    @Override
+    public UserCodeNamespaceService getNamespaceService() {
+        return node.getNamespaceService();
     }
 }

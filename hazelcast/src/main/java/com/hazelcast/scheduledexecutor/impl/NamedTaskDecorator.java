@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ package com.hazelcast.scheduledexecutor.impl;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.impl.Versioned;
 import com.hazelcast.scheduledexecutor.NamedTask;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+//RU_COMPAT_5_3 "implements Versioned" can be removed in 5.5
 public class NamedTaskDecorator<V> extends AbstractTaskDecorator<V>
-        implements NamedTask {
+        implements NamedTask, Versioned {
 
     private String name;
 
@@ -72,6 +74,6 @@ public class NamedTaskDecorator<V> extends AbstractTaskDecorator<V>
     }
 
     public static <V> Callable<V> named(String name, Callable<V> callable) {
-        return new NamedTaskDecorator<V>(name, callable);
+        return new NamedTaskDecorator<>(name, callable);
     }
 }

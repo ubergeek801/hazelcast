@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.client.impl.protocol.task.transactionalmap;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.TransactionalMapKeySetWithPredicateCodec;
 import com.hazelcast.client.impl.protocol.task.AbstractTransactionalMessageTask;
+import com.hazelcast.security.SecurityInterceptorConstants;
 import com.hazelcast.transaction.TransactionalMap;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.map.impl.MapService;
@@ -48,7 +49,7 @@ public class TransactionalMapKeySetWithPredicateMessageTask
 
         Predicate predicate = serializationService.toObject(parameters.predicate);
         Set keySet = map.keySet(predicate);
-        List<Data> list = new ArrayList<Data>(keySet.size());
+        List<Data> list = new ArrayList<>(keySet.size());
         for (Object o : keySet) {
             list.add(serializationService.toData(o));
         }
@@ -87,7 +88,7 @@ public class TransactionalMapKeySetWithPredicateMessageTask
 
     @Override
     public String getMethodName() {
-        return "keySet";
+        return SecurityInterceptorConstants.KEY_SET;
     }
 
     @Override

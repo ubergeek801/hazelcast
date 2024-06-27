@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,10 +69,10 @@ public class ClientCacheNearCacheStaleReadTest extends HazelcastTestSupport {
 
     private static final ILogger LOGGER = Logger.getLogger(ClientCacheNearCacheStaleReadTest.class);
 
-    private AtomicInteger valuePut = new AtomicInteger(0);
-    private AtomicBoolean stop = new AtomicBoolean(false);
-    private AtomicInteger assertionViolationCount = new AtomicInteger(0);
-    private AtomicBoolean failed = new AtomicBoolean(false);
+    private final AtomicInteger valuePut = new AtomicInteger(0);
+    private final AtomicBoolean stop = new AtomicBoolean(false);
+    private final AtomicInteger assertionViolationCount = new AtomicInteger(0);
+    private final AtomicBoolean failed = new AtomicBoolean(false);
 
     private HazelcastInstance member;
     private HazelcastInstance client;
@@ -205,7 +205,7 @@ public class ClientCacheNearCacheStaleReadTest extends HazelcastTestSupport {
         sleepMillis(300);
 
         // start numGetters getter threads (get0-numGetters)
-        List<Thread> threads = new ArrayList<Thread>();
+        List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < NUM_GETTERS; i++) {
             Thread thread = new Thread(new GetRunnable(), "get" + i);
             threads.add(thread);

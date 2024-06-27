@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class UnisocketClientDriverFactory extends AbstractClientDriverFactory {
     }
 
     /**
-     * Client config for a unisocket client that connects to the given steady member only. If this instance was
+     * Client config for an unisocket client that connects to the given steady member only. If this instance was
      * constructed with a specific {@link ClientConfig}, then its network config is processed to ensure the client
      * connects to the steady member, otherwise a new {@link ClientConfig} is created.
      */

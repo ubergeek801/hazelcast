@@ -33,9 +33,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.hazelcast.internal.json.TestUtil.assertException;
-import static com.hazelcast.internal.json.TestUtil.serializeAndDeserialize;
+import static com.hazelcast.test.TestJavaSerializationUtils.serializeAndDeserialize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
@@ -53,11 +54,7 @@ public class JsonArray_Test {
 
   @Test
   public void copyConstructor_failsWithNull() {
-    assertException(NullPointerException.class, "array is null", new Runnable() {
-      public void run() {
-        new JsonArray(null);
-      }
-    });
+    assertException(NullPointerException.class, "array is null", (Runnable) () -> new JsonArray(null));
   }
 
   @Test
@@ -210,14 +207,14 @@ public class JsonArray_Test {
 
   @Test
   public void add_long() {
-    array.add(23l);
+    array.add(23L);
 
     assertEquals("[23]", array.toString());
   }
 
   @Test
   public void add_long_enablesChaining() {
-    assertSame(array, array.add(23l));
+    assertSame(array, array.add(23L));
   }
 
   @Test
@@ -303,11 +300,7 @@ public class JsonArray_Test {
 
   @Test
   public void add_json_failsWithNull() {
-    assertException(NullPointerException.class, "value is null", new Runnable() {
-      public void run() {
-        array.add((JsonValue)null);
-      }
-    });
+    assertException(NullPointerException.class, "value is null", (Runnable) () -> array.add((JsonValue)null));
   }
 
   @Test
@@ -369,7 +362,7 @@ public class JsonArray_Test {
   public void set_long() {
     array.add(false);
 
-    array.set(0, 23l);
+    array.set(0, 23L);
 
     assertEquals("[23]", array.toString());
   }
@@ -378,7 +371,7 @@ public class JsonArray_Test {
   public void set_long_enablesChaining() {
     array.add(false);
 
-    assertSame(array, array.set(0, 23l));
+    assertSame(array, array.set(0, 23L));
   }
 
   @Test
@@ -476,11 +469,7 @@ public class JsonArray_Test {
   public void set_json_failsWithNull() {
     array.add(false);
 
-    assertException(NullPointerException.class, "value is null", new Runnable() {
-      public void run() {
-        array.set(0, (JsonValue)null);
-      }
-    });
+    assertException(NullPointerException.class, "value is null", (Runnable) () -> array.set(0, (JsonValue)null));
   }
 
   @Test(expected = IndexOutOfBoundsException.class)
@@ -582,41 +571,42 @@ public class JsonArray_Test {
 
   @Test
   public void equals_trueForSameInstance() {
-    assertTrue(array.equals(array));
+    assertEquals(array, array);
   }
 
   @Test
   public void equals_trueForEqualArrays() {
-    assertTrue(array().equals(array()));
-    assertTrue(array("foo", "bar").equals(array("foo", "bar")));
+    assertEquals(array(), array());
+    assertEquals(array("foo", "bar"), array("foo", "bar"));
   }
 
   @Test
   public void equals_falseForDifferentArrays() {
-    assertFalse(array("foo", "bar").equals(array("foo", "bar", "baz")));
-    assertFalse(array("foo", "bar").equals(array("bar", "foo")));
+    assertNotEquals(array("foo", "bar"), array("foo", "bar", "baz"));
+    assertNotEquals(array("foo", "bar"), array("bar", "foo"));
   }
 
   @Test
   public void equals_falseForNull() {
-    assertFalse(array.equals(null));
+    assertNotEquals(array, null);
   }
 
   @Test
   public void equals_falseForSubclass() {
-    assertFalse(array.equals(new JsonArray(array) {}));
+    assertNotEquals(array, new JsonArray(array) {
+      });
   }
 
   @Test
   public void hashCode_equalsForEqualArrays() {
-    assertTrue(array().hashCode() == array().hashCode());
-    assertTrue(array("foo").hashCode() == array("foo").hashCode());
+    assertEquals(array().hashCode(), array().hashCode());
+    assertEquals(array("foo").hashCode(), array("foo").hashCode());
   }
 
   @Test
   public void hashCode_differsForDifferentArrays() {
-    assertFalse(array().hashCode() == array("bar").hashCode());
-    assertFalse(array("foo").hashCode() == array("bar").hashCode());
+    assertNotEquals(array().hashCode(), array("bar").hashCode());
+    assertNotEquals(array("foo").hashCode(), array("bar").hashCode());
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,11 +77,11 @@ public class ComparablesTest {
         assertEquals(0, compare(1.0, 1.0));
         assertEquals(0, compare("foo", "foo"));
 
-        assertThat(compare(0, 1)).isLessThan(0);
-        assertThat(compare(1, 0)).isGreaterThan(0);
+        assertThat(compare(0, 1)).isNegative();
+        assertThat(compare(1, 0)).isPositive();
 
-        assertThat(compare("a", "b")).isLessThan(0);
-        assertThat(compare("b", "a")).isGreaterThan(0);
+        assertThat(compare("a", "b")).isNegative();
+        assertThat(compare("b", "a")).isPositive();
     }
 
     @Test

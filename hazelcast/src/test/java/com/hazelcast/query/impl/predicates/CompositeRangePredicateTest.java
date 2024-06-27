@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.query.impl.IndexUtils;
 import com.hazelcast.test.HazelcastParallelParametersRunnerFactory;
 import com.hazelcast.test.HazelcastParametrizedRunner;
 import com.hazelcast.test.HazelcastTestSupport;
-import com.hazelcast.test.ObjectTestUtils;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Before;
@@ -38,7 +37,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 import static com.hazelcast.query.impl.AbstractIndex.NULL;
@@ -104,23 +103,13 @@ public class CompositeRangePredicateTest extends HazelcastTestSupport {
                 case 1:
                     from = value(age, NEGATIVE_INFINITY, NEGATIVE_INFINITY);
                     to = value(age, POSITIVE_INFINITY, POSITIVE_INFINITY);
-                    expected = new Predicate<Integer, Person>() {
-                        @Override
-                        public boolean apply(Map.Entry<Integer, Person> mapEntry) {
-                            return ObjectTestUtils.equals(mapEntry.getValue().age, age);
-                        }
-                    };
+                    expected = (Predicate<Integer, Person>) mapEntry -> Objects.equals(mapEntry.getValue().age, age);
                     break;
                 case 2:
                     from = value(age, height, NEGATIVE_INFINITY);
                     to = value(age, height, POSITIVE_INFINITY);
-                    expected = new Predicate<Integer, Person>() {
-                        @Override
-                        public boolean apply(Map.Entry<Integer, Person> mapEntry) {
-                            return ObjectTestUtils.equals(mapEntry.getValue().age, age) && ObjectTestUtils.equals(
-                                    mapEntry.getValue().height, height);
-                        }
-                    };
+                    expected = (Predicate<Integer, Person>) mapEntry -> Objects.equals(mapEntry.getValue().age, age) && Objects.equals(
+                            mapEntry.getValue().height, height);
                     break;
                 default:
                     throw new IllegalStateException();
@@ -165,46 +154,42 @@ public class CompositeRangePredicateTest extends HazelcastTestSupport {
                             heightToInclusive ? POSITIVE_INFINITY : NEGATIVE_INFINITY);
                     toInclusive = false;
 
-                    expected = new Predicate<Integer, Person>() {
-                        @SuppressWarnings("RedundantIfStatement")
-                        @Override
-                        public boolean apply(Map.Entry<Integer, Person> mapEntry) {
-                            Person value = mapEntry.getValue();
+                    expected = (Predicate<Integer, Person>) mapEntry -> {
+                        Person value = mapEntry.getValue();
 
-                            if (!ObjectTestUtils.equals(value.age, age)) {
-                                return false;
-                            }
-
-                            if (value.height == null) {
-                                return false;
-                            }
-
-                            if (heightFrom != null) {
-                                if (heightFromInclusive) {
-                                    if (value.height < heightFrom) {
-                                        return false;
-                                    }
-                                } else {
-                                    if (value.height <= heightFrom) {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            if (heightTo != null) {
-                                if (heightToInclusive) {
-                                    if (value.height > heightTo) {
-                                        return false;
-                                    }
-                                } else {
-                                    if (value.height >= heightTo) {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            return true;
+                        if (!Objects.equals(value.age, age)) {
+                            return false;
                         }
+
+                        if (value.height == null) {
+                            return false;
+                        }
+
+                        if (heightFrom != null) {
+                            if (heightFromInclusive) {
+                                if (value.height < heightFrom) {
+                                    return false;
+                                }
+                            } else {
+                                if (value.height <= heightFrom) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        if (heightTo != null) {
+                            if (heightToInclusive) {
+                                if (value.height > heightTo) {
+                                    return false;
+                                }
+                            } else {
+                                if (value.height >= heightTo) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        return true;
                     };
                     break;
                 case 2:
@@ -218,47 +203,43 @@ public class CompositeRangePredicateTest extends HazelcastTestSupport {
                     to = value(age, height, keyTo != null ? keyTo : POSITIVE_INFINITY);
                     toInclusive = keyToInclusive;
 
-                    expected = new Predicate<Integer, Person>() {
-                        @SuppressWarnings("RedundantIfStatement")
-                        @Override
-                        public boolean apply(Map.Entry<Integer, Person> mapEntry) {
-                            Person value = mapEntry.getValue();
-                            int key = mapEntry.getKey();
+                    expected = (Predicate<Integer, Person>) mapEntry -> {
+                        Person value = mapEntry.getValue();
+                        int key = mapEntry.getKey();
 
-                            if (!ObjectTestUtils.equals(value.age, age)) {
-                                return false;
-                            }
-
-                            if (!ObjectTestUtils.equals(value.height, height)) {
-                                return false;
-                            }
-
-                            if (keyFrom != null) {
-                                if (keyFromInclusive) {
-                                    if (key < keyFrom) {
-                                        return false;
-                                    }
-                                } else {
-                                    if (key <= keyFrom) {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            if (keyTo != null) {
-                                if (keyToInclusive) {
-                                    if (key > keyTo) {
-                                        return false;
-                                    }
-                                } else {
-                                    if (key >= keyTo) {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            return true;
+                        if (!Objects.equals(value.age, age)) {
+                            return false;
                         }
+
+                        if (!Objects.equals(value.height, height)) {
+                            return false;
+                        }
+
+                        if (keyFrom != null) {
+                            if (keyFromInclusive) {
+                                if (key < keyFrom) {
+                                    return false;
+                                }
+                            } else {
+                                if (key <= keyFrom) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        if (keyTo != null) {
+                            if (keyToInclusive) {
+                                if (key > keyTo) {
+                                    return false;
+                                }
+                            } else {
+                                if (key >= keyTo) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        return true;
                     };
                     break;
                 default:

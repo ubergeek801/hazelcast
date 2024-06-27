@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import static com.hazelcast.internal.util.JVMUtil.REFERENCE_COST_IN_BYTES;
  * <p>
  * This implementation updates the tree synchronously. It can do that,
  * since updating a leaf's hash doesn't need to access the values belong
- * to the leaf, thank to the not order-sensitive hash function in use.
+ * to the leaf, thanks to the not order-sensitive hash function in use.
  * See {@link MerkleTreeUtil#addHash(int, int)},
  * {@link MerkleTreeUtil#removeHash(int, int)},
  * {@link MerkleTreeUtil#sumHash(int, int)}

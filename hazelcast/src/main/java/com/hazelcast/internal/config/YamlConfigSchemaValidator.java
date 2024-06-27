@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,8 +150,8 @@ public class YamlConfigSchemaValidator {
     }
 
     private static String withNote(String originalMessage) {
-        return originalMessage + System.getProperty("line.separator") + "Note: you can disable this validation by passing the "
-                + "-D" + ROOT_LEVEL_INDENTATION_CHECK_ENABLED.getName() + "=false system property";
+        return originalMessage + System.lineSeparator() + "Note: you can disable this validation by passing the "
+               + "-D" + ROOT_LEVEL_INDENTATION_CHECK_ENABLED.getName() + "=false system property";
     }
 
     private SchemaViolationConfigurationException createExceptionForMisIndentedConfigProp(String propName, boolean addNote) {

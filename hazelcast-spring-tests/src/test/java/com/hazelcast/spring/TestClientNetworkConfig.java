@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.spring;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingStrategy;
 import com.hazelcast.client.impl.clientside.HazelcastClientProxy;
 import com.hazelcast.config.AwsConfig;
 import com.hazelcast.config.AzureConfig;
@@ -32,9 +33,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
@@ -46,7 +47,7 @@ import static org.junit.Assert.assertTrue;
 @Category(QuickTest.class)
 public class TestClientNetworkConfig {
 
-    @Resource(name = "client")
+    @Autowired
     private HazelcastClientProxy client;
 
     @BeforeClass
@@ -86,6 +87,13 @@ public class TestClientNetworkConfig {
         ClientConfig config = client.getClientConfig();
         assertEquals("com.hazelcast.nio.ssl.BasicSSLContextFactory",
                 config.getNetworkConfig().getSSLConfig().getFactoryClassName());
+    }
+
+    @Test
+    public void smokeSubsetRoutingConfig() {
+        ClientConfig config = client.getClientConfig();
+        assertFalse(config.getNetworkConfig().getSubsetRoutingConfig().isEnabled());
+        assertEquals(RoutingStrategy.PARTITION_GROUPS, config.getNetworkConfig().getSubsetRoutingConfig().getRoutingStrategy());
     }
 
     @Test

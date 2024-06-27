@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class TaskRingBuffer {
      *
      * @param task The task
      * @return the sequence
-     * @throws RejectedExecutionException if there is not available spot for the task
+     * @throws RejectedExecutionException if there is no available spot for the task
      */
     public int add(Callable task) {
         int index = findEmptySpot();

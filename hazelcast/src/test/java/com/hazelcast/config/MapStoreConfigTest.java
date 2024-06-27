@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,12 +178,12 @@ public class MapStoreConfigTest extends HazelcastTestSupport {
     @Test
     public void setProperties() {
         Properties properties = new Properties();
-        properties.put("a", "b");
+        properties.setProperty("a", "b");
         MapStoreConfig cfg = new MapStoreConfig().setProperties(properties);
         assertEquals(properties, cfg.getProperties());
         assertEquals("b", cfg.getProperty("a"));
         Properties otherProperties = new Properties();
-        otherProperties.put("a", "b");
+        otherProperties.setProperty("a", "b");
         assertEquals(new MapStoreConfig().setProperties(otherProperties), cfg);
     }
 
@@ -217,51 +217,51 @@ public class MapStoreConfigTest extends HazelcastTestSupport {
     @Test
     public void equals_whenNull() {
         MapStoreConfig cfg = new MapStoreConfig();
-        assertFalse(cfg.equals(null));
+        assertNotEquals(null, cfg);
     }
 
     @Test
     public void equals_whenSame() {
         MapStoreConfig cfg = new MapStoreConfig();
-        assertTrue(cfg.equals(cfg));
+        assertEquals(cfg, cfg);
     }
 
     @Test
     public void equals_whenOtherClass() {
         MapStoreConfig cfg = new MapStoreConfig();
-        assertFalse(cfg.equals(new Object()));
+        assertNotEquals(cfg, new Object());
     }
 
     @Test
     public void testEquals() {
-        assertFalse(defaultCfg.equals(cfgNotEnabled));
-        assertFalse(defaultCfg.equals(cfgNotWriteCoalescing));
-        assertFalse(defaultCfg.equals(cfgNonDefaultWriteDelaySeconds));
-        assertFalse(defaultCfg.equals(cfgNonDefaultWriteBatchSize));
+        assertNotEquals(defaultCfg, cfgNotEnabled);
+        assertNotEquals(defaultCfg, cfgNotWriteCoalescing);
+        assertNotEquals(defaultCfg, cfgNonDefaultWriteDelaySeconds);
+        assertNotEquals(defaultCfg, cfgNonDefaultWriteBatchSize);
 
         // class name branches
-        assertFalse(defaultCfg.equals(cfgNonNullClassName));
-        assertFalse(cfgNonNullClassName.equals(cfgNonNullOtherClassName));
-        assertFalse(cfgNonNullClassName.equals(defaultCfg));
+        assertNotEquals(defaultCfg, cfgNonNullClassName);
+        assertNotEquals(cfgNonNullClassName, cfgNonNullOtherClassName);
+        assertNotEquals(cfgNonNullClassName, defaultCfg);
 
         // factory class name branches
-        assertFalse(defaultCfg.equals(cfgNonNullFactoryClassName));
-        assertFalse(cfgNonNullFactoryClassName.equals(cfgNonNullOtherFactoryClassName));
-        assertFalse(cfgNonNullFactoryClassName.equals(defaultCfg));
+        assertNotEquals(defaultCfg, cfgNonNullFactoryClassName);
+        assertNotEquals(cfgNonNullFactoryClassName, cfgNonNullOtherFactoryClassName);
+        assertNotEquals(cfgNonNullFactoryClassName, defaultCfg);
 
         // implementation
-        assertFalse(defaultCfg.equals(cfgNonNullImplementation));
-        assertFalse(cfgNonNullImplementation.equals(cfgNonNullOtherImplementation));
-        assertFalse(cfgNonNullImplementation.equals(defaultCfg));
+        assertNotEquals(defaultCfg, cfgNonNullImplementation);
+        assertNotEquals(cfgNonNullImplementation, cfgNonNullOtherImplementation);
+        assertNotEquals(cfgNonNullImplementation, defaultCfg);
 
         // factory implementation
-        assertFalse(defaultCfg.equals(cfgNonNullFactoryImplementation));
-        assertFalse(cfgNonNullFactoryImplementation.equals(cfgNonNullOtherFactoryImplementation));
-        assertFalse(cfgNonNullFactoryImplementation.equals(defaultCfg));
+        assertNotEquals(defaultCfg, cfgNonNullFactoryImplementation);
+        assertNotEquals(cfgNonNullFactoryImplementation, cfgNonNullOtherFactoryImplementation);
+        assertNotEquals(cfgNonNullFactoryImplementation, defaultCfg);
 
-        assertFalse(defaultCfg.equals(cfgWithProperties));
+        assertNotEquals(defaultCfg, cfgWithProperties);
 
-        assertFalse(defaultCfg.equals(cfgEagerMode));
+        assertNotEquals(defaultCfg, cfgEagerMode);
     }
 
     @Test
@@ -311,6 +311,6 @@ public class MapStoreConfigTest extends HazelcastTestSupport {
         MapStoreConfig copy = new MapStoreConfig(original);
 
         assertEquals(original.hashCode(), copy.hashCode());
-        assertTrue(original.equals(copy));
+        assertEquals(original, copy);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,9 @@ public class SqlStreamingJoinAndAggregationTest extends SqlTestSupport {
                 row(timestampTz(101L), 101) // flushing event
         );
 
-        instance().getSql().execute("CREATE VIEW s1 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s1 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream1, DESCRIPTOR(b), INTERVAL '0.001' SECOND))");
-        instance().getSql().execute("CREATE VIEW s2 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s2 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream_a, DESCRIPTOR(c), INTERVAL '0.001' SECOND))");
 
         String sql = "SELECT we1, _sum, _max FROM " +
@@ -78,7 +78,8 @@ public class SqlStreamingJoinAndAggregationTest extends SqlTestSupport {
                 " ON st1.we1 = st2.we2";
 
         assertRowsEventuallyInAnyOrder(sql, asList(
-                new Row(timestampTz(10L), 3L, 2)
+                new Row(timestampTz(10L), 3L, 2),
+                new Row(timestampTz(20L), 3L, 2)
         ));
     }
 
@@ -111,9 +112,9 @@ public class SqlStreamingJoinAndAggregationTest extends SqlTestSupport {
                 row(timestampTz(41L), 41) // flushing event
         );
 
-        instance().getSql().execute("CREATE VIEW s1 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s1 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream1, DESCRIPTOR(b), INTERVAL '0.003' SECOND))");
-        instance().getSql().execute("CREATE VIEW s2 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s2 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream_a, DESCRIPTOR(c), INTERVAL '0.003' SECOND))");
 
         String sql = "SELECT we1, sum1, max2 FROM " +
@@ -159,9 +160,9 @@ public class SqlStreamingJoinAndAggregationTest extends SqlTestSupport {
                 row(timestampTz(101L), 101) // flushing event
         );
 
-        instance().getSql().execute("CREATE VIEW s1 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s1 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream1x, DESCRIPTOR(b), INTERVAL '0.001' SECOND))");
-        instance().getSql().execute("CREATE VIEW s2 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s2 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream_ax, DESCRIPTOR(c), INTERVAL '0.001' SECOND))");
 
         String sql = "SELECT we1, _sum, _max FROM " +
@@ -209,9 +210,9 @@ public class SqlStreamingJoinAndAggregationTest extends SqlTestSupport {
                 row(timestampTz(41L), 41) // flushing event
         );
 
-        instance().getSql().execute("CREATE VIEW s1 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s1 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream11, DESCRIPTOR(b), INTERVAL '0.003' SECOND))");
-        instance().getSql().execute("CREATE VIEW s2 AS " +
+        instance().getSql().executeUpdate("CREATE VIEW s2 AS " +
                 "SELECT * FROM TABLE(IMPOSE_ORDER(TABLE stream_aa, DESCRIPTOR(c), INTERVAL '0.003' SECOND))");
 
         String sql = "SELECT we1, sum1, max2 FROM " +

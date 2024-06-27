@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.jet.sql.impl;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.jet.sql.impl.opt.cost.CostFactory;
 import com.hazelcast.jet.sql.impl.opt.metadata.HazelcastRelMdBoundedness;
+import com.hazelcast.jet.sql.impl.opt.metadata.HazelcastRelMdPrunability;
 import com.hazelcast.jet.sql.impl.opt.metadata.HazelcastRelMdRowCount;
 import com.hazelcast.jet.sql.impl.opt.metadata.HazelcastRelMdWatermarkedFields;
 import com.hazelcast.jet.sql.impl.parse.QueryConvertResult;
@@ -35,12 +36,14 @@ import com.hazelcast.sql.impl.QueryParameterMetadata;
 import com.hazelcast.sql.impl.optimizer.PlanObjectKey;
 import com.hazelcast.sql.impl.schema.IMapResolver;
 import com.hazelcast.sql.impl.schema.SqlCatalog;
+import com.hazelcast.sql.impl.security.SqlSecurityContext;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.jdbc.HazelcastRootCalciteSchema;
 import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.HazelcastRelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelCollationTraitDef;
@@ -73,6 +76,7 @@ public final class OptimizerContext {
             HazelcastRelMdRowCount.SOURCE,
             HazelcastRelMdBoundedness.SOURCE,
             HazelcastRelMdWatermarkedFields.SOURCE,
+            HazelcastRelMdPrunability.SOURCE,
             DefaultRelMetadataProvider.INSTANCE
     ));
 
@@ -101,37 +105,44 @@ public final class OptimizerContext {
      * Create the optimization context.
      *
      * @param searchPaths Search paths to support "current schema" feature.
-     * @param memberCount Number of member that is important for distribution-related rules and converters.
      * @return Context.
      */
     public static OptimizerContext create(
             SqlCatalog schema,
             List<List<String>> searchPaths,
             List<Object> arguments,
-            int memberCount,
-            IMapResolver iMapResolver
+            IMapResolver iMapResolver,
+            HepProgram subqueryRewriterProgram,
+            SqlSecurityContext securityContext
     ) {
         // Resolve tables.
         HazelcastSchema rootSchema = HazelcastSchemaUtils.createRootSchema(schema);
 
-        return create(rootSchema, searchPaths, arguments, memberCount, iMapResolver);
+        return create(
+                rootSchema,
+                searchPaths,
+                arguments,
+                iMapResolver,
+                subqueryRewriterProgram,
+                securityContext);
     }
 
     public static OptimizerContext create(
             HazelcastSchema rootSchema,
             List<List<String>> schemaPaths,
             List<Object> arguments,
-            int memberCount,
-            IMapResolver iMapResolver
+            IMapResolver iMapResolver,
+            HepProgram subqueryRewriterProgram,
+            SqlSecurityContext ssc
     ) {
         Prepare.CatalogReader catalogReader = createCatalogReader(rootSchema, schemaPaths);
-        HazelcastSqlValidator validator = new HazelcastSqlValidator(catalogReader, arguments, iMapResolver);
+        HazelcastSqlValidator validator = new HazelcastSqlValidator(catalogReader, arguments, iMapResolver, ssc);
         VolcanoPlanner volcanoPlanner = createPlanner();
 
-        HazelcastRelOptCluster cluster = createCluster(volcanoPlanner);
+        HazelcastRelOptCluster cluster = createCluster(volcanoPlanner, ssc);
 
         QueryParser parser = new QueryParser(validator);
-        QueryConverter converter = new QueryConverter(validator, catalogReader, cluster);
+        QueryConverter converter = new QueryConverter(validator, catalogReader, cluster, subqueryRewriterProgram);
         QueryPlanner planner = new QueryPlanner(volcanoPlanner);
 
         return new OptimizerContext(cluster, parser, converter, planner);
@@ -152,7 +163,7 @@ public final class OptimizerContext {
      * @return SQL tree.
      */
     public QueryParseResult parse(String sql) {
-        return parser.parse(sql);
+        return parser.parse(sql, cluster.getSecurityContext());
     }
 
     /**
@@ -212,8 +223,13 @@ public final class OptimizerContext {
         return planner;
     }
 
-    private static HazelcastRelOptCluster createCluster(VolcanoPlanner planner) {
-        HazelcastRelOptCluster cluster = HazelcastRelOptCluster.create(planner, HazelcastRexBuilder.INSTANCE);
+    private static HazelcastRelOptCluster createCluster(
+            VolcanoPlanner planner,
+            SqlSecurityContext securityContext) {
+        HazelcastRelOptCluster cluster = HazelcastRelOptCluster.create(
+                planner,
+                HazelcastRexBuilder.INSTANCE,
+                securityContext);
 
         // Wire up custom metadata providers.
         cluster.setMetadataProvider(JaninoRelMetadataProvider.of(METADATA_PROVIDER));
@@ -227,6 +243,10 @@ public final class OptimizerContext {
 
     public Set<PlanObjectKey> getUsedViews() {
         return usedViews;
+    }
+
+    public SqlSecurityContext getSecurityContext() {
+        return cluster.getSecurityContext();
     }
 
     public void dump(ILogger logger) {

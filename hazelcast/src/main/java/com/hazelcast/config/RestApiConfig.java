@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package com.hazelcast.config;
+
+import com.hazelcast.config.rest.RestConfig;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +34,11 @@ import static com.hazelcast.config.RestEndpointGroup.getAllEndpointGroups;
  * <li>overall REST access (enabled by default);</li>
  * <li>access to REST endpoint groups (see {@link RestEndpointGroup}).</li>
  * </ul>
+ *
+ * @deprecated since 5.5, use RestConfig instead. Will be removed at 6.0.
+ * @see RestConfig
  */
+@Deprecated(since = "5.5", forRemoval = true)
 public class RestApiConfig {
 
     private boolean enabled;

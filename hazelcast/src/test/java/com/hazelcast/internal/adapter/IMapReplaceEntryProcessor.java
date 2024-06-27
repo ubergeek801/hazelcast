@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.hazelcast.internal.adapter;
 
 import com.hazelcast.map.EntryProcessor;
 
+import java.io.Serial;
 import java.util.Map;
 
 public class IMapReplaceEntryProcessor implements EntryProcessor<Integer, String, String> {
 
+    @Serial
     private static final long serialVersionUID = -4826323876651981295L;
 
     private final String oldString;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,19 +45,23 @@ public class AllowedDuringPassiveStateTransactionImpl
         super(transactionManagerService, nodeEngine, txnId, transactionLog, timeoutMillis, startTime, txOwnerUuid);
     }
 
+    @Override
     protected CreateTxBackupLogOperation createCreateTxBackupLogOperation() {
         return new CreateAllowedDuringPassiveStateTxBackupLogOperation(getOwnerUuid(), getTxnId());
     }
 
+    @Override
     protected ReplicateTxBackupLogOperation createReplicateTxBackupLogOperation() {
         return new ReplicateAllowedDuringPassiveStateTxBackupLogOperation(
                 getTransactionLog().getRecords(), getOwnerUuid(), getTxnId(), getTimeoutMillis(), getStartTime());
     }
 
+    @Override
     protected RollbackTxBackupLogOperation createRollbackTxBackupLogOperation() {
         return new RollbackAllowedDuringPassiveStateTxBackupLogOperation(getTxnId());
     }
 
+    @Override
     protected PurgeTxBackupLogOperation createPurgeTxBackupLogOperation() {
         return new PurgeAllowedDuringPassiveStateTxBackupLogOperation(getTxnId());
     }

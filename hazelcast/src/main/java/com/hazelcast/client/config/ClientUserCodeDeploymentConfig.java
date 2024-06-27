@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.hazelcast.client.config;
 
+import com.hazelcast.config.UserCodeNamespacesConfig;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,11 @@ import static com.hazelcast.internal.util.Preconditions.isNotNull;
  * When enabled client sends configured classes to cluster.
  * This simplifies deployment as you do not have to deploy your domain classes into classpath of all
  * cluster members.
+ *
+ * @deprecated since 5.4, "User Code Deployment" is replaced by the "User Code Namespaces" feature
+ * @see UserCodeNamespacesConfig
  */
+@Deprecated(since = "5.4", forRemoval = true)
 public class ClientUserCodeDeploymentConfig {
 
     private boolean enabled;
@@ -35,14 +41,14 @@ public class ClientUserCodeDeploymentConfig {
     private final List<String> jarPaths;
 
     public ClientUserCodeDeploymentConfig() {
-        classNames = new ArrayList<String>();
-        jarPaths = new ArrayList<String>();
+        classNames = new ArrayList<>();
+        jarPaths = new ArrayList<>();
     }
 
     public ClientUserCodeDeploymentConfig(ClientUserCodeDeploymentConfig userCodeDeploymentConfig) {
         enabled = userCodeDeploymentConfig.enabled;
-        classNames = new ArrayList<String>(userCodeDeploymentConfig.classNames);
-        jarPaths = new ArrayList<String>(userCodeDeploymentConfig.jarPaths);
+        classNames = new ArrayList<>(userCodeDeploymentConfig.classNames);
+        jarPaths = new ArrayList<>(userCodeDeploymentConfig.jarPaths);
     }
 
     /**
@@ -76,7 +82,7 @@ public class ClientUserCodeDeploymentConfig {
     }
 
     /**
-     * @param classNames names of the classes that will be send to cluster
+     * @param classNames names of the classes that will be sent to cluster
      * @return this for chaining
      */
     public ClientUserCodeDeploymentConfig setClassNames(List<String> classNames) {
@@ -92,7 +98,7 @@ public class ClientUserCodeDeploymentConfig {
      * 2. as URL,
      * 3. and in classpath.
      *
-     * @param jarPaths add list of jarPaths that will be send to clusters
+     * @param jarPaths add list of jarPaths that will be sent to clusters
      * @return this for chaining
      */
     public ClientUserCodeDeploymentConfig setJarPaths(List<String> jarPaths) {
@@ -103,7 +109,7 @@ public class ClientUserCodeDeploymentConfig {
     }
 
     /**
-     * @param className name of the class that will be send to cluster
+     * @param className name of the class that will be sent to cluster
      * @return this for chaining
      */
     public ClientUserCodeDeploymentConfig addClass(String className) {
@@ -112,10 +118,10 @@ public class ClientUserCodeDeploymentConfig {
     }
 
     /**
-     * @param clazz class that will be send to cluster
+     * @param clazz class that will be sent to cluster
      * @return this for chaining
      */
-    public ClientUserCodeDeploymentConfig addClass(Class clazz) {
+    public ClientUserCodeDeploymentConfig addClass(Class<?> clazz) {
         classNames.add(clazz.getName());
         return this;
     }
@@ -126,7 +132,7 @@ public class ClientUserCodeDeploymentConfig {
      * 2. as URL,
      * 3. and in classpath.
      *
-     * @param jarPath path of the jar that will be send to clusters
+     * @param jarPath path of the jar that will be sent to clusters
      * @return this for chaining
      */
     public ClientUserCodeDeploymentConfig addJar(String jarPath) {
@@ -135,7 +141,7 @@ public class ClientUserCodeDeploymentConfig {
     }
 
     /**
-     * @param jarFile path of the jar that will be send to clusters
+     * @param jarFile path of the jar that will be sent to clusters
      * @return this for chaining
      */
     public ClientUserCodeDeploymentConfig addJar(File jarFile) {

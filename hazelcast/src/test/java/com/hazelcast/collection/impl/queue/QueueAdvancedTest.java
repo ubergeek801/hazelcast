@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -655,7 +655,7 @@ public class QueueAdvancedTest extends HazelcastTestSupport {
         Config config = getConfig();
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         // ownership changes happen on stable
-        // instance and it shouldn't leak memory
+        // instance, and it shouldn't leak memory
         HazelcastInstance stableInstance = factory.newHazelcastInstance(config);
 
         String queueName = "itemQueue";

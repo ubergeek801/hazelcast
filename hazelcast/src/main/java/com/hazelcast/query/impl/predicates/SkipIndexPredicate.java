@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.query.Predicate;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Map;
 
 /**
@@ -56,6 +57,7 @@ public class SkipIndexPredicate implements Predicate {
         return "SkipIndex(" + target + ')';
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream stream) throws IOException {
         throw new UnsupportedOperationException("can't be serialized");
     }

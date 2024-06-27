@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import java.util.function.BiConsumer;
 /**
  * Defines a record-store.
  */
+@SuppressWarnings("MethodCount")
 public interface RecordStore<R extends Record> {
 
     ExpirySystem getExpirySystem();
@@ -180,7 +181,7 @@ public interface RecordStore<R extends Record> {
      * Returns corresponding value for key as {@link
      * Data}. This adds
      * an extra serialization step. For the reason of
-     * this behaviour please see issue 1292 on github.
+     * this behaviour please see issue 1292 on GitHub.
      *
      * @param key key to be accessed
      * @return value as {@link Data}
@@ -241,7 +242,7 @@ public interface RecordStore<R extends Record> {
      * <tt>null</tt> if there was no mapping for <tt>key</tt>.
      * @see com.hazelcast.map.impl.operation.PutFromLoadAllOperation
      */
-    Object putFromLoad(Data key, Object value, long expirationTime, Address callerAddress);
+    Object putFromLoad(Data key, Object value, long expirationTime, Address callerAddress, long now);
 
     /**
      * Puts key-value pair to map which is the result of a load from map store operation on backup.
@@ -266,7 +267,7 @@ public interface RecordStore<R extends Record> {
      * <tt>null</tt> if there was no mapping for <tt>key</tt>.
      * @see com.hazelcast.map.impl.operation.PutFromLoadAllBackupOperation
      */
-    Object putFromLoadBackup(Data key, Object value, long expirationTime);
+    Object putFromLoadBackup(Data key, Object value, long expirationTime, long now);
 
     /**
      * Merges the given {@link MapMergeTypes} via the given {@link SplitBrainMergePolicy}.
@@ -274,11 +275,11 @@ public interface RecordStore<R extends Record> {
      * @param mergingEntry the {@link MapMergeTypes} instance to merge
      * @param mergePolicy  the {@link SplitBrainMergePolicy} instance to apply
      * @param provenance   origin of call to this method.
-     * @return {@code true} if merge is applied, otherwise {@code false}
+     * @return the {@link MapMergeResponse} indicating the result of the merge
      */
-    boolean merge(MapMergeTypes<Object, Object> mergingEntry,
-                  SplitBrainMergePolicy<Object, MapMergeTypes<Object, Object>, Object> mergePolicy,
-                  CallerProvenance provenance);
+    MapMergeResponse merge(MapMergeTypes<Object, Object> mergingEntry,
+                           SplitBrainMergePolicy<Object, MapMergeTypes<Object, Object>, Object> mergePolicy,
+                           CallerProvenance provenance);
 
     R getRecord(Data key);
 
@@ -311,13 +312,16 @@ public interface RecordStore<R extends Record> {
      * does not intercept.
      *
      * @param dataKey key to remove
-     * @param backup {@code true} if a backup partition, otherwise {@code false}.
+     * @param backup  {@code true} if a backup partition, otherwise {@code false}.
      */
     void removeReplicatedRecord(Data dataKey, boolean backup);
 
     void forEach(BiConsumer<Data, R> consumer, boolean backup);
 
     void forEach(BiConsumer<Data, Record> consumer, boolean backup, boolean includeExpiredRecords);
+
+    void forEach(BiConsumer<Data, Record> consumer, boolean backup, boolean includeExpiredRecords,
+                 boolean noCaching);
 
     Iterator<Map.Entry<Data, Record>> iterator();
 
@@ -335,7 +339,7 @@ public interface RecordStore<R extends Record> {
     /**
      * Fetch minimally {@code size} keys from the {@code pointers} position.
      * The key is fetched on-heap.
-     * The method may return less keys if iteration has completed.
+     * The method may return fewer keys if iteration has completed.
      * <p>
      * NOTE: The implementation is free to return more than {@code size} items.
      * This can happen if we cannot easily resume from the last returned item
@@ -465,7 +469,7 @@ public interface RecordStore<R extends Record> {
     /**
      * Returns live record or null if record is already expired. Does not load missing keys from a map store.
      *
-     * @param key      key to be accessed
+     * @param key    key to be accessed
      * @param backup true if partition is a backup-partition otherwise set false
      * @return live record or null
      * @see #get
@@ -503,7 +507,7 @@ public interface RecordStore<R extends Record> {
 
     R createRecord(Data key, Object value, long now);
 
-    R loadRecordOrNull(Data key, boolean backup, Address callerAddress);
+    R loadRecordOrNull(Data key, boolean backup, Address callerAddress, long now);
 
     /**
      * This can be used to release unused resources.
@@ -546,7 +550,7 @@ public interface RecordStore<R extends Record> {
      * otherwise has no effect.
      * <p>
      * This method should be deleted when the map's lifecycle has been
-     * cleaned-up. Currently it's impossible to pass additional state when
+     * cleaned-up. Currently, it's impossible to pass additional state when
      * the record store is created, thus this state has to be passed in
      * post-creation setters which is cumbersome and error-prone.
      */
@@ -600,7 +604,7 @@ public interface RecordStore<R extends Record> {
      * loading future result if the {@code lastBatch} is {@code true}.
      * <p>
      * If there was an exception during key loading, you may pass it as the
-     * {@code exception} paramter and it will be set as the result of the future.
+     * {@code exception} parameter and it will be set as the result of the future.
      *
      * @param lastBatch if the last key batch was sent
      * @param exception an exception that occurred during key loading
@@ -633,7 +637,7 @@ public interface RecordStore<R extends Record> {
      * <p>
      * Clears data in this record store.
      *
-     * @param backup  {@code true} if a backup partition, otherwise {@code false}.
+     * @param backup {@code true} if a backup partition, otherwise {@code false}.
      * @return number of cleared entries.
      */
     int clear(boolean backup);
@@ -643,7 +647,7 @@ public interface RecordStore<R extends Record> {
      * <p>
      * Used in replication operations.
      *
-     * @see #putReplicatedRecord
+     * @see #putOrUpdateReplicatedRecord
      */
     void reset();
 
@@ -662,11 +666,15 @@ public interface RecordStore<R extends Record> {
 
     void setLocalRecordStoreStats(LocalRecordStoreStats stats);
 
-    default void beforeOperation() {
-        // no-op
+    default int beforeOperation() {
+        return -1;
     }
 
     default void afterOperation() {
+        // no-op
+    }
+
+    default void afterOperation(int threadIndex) {
         // no-op
     }
 
@@ -677,4 +685,10 @@ public interface RecordStore<R extends Record> {
     void decMapStoreOffloadedOperationsCount();
 
     long getMapStoreOffloadedOperationsCount();
+
+    boolean isTieredStorageEnabled();
+
+    default void disposeOnSplitBrainHeal() {
+        getMapContainer().onDestroy();
+    }
 }

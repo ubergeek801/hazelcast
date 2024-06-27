@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import static com.hazelcast.jet.Traversers.traverseItems;
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.core.Edge.between;
 import static com.hazelcast.jet.core.EventTimePolicy.eventTimePolicy;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.core.TestUtil.throttle;
 import static com.hazelcast.jet.core.processor.SourceProcessors.streamMapP;
@@ -165,7 +166,7 @@ public class AsyncTransformUsingServiceP_IntegrationTest extends SimpleTestInClu
 
         Job job = instance().getJet().newJob(dag, jobConfig);
         for (int i = 0; restart && i < 5; i++) {
-            assertJobStatusEventually(job, RUNNING);
+            assertThat(job).eventuallyHasStatus(RUNNING);
             sleepMillis(100);
             job.restart();
         }

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2023, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNull;
@@ -34,13 +33,13 @@ import static org.junit.Assert.assertNull;
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class BiInt2ObjectMapTest {
-    private final BiInt2ObjectMap<String> map = new BiInt2ObjectMap<String>();
+    private final BiInt2ObjectMap<String> map = new BiInt2ObjectMap<>();
 
     @Test
     public void shouldInitialiseUnderlyingImplementation() {
         final int initialCapacity = 10;
         final double loadFactor = 0.6;
-        final BiInt2ObjectMap<String> map = new BiInt2ObjectMap<String>(initialCapacity, loadFactor);
+        final BiInt2ObjectMap<String> map = new BiInt2ObjectMap<>(initialCapacity, loadFactor);
 
         assertThat(map.capacity()).isGreaterThanOrEqualTo(initialCapacity);
         assertThat(map.loadFactor()).isEqualTo(loadFactor);
@@ -92,7 +91,7 @@ public class BiInt2ObjectMapTest {
 
     @Test
     public void shouldIterateValues() {
-        final Set<String> expectedSet = new HashSet<String>();
+        final Set<String> expectedSet = new HashSet<>();
         final int count = 7;
 
         for (int i = 0; i < count; i++) {
@@ -101,14 +100,9 @@ public class BiInt2ObjectMapTest {
             map.put(i, i + 97, value);
         }
 
-        final Set<String> actualSet = new HashSet<String>();
+        final Set<String> actualSet = new HashSet<>();
 
-        map.forEach(new Consumer<String>() {
-            @Override
-            public void accept(String s) {
-                actualSet.add(s);
-            }
-        });
+        map.forEach(actualSet::add);
 
         assertThat(actualSet).isEqualTo(expectedSet);
     }

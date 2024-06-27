@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import static com.hazelcast.internal.util.UUIDSerializationUtil.writeUUID;
  * so {@link com.hazelcast.nio.serialization.impl.Versioned Versioned}
  * serialization cannot be used as there may be no cluster version
  * established yet. The {@code MemberHandshake} itself includes a
- * schema version so it can be extended in future versions without having
+ * schema version, so it can be extended in future versions without having
  * to use another packet type.
  *
  * <h1>Options</h1>

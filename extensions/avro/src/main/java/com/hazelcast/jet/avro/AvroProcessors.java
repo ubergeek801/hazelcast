@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 
 import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Permission;
@@ -99,7 +100,11 @@ public final class AvroProcessors {
     private static <D> FunctionEx<Processor.Context, DataFileWriter<D>> dataFileWriterFn(
             String directoryName, String jsonSchema, SupplierEx<DatumWriter<D>> datumWriterSupplier
     ) {
-        return new FunctionEx<Processor.Context, DataFileWriter<D>>() {
+        return new FunctionEx<>() {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override
             public DataFileWriter<D> applyEx(Processor.Context context) throws Exception {
                 Schema.Parser parser = new Schema.Parser();
@@ -126,7 +131,11 @@ public final class AvroProcessors {
             SupplierEx<? extends DatumReader<D>> datumReaderSupplier,
             BiFunctionEx<String, ? super D, T> mapOutputFn
     ) {
-        return new FunctionEx<Path, Stream<T>>() {
+        return new FunctionEx<>() {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override
             public Stream<T> applyEx(Path path) throws Exception {
                 DataFileReader<D> reader = new DataFileReader<>(path.toFile(), datumReaderSupplier.get());

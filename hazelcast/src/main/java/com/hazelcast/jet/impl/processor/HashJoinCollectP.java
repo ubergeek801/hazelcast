@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import com.hazelcast.jet.core.Processor;
 import com.hazelcast.jet.impl.memory.AccumulationLimitExceededException;
 
 import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 /**
@@ -34,9 +35,9 @@ import java.util.function.Function;
  */
 public class HashJoinCollectP<K, T, V> extends AbstractProcessor {
 
-    private static final BiFunction<Object, Object, Object> MERGE_FN = (o, n) -> {
-        if (o instanceof HashJoinArrayList) {
-            ((HashJoinArrayList) o).add(n);
+    private static final BinaryOperator<Object> MERGE_FN = (o, n) -> {
+        if (o instanceof HashJoinArrayList list) {
+            list.add(n);
             return o;
         } else {
             HashJoinArrayList res = new HashJoinArrayList();
@@ -94,6 +95,7 @@ public class HashJoinCollectP<K, T, V> extends AbstractProcessor {
     // ArrayList and then the logic that relies on instanceof would break
     static final class HashJoinArrayList extends ArrayList<Object> {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         HashJoinArrayList() {

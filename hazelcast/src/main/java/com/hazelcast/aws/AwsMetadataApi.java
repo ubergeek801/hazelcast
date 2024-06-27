@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import java.util.Optional;
 import java.time.Instant;
 
 import static com.hazelcast.aws.AwsRequestUtils.createRestClient;
-import static com.hazelcast.spi.utils.RestClient.HTTP_NOT_FOUND;
-import static com.hazelcast.spi.utils.RestClient.HTTP_OK;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
  * Responsible for connecting to AWS EC2 and ECS Metadata API.

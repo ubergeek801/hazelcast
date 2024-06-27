@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class MapStoreOffloadedOperationMetricsTest extends HazelcastTestSupport 
     public void metrics_show_zero_offloaded_operation_count_after_methods_return() {
         int opCount = 1_000;
 
-        List<Future> futures = new ArrayList<>(opCount * 2);
+        List<Future<?>> futures = new ArrayList<>(opCount * 2);
         for (int i = 0; i < opCount; i++) {
             futures.add(mapWithMapStore.setAsync(Integer.toString(i),
                     Integer.toString(i)).toCompletableFuture());
@@ -122,7 +122,7 @@ public class MapStoreOffloadedOperationMetricsTest extends HazelcastTestSupport 
     public void metrics_show_offloaded_operation_count_when_offload_is_configured() {
         int opCount = 1_000;
 
-        List<Future> futures = new ArrayList<>(opCount);
+        List<Future<?>> futures = new ArrayList<>(opCount);
         for (int i = 0; i < opCount; i++) {
             futures.add(mapWithMapStore.setAsync(Integer.toString(i),
                     Integer.toString(i)).toCompletableFuture());
@@ -145,7 +145,7 @@ public class MapStoreOffloadedOperationMetricsTest extends HazelcastTestSupport 
     public void metrics_show_zero_offloaded_operation_count_when_no_map_store_configured() {
         int opCount = 1_000;
 
-        List<Future> futures = new ArrayList<>(opCount);
+        List<Future<?>> futures = new ArrayList<>(opCount);
         for (int i = 0; i < opCount; i++) {
             futures.add(mapWithoutMapStore.setAsync(Integer.toString(i),
                     Integer.toString(i)).toCompletableFuture());

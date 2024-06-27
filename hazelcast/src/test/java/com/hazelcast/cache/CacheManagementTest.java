@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class CacheManagementTest extends CacheTestSupport {
 
-    private TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
+    private final TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
     private HazelcastInstance hazelcastInstance;
 
     @Override

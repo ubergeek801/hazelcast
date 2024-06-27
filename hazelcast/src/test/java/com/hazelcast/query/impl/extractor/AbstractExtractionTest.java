@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 
 import java.util.Collection;
 
@@ -41,8 +39,6 @@ import static org.junit.Assert.fail;
  */
 public abstract class AbstractExtractionTest extends AbstractExtractionSpecification {
 
-    @Rule
-    public ExpectedException expected = ExpectedException.none();
 
     protected IMap<String, Object> map;
 
@@ -165,8 +161,8 @@ public abstract class AbstractExtractionTest extends AbstractExtractionSpecifica
 
     private <T> T translate(T input) {
         if (mv == Multivalue.PORTABLE) {
-            if (input instanceof PortableAware) {
-                return ((PortableAware) input).getPortable();
+            if (input instanceof PortableAware aware) {
+                return aware.getPortable();
             }
         }
         return input;

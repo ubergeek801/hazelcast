@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,21 +27,18 @@ import com.hazelcast.internal.partition.InternalPartitionService;
 import com.hazelcast.internal.partition.MigrationInfo;
 import com.hazelcast.internal.partition.impl.MigrationInterceptorTest.MigrationInterceptorImpl;
 import com.hazelcast.internal.partition.impl.MigrationInterceptorTest.MigrationProgressNotification;
+import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.spi.properties.ClusterProperty;
-import com.hazelcast.test.ChangeLoggingRule;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -67,10 +64,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class MigrationCommitTest extends HazelcastTestSupport {
-
-    @ClassRule
-    public static ChangeLoggingRule changeLoggingRule = new ChangeLoggingRule("log4j2-debug.xml");
-
     private static final int PARTITION_COUNT = 2;
 
     private TestHazelcastInstanceFactory factory;
@@ -505,14 +498,7 @@ public class MigrationCommitTest extends HazelcastTestSupport {
         waitAllForSafeState(hz1);
 
         Throwable t = exceptionRef.get();
-        Supplier<String> messageSupplier = () -> {
-            StringWriter sw = new StringWriter();
-            if (t != null) {
-                sw.write("Unexpected exception! Stacktrace: \n");
-                t.printStackTrace(new PrintWriter(sw));
-            }
-            return sw.toString();
-        };
+        Supplier<String> messageSupplier = () -> t == null ? "" : ExceptionUtil.toString(t);
         assertNull(messageSupplier.get(), t);
     }
 

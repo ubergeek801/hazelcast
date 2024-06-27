@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.jet.datamodel;
 
 import com.hazelcast.internal.serialization.SerializableByConvention;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -36,6 +37,7 @@ import java.io.Serializable;
 @SerializableByConvention
 public final class Tag<T> implements Comparable<Tag<?>>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final Tag TAG_0 = new Tag(0);
@@ -97,7 +99,7 @@ public final class Tag<T> implements Comparable<Tag<?>>, Serializable {
     @Override
     public boolean equals(Object obj) {
         return this == obj ||
-                obj instanceof Tag && this.index == ((Tag) obj).index;
+                obj instanceof Tag t && this.index == t.index;
     }
 
     @Override

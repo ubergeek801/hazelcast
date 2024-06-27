@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.hazelcast.core.TypeConverter;
 
 /**
  * This interface describes an extended approach of the currently available
- * pure property based configuration inside Hazelcast and helps implementing
+ * pure property based configuration inside Hazelcast and helps to implement
  * an automatic and transparent way to verify configuration as well as converting
  * types based on provided validators and converters.
  * <p>

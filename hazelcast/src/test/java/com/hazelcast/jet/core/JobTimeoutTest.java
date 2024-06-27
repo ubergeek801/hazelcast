@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,10 @@ import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.time.Duration;
 import java.util.concurrent.CancellationException;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.COMPLETED;
 import static com.hazelcast.jet.core.JobStatus.FAILED;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
@@ -89,11 +91,18 @@ public class JobTimeoutTest extends JetTestSupport {
         final JobConfig jobConfig = new JobConfig().setTimeoutMillis(1000L);
         final Job job = hz.getJet().newJob(streamingDag(), jobConfig);
 
-        assertJobStatusEventually(job, RUNNING);
-        job.suspend();
+        // If the job times out before or during execution of these operations
+        // catch and ignore the error to continue testing. The job should eventually finish with CancellationException
+        // due to timeout
+        try {
+            Duration timeout = Duration.ofSeconds(10);
+            assertThat(job).eventuallyHasStatus(RUNNING, timeout);
+            job.suspend();
 
-        assertJobStatusEventually(job, SUSPENDED);
-        job.resume();
+            assertThat(job).eventuallyHasStatus(SUSPENDED, timeout);
+            job.resume();
+        } catch (AssertionError | IllegalStateException ignored) {
+        }
 
         assertThrows(CancellationException.class, job::join);
         assertEquals(FAILED, job.getStatus());
@@ -106,11 +115,16 @@ public class JobTimeoutTest extends JetTestSupport {
         final JobConfig jobConfig = new JobConfig().setTimeoutMillis(1000L);
         final Job job = hz.getJet().newJob(streamingDag(), jobConfig);
 
-        assertJobStatusEventually(job, RUNNING);
-        job.suspend();
+        // If the job times out before or during execution of these operations
+        // catch and ignore the error to continue testing. The job should eventually finish with CancellationException
+        // due to timeout
+        try {
+            assertThat(job).eventuallyHasStatus(RUNNING);
+            job.suspend();
 
-        assertJobStatusEventually(job, SUSPENDED);
-
+            assertThat(job).eventuallyHasStatus(SUSPENDED);
+        } catch (AssertionError | IllegalStateException ignored) {
+        }
         assertThrows(CancellationException.class, job::join);
         assertEquals(FAILED, job.getStatus());
         assertFalse(job.isUserCancelled());
@@ -121,10 +135,10 @@ public class JobTimeoutTest extends JetTestSupport {
         final HazelcastInstance hz = createHazelcastInstance();
         final Job job = hz.getJet().newJob(streamingDag());
 
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         job.suspend();
 
-        assertJobStatusEventually(job, SUSPENDED);
+        assertThat(job).eventuallyHasStatus(SUSPENDED);
         job.updateConfig(new DeltaJobConfig().setTimeoutMillis(1000));
         job.resume();
 

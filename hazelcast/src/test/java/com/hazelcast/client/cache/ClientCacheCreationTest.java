@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import com.hazelcast.core.HazelcastOverloadException;
 import com.hazelcast.core.IExecutorService;
 import com.hazelcast.core.OperationTimeoutException;
 import com.hazelcast.executor.ExecutorServiceTestSupport;
-import com.hazelcast.test.AssertTask;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.SlowTest;
 import org.junit.Ignore;
@@ -91,13 +90,10 @@ public class ClientCacheCreationTest extends CacheCreationTest {
         hazelcastInstance.shutdown();
 
         final CountDownLatch cacheCreated = new CountDownLatch(1);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MutableConfiguration configuration = new MutableConfiguration();
-                cacheManager.createCache("xmlCache", configuration);
-                cacheCreated.countDown();
-            }
+        new Thread(() -> {
+            MutableConfiguration configuration = new MutableConfiguration();
+            cacheManager.createCache("xmlCache", configuration);
+            cacheCreated.countDown();
         }).start();
 
         //leave some gap to let create cache to start and retry
@@ -135,7 +131,7 @@ public class ClientCacheCreationTest extends CacheCreationTest {
         //keep the slot for one invocation to test if client can reconnect even if all slots are kept
         CountDownLatch testFinished = new CountDownLatch(1);
         executorService.submit(new ExecutorServiceTestSupport.SleepingTask(0),
-                new ExecutionCallback<Boolean>() {
+                new ExecutionCallback<>() {
                     @Override
                     public void onResponse(Boolean response) {
                         try {
@@ -158,14 +154,11 @@ public class ClientCacheCreationTest extends CacheCreationTest {
         hazelcastInstance.shutdown();
 
         HazelcastInstance instance = Hazelcast.newHazelcastInstance();
-        assertTrueEventually(new AssertTask() {
-            @Override
-            public void run() {
-                try {
-                    instance.getCacheManager().getCache("xmlCache");
-                } catch (Exception e) {
-                    fail();
-                }
+        assertTrueEventually(() -> {
+            try {
+                instance.getCacheManager().getCache("xmlCache");
+            } catch (Exception e) {
+                fail();
             }
         });
         testFinished.countDown();

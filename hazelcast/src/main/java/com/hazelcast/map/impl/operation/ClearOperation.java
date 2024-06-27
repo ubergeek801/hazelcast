@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package com.hazelcast.map.impl.operation;
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.map.impl.MapDataSerializerHook;
 import com.hazelcast.map.impl.operation.steps.ClearOpSteps;
-import com.hazelcast.map.impl.operation.steps.engine.Step;
 import com.hazelcast.map.impl.operation.steps.engine.State;
+import com.hazelcast.map.impl.operation.steps.engine.Step;
 import com.hazelcast.spi.impl.operationservice.BackupAwareOperation;
 import com.hazelcast.spi.impl.operationservice.MutatingOperation;
 import com.hazelcast.spi.impl.operationservice.Operation;
@@ -59,6 +59,12 @@ public class ClearOperation extends MapOperation
     }
 
     @Override
+    public State createState() {
+        return super.createState()
+                .setResult(0);
+    }
+
+    @Override
     public void applyState(State state) {
         if (recordStore == null) {
             return;
@@ -70,9 +76,10 @@ public class ClearOperation extends MapOperation
 
     @Override
     public void afterRunInternal() {
-        invalidateAllKeysInNearCaches();
+        if (mapContainer != null) {
+            invalidateAllKeysInNearCaches();
+        }
         hintMapEvent();
-        super.afterRunInternal();
     }
 
     private void hintMapEvent() {

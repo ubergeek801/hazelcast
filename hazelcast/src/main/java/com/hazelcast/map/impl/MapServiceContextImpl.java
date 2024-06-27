@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.impl.eventservice.EventFilter;
 import com.hazelcast.spi.impl.eventservice.EventRegistration;
 import com.hazelcast.spi.impl.eventservice.EventService;
+import com.hazelcast.spi.impl.operationservice.Operation;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -116,12 +117,13 @@ import static java.lang.Thread.currentThread;
 /**
  * Default implementation of {@link MapServiceContext}.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "ClassDataAbstractionCoupling", "ClassFanOutComplexity", "MethodCount"})
 class MapServiceContextImpl implements MapServiceContext {
 
     private static final long DESTROY_TIMEOUT_SECONDS = 30;
 
     protected final ILogger logger;
+
     private final NodeEngine nodeEngine;
     private final QueryEngine queryEngine;
     private final EventService eventService;
@@ -146,7 +148,6 @@ class MapServiceContextImpl implements MapServiceContext {
     private final ContextMutexFactory contextMutexFactory = new ContextMutexFactory();
     private final ConcurrentMap<String, MapContainer> mapContainers = new ConcurrentHashMap<>();
     private final ExecutorStats offloadedExecutorStats = new ExecutorStats();
-    private final EventListenerCounter eventListenerCounter = new EventListenerCounter();
     private final AtomicReference<PartitionIdSet> cachedOwnedPartitions = new AtomicReference<>();
 
     /**
@@ -221,7 +222,7 @@ class MapServiceContextImpl implements MapServiceContext {
     // this method is overridden in another context
     MapContainer createMapContainer(String mapName) {
         MapServiceContext mapServiceContext = getService().getMapServiceContext();
-        return new MapContainer(mapName, nodeEngine.getConfig(), mapServiceContext);
+        return new MapContainerImpl(mapName, nodeEngine.getConfig(), mapServiceContext);
     }
 
     // this method is overridden in another context
@@ -332,7 +333,7 @@ class MapServiceContextImpl implements MapServiceContext {
     }
 
     protected PartitionContainer createPartitionContainer(MapService service, int partitionId) {
-        return new PartitionContainer(service, partitionId);
+        return new PartitionContainerImpl(service, partitionId);
     }
 
     /**
@@ -355,35 +356,48 @@ class MapServiceContextImpl implements MapServiceContext {
     }
 
     @Override
-    public void removeRecordStoresFromPartitionMatchingWith(Predicate<RecordStore> predicate,
-                                                            int partitionId,
-                                                            boolean onShutdown,
-                                                            boolean onRecordStoreDestroy) {
+    public final void removeRecordStoresFromPartitionMatchingWith(Predicate<RecordStore> predicate,
+                                                                  int partitionId,
+                                                                  boolean onShutdown,
+                                                                  boolean onRecordStoreDestroy) {
 
         PartitionContainer container = partitionContainers[partitionId];
         if (container == null) {
             return;
         }
 
-        Iterator<RecordStore> partitionIterator = container.getMaps().values().iterator();
-        while (partitionIterator.hasNext()) {
-            RecordStore partition = partitionIterator.next();
-            if (predicate.test(partition)) {
-                partition.beforeOperation();
+        List<RecordStore> removedRecordStores = new ArrayList<>();
+        Iterator<RecordStore> recordStoreIterator = container.getMaps().values().iterator();
+        while (recordStoreIterator.hasNext()) {
+            RecordStore recordStore = recordStoreIterator.next();
+            if (predicate.test(recordStore)) {
+                recordStore.beforeOperation();
                 try {
-                    partition.clearPartition(onShutdown, onRecordStoreDestroy);
+                    boolean empty = recordStore.isEmpty();
+
+                    recordStore.clearPartition(onShutdown, onRecordStoreDestroy);
+
+                    if (!empty) {
+                        removedRecordStores.add(recordStore);
+                    }
                 } finally {
-                    partition.afterOperation();
+                    recordStore.afterOperation();
                 }
-                partitionIterator.remove();
+                recordStoreIterator.remove();
             }
         }
+
+        postProcessNonEmptyRemovedRecordStores(removedRecordStores, partitionId, onShutdown);
+    }
+
+    protected void postProcessNonEmptyRemovedRecordStores(List<RecordStore> removedRecordStores,
+                                                          int partitionId, boolean onShutdown) {
+        // NOP
     }
 
     @Override
     public void removeWbqCountersFromMatchingPartitionsWith(Predicate<RecordStore> predicate,
                                                             int partitionId) {
-
         PartitionContainer container = partitionContainers[partitionId];
         if (container == null) {
             return;
@@ -443,6 +457,10 @@ class MapServiceContextImpl implements MapServiceContext {
 
         MapContainer mapContainer = mapContainers.get(mapName);
         if (mapContainer == null) {
+            // Lite members create their own LocalMapStatsImpl whenever a new IMap is created,
+            // which can happen without a MapContainer, so we need to clean them up - since cleanup
+            // is just a simple map entry removal, we can call it without any Lite member checks
+            localMapStatsProvider.destroyLocalMapStatsImpl(mapName);
             return;
         }
 
@@ -455,11 +473,15 @@ class MapServiceContextImpl implements MapServiceContext {
             mapStoreWrapper.destroy();
         }
 
+        // if there are any dynamic indexes, remove them
+        removeMapIndexConfigs(mapName);
+
         // Statistics are destroyed after container to prevent their leak.
         destroyPartitionsAndMapContainer(mapContainer);
-        localMapStatsProvider.destroyLocalMapStatsImpl(mapContainer.getName());
-        getEventListenerCounter()
-                .removeCounter(mapName, mapContainer.getInvalidationListenerCounter());
+    }
+
+    protected void removeMapIndexConfigs(String mapName) {
+        // no-op in OS
     }
 
     /**
@@ -472,8 +494,13 @@ class MapServiceContextImpl implements MapServiceContext {
     private void destroyPartitionsAndMapContainer(MapContainer mapContainer) {
         final List<LocalRetryableExecution> executions = new ArrayList<>();
 
-        for (PartitionContainer container : partitionContainers) {
-            final MapPartitionDestroyOperation op = new MapPartitionDestroyOperation(container, mapContainer);
+        for (PartitionContainer partitionContainer : partitionContainers) {
+            Operation op = new MapPartitionDestroyOperation(partitionContainer, mapContainer)
+                    .setPartitionId(partitionContainer.getPartitionId())
+                    .setNodeEngine(nodeEngine)
+                    .setCallerUuid(nodeEngine.getLocalMember().getUuid())
+                    .setServiceName(SERVICE_NAME);
+
             executions.add(InvocationUtil.executeLocallyWithRetry(nodeEngine, op));
         }
 
@@ -487,6 +514,8 @@ class MapServiceContextImpl implements MapServiceContext {
                 nodeEngine.getLogger(getClass()).warning(e);
             }
         }
+
+        mapContainer.onDestroy();
     }
 
     @Override
@@ -905,6 +934,11 @@ class MapServiceContextImpl implements MapServiceContext {
     }
 
     @Override
+    public boolean isForciblyEnabledGlobalIndex() {
+        return false;
+    }
+
+    @Override
     public ValueComparator getValueComparatorOf(InMemoryFormat inMemoryFormat) {
         return ValueComparatorUtil.getValueComparatorOf(inMemoryFormat);
     }
@@ -923,8 +957,4 @@ class MapServiceContextImpl implements MapServiceContext {
         return partitioningStrategyFactory;
     }
 
-    @Override
-    public EventListenerCounter getEventListenerCounter() {
-        return eventListenerCounter;
-    }
 }

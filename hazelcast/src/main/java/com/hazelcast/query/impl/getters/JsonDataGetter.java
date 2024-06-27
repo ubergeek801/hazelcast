@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ public final class JsonDataGetter extends AbstractJsonGetter {
 
     private static final int UTF_CHARACTER_COUNT_FIELD_SIZE = 4;
 
-    private JsonFactory factory = new JsonFactory();
+    private final JsonFactory factory = new JsonFactory();
 
-    private InternalSerializationService ss;
+    private final InternalSerializationService ss;
 
     JsonDataGetter(InternalSerializationService ss) {
         super(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package com.hazelcast.jet.sql.impl.connector.kafka;
 
 import com.hazelcast.core.HazelcastJsonValue;
+import com.hazelcast.jet.kafka.HazelcastKafkaAvroDeserializer;
+import com.hazelcast.jet.kafka.HazelcastKafkaAvroSerializer;
 import com.hazelcast.jet.kafka.impl.HazelcastJsonValueDeserializer;
 import com.hazelcast.jet.kafka.impl.HazelcastJsonValueSerializer;
-import com.hazelcast.jet.sql.impl.connector.SqlConnector;
 import com.hazelcast.jet.sql.impl.connector.keyvalue.JavaClassNameResolver;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -31,24 +31,27 @@ import java.util.Set;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.AVRO_FORMAT;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.JAVA_FORMAT;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.JSON_FLAT_FORMAT;
+import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_KEY_AVRO_SCHEMA;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_KEY_CLASS;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_KEY_FORMAT;
+import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_AVRO_SCHEMA;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_CLASS;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_FORMAT;
+import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_PREFERRED_LOCAL_PARALLELISM;
 
 final class PropertiesResolver {
-
     static final String KEY_SERIALIZER = "key.serializer";
     static final String KEY_DESERIALIZER = "key.deserializer";
     static final String VALUE_SERIALIZER = "value.serializer";
     static final String VALUE_DESERIALIZER = "value.deserializer";
 
-    private static final Set<String> NON_KAFKA_OPTIONS = new HashSet<String>() {{
-        add(OPTION_KEY_FORMAT);
-        add(OPTION_KEY_CLASS);
-        add(OPTION_VALUE_FORMAT);
-        add(OPTION_VALUE_CLASS);
-    }};
+    private static final Set<String> NON_KAFKA_OPTIONS = Set.of(
+            OPTION_KEY_FORMAT,
+            OPTION_KEY_CLASS,
+            OPTION_VALUE_FORMAT,
+            OPTION_VALUE_CLASS,
+            OPTION_PREFERRED_LOCAL_PARALLELISM
+    );
 
     // using strings instead of canonical names to not fail without Kafka on the classpath
 
@@ -70,8 +73,11 @@ final class PropertiesResolver {
     private static final String STRING_SERIALIZER = "org.apache.kafka.common.serialization.StringSerializer";
     private static final String STRING_DESERIALIZER = "org.apache.kafka.common.serialization.StringDeserializer";
 
-    private static final String AVRO_SERIALIZER = "io.confluent.kafka.serializers.KafkaAvroSerializer";
-    private static final String AVRO_DESERIALIZER = "io.confluent.kafka.serializers.KafkaAvroDeserializer";
+    private static final String CONFLUENT_AVRO_SERIALIZER = "io.confluent.kafka.serializers.KafkaAvroSerializer";
+    private static final String CONFLUENT_AVRO_DESERIALIZER = "io.confluent.kafka.serializers.KafkaAvroDeserializer";
+
+    private static final String HAZELCAST_AVRO_SERIALIZER = HazelcastKafkaAvroSerializer.class.getName();
+    private static final String HAZELCAST_AVRO_DESERIALIZER = HazelcastKafkaAvroDeserializer.class.getName();
 
     private static final String BYTE_ARRAY_SERIALIZER = "org.apache.kafka.common.serialization.ByteArraySerializer";
     private static final String BYTE_ARRAY_DESERIALIZER = "org.apache.kafka.common.serialization.ByteArrayDeserializer";
@@ -79,23 +85,22 @@ final class PropertiesResolver {
     private static final String JSON_SERIALIZER = HazelcastJsonValueSerializer.class.getName();
     private static final String JSON_DESERIALIZER = HazelcastJsonValueDeserializer.class.getName();
 
-    private PropertiesResolver() {
-    }
+    private PropertiesResolver() { }
 
-    static Properties resolveConsumerProperties(Map<String, String> options) {
+    static Properties resolveConsumerProperties(Map<String, String> options, Object keySchema, Object valueSchema) {
         Properties properties = from(options);
 
-        withSerdeConsumerProperties(true, options, properties);
-        withSerdeConsumerProperties(false, options, properties);
+        withSerdeConsumerProperties(true, options, keySchema, properties);
+        withSerdeConsumerProperties(false, options, valueSchema, properties);
 
         return properties;
     }
 
-    static Properties resolveProducerProperties(Map<String, String> options) {
+    static Properties resolveProducerProperties(Map<String, String> options, Object keySchema, Object valueSchema) {
         Properties properties = from(options);
 
-        withSerdeProducerProperties(true, options, properties);
-        withSerdeProducerProperties(false, options, properties);
+        withSerdeProducerProperties(true, options, keySchema, properties);
+        withSerdeProducerProperties(false, options, valueSchema, properties);
 
         return properties;
     }
@@ -107,7 +112,7 @@ final class PropertiesResolver {
             String value = entry.getValue();
 
             if (!NON_KAFKA_OPTIONS.contains(key)) {
-                properties.put(key, value);
+                properties.setProperty(key, value);
             }
         }
         return properties;
@@ -116,6 +121,7 @@ final class PropertiesResolver {
     private static void withSerdeConsumerProperties(
             boolean isKey,
             Map<String, String> options,
+            Object schema,
             Properties properties
     ) {
         String deserializer = isKey ? KEY_DESERIALIZER : VALUE_DESERIALIZER;
@@ -124,11 +130,16 @@ final class PropertiesResolver {
         if (format == null && isKey) {
             properties.putIfAbsent(deserializer, BYTE_ARRAY_DESERIALIZER);
         } else if (AVRO_FORMAT.equals(format)) {
-            properties.putIfAbsent(deserializer, AVRO_DESERIALIZER);
+            if (options.containsKey("schema.registry.url")) {
+                properties.putIfAbsent(deserializer, CONFLUENT_AVRO_DESERIALIZER);
+            } else {
+                properties.putIfAbsent(deserializer, HAZELCAST_AVRO_DESERIALIZER);
+                properties.put(isKey ? OPTION_KEY_AVRO_SCHEMA : OPTION_VALUE_AVRO_SCHEMA, schema);
+            }
         } else if (JSON_FLAT_FORMAT.equals(format)) {
             properties.putIfAbsent(deserializer, BYTE_ARRAY_DESERIALIZER);
         } else if (JAVA_FORMAT.equals(format)) {
-            String clazz = options.get(isKey ? SqlConnector.OPTION_KEY_CLASS : SqlConnector.OPTION_VALUE_CLASS);
+            String clazz = options.get(isKey ? OPTION_KEY_CLASS : OPTION_VALUE_CLASS);
             String deserializerClass = resolveDeserializer(clazz);
             if (deserializerClass != null) {
                 properties.putIfAbsent(deserializer, deserializerClass);
@@ -167,6 +178,7 @@ final class PropertiesResolver {
     private static void withSerdeProducerProperties(
             boolean isKey,
             Map<String, String> options,
+            Object schema,
             Properties properties
     ) {
         String serializer = isKey ? KEY_SERIALIZER : VALUE_SERIALIZER;
@@ -175,11 +187,16 @@ final class PropertiesResolver {
         if (format == null && isKey) {
             properties.putIfAbsent(serializer, BYTE_ARRAY_SERIALIZER);
         } else if (AVRO_FORMAT.equals(format)) {
-            properties.putIfAbsent(serializer, AVRO_SERIALIZER);
+            if (options.containsKey("schema.registry.url")) {
+                properties.putIfAbsent(serializer, CONFLUENT_AVRO_SERIALIZER);
+            } else {
+                properties.putIfAbsent(serializer, HAZELCAST_AVRO_SERIALIZER);
+                properties.put(isKey ? OPTION_KEY_AVRO_SCHEMA : OPTION_VALUE_AVRO_SCHEMA, schema);
+            }
         } else if (JSON_FLAT_FORMAT.equals(format)) {
             properties.putIfAbsent(serializer, BYTE_ARRAY_SERIALIZER);
         } else if (JAVA_FORMAT.equals(format)) {
-            String clazz = options.get(isKey ? SqlConnector.OPTION_KEY_CLASS : SqlConnector.OPTION_VALUE_CLASS);
+            String clazz = options.get(isKey ? OPTION_KEY_CLASS : OPTION_VALUE_CLASS);
             String serializerClass = resolveSerializer(clazz);
             if (serializerClass != null) {
                 properties.putIfAbsent(serializer, serializerClass);

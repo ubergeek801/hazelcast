@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,11 +107,10 @@ public final class LifecycleEvent {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof LifecycleEvent)) {
+        if (!(o instanceof LifecycleEvent that)) {
             return false;
         }
 
-        LifecycleEvent that = (LifecycleEvent) o;
         return state == that.state;
     }
 

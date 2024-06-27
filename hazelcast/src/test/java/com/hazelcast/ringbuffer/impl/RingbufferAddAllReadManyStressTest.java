@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ public class RingbufferAddAllReadManyStressTest extends HazelcastTestSupport {
             ringbuffer.add(Long.MIN_VALUE);
         }
 
-        @SuppressWarnings("NonAtomicOperationOnVolatileField")
+        @SuppressWarnings({"NonAtomicOperationOnVolatileField", "squid:S3078"})
         private void makeBatch() {
             items.clear();
             int count = max(1, random.nextInt(MAX_BATCH));
@@ -222,7 +222,7 @@ public class RingbufferAddAllReadManyStressTest extends HazelcastTestSupport {
         }
 
         @Override
-        @SuppressWarnings("NonAtomicOperationOnVolatileField")
+        @SuppressWarnings({"NonAtomicOperationOnVolatileField", "squid:S3078"})
         public void doRun() throws Throwable {
             seq = ringbuffer.headSequence();
 
@@ -257,7 +257,7 @@ public class RingbufferAddAllReadManyStressTest extends HazelcastTestSupport {
                         return;
                     }
 
-                    assertEquals(new Long(seq), item);
+                    assertEquals(Long.valueOf(seq), item);
 
                     long currentTimeMs = currentTimeMillis();
                     if (lastLogMs + SECONDS.toMillis(5) < currentTimeMs) {

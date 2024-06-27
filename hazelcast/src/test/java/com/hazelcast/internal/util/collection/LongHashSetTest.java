@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2023, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,8 @@ import com.google.common.collect.Lists;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -39,18 +37,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class LongHashSetTest {
-    @Rule
-    public final ExpectedException rule = ExpectedException.none();
 
     private final LongHashSet set = new LongHashSet(1000, -1);
 
     @Test
-    public void initiallyContainsNoElements() throws Exception {
+    public void initiallyContainsNoElements() {
         for (int i = 0; i < 10000; i++) {
             assertFalse(set.contains(i));
         }
@@ -93,7 +90,7 @@ public class LongHashSetTest {
 
     @Test
     public void removingAPresentElementRemovesIt() {
-        final Set<Long> jdkSet = new HashSet<Long>();
+        final Set<Long> jdkSet = new HashSet<>();
         final Random rnd = new Random();
         for (int i = 0; i < 1000; i++) {
             final long value = rnd.nextInt();
@@ -275,8 +272,7 @@ public class LongHashSetTest {
     public void failsWhenOverCapacity() {
         final LongHashSet set = new LongHashSet(1, 0);
         set.add(1);
-        rule.expect(IllegalStateException.class);
-        set.add(2);
+        assertThrows(IllegalStateException.class, () -> set.add(2));
     }
 
     @Test
@@ -285,7 +281,7 @@ public class LongHashSetTest {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray();
-        final Set<Object> fromArray = new HashSet<Object>(Arrays.asList(ary));
+        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
         assertEquals(new HashSet<Object>(initial), fromArray);
     }
 
@@ -295,7 +291,7 @@ public class LongHashSetTest {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray(new Long[0]);
-        final Set<Object> fromArray = new HashSet<Object>(Arrays.asList(ary));
+        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
         assertEquals(new HashSet<Object>(initial), fromArray);
     }
 

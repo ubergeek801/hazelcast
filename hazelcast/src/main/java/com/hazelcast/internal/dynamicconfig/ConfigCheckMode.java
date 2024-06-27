@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.hazelcast.internal.dynamicconfig;
 import com.hazelcast.config.InvalidConfigurationException;
 
 /**
- * Behaviour when detects a configuration conflict while registering a new dynamic configuraiton.
+ * Behaviour when detects a configuration conflict while registering a new dynamic configuration.
  *
  */
 public enum ConfigCheckMode {
@@ -39,7 +39,7 @@ public enum ConfigCheckMode {
     /**
      * Ignore configuration conflicts.
      * The caller can still decide to a log it, but it should not go into WARNING level, but
-     * into FINEST/DEBUG, etc..
+     * into FINEST/DEBUG, etc.
      *
      */
     SILENT

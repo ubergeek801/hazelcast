@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.UUID;
 
 /**
  * Proxy to a {@link LockStoreImpl}. Since a {@link LockStoreImpl} may be destroyed
- * upon service reset (eg. after a split-brain is healed), some of this proxy's methods
+ * upon service reset (e.g. after a split-brain is healed), some of this proxy's methods
  * employ get-or-create to locate the {@link LockStoreImpl} or get-or-null when
  * creation of the {@link LockStoreImpl} is not required and its absence is
  * interpreted as "no lock exists".

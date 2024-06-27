@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,10 @@ import java.util.Properties;
 
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.internal.util.Preconditions.checkTrue;
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 import static com.hazelcast.internal.util.XmlUtil.getNsAwareDocumentBuilderFactory;
 
 /**
- * A XML {@link ConfigBuilder} implementation.
+ * An XML {@link ConfigBuilder} implementation.
  * <p>
  * Unlike {@link Config#load()} and its variants, a configuration constructed via
  * {@code XmlConfigBuilder} does not apply overrides found in environment variables/system properties.
@@ -191,19 +190,19 @@ public class XmlConfigBuilder extends AbstractXmlConfigBuilder implements Config
         } catch (Exception e) {
             if (configurationFile != null) {
                 String msg = "Failed to parse " + configurationFile
-                        + LINE_SEPARATOR + "Exception: " + e.getMessage()
-                        + LINE_SEPARATOR + "Hazelcast startup interrupted.";
+                        + System.lineSeparator() + "Exception: " + e.getMessage()
+                        + System.lineSeparator() + "Hazelcast startup interrupted.";
                 LOGGER.severe(msg);
 
             } else if (configurationUrl != null) {
                 String msg = "Failed to parse " + configurationUrl
-                        + LINE_SEPARATOR + "Exception: " + e.getMessage()
-                        + LINE_SEPARATOR + "Hazelcast startup interrupted.";
+                        + System.lineSeparator() + "Exception: " + e.getMessage()
+                        + System.lineSeparator() + "Hazelcast startup interrupted.";
                 LOGGER.severe(msg);
             } else {
                 String msg = "Failed to parse the inputstream"
-                        + LINE_SEPARATOR + "Exception: " + e.getMessage()
-                        + LINE_SEPARATOR + "Hazelcast startup interrupted.";
+                        + System.lineSeparator() + "Exception: " + e.getMessage()
+                        + System.lineSeparator() + "Hazelcast startup interrupted.";
                 LOGGER.severe(msg);
             }
             throw new InvalidConfigurationException(e.getMessage(), e);

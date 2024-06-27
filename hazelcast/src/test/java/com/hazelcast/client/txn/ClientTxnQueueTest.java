@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,17 +111,15 @@ public class ClientTxnQueueTest {
 
         final CountDownLatch justBeforeBlocked = new CountDownLatch(1);
 
-        new Thread() {
-            public void run() {
-                try {
-                    justBeforeBlocked.await();
-                    sleepSeconds(1);
-                    queue1.offer(item);
-                } catch (InterruptedException e) {
-                    fail("failed" + e);
-                }
+        new Thread(() -> {
+            try {
+                justBeforeBlocked.await();
+                sleepSeconds(1);
+                queue1.offer(item);
+            } catch (InterruptedException e) {
+                fail("failed" + e);
             }
-        }.start();
+        }).start();
 
 
         final TransactionContext context = client.newTransactionContext();
@@ -139,12 +137,12 @@ public class ClientTxnQueueTest {
     @Test
     public void testTransactionalPeek() {
         final String item = "offered";
-        final String queunName = randomString();
-        final IQueue queue = client.getQueue(queunName);
+        final String queueName = randomString();
+        final IQueue queue = client.getQueue(queueName);
 
         final TransactionContext context = client.newTransactionContext();
         context.beginTransaction();
-        TransactionalQueue txnQueue = context.getQueue(queunName);
+        TransactionalQueue txnQueue = context.getQueue(queueName);
 
         txnQueue.offer(item);
         assertEquals(item, txnQueue.peek());

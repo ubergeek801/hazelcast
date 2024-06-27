@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.config;
 
+import com.hazelcast.config.rest.RestConfig;
 import com.hazelcast.instance.ProtocolType;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.spi.annotation.Beta;
@@ -50,7 +51,7 @@ public class AdvancedNetworkConfig {
     private boolean enabled;
 
     private final Map<EndpointQualifier, EndpointConfig> endpointConfigs
-            = new ConcurrentHashMap<EndpointQualifier, EndpointConfig>();
+            = new ConcurrentHashMap<>();
 
     private JoinConfig join = new JoinConfig();
 
@@ -170,7 +171,11 @@ public class AdvancedNetworkConfig {
      *
      * @param restServerEndpointConfig the server socket endpoint configuration
      * @return this object for fluent chaining
+     *
+     * @deprecated since 5.5, use RestConfig instead. Will be removed at 6.0.
+     * @see RestConfig
      */
+    @Deprecated(since = "5.5", forRemoval = true)
     public AdvancedNetworkConfig setRestEndpointConfig(RestServerEndpointConfig restServerEndpointConfig) {
         restServerEndpointConfig.setProtocolType(ProtocolType.REST);
         endpointConfigs.put(REST, restServerEndpointConfig);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public abstract class AbstractMergingEntryImpl<K, V, T extends AbstractMergingEn
     }
 
     @Override
-    public V getValue() {
+    public V getDeserializedValue() {
         return serializationService.toObject(value);
     }
 
@@ -107,11 +107,10 @@ public abstract class AbstractMergingEntryImpl<K, V, T extends AbstractMergingEn
         if (this == o) {
             return true;
         }
-        if (!(o instanceof AbstractMergingEntryImpl)) {
+        if (!(o instanceof AbstractMergingEntryImpl<?, ?, ?> that)) {
             return false;
         }
 
-        AbstractMergingEntryImpl<?, ?, ?> that = (AbstractMergingEntryImpl<?, ?, ?>) o;
         if (!Objects.equals(key, that.key)) {
             return false;
         }

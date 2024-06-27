@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public abstract class AbstractAsyncSocket implements Closeable {
      * <p/>
      * Can only be configured once.
      * <p/>
-     * This call is threadsafe.
+     * This call is thread safe.
      * <p/>
      * If the method is called when the socket already is closed, the {@link CloseListener}
      * is notified.

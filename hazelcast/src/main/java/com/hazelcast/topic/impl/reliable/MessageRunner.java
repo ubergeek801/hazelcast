@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.hazelcast.topic.MessageListener;
 import com.hazelcast.topic.ReliableMessageListener;
 
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
@@ -54,8 +55,10 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
     private final Executor executor;
     private final int batchSize;
     private volatile boolean cancelled;
+    // The future to be able to cancel readManyAsync() call on ringBuffer, when listener is removed
+    private CompletionStage<ReadResultSet<ReliableTopicMessage>> readRingBufferCompletionStage;
 
-    public MessageRunner(UUID id,
+    protected MessageRunner(UUID id,
                          ReliableMessageListener<E> listener,
                          Ringbuffer<ReliableTopicMessage> ringbuffer,
                          String topicName,
@@ -86,8 +89,10 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
         if (cancelled) {
             return;
         }
-        ringbuffer.readManyAsync(sequence, 1, batchSize, null)
-                  .whenCompleteAsync(this, executor);
+        // Save the Future so that we can cancel readManyAsync()
+        readRingBufferCompletionStage = ringbuffer.readManyAsync(sequence, 1, batchSize, null);
+        readRingBufferCompletionStage
+                .whenCompleteAsync(this, executor);
     }
 
     @Override
@@ -106,19 +111,20 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
                 return;
             }
 
-            for (int i = 0; i < result.size(); i++) {
-                ReliableTopicMessage message = result.get(i);
-                try {
-                    listener.storeSequence(result.getSequence(i));
-                    listener.onMessage(toMessage(message));
-                } catch (Throwable t) {
-                    if (terminate(t)) {
-                        cancel();
-                        return;
+            runWithNamespaceAwareness(() -> {
+                for (int i = 0; i < result.size(); i++) {
+                    ReliableTopicMessage message = result.get(i);
+                    try {
+                        listener.storeSequence(result.getSequence(i));
+                        listener.onMessage(toMessage(message));
+                    } catch (Throwable t) {
+                        if (terminate(t)) {
+                            cancel();
+                            return;
+                        }
                     }
                 }
-
-            }
+            });
 
             sequence = result.getNextSequenceToReadFrom();
             next();
@@ -132,10 +138,12 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
         }
     }
 
+    protected abstract void runWithNamespaceAwareness(Runnable runnable);
+
     private Message<E> toMessage(ReliableTopicMessage m) {
         Member member = getMember(m);
         E payload = serializationService.toObject(m.getPayload());
-        return new Message<E>(topicName, payload, m.getPublishTime(), member);
+        return new Message<>(topicName, payload, m.getPublishTime(), member);
     }
 
     protected abstract Member getMember(ReliableTopicMessage m);
@@ -147,8 +155,8 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
     protected boolean handleInternalException(Throwable t) {
         if (t instanceof OperationTimeoutException) {
             return handleOperationTimeoutException();
-        } else if (t instanceof IllegalArgumentException) {
-            return handleIllegalArgumentException((IllegalArgumentException) t);
+        } else if (t instanceof IllegalArgumentException exception) {
+            return handleIllegalArgumentException(exception);
         } else if (t instanceof HazelcastInstanceNotActiveException) {
             if (logger.isFinestEnabled()) {
                 logger.finest("Terminating MessageListener " + listener + " on topic: " + topicName + ". "
@@ -233,6 +241,10 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
     public void cancel() {
         cancelled = true;
         runnersMap.remove(id);
+        if (readRingBufferCompletionStage != null) {
+            readRingBufferCompletionStage.toCompletableFuture().cancel(true);
+        }
+        listener.onCancel();
     }
 
     private boolean terminate(Throwable failure) {

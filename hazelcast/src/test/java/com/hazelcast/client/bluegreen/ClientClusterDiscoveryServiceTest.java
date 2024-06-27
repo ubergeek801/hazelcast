@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class ClientClusterDiscoveryServiceTest {
                 null, null, null);
     }
 
-    private LifecycleService lifecycleService = new AlwaysUpLifecycleService();
+    private final LifecycleService lifecycleService = new AlwaysUpLifecycleService();
 
     @Test
     public void test_oneIteration() {
@@ -228,7 +228,7 @@ public class ClientClusterDiscoveryServiceTest {
         assertTrue(scannedClusters.contains(context));
     }
 
-    private class AlwaysUpLifecycleService implements LifecycleService {
+    private static class AlwaysUpLifecycleService implements LifecycleService {
 
         @Override
         public boolean isRunning() {

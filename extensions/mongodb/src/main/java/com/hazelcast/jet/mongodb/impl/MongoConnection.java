@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ class MongoConnection implements Closeable {
                         + willRetryMessage(), e);
                 return false;
             } catch (Exception e) {
-                throw new JetException("Cannot connect to MongoDB, seems to be non-transient error", e);
+                throw new JetException("Cannot connect to MongoDB, seems to be non-transient error: " + e.getMessage(), e);
             }
         } else {
             throw new JetException("cannot connect to MongoDB", lastException);

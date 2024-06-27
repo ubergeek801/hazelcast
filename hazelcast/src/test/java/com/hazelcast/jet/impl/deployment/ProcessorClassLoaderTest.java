@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,38 +25,54 @@ import com.hazelcast.jet.JetService;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.core.JetTestSupport;
+import com.hazelcast.jet.impl.util.ReflectionUtils;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.logging.ILogger;
+import com.hazelcast.logging.Logger;
 import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.JarUtil;
-import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import com.hazelcast.test.starter.HazelcastAPIDelegatingClassloader;
 import com.hazelcast.test.starter.HazelcastStarter;
 import org.example.jet.impl.deployment.ResourceCollector;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import uk.org.webcompere.systemstubs.rules.SystemPropertiesRule;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.util.Lists.newArrayList;
 
 @RunWith(HazelcastSerialClassRunner.class)
-@Category({QuickTest.class, ParallelJVMTest.class})
+@Category(QuickTest.class)
 public class ProcessorClassLoaderTest extends JetTestSupport {
 
+    @ClassRule
+    public static final TemporaryFolder tempDir = new TemporaryFolder();
+
+    // Set up the path for custom lib directory, this is by default set to `custom-lib` directory in hazelcast
+    // distribution zip
+    @Rule
+    public final SystemPropertiesRule systemProperties = new SystemPropertiesRule(
+            ClusterProperty.PROCESSOR_CUSTOM_LIB_DIR.getName(),
+            tempDir.getRoot().getAbsolutePath());
+    private static final ILogger LOGGER = Logger.getLogger(ProcessorClassLoaderTest.class);
     private static final String SOURCE_NAME = "test-source";
 
     private HazelcastInstance member;
@@ -68,42 +84,24 @@ public class ProcessorClassLoaderTest extends JetTestSupport {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        jarFile = File.createTempFile("source_", ".jar");
+        jarFile = tempDir.newFile("source_" + System.currentTimeMillis() + ".jar");
         JarUtil.createJarFile(
                 "target/test-classes/",
-                newArrayList(
-                        classToPath(TestProcessor.ResourceReader.class),
-                        classToPath(TestProcessor.TestProcessorMetaSupplier.class),
-                        classToPath(TestProcessor.TestProcessorSupplier.class),
-                        classToPath(TestProcessor.class),
-                        classToPath(SourceWithClassLoader.class)
-                ),
+                Stream.of(
+                        TestProcessor.ResourceReader.class,
+                        TestProcessor.TestProcessorMetaSupplier.class,
+                        TestProcessor.TestProcessorSupplier.class,
+                        TestProcessor.class,
+                        SourceWithClassLoader.class
+                ).map(ReflectionUtils::toClassResourceId).collect(Collectors.toList()),
                 jarFile.getAbsolutePath()
         );
-        System.out.println(jarFile);
+        LOGGER.fine("Jar file path: %s", jarFile);
 
-        resourcesJarFile = File.createTempFile("resources_", ".jar");
+        resourcesJarFile = tempDir.newFile("resources_ " + System.currentTimeMillis() + ".jar");
         JarUtil.createResourcesJarFile(resourcesJarFile);
 
-        // Setup the path for custom lib directory, this is by default set to `custom-lib` directory in hazelcast
-        // distribution zip
-        System.setProperty(ClusterProperty.PROCESSOR_CUSTOM_LIB_DIR.getName(), System.getProperty("java.io.tmpdir"));
-    }
-
-    private static String classToPath(Class<?> clazz) {
-        return clazz.getName().replace(".", "/") + ".class";
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-        if (jarFile != null) {
-            jarFile.delete();
-            jarFile = null;
-        }
-        if (resourcesJarFile != null) {
-            resourcesJarFile.delete();
-            resourcesJarFile = null;
-        }
+        assertThat(tempDir.getRoot()).exists().isReadable();
     }
 
     @Before
@@ -113,6 +111,9 @@ public class ProcessorClassLoaderTest extends JetTestSupport {
         member = createHazelcastMember();
         client = HazelcastClient.newHazelcastClient();
         jet = client.getJet();
+
+        assertThat(resourcesJarFile).exists().isReadable();
+        assertThat(jarFile).exists().isReadable();
     }
 
     @After
@@ -132,16 +133,16 @@ public class ProcessorClassLoaderTest extends JetTestSupport {
         // Create a member in a separate classloader without the test classes loaded
         URL classesUrl = new File("target/classes/").toURI().toURL();
         URL tpcClassesUrl = new File("../hazelcast-tpc-engine/target/classes/").toURI().toURL();
+        ClassLoader classLoader = getClass().getClassLoader();
         HazelcastAPIDelegatingClassloader classloader = new HazelcastAPIDelegatingClassloader(
                 new URL[]{classesUrl, tpcClassesUrl},
-                // Need to delegate to system classloader, which has maven dependencies like Jackson
-                ClassLoader.getSystemClassLoader()
+                classLoader
         );
         return HazelcastStarter.newHazelcastInstance(config, classloader);
     }
 
     @Test
-    public void testClassLoaderForBatchSource() throws Exception {
+    public void testClassLoaderForBatchSource() {
         Pipeline p = Pipeline.create();
         BatchSource<String> source = SourceWithClassLoader.batchSource(SOURCE_NAME);
 
@@ -163,7 +164,7 @@ public class ProcessorClassLoaderTest extends JetTestSupport {
     }
 
     @Test
-    public void testClassLoaderForStreamSource() throws Exception {
+    public void testClassLoaderForStreamSource() {
         Pipeline p = Pipeline.create();
         StreamSource<String> source = SourceWithClassLoader.streamSource(SOURCE_NAME);
 

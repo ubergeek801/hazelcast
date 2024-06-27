@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
-import com.hazelcast.query.impl.Indexes;
+import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.OrResultSet;
 import com.hazelcast.query.impl.QueryContext;
 import com.hazelcast.query.impl.QueryableEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.PREDICATE_DS_FACTORY_ID;
-import static com.hazelcast.query.impl.Indexes.SKIP_PARTITIONS_COUNT_CHECK;
+import static com.hazelcast.query.impl.IndexRegistry.SKIP_PARTITIONS_COUNT_CHECK;
 
 /**
  * Or Predicate
@@ -44,6 +45,7 @@ import static com.hazelcast.query.impl.Indexes.SKIP_PARTITIONS_COUNT_CHECK;
 public final class OrPredicate
         implements IndexAwarePredicate, VisitablePredicate, NegatablePredicate, IdentifiedDataSerializable, CompoundPredicate {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected Predicate[] predicates;
@@ -57,10 +59,9 @@ public final class OrPredicate
 
     @Override
     public Set<QueryableEntry> filter(QueryContext queryContext) {
-        List<Set<QueryableEntry>> indexedResults = new LinkedList<Set<QueryableEntry>>();
+        List<Set<QueryableEntry>> indexedResults = new LinkedList<>();
         for (Predicate predicate : predicates) {
-            if (predicate instanceof IndexAwarePredicate) {
-                IndexAwarePredicate iap = (IndexAwarePredicate) predicate;
+            if (predicate instanceof IndexAwarePredicate iap) {
                 if (iap.isIndexed(queryContext)) {
                     // Avoid checking indexed partitions count twice to prevent
                     // scenario when the owner partitions count changes concurrently and null
@@ -84,8 +85,7 @@ public final class OrPredicate
     @Override
     public boolean isIndexed(QueryContext queryContext) {
         for (Predicate predicate : predicates) {
-            if (predicate instanceof IndexAwarePredicate) {
-                IndexAwarePredicate iap = (IndexAwarePredicate) predicate;
+            if (predicate instanceof IndexAwarePredicate iap) {
                 if (!iap.isIndexed(queryContext)) {
                     return false;
                 }
@@ -140,7 +140,7 @@ public final class OrPredicate
     }
 
     @Override
-    public Predicate accept(Visitor visitor, Indexes indexes) {
+    public Predicate accept(Visitor visitor, IndexRegistry indexes) {
         Predicate[] result = VisitorUtils.acceptVisitor(predicates, visitor, indexes);
         if (result != predicates) {
             return visitor.visit(new OrPredicate(result), indexes);
@@ -155,8 +155,8 @@ public final class OrPredicate
         for (int i = 0; i < size; i++) {
             Predicate original = predicates[i];
             Predicate negated;
-            if (original instanceof NegatablePredicate) {
-                negated = ((NegatablePredicate) original).negate();
+            if (original instanceof NegatablePredicate predicate) {
+                negated = predicate.negate();
             } else {
                 negated = new NotPredicate(original);
             }
@@ -188,7 +188,7 @@ public final class OrPredicate
 
     /**
      * Visitable predicates are treated as effectively immutable, therefore callers should not make any changes to
-     * the array passed as argument after is has been set.
+     * the array passed as argument after it has been set.
      * @param predicates    the array of sub-predicates for this {@code Or} operator. It is not safe to make any changes to
      *                      this array after it has been set.
      */
@@ -207,11 +207,10 @@ public final class OrPredicate
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof OrPredicate)) {
+        if (!(o instanceof OrPredicate that)) {
             return false;
         }
 
-        OrPredicate that = (OrPredicate) o;
         return Arrays.equals(predicates, that.predicates);
     }
 

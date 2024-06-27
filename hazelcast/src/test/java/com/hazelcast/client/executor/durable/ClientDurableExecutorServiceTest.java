@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import com.hazelcast.executor.ExecutorServiceTestSupport.SleepingTask;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DataSerializable;
-import com.hazelcast.test.AssertTask;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
@@ -132,7 +131,7 @@ public class ClientDurableExecutorServiceTest {
     }
 
     @Test
-    public void test_whenRingBufferIsFull_thenThrowRejectedExecutionException() throws Exception {
+    public void test_whenRingBufferIsFull_thenThrowRejectedExecutionException() {
         String key = randomString();
         DurableExecutorService service = client.getDurableExecutorService(SINGLE_TASK + randomString());
         service.submitToKeyOwner(new SleepingTask(100), key);
@@ -220,11 +219,7 @@ public class ClientDurableExecutorServiceTest {
 
         service.shutdownNow();
 
-        assertTrueEventually(new AssertTask() {
-            public void run() {
-                assertTrue(service.isShutdown());
-            }
-        });
+        assertTrueEventually(() -> assertTrue(service.isShutdown()));
     }
 
     @Test
@@ -233,11 +228,7 @@ public class ClientDurableExecutorServiceTest {
         service.shutdownNow();
         service.shutdown();
 
-        assertTrueEventually(new AssertTask() {
-            public void run() {
-                assertTrue(service.isShutdown());
-            }
-        });
+        assertTrueEventually(() -> assertTrue(service.isShutdown()));
     }
 
     @Test
@@ -273,11 +264,11 @@ public class ClientDurableExecutorServiceTest {
         DurableExecutorService service = client.getDurableExecutorService(name);
         SerializedCounterCallable counterCallable = new SerializedCounterCallable();
 
-        Future future = service.submitToKeyOwner(counterCallable, name);
-        assertEquals(2, future.get());
+        Future<Integer> future = service.submitToKeyOwner(counterCallable, name);
+        assertEquals(Integer.valueOf(2), future.get());
     }
 
-    static class SerializedCounterCallable implements Callable, DataSerializable {
+    private static class SerializedCounterCallable implements Callable<Integer>, DataSerializable {
 
         int counter;
 
@@ -285,7 +276,7 @@ public class ClientDurableExecutorServiceTest {
         }
 
         @Override
-        public Object call() {
+        public Integer call() {
             return counter;
         }
 

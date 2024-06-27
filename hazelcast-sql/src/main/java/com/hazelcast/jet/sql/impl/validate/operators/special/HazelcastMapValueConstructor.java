@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class HazelcastMapValueConstructor extends HazelcastSpecialOperator {
                 callBinding.getScope(),
                 callBinding.operands()
         );
-        if (argTypes.size() == 0) {
+        if (argTypes.isEmpty()) {
             throw callBinding.newValidationError(RESOURCE.mapRequiresTwoOrMoreArgs());
         }
         if (argTypes.size() % 2 > 0) {

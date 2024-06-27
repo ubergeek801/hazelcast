@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import static com.hazelcast.internal.util.StringUtil.timeToString;
 import static com.hazelcast.test.HazelcastTestSupport.sleepSeconds;
 import static com.hazelcast.test.bounce.BounceTestConfiguration.DriverType.ALWAYS_UP_MEMBER;
 import static com.hazelcast.test.bounce.BounceTestConfiguration.DriverType.CLIENT;
+import static com.hazelcast.test.bounce.BounceTestConfiguration.DriverType.LITE_MEMBER;
 import static java.lang.Math.max;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -149,8 +150,8 @@ public class BounceMemberRule implements TestRule {
 
     private BounceMemberRule(BounceTestConfiguration bounceTestConfig) {
         this.bounceTestConfig = bounceTestConfig;
-        this.members = new AtomicReferenceArray<HazelcastInstance>(bounceTestConfig.getClusterSize());
-        this.testDrivers = new AtomicReferenceArray<HazelcastInstance>(bounceTestConfig.getDriverCount());
+        this.members = new AtomicReferenceArray<>(bounceTestConfig.getClusterSize());
+        this.testDrivers = new AtomicReferenceArray<>(bounceTestConfig.getDriverCount());
         this.bouncingIntervalSeconds = bounceTestConfig.getBouncingIntervalSeconds();
         this.progressMonitor = new ProgressMonitor(bounceTestConfig.getMaximumStaleSeconds());
     }
@@ -279,11 +280,11 @@ public class BounceMemberRule implements TestRule {
     }
 
     public static Builder with(Config memberConfig) {
-        return with(() -> memberConfig);
+        return new Builder(() -> memberConfig, true);
     }
 
     public static Builder with(Supplier<Config> memberConfigSupplier) {
-        return new Builder(memberConfigSupplier);
+        return new Builder(memberConfigSupplier, false);
     }
 
     @Override
@@ -379,7 +380,7 @@ public class BounceMemberRule implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 LOGGER.info("Spawning member bouncing thread");
-                bouncingMembersTask = new FutureTask<Runnable>(new MemberUpDownMonkey(), null);
+                bouncingMembersTask = new FutureTask<>(new MemberUpDownMonkey(), null);
                 Thread bounceMembersThread = new Thread(bouncingMembersTask);
                 bounceMembersThread.setDaemon(true);
                 bounceMembersThread.start();
@@ -419,7 +420,7 @@ public class BounceMemberRule implements TestRule {
         // do not wait more than 30 seconds
         long deadline = currentTimeMillis() + SECONDS.toMillis(TEST_TASK_TIMEOUT_SECONDS);
         LOGGER.info("Waiting until " + timeToString(deadline) + " for test tasks to complete gracefully.");
-        List<Future> futuresToWaitFor = new ArrayList<Future>(Arrays.asList(futures));
+        List<Future> futuresToWaitFor = new ArrayList<>(Arrays.asList(futures));
         while (!futuresToWaitFor.isEmpty() && currentTimeMillis() < deadline) {
             Iterator<Future> iterator = futuresToWaitFor.iterator();
             while (iterator.hasNext()) {
@@ -448,6 +449,7 @@ public class BounceMemberRule implements TestRule {
     public static class Builder {
 
         private final Supplier<Config> memberConfigSupplier;
+        private final boolean constantConfigSupplier;
 
         private int clusterSize = DEFAULT_CLUSTER_SIZE;
         private int driversCount = DEFAULT_DRIVERS_COUNT;
@@ -457,8 +459,9 @@ public class BounceMemberRule implements TestRule {
         private int bouncingIntervalSeconds = DEFAULT_BOUNCING_INTERVAL_SECONDS;
         private long maximumStaleSeconds = DEFAULT_MAXIMUM_STALE_SECONDS;
 
-        private Builder(Supplier<Config> memberConfigSupplier) {
+        private Builder(Supplier<Config> memberConfigSupplier, boolean constantConfigSupplier) {
             this.memberConfigSupplier = memberConfigSupplier;
+            this.constantConfigSupplier = constantConfigSupplier;
         }
 
         public BounceMemberRule build() {
@@ -471,11 +474,17 @@ public class BounceMemberRule implements TestRule {
                         : "Driver count can only be 1 when driver type is ALWAYS_UP_MEMBER but found " + driversCount;
             }
 
+            if (testDriverType == LITE_MEMBER) {
+                assert !constantConfigSupplier
+                        : "Usage of lite members as test drivers requires independent Config for each member";
+            }
+
             if (driverFactory == null) {
                 // choose a default driver factory
                 switch (testDriverType) {
                     case ALWAYS_UP_MEMBER:
                     case MEMBER:
+                    case LITE_MEMBER:
                         driverFactory = new MemberDriverFactory();
                         break;
                     case CLIENT:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.hazelcast.spi.impl.operationservice.OperationService;
 import com.hazelcast.spi.merge.SplitBrainMergePolicy;
 import com.hazelcast.spi.merge.SplitBrainMergeTypes.ScheduledExecutorMergeTypes;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -74,34 +75,36 @@ public class ScheduledExecutorContainer {
     /**
      * Permits are acquired through two different places
      * a. When a task is scheduled by the user-facing API
-     * ie. {@link IScheduledExecutorService#schedule(Runnable, long, TimeUnit)}
+     * i.e. {@link IScheduledExecutorService#schedule(Runnable, long, TimeUnit)}
      * whereas the permit policy is enforced, rejecting new tasks once the capacity is reached.
-     * b. When a task is promoted (ie. migration finished)
+     * b. When a task is promoted (i.e. migration finished)
      * whereas the permit policy is not-enforced, meaning that actual task count might be more than the configured capacity,
      * but that is purposefully done to prevent any data-loss during node/cluster failures.
-     *
+     * <p>
      * Permits are released similarly through two different places
      * a. When a task is disposed by user-facing API
-     * ie. {@link IScheduledFuture#dispose()} or {@link IScheduledExecutorService#destroy()}
-     * b. When a task is suspended (ie. migration started / roll-backed)
+     * i.e. {@link IScheduledFuture#dispose()} or {@link IScheduledExecutorService#destroy()}
+     * b. When a task is suspended (i.e. migration started / roll-backed)
      * Note: Permit releases are done, only if the task was previously active
-     * (ie. {@link ScheduledTaskDescriptor#status == {@link Status#ACTIVE}}
+     * (i.e. {@link ScheduledTaskDescriptor#status == {@link Status#ACTIVE}}
      *
      * As a result, {@link #tasks} size will be inconsistent with the number of acquired permits at times.
      */
     private final CapacityPermit permit;
     private final ExecutorStats executorStats;
+    private final @Nullable String userCodeNamespace;
 
     ScheduledExecutorContainer(String name, int partitionId, NodeEngine nodeEngine, CapacityPermit permit,
-                               int durability, boolean statisticsEnabled) {
-        this(name, partitionId, nodeEngine, permit, durability, new ConcurrentHashMap<>(), statisticsEnabled);
+                               int durability, boolean statisticsEnabled, @Nullable String userCodeNamespace) {
+        this(name, partitionId, nodeEngine, permit, durability, new ConcurrentHashMap<>(), statisticsEnabled, userCodeNamespace);
     }
 
     ScheduledExecutorContainer(String name, int partitionId,
                                NodeEngine nodeEngine,
                                CapacityPermit permit, int durability,
                                ConcurrentMap<String, ScheduledTaskDescriptor> tasks,
-                               boolean statisticsEnabled) {
+                               boolean statisticsEnabled,
+                               @Nullable String userCodeNamespace) {
         this.logger = nodeEngine.getLogger(getClass());
         this.name = name;
         this.nodeEngine = nodeEngine;
@@ -113,6 +116,7 @@ public class ScheduledExecutorContainer {
         this.statisticsEnabled = statisticsEnabled;
         DistributedScheduledExecutorService service = nodeEngine.getService(SERVICE_NAME);
         this.executorStats = service.getExecutorStats();
+        this.userCodeNamespace = userCodeNamespace;
     }
 
     public ExecutorStats getExecutorStats() {
@@ -228,7 +232,7 @@ public class ScheduledExecutorContainer {
         descriptor.setStats(stats);
 
         if (descriptor.getTaskResult() != null) {
-            // Task result previously populated - ie. through cancel
+            // Task result previously populated - i.e. through cancel
             // Ignore all subsequent results
             if (logger.isFineEnabled()) {
                 log(FINE, taskName, format("New state ignored! Current: %s New: %s ", descriptor.getTaskResult(), resolution));
@@ -260,6 +264,11 @@ public class ScheduledExecutorContainer {
 
     public NodeEngine getNodeEngine() {
         return nodeEngine;
+    }
+
+    @Nullable
+    public String getUserCodeNamespace() {
+        return userCodeNamespace;
     }
 
     public ScheduledTaskHandler offprintHandler(String taskName) {

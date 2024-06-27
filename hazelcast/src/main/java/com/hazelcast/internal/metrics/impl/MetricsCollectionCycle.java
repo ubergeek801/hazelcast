@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class MetricsCollectionCycle {
     private static final MetricValueCatcher NOOP_CATCHER = new NoOpMetricValueCatcher();
 
     private final PoolingMetricDescriptorSupplier descriptorSupplier;
-    private final Function<Class, SourceMetadata> lookupMetadataFn;
+    private final Function<Class<?>, SourceMetadata> lookupMetadataFn;
     private final Function<MetricDescriptor, MetricValueCatcher> lookupMetricValueCatcherFn;
     private final MetricsCollector metricsCollector;
     private final ProbeLevel minimumLevel;
@@ -55,7 +55,7 @@ class MetricsCollectionCycle {
     private final long collectionId = System.nanoTime();
     private final ILogger logger = Logger.getLogger(MetricsCollectionCycle.class);
 
-    MetricsCollectionCycle(Function<Class, SourceMetadata> lookupMetadataFn,
+    MetricsCollectionCycle(Function<Class<?>, SourceMetadata> lookupMetadataFn,
                            Function<MetricDescriptor, MetricValueCatcher> lookupMetricValueCatcherFn,
                            MetricsCollector metricsCollector,
                            ProbeLevel minimumLevel, MetricDescriptorReusableData metricDescriptorReusableData) {
@@ -78,10 +78,10 @@ class MetricsCollectionCycle {
 
             lookupMetricValueCatcher(lookupView.descriptor()).catchMetricValue(collectionId, probeInstance, function);
 
-            if (function instanceof LongProbeFunction) {
-                collectLong(probeInstance.source, probeInstance.descriptor, (LongProbeFunction) function);
-            } else if (function instanceof DoubleProbeFunction) {
-                collectDouble(probeInstance.source, probeInstance.descriptor, (DoubleProbeFunction) function);
+            if (function instanceof LongProbeFunction probeFunction) {
+                collectLong(probeInstance.source, probeInstance.descriptor, probeFunction);
+            } else if (function instanceof DoubleProbeFunction probeFunction) {
+                collectDouble(probeInstance.source, probeInstance.descriptor, probeFunction);
             } else {
                 throw new IllegalStateException("Unhandled ProbeFunction encountered: " + function.getClass().getName());
             }
@@ -102,7 +102,9 @@ class MetricsCollectionCycle {
 
     void notifyAllGauges(Collection<AbstractGauge> gauges) {
         for (AbstractGauge gauge : gauges) {
-            gauge.onCollectionCompleted(collectionId);
+            if (gauge != null) {
+                gauge.onCollectionCompleted(collectionId);
+            }
         }
     }
 
@@ -147,16 +149,15 @@ class MetricsCollectionCycle {
             return;
         }
 
-        if (function instanceof LongProbeFunction) {
-            LongProbeFunction longFunction = (LongProbeFunction) function;
+        if (function instanceof LongProbeFunction longFunction) {
             collectLong(source, descriptor, longFunction);
         } else {
             DoubleProbeFunction doubleFunction = (DoubleProbeFunction) function;
             collectDouble(source, descriptor, doubleFunction);
         }
 
-        if (descriptor instanceof MetricDescriptorImpl) {
-            descriptorSupplier.recycle((MetricDescriptorImpl) descriptor);
+        if (descriptor instanceof MetricDescriptorImpl impl) {
+            descriptorSupplier.recycle(impl);
         }
     }
 

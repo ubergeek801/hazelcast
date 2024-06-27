@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public abstract class AbstractClusterLoginConfig<T extends AbstractClusterLoginC
     }
 
     /**
-     * Allows skipping role assignment during authentication. Setting this value to {@code true} might speed-up authentication
+     * Allows skipping role assignment during authentication. Setting this value to {@code true} might speed up authentication
      * between cluster members (member-to-member). The roles only need to be assigned in client-to-member authentications.
      */
     public T setSkipRole(Boolean skipRole) {

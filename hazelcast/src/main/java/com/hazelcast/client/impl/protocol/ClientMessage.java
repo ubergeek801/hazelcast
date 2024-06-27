@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -453,7 +453,7 @@ public final class ClientMessage implements OutboundFrame {
     @SuppressWarnings({"checkstyle:VisibilityModifier", "java:S1104"})
     public static class Frame {
         public final byte[] content;
-        //begin-fragment end-fragment final begin-data-structure end-data-structure is-null is-event 9reserverd
+        //begin-fragment end-fragment final begin-data-structure end-data-structure is-null is-event 9reserved
         public int flags;
 
         public Frame next;

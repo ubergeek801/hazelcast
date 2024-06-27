@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.hazelcast.jet.pipeline.DataConnectionRef;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.test.HazelcastParametrizedRunner;
-import com.hazelcast.test.annotation.QuickTest;
+import com.hazelcast.test.annotation.NightlyTest;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import org.bson.BsonTimestamp;
@@ -61,7 +61,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @RunWith(HazelcastParametrizedRunner.class)
-@Category({QuickTest.class})
+@Category(NightlyTest.class)
 public class MongoSourceTest extends AbstractMongoTest {
 
     private static final int COUNT_IN_BATCH = 10;
@@ -130,8 +130,9 @@ public class MongoSourceTest extends AbstractMongoTest {
         Batch<?> sourceBuilder = batch(() -> mongoClient(connectionString))
                                                .database(defaultDatabase())
                                                .collection(testName.getMethodName())
+                                               .forceReadTotalParallelismOne(true)
                                                .sort(ascending("key"))
-                                               .throwOnNonExisting(false);
+                                               .checkResourceExistence(ResourceChecks.ONCE_PER_JOB);
         sourceBuilder = batchFilters(sourceBuilder);
         pipeline.readFrom(sourceBuilder.build())
                 .setLocalParallelism(2)
@@ -298,7 +299,8 @@ public class MongoSourceTest extends AbstractMongoTest {
         String connectionString = mongoContainer.getConnectionString();
 
         Stream<?> builder = MongoSourceBuilder.stream(() -> MongoClients.create(connectionString));
-        builder = streamFilters(builder);
+        builder = streamFilters(builder)
+                .checkResourceExistence(ResourceChecks.ON_EACH_CONNECT);
 
         Pipeline pipeline = Pipeline.create();
         pipeline.readFrom(builder.build())

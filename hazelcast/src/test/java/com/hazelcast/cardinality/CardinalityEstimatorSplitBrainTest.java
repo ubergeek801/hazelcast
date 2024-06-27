@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ public class CardinalityEstimatorSplitBrainTest extends SplitBrainTestSupport {
     private final int EXTRA_COUNT = 10000;
     private final int TOTAL_COUNT = INITIAL_COUNT + (brains().length * EXTRA_COUNT);
 
-    private String estimatorNameA = randomMapName("estimatorA-");
-    private String estimatorNameB = randomMapName("estimatorB-");
+    private final String estimatorNameA = randomMapName("estimatorA-");
+    private final String estimatorNameB = randomMapName("estimatorB-");
     private CardinalityEstimator estimatorA1;
     private CardinalityEstimator estimatorA2;
     private CardinalityEstimator estimatorB1;

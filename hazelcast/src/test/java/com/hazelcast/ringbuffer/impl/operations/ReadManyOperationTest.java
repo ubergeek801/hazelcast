@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,8 @@ import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.hazelcast.test.Accessors.getNodeEngineImpl;
@@ -53,8 +51,6 @@ public class ReadManyOperationTest extends HazelcastTestSupport {
     private SerializationService serializationService;
     private RingbufferService ringbufferService;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setup() {
@@ -314,7 +310,7 @@ public class ReadManyOperationTest extends HazelcastTestSupport {
     public void whenFilterProvidedAndNoItemsAvailable() {
         long startSequence = ringbuffer.tailSequence() + 1;
 
-        IFunction<String, Boolean> filter = (IFunction<String, Boolean>) input -> input.startsWith("good");
+        IFunction<String, Boolean> filter = input -> input.startsWith("good");
 
         ReadManyOperation op = getReadManyOperation(startSequence, 3, 3, filter);
 
@@ -371,7 +367,7 @@ public class ReadManyOperationTest extends HazelcastTestSupport {
     public void whenFilterProvidedAndAllItemsAvailable() {
         long startSequence = ringbuffer.tailSequence() + 1;
 
-        IFunction<String, Boolean> filter = (IFunction<String, Boolean>) input -> input.startsWith("good");
+        IFunction<String, Boolean> filter = input -> input.startsWith("good");
 
         ReadManyOperation op = getReadManyOperation(startSequence, 3, 3, filter);
 
@@ -390,7 +386,7 @@ public class ReadManyOperationTest extends HazelcastTestSupport {
     }
 
     private <T> ReadManyOperation<T> getReadManyOperation(long start, int min, int max, IFunction<T, Boolean> filter) {
-        final ReadManyOperation<T> op = new ReadManyOperation<T>(ringbuffer.getName(), start, min, max, filter);
+        final ReadManyOperation<T> op = new ReadManyOperation<>(ringbuffer.getName(), start, min, max, filter);
         op.setPartitionId(ringbufferService.getRingbufferPartitionId(ringbuffer.getName()));
         op.setNodeEngine(nodeEngine);
         return op;

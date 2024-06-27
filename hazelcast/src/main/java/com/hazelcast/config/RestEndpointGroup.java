@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.hazelcast.config;
 
+import com.hazelcast.config.rest.RestConfig;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +27,10 @@ import java.util.Map;
  * overlap - each Hazelcast REST endpoint belongs to exactly one group. Each group has a default value
  * ({@link #isEnabledByDefault()}) which controls if it will be included by default in {@link RestApiConfig} configuration.
  *
- * @see RestApiConfig
+ * @deprecated since 5.5, use RestConfig instead. Will be removed at 6.0.
+ * @see RestConfig
  */
+@Deprecated(since = "5.5", forRemoval = true)
 public enum RestEndpointGroup {
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.jet.core;
 
+import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.function.FunctionEx;
@@ -26,12 +27,14 @@ import com.hazelcast.jet.JobAlreadyExistsException;
 import com.hazelcast.jet.SimpleTestInClusterSupport;
 import com.hazelcast.jet.config.DeltaJobConfig;
 import com.hazelcast.jet.config.JobConfig;
+import com.hazelcast.jet.config.JobConfigArguments;
 import com.hazelcast.jet.core.TestProcessors.Identity;
 import com.hazelcast.jet.core.TestProcessors.ListSource;
 import com.hazelcast.jet.core.TestProcessors.MockP;
 import com.hazelcast.jet.core.TestProcessors.MockPS;
 import com.hazelcast.jet.core.TestProcessors.NoOutputSourceP;
 import com.hazelcast.jet.core.processor.DiagnosticProcessors;
+import com.hazelcast.jet.impl.exception.CancellationByUserException;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.test.AssertionSinks;
@@ -60,7 +63,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
+import static com.hazelcast.jet.config.JobConfigArguments.KEY_JOB_IS_SUSPENDABLE;
 import static com.hazelcast.jet.core.Edge.between;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.COMPLETED;
 import static com.hazelcast.jet.core.JobStatus.FAILED;
 import static com.hazelcast.jet.core.JobStatus.NOT_RUNNING;
@@ -102,6 +107,7 @@ public class JobTest extends SimpleTestInClusterSupport {
     public void setup() {
         TestProcessors.reset(TOTAL_PARALLELISM);
     }
+
     @Before
     public void after() {
         TestProcessors.assertNoErrorsInProcessors();
@@ -130,7 +136,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         PSThatWaitsOnInit.initLatch.countDown();
 
         // Then
-        assertJobStatusEventually(job, COMPLETED);
+        assertThat(job).eventuallyHasStatus(COMPLETED);
     }
 
     @Test
@@ -154,7 +160,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         assertJobIsUserCancelledCannotBeQueried(job);
 
         PSThatWaitsOnInit.initLatch.countDown();
-        assertJobStatusEventually(job, COMPLETED);
+        assertThat(job).eventuallyHasStatus(COMPLETED);
     }
 
     @Test
@@ -180,7 +186,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         PSThatWaitsOnInit.initLatch.countDown();
 
         // Then
-        assertJobStatusEventually(job, COMPLETED);
+        assertThat(job).eventuallyHasStatus(COMPLETED);
     }
 
     @Test
@@ -196,7 +202,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         cancelAndJoin(job);
 
         NoOutputSourceP.proceedLatch.countDown();
-        assertJobStatusEventually(job, FAILED);
+        assertThat(job).eventuallyHasStatus(FAILED);
         assertTrue(job.isUserCancelled());
     }
 
@@ -204,7 +210,7 @@ public class JobTest extends SimpleTestInClusterSupport {
     public void when_jobFailed_then_jobStatusIsCompletedEventually() throws InterruptedException {
         // Given
         DAG dag = new DAG().vertex(new Vertex("test", new MockPS((SupplierEx<Processor>)
-                () -> new MockP().setCompleteError(() -> new ExpectedRuntimeException()), NODE_COUNT)));
+                () -> new MockP().setCompleteError(ExpectedRuntimeException::new), NODE_COUNT)));
 
         // When
         Job job = instance().getJet().newJob(dag);
@@ -233,7 +239,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         assertNotNull(trackedJob);
 
         // Then
-        assertJobStatusEventually(trackedJob, RUNNING);
+        assertThat(trackedJob).eventuallyHasStatus(RUNNING);
         assertJobIsUserCancelledCannotBeQueried(trackedJob);
 
         cancelAndJoin(submittedJob);
@@ -253,7 +259,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         assertNotNull(trackedJob);
 
         // Then
-        assertJobStatusEventually(trackedJob, RUNNING);
+        assertThat(trackedJob).eventuallyHasStatus(RUNNING);
         assertJobIsUserCancelledCannotBeQueried(trackedJob);
 
         cancelAndJoin(submittedJob);
@@ -275,7 +281,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         assertNotNull(trackedJob);
 
         // Then
-        assertJobStatusEventually(trackedJob, RUNNING);
+        assertThat(trackedJob).eventuallyHasStatus(RUNNING);
 
         cancelAndJoin(submittedJob);
     }
@@ -321,7 +327,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         joinAndExpectCancellation(trackedJob);
 
         NoOutputSourceP.proceedLatch.countDown();
-        assertJobStatusEventually(trackedJob, FAILED);
+        assertThat(trackedJob).eventuallyHasStatus(FAILED);
         assertTrue(trackedJob.isUserCancelled());
     }
 
@@ -329,7 +335,7 @@ public class JobTest extends SimpleTestInClusterSupport {
     public void when_jobFailed_then_trackedJobCanQueryResult() throws InterruptedException {
         // Given
         DAG dag = new DAG().vertex(new Vertex("test", new MockPS((SupplierEx<Processor>)
-                () -> new MockP().setCompleteError(() -> new ExpectedRuntimeException()), NODE_COUNT)));
+                () -> new MockP().setCompleteError(ExpectedRuntimeException::new), NODE_COUNT)));
 
         // When
         Job submittedJob = instance().getJet().newJob(dag);
@@ -386,7 +392,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         DAG dag = new DAG().vertex(new Vertex("test", new MockPS(NoOutputSourceP::new, NODE_COUNT)));
 
         Job submittedJob = instance().getJet().newJob(dag);
-        assertJobVisible(instance(), submittedJob, "submittedJob");
+        assertThat(submittedJob).isVisible(instance());
 
         Collection<Job> trackedJobs = instances()[1].getJet().getJobs();
         Job trackedJob = trackedJobs.stream().filter(j -> j.getId() == submittedJob.getId()).findFirst().orElse(null);
@@ -401,9 +407,9 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         NoOutputSourceP.proceedLatch.countDown();
 
-        assertJobStatusEventually(trackedJob, FAILED);
+        assertThat(trackedJob).eventuallyHasStatus(FAILED);
         assertTrue(trackedJob.isUserCancelled());
-        assertJobStatusEventually(submittedJob, FAILED);
+        assertThat(submittedJob).eventuallyHasStatus(FAILED);
         assertTrue(submittedJob.isUserCancelled());
     }
 
@@ -453,13 +459,13 @@ public class JobTest extends SimpleTestInClusterSupport {
         NoOutputSourceP.executionStarted.await();
 
         // Then
-        assertJobVisible(instance, job, "job");
+        assertThat(job).isVisible(instance);
         Job trackedJob = instance.getJet().getJob(jobName);
 
         assertNotNull(trackedJob);
         assertEquals(jobName, trackedJob.getName());
         assertEquals(job.getId(), trackedJob.getId());
-        assertJobStatusEventually(trackedJob, RUNNING);
+        assertThat(trackedJob).eventuallyHasStatus(RUNNING);
         assertJobIsUserCancelledCannotBeQueried(trackedJob);
 
         NoOutputSourceP.proceedLatch.countDown();
@@ -484,12 +490,12 @@ public class JobTest extends SimpleTestInClusterSupport {
         NoOutputSourceP.executionStarted.await();
 
         // Then
-        assertJobVisible(instance, job, "job");
+        assertThat(job).isVisible(instance);
         Job trackedJob = instance.getJet().getJob(job.getId());
 
         assertNotNull(trackedJob);
         assertEquals(job.getId(), trackedJob.getId());
-        assertJobStatusEventually(trackedJob, RUNNING);
+        assertThat(trackedJob).eventuallyHasStatus(RUNNING);
         assertJobIsUserCancelledCannotBeQueried(trackedJob);
 
         NoOutputSourceP.proceedLatch.countDown();
@@ -564,7 +570,7 @@ public class JobTest extends SimpleTestInClusterSupport {
                 .setName(randomName());
         Job job1 = instance.getJet().newJob(dag, config);
         assertTrueEventually(() -> assertEquals(RUNNING, job1.getStatus()));
-        assertJobVisible(instance, job1, "job1");
+        assertThat(job1).isVisible(instance);
 
         // When
         Job job2 = instance.getJet().newJobIfAbsent(dag, config);
@@ -702,14 +708,14 @@ public class JobTest extends SimpleTestInClusterSupport {
                 .setName(randomName());
 
         Job job1 = instance().getJet().newJob(dag, config);
-        assertJobStatusEventually(job1, RUNNING);
+        assertThat(job1).eventuallyHasStatus(RUNNING);
 
         // When
         config.setName(randomName());
 
         // Then
         Job job2 = instance().getJet().newJob(dag, config);
-        assertJobStatusEventually(job2, RUNNING);
+        assertThat(job2).eventuallyHasStatus(RUNNING);
     }
 
     @Test
@@ -758,9 +764,9 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         // When
         Job job1 = instance().getJet().newJob(dag, config);
-        assertJobStatusEventually(job1, RUNNING);
+        assertThat(job1).eventuallyHasStatus(RUNNING);
         job1.suspend();
-        assertJobStatusEventually(job1, SUSPENDED);
+        assertThat(job1).eventuallyHasStatus(SUSPENDED);
 
         // Then
         Job job2 = instances()[1].getJet().newJobIfAbsent(dag, config);
@@ -778,13 +784,70 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         // When
         Job job1 = instance().getJet().newJob(dag, config);
-        assertJobStatusEventually(job1, RUNNING);
+        assertThat(job1).eventuallyHasStatus(RUNNING);
         job1.suspend();
-        assertJobStatusEventually(job1, SUSPENDED);
+        assertThat(job1).eventuallyHasStatus(SUSPENDED);
 
         // Then
         assertThatThrownBy(() -> instances()[1].getJet().newJob(dag, config))
                 .isInstanceOf(JobAlreadyExistsException.class);
+    }
+
+    @Test
+    public void given_suspensionIsForbidden_when_suspendJob_then_jobIsCanceled() {
+        // Given
+        DAG dag = new DAG();
+        dag.newVertex("v", () -> new MockP().streaming());
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setArgument(JobConfigArguments.KEY_JOB_IS_SUSPENDABLE, false);
+
+        Job job = instance().getJet().newJob(dag, jobConfig);
+
+        // When
+        assertThat(job).eventuallyHasStatus(RUNNING);
+        job.suspend();
+
+        // Then
+        assertThatThrownBy(job::join)
+                .isInstanceOf(CancellationByUserException.class);
+    }
+
+    @Test
+    public void given_suspensionIsForbidden_when_restartJob_then_jobIsCanceled() {
+        // Given
+        DAG dag = new DAG();
+        dag.newVertex("v", () -> new MockP().streaming());
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setArgument(JobConfigArguments.KEY_JOB_IS_SUSPENDABLE, false);
+
+        Job job = instance().getJet().newJob(dag, jobConfig);
+
+        // When
+        assertThat(job).eventuallyHasStatus(RUNNING);
+        job.restart();
+
+        // Then
+        assertThatThrownBy(job::join)
+                .isInstanceOf(CancellationByUserException.class);
+    }
+
+    @Test
+    public void given_suspensionIsForbidden_when_changedClusterStateToPassive_then_jobIsCanceled() {
+        // Given
+        DAG dag = new DAG();
+        dag.newVertex("v", () -> new MockP().streaming());
+        JobConfig jobConfig = new JobConfig().setArgument(KEY_JOB_IS_SUSPENDABLE, false);
+
+        // When
+        Job job = instance().getJet().newJob(dag, jobConfig);
+
+        // Then
+        assertThat(job).eventuallyHasStatus(RUNNING);
+        instance().getCluster().changeClusterState(ClusterState.PASSIVE);
+        instance().getCluster().changeClusterState(ClusterState.ACTIVE);
+
+        assertThatThrownBy(job::join)
+                .isInstanceOf(CancellationException.class);
     }
 
     @Test
@@ -795,7 +858,7 @@ public class JobTest extends SimpleTestInClusterSupport {
             JobConfig config = new JobConfig()
                     .setName("job");
             Job job = instance().getJet().newJob(dag, config);
-            assertJobStatusEventually(job, RUNNING);
+            assertThat(job).eventuallyHasStatus(RUNNING);
             assertJobIsUserCancelledCannotBeQueried(job);
             job.cancel();
             try {
@@ -840,9 +903,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         // As long as the context is not put in the lightMasterContexts we cannot get the job by id. The tasklets are added
         // to workers in the execution of LightMasterContext.createContext(), so the tasklet may start before the
         // lightMasterContexts is filled.
-        assertTrueEventually(() -> {
-            assertNotNull(instance.getJet().getJob(job.getId()));
-        });
+        assertTrueEventually(() -> assertNotNull(instance.getJet().getJob(job.getId())));
         Job trackedJob = instance.getJet().getJob(job.getId());
 
         // Then
@@ -892,7 +953,7 @@ public class JobTest extends SimpleTestInClusterSupport {
         Job job = instance().getJet().newJob(dag, config);
 
         // Then
-        assertJobStatusEventually(job, COMPLETED);
+        assertThat(job).eventuallyHasStatus(COMPLETED);
     }
 
     @Test
@@ -920,7 +981,7 @@ public class JobTest extends SimpleTestInClusterSupport {
 
     @Test
     public void test_manyJobs_member() {
-        // we use a standalone cluster here - this test looks at all the jobs and it must not see completed jobs from other tests
+        // we use a standalone cluster here - this test looks at all the jobs, and it must not see completed jobs from other tests
         HazelcastInstance inst = createHazelcastInstance();
         createHazelcastInstance();
 
@@ -929,7 +990,7 @@ public class JobTest extends SimpleTestInClusterSupport {
 
     @Test
     public void test_manyJobs_client() {
-        // we use a standalone cluster here - this test looks at all the jobs and it must not see completed jobs from other tests
+        // we use a standalone cluster here - this test looks at all the jobs, and it must not see completed jobs from other tests
         createHazelcastInstance();
         createHazelcastInstance();
         HazelcastInstance client = createHazelcastClient();
@@ -947,7 +1008,7 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         // normal streaming job
         Job streamingJob = jet.newJob(streamingDag);
-        assertJobStatusEventually(streamingJob, RUNNING);
+        assertThat(streamingJob).eventuallyHasStatus(RUNNING);
 
         // two normal batch job
         Job batchJob1 = jet.newJob(batchDag);
@@ -957,7 +1018,7 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         // named streaming job name1
         Job namedStreamingJob1 = jet.newJob(streamingDag, new JobConfig().setName("name1"));
-        assertJobStatusEventually(namedStreamingJob1, RUNNING);
+        assertThat(namedStreamingJob1).eventuallyHasStatus(RUNNING);
 
         // named streaming job name2, cancelled
         Job namedStreamingJob2 = jet.newJob(streamingDag, new JobConfig().setName("name2"));
@@ -966,14 +1027,14 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         // named streaming job name2, again, not cancelled
         Job namedStreamingJob2_1 = jet.newJob(streamingDag, new JobConfig().setName("name2"));
-        assertJobStatusEventually(namedStreamingJob2_1, RUNNING);
+        assertThat(namedStreamingJob2_1).eventuallyHasStatus(RUNNING);
 
         // light streaming job
         Job lightStreamingJob = inst.getJet().newLightJob(streamingDag);
 
         // light streaming job, cancelled
         Job lightStreamingJobCancelled = jet.newLightJob(streamingDag);
-        assertJobVisible(inst, lightStreamingJobCancelled, "lightStreamingJobCancelled");
+        assertThat(lightStreamingJobCancelled).isVisible(inst);
         lightStreamingJobCancelled.cancel();
         joinAndExpectCancellation(lightStreamingJobCancelled);
 
@@ -1001,7 +1062,7 @@ public class JobTest extends SimpleTestInClusterSupport {
             Job trackedJobByName = job.getName() != null ? jet.getJob(job.getName()) : null;
 
             if (allJobsExceptCompletedLightJobs.contains(job)) {
-                assertJobVisible(inst, trackedJobById, "trackedJobById");
+                assertThat(trackedJobById).isVisible(inst);
                 assertEquals(jobEqualityString(job), jobEqualityString(trackedJobById));
                 if (job.getName() != null && job != namedStreamingJob2) {
                     assertEquals(jobEqualityString(job), jobEqualityString(trackedJobByName));
@@ -1051,7 +1112,7 @@ public class JobTest extends SimpleTestInClusterSupport {
 
         JobConfig config = new JobConfig().setSuspendOnFailure(true).setMaxProcessorAccumulatedRecords(2);
         Job job = instance.getJet().newJob(pipeline, config);
-        assertJobSuspendedEventually(job);
+        assertThat(job).eventuallySuspended();
         assertThat(job.getSuspensionCause().errorCause())
                 .contains("Exception thrown to prevent an OutOfMemoryError on this Hazelcast instance");
 
@@ -1084,11 +1145,28 @@ public class JobTest extends SimpleTestInClusterSupport {
         Job job = instance.getJet().newJob(pipeline);
         assertThatThrownBy(() -> job.updateConfig(new DeltaJobConfig())).hasMessageStartingWith("Job not suspended, but");
 
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         assertThatThrownBy(() -> job.updateConfig(new DeltaJobConfig())).hasMessage("Job not suspended, but RUNNING");
 
         cancelAndJoin(job);
         assertThatThrownBy(() -> job.updateConfig(new DeltaJobConfig())).hasMessage("Job not suspended, but FAILED");
+    }
+
+    @Test
+    public void given_suspensionIsForbidden_when_tryUpdatingJobConfig_then_updateIsFailed() {
+        // Given
+        DAG dag = new DAG();
+        dag.newVertex("v", () -> new MockP().streaming());
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setArgument(JobConfigArguments.KEY_JOB_IS_SUSPENDABLE, false);
+
+
+        // When
+        Job job = instance().getJet().newJob(dag, jobConfig);
+
+        // Then
+        assertThatThrownBy(() -> job.updateConfig(new DeltaJobConfig()))
+                .hasMessageContaining("is not suspendable, can't perform `updateJobConfig()`");
     }
 
     // ### Tests for light jobs
@@ -1138,9 +1216,9 @@ public class JobTest extends SimpleTestInClusterSupport {
         HazelcastInstance clientConnectedToI1 = factory().newHazelcastClient(configForNonSmartClientConnectingTo(instances()[1]));
 
         Job job1 = instances()[0].getJet().newLightJob(streamingDag());
-        assertTrueEventually(() -> assertJobExecuting(job1, instances()[0]));
+        assertTrueEventually(() -> assertThat(job1).isExecutingOn(instances()[0]));
 
-        assertJobVisible(clientConnectedToI1, job1, "job1ThroughClient2");
+        assertThat(job1).isVisible(clientConnectedToI1);
         Job job1ThroughClient2 = clientConnectedToI1.getJet().getJob(job1.getId());
         job1ThroughClient2.getSubmissionTime();
         assertEquals(RUNNING, job1ThroughClient2.getStatus());
@@ -1157,8 +1235,8 @@ public class JobTest extends SimpleTestInClusterSupport {
         // It should not pick such a member.
         for (int i = 0; i < 10; i++) {
             Job job = client.getJet().newLightJob(streamingDag());
-            assertTrueEventually(() -> assertJobExecuting(job, instance()));
-            assertJobVisible(client, job, "streaming job");
+            assertTrueEventually(() -> assertThat(job).isExecutingOn(instance()));
+            assertThat(job).isVisible(client);
             cancelAndJoin(job);
         }
     }
@@ -1213,7 +1291,8 @@ public class JobTest extends SimpleTestInClusterSupport {
             output.writeInt(value.value);
         }
 
-        @Override @Nonnull
+        @Override
+        @Nonnull
         public Value read(ObjectDataInput input) throws IOException {
             return new Value(input.readInt());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public final class MySqlCdcSources {
         /**
          * Optional regular expressions that match database names to be
          * monitored; any database name not included in the whitelist will be
-         * excluded from monitoring. By default all databases will be monitored.
+         * excluded from monitoring. By default, all databases will be monitored.
          * May not be used with {@link #setDatabaseBlacklist(String...) database
          * blacklist}.
          */
@@ -205,7 +205,7 @@ public final class MySqlCdcSources {
          * Optional regular expressions that match fully-qualified table
          * identifiers for tables to be monitored; any table not included in the
          * whitelist will be excluded from monitoring. Each identifier is of the
-         * form <em>databaseName.tableName</em>. By default the connector will
+         * form <em>databaseName.tableName</em>. By default, the connector will
          * monitor every non-system table in each monitored database. May not be
          * used with {@link #setTableBlacklist(String...) table blacklist}.
          */

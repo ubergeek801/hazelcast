@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import javax.annotation.Nonnull;
 import java.util.UUID;
 
 /**
- * LifecycleService allows you to shutdown, terminate, and listen to {@link LifecycleEvent}s
+ * LifecycleService allows you to shut down, terminate, and listen to {@link LifecycleEvent}s
  * on HazelcastInstance.
  */
 public interface LifecycleService {
 
     /**
-     * Checks whether or not the instance is running.
+     * Checks whether the instance is running.
      *
      * @return {@code true}, if instance is active and running, {@code false} otherwise
      */

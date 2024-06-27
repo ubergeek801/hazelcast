@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public interface Outbox {
      * The type of the offered key determines which processors receive the key
      * and value pair when it is restored. If the key is of type {@link
      * BroadcastKey}, the entry will be restored to all processor instances.
-     * Otherwise the key will be distributed according to default partitioning
+     * Otherwise, the key will be distributed according to default partitioning
      * and only a single processor instance will receive the key.
      * <p>
      * This method must only be called from the {@link

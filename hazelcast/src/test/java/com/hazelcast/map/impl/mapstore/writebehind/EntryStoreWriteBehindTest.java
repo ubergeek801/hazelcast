@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,14 @@ public class EntryStoreWriteBehindTest extends EntryStoreSimpleTest {
     @Override
     protected Config getConfig() {
         Config config = super.getConfig();
-        config.getMapConfig("default").getMapStoreConfig().setWriteDelaySeconds(1);
+        config.getMapConfig("default")
+                .getMapStoreConfig().setWriteDelaySeconds(1);
         return config;
     }
 
     @Override
     protected void assertEntryStore(String key, String value) {
-        assertTrueEventually(() -> {
-            super.assertEntryStore(key, value);
-        });
+        assertTrueEventually(() -> super.assertEntryStore(key, value));
     }
 
     @Override
@@ -56,8 +55,6 @@ public class EntryStoreWriteBehindTest extends EntryStoreSimpleTest {
 
     @Override
     protected void assertEntryNotStored(String key) {
-        assertTrueEventually(() -> {
-            super.assertEntryNotStored(key);
-        });
+        assertTrueEventually(() -> super.assertEntryNotStored(key));
     }
 }

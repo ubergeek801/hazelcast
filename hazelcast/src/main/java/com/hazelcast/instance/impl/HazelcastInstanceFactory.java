@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.jmx.ManagementService;
 import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.internal.util.ModularJavaUtils;
+import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.spi.properties.ClusterProperty;
@@ -164,7 +165,7 @@ public final class HazelcastInstanceFactory {
     public static String getInstanceName(String instanceName, Config config) {
         String name = instanceName;
 
-        if (name == null || name.trim().length() == 0) {
+        if (StringUtil.isNullOrEmptyAfterTrim(name)) {
             name = createInstanceName(config);
         }
 
@@ -259,7 +260,6 @@ public final class HazelcastInstanceFactory {
         while (node.getClusterService().getSize() < initialMinClusterSize) {
             try {
                 hazelcastInstance.logger.info("HazelcastInstance waiting for cluster size of " + initialMinClusterSize);
-                // noinspection BusyWait
                 SECONDS.sleep(1);
             } catch (InterruptedException ignored) {
                 currentThread().interrupt();
@@ -315,7 +315,7 @@ public final class HazelcastInstanceFactory {
         if (future != null && future.isSet()) {
             future.get().original = null;
         }
-        if (INSTANCE_MAP.size() == 0) {
+        if (INSTANCE_MAP.isEmpty()) {
             ManagementService.shutdown(instance.getName());
         }
     }

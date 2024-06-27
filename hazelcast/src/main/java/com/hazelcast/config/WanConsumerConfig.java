@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.config;
 
 import com.hazelcast.internal.config.ConfigDataSerializerHook;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
@@ -36,7 +37,7 @@ import static com.hazelcast.internal.util.Preconditions.checkNotNull;
  * or even configure your own implementation for a WAN consumer. A custom
  * WAN consumer allows you to define custom processing logic and is usually
  * used in combination with a custom WAN publisher.
- * A custom consumer is optional and you may simply omit defining it which
+ * A custom consumer is optional, and you may simply omit defining it which
  * will cause the default processing logic to be used.
  * <p>
  * NOTE: EE only
@@ -129,7 +130,7 @@ public class WanConsumerConfig implements IdentifiedDataSerializable {
 
     /**
      * @return {@code true} when persistence of replicated data into backing
-     * store is enabled, otherwise returns {@code false}. By default this
+     * store is enabled, otherwise returns {@code false}. By default, this
      * method returns {@value #DEFAULT_PERSIST_WAN_REPLICATED_DATA}.
      */
     public boolean isPersistWanReplicatedData() {
@@ -170,12 +171,7 @@ public class WanConsumerConfig implements IdentifiedDataSerializable {
 
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-        int size = properties.size();
-        out.writeInt(size);
-        for (Map.Entry<String, Comparable> entry : properties.entrySet()) {
-            out.writeString(entry.getKey());
-            out.writeObject(entry.getValue());
-        }
+        SerializationUtil.writeMapStringKey(properties, out);
         out.writeString(className);
         out.writeObject(implementation);
         out.writeBoolean(persistWanReplicatedData);

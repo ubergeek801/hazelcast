@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -162,6 +163,7 @@ public abstract class CommonElasticSinksTest extends BaseElasticTest {
 
     public static class TestItem implements Serializable {
 
+        @Serial
         private static final long serialVersionUID = 1L;
         private final String id;
         private final String name;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import java.util.Iterator;
 import java.util.Optional;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.impl.util.ExceptionUtil.rethrow;
 
@@ -57,7 +58,7 @@ public class Job_StaleInstanceTest extends JetTestSupport {
         dag.newVertex("v", () -> new NoOutputSourceP());
         client = instanceFactory.newHazelcastClient();
         job = client.getJet().newJob(dag);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         instance.getLifecycleService().terminate();
         instance = instanceFactory.newHazelcastInstance(smallInstanceConfig());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,11 +69,11 @@ public class LogExceptionJobTest extends SimpleTestInClusterSupport {
                                     .getPipeline();
         JobConfig jobConfig = new JobConfig().setProcessingGuarantee(EXACTLY_ONCE);
         Job job = instance().getJet().newJob(pipeline, jobConfig);
-        assertJobStatusEventually(job, RUNNING);
+        JobAssertions.assertThat(job).eventuallyHasStatus(RUNNING);
 
         // when
         job.suspend();
-        assertJobStatusEventually(job, SUSPENDED);
+        JobAssertions.assertThat(job).eventuallyHasStatus(SUSPENDED);
 
         // then
         List<Throwable> exceptions = recorder.exceptionsOfTypes(TerminatedWithSnapshotException.class);
@@ -90,11 +90,11 @@ public class LogExceptionJobTest extends SimpleTestInClusterSupport {
                                     .getPipeline();
         JobConfig jobConfig = new JobConfig().setProcessingGuarantee(EXACTLY_ONCE);
         Job job = instance().getJet().newJob(pipeline, jobConfig);
-        assertJobStatusEventually(job, RUNNING);
+        JobAssertions.assertThat(job).eventuallyHasStatus(RUNNING);
 
         // when
         job.cancel();
-        assertJobStatusEventually(job, FAILED);
+        JobAssertions.assertThat(job).eventuallyHasStatus(FAILED);
 
         // then
         List<Throwable> exceptions = recorder.exceptionsOfTypes(JobTerminateRequestedException.class);

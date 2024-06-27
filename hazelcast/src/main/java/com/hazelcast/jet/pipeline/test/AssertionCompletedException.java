@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.hazelcast.jet.pipeline.test;
 import com.hazelcast.jet.Job;
 import com.hazelcast.jet.annotation.EvolvingApi;
 
+import java.io.Serial;
+
 /**
  * An exception which indicates that an assertion passed successfully. It is
  * used to terminate the streaming job. If caught from the {@link Job#join()}
@@ -29,6 +31,7 @@ import com.hazelcast.jet.annotation.EvolvingApi;
 @EvolvingApi
 public final class AssertionCompletedException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

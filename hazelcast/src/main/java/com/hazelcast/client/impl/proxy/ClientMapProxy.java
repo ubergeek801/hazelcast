@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import com.hazelcast.client.impl.protocol.codec.MapLockCodec;
 import com.hazelcast.client.impl.protocol.codec.MapProjectCodec;
 import com.hazelcast.client.impl.protocol.codec.MapProjectWithPredicateCodec;
 import com.hazelcast.client.impl.protocol.codec.MapPutAllCodec;
+import com.hazelcast.client.impl.protocol.codec.MapPutAllWithMetadataCodec;
 import com.hazelcast.client.impl.protocol.codec.MapPutCodec;
 import com.hazelcast.client.impl.protocol.codec.MapPutIfAbsentCodec;
 import com.hazelcast.client.impl.protocol.codec.MapPutIfAbsentWithMaxIdleCodec;
@@ -73,6 +74,7 @@ import com.hazelcast.client.impl.protocol.codec.MapRemoveEntryListenerCodec;
 import com.hazelcast.client.impl.protocol.codec.MapRemoveIfSameCodec;
 import com.hazelcast.client.impl.protocol.codec.MapRemoveInterceptorCodec;
 import com.hazelcast.client.impl.protocol.codec.MapRemovePartitionLostListenerCodec;
+import com.hazelcast.client.impl.protocol.codec.MapReplaceAllCodec;
 import com.hazelcast.client.impl.protocol.codec.MapReplaceCodec;
 import com.hazelcast.client.impl.protocol.codec.MapReplaceIfSameCodec;
 import com.hazelcast.client.impl.protocol.codec.MapSetCodec;
@@ -85,7 +87,6 @@ import com.hazelcast.client.impl.protocol.codec.MapTryPutCodec;
 import com.hazelcast.client.impl.protocol.codec.MapTryRemoveCodec;
 import com.hazelcast.client.impl.protocol.codec.MapUnlockCodec;
 import com.hazelcast.client.impl.protocol.codec.MapValuesCodec;
-import com.hazelcast.client.impl.protocol.codec.MapReplaceAllCodec;
 import com.hazelcast.client.impl.protocol.codec.MapValuesWithPagingPredicateCodec;
 import com.hazelcast.client.impl.protocol.codec.MapValuesWithPredicateCodec;
 import com.hazelcast.client.impl.protocol.codec.holder.PagingPredicateHolder;
@@ -161,6 +162,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -168,9 +170,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static com.hazelcast.query.impl.predicates.PredicateUtils.checkDoesNotContainPagingPredicate;
-import static com.hazelcast.query.impl.predicates.PredicateUtils.containsPagingPredicate;
-import static com.hazelcast.query.impl.predicates.PredicateUtils.unwrapPagingPredicate;
 import static com.hazelcast.internal.util.CollectionUtil.objectToDataCollection;
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
@@ -183,9 +182,13 @@ import static com.hazelcast.map.impl.ListenerAdapters.createListenerAdapter;
 import static com.hazelcast.map.impl.MapListenerFlagOperator.setAndGetListenerFlags;
 import static com.hazelcast.map.impl.querycache.subscriber.QueryCacheRequest.newQueryCacheRequest;
 import static com.hazelcast.map.impl.record.Record.UNSET;
+import static com.hazelcast.query.impl.predicates.PredicateUtils.checkDoesNotContainPagingPredicate;
+import static com.hazelcast.query.impl.predicates.PredicateUtils.containsPagingPredicate;
+import static com.hazelcast.query.impl.predicates.PredicateUtils.unwrapPagingPredicate;
 import static java.lang.Thread.currentThread;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Proxy implementation of {@link IMap}.
@@ -193,7 +196,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * @param <K> key
  * @param <V> value
  */
-@SuppressWarnings("checkstyle:classdataabstractioncoupling")
+@SuppressWarnings({"checkstyle:classdataabstractioncoupling", "ClassFanOutComplexity", "MethodCount"})
 public class ClientMapProxy<K, V> extends ClientProxy
         implements IMap<K, V>, EventJournalReader<EventJournalMapEvent<K, V>> {
 
@@ -480,6 +483,25 @@ public class ClientMapProxy<K, V> extends ClientProxy
             ClientInvocationFuture future = invokeOnKeyOwner(request, keyData);
             SerializationService ss = getSerializationService();
             return new ClientDelegatingFuture<>(future, ss, MapRemoveCodec::decodeResponse);
+        } catch (Exception e) {
+            throw rethrow(e);
+        }
+    }
+
+    @Override
+    public InternalCompletableFuture<Boolean> deleteAsync(@Nonnull K key) {
+        checkNotNull(key, NULL_KEY_IS_NOT_ALLOWED);
+        return deleteAsyncInternal(key);
+    }
+
+    protected InternalCompletableFuture<Boolean> deleteAsyncInternal(Object key) {
+        try {
+            Data keyData = toData(key);
+            ClientMessage request = MapDeleteCodec.encodeRequest(name, keyData, getThreadId());
+            ClientInvocationFuture future = invokeOnKeyOwner(request, keyData);
+            SerializationService ss = getSerializationService();
+            return new ClientDelegatingFuture<>(future, ss,
+                clientMessage -> MapDeleteCodec.decodeResponse(clientMessage).response);
         } catch (Exception e) {
             throw rethrow(e);
         }
@@ -865,6 +887,8 @@ public class ClientMapProxy<K, V> extends ClientProxy
     @Override
     public UUID addPartitionLostListener(@Nonnull MapPartitionLostListener listener) {
         checkNotNull(listener, NULL_LISTENER_IS_NOT_ALLOWED);
+        // Handle dependency injection
+        listener = (MapPartitionLostListener) getSerializationService().getManagedContext().initialize(listener);
         EventHandler<ClientMessage> handler = new ClientMapPartitionLostEventHandler(listener);
         return registerListener(createMapPartitionListenerCodec(), handler);
     }
@@ -1222,6 +1246,16 @@ public class ClientMapProxy<K, V> extends ClientProxy
         return (Set<K>) new UnmodifiableLazySet(MapKeySetWithPredicateCodec.decodeResponse(response), getSerializationService());
     }
 
+    @Override
+    public Collection<V> localValues() {
+        throw new UnsupportedOperationException("Locality is ambiguous for client!");
+    }
+
+    @Override
+    public Collection<V> localValues(@Nonnull Predicate<K, V> predicate) {
+        throw new UnsupportedOperationException("Locality is ambiguous for client!");
+    }
+
     @SuppressWarnings("unchecked")
     private Set keySetWithPagingPredicate(Predicate predicate) {
         PagingPredicateImpl pagingPredicate = unwrapPagingPredicate(predicate);
@@ -1289,8 +1323,7 @@ public class ClientMapProxy<K, V> extends ClientProxy
 
     private ClientMessage invokeWithPredicate(ClientMessage request, Predicate predicate) {
         ClientMessage response;
-        if (predicate instanceof PartitionPredicate) {
-            PartitionPredicate partitionPredicate = (PartitionPredicate) predicate;
+        if (predicate instanceof PartitionPredicate partitionPredicate) {
             response = invoke(request, partitionPredicate.getPartitionKey());
         } else {
             response = invoke(request);
@@ -1610,13 +1643,13 @@ public class ClientMapProxy<K, V> extends ClientProxy
     private void putAllInternal(@Nonnull Map<? extends K, ? extends V> map,
                                 @Nullable InternalCompletableFuture<Void> future,
                                 boolean triggerMapLoader) {
+        checkNotNull(map, "Null argument map is not allowed");
         if (map.isEmpty()) {
             if (future != null) {
                 future.complete(null);
             }
             return;
         }
-        checkNotNull(map, "Null argument map is not allowed");
         ClientPartitionService partitionService = getContext().getPartitionService();
         int partitionCount = partitionService.getPartitionCount();
         Map<Integer, List<Map.Entry<Data, Data>>> entryMap = new HashMap<>(partitionCount);
@@ -1627,11 +1660,7 @@ public class ClientMapProxy<K, V> extends ClientProxy
 
             Data keyData = toData(entry.getKey());
             int partitionId = partitionService.getPartitionId(keyData);
-            List<Map.Entry<Data, Data>> partition = entryMap.get(partitionId);
-            if (partition == null) {
-                partition = new ArrayList<>();
-                entryMap.put(partitionId, partition);
-            }
+            List<Map.Entry<Data, Data>> partition = entryMap.computeIfAbsent(partitionId, x -> new ArrayList<>());
             partition.add(new AbstractMap.SimpleEntry<>(keyData, toData(entry.getValue())));
         }
         assert entryMap.size() > 0;
@@ -1669,6 +1698,76 @@ public class ClientMapProxy<K, V> extends ClientProxy
     }
 
     protected void finalizePutAll(Map<? extends K, ? extends V> map, Map<Integer, List<Entry<Data, Data>>> entryMap) {
+    }
+
+    public CompletableFuture<Void> putAllWithMetadataAsync(@Nonnull Collection<? extends EntryView<K, V>> entries) {
+        checkNotNull(entries, "Null argument entries is not allowed");
+        ClientPartitionService partitionService = getContext().getPartitionService();
+
+        Map<Integer, List<SimpleEntryView<Data, Data>>> entriesByPartition =
+                entries.stream()
+                       .map(e -> {
+                           checkNotNull(e.getKey(), NULL_KEY_IS_NOT_ALLOWED);
+                           checkNotNull(e.getValue(), NULL_VALUE_IS_NOT_ALLOWED);
+
+                           Data keyData = toData(e.getKey());
+                           if (e instanceof SimpleEntryView
+                                   && e.getKey() instanceof Data
+                                   && e.getValue() instanceof Data
+                           ) {
+                               return (SimpleEntryView<Data, Data>) e;
+                           } else {
+                               return new SimpleEntryView<>(keyData, toData(e.getValue()))
+                                       .withCost(e.getCost())
+                                       .withCreationTime(e.getCreationTime())
+                                       .withExpirationTime(e.getExpirationTime())
+                                       .withHits(e.getHits())
+                                       .withLastAccessTime(e.getLastAccessTime())
+                                       .withLastStoredTime(e.getLastStoredTime())
+                                       .withLastUpdateTime(e.getLastUpdateTime())
+                                       .withVersion(e.getVersion())
+                                       .withTtl(e.getTtl())
+                                       .withMaxIdle(e.getMaxIdle());
+                           }
+                       })
+                       .collect(groupingBy(
+                               (SimpleEntryView<Data, Data> e) -> partitionService.getPartitionId(e.getKey())
+                       ));
+
+        AtomicInteger counter = new AtomicInteger(entriesByPartition.size());
+        InternalCompletableFuture<Void> resultFuture = new InternalCompletableFuture<>();
+        if (counter.get() == 0) {
+            resultFuture.complete(null);
+        }
+        for (Entry<Integer, ? extends List<SimpleEntryView<Data, Data>>> entry : entriesByPartition.entrySet()) {
+            Integer partitionId = entry.getKey();
+            ClientMessage request = MapPutAllWithMetadataCodec.encodeRequest(name, entry.getValue());
+            ClientInvocationFuture future = new ClientInvocation(getClient(), request, getName(), partitionId)
+                    .invoke();
+
+            future.whenCompleteAsync((clientMessage, throwable) -> {
+                        if (throwable != null) {
+                            resultFuture.completeExceptionally(throwable);
+                            return;
+                        }
+                        if (counter.decrementAndGet() == 0) {
+                            finalizePutAll(
+                                    entries,
+                                    entriesByPartition
+                            );
+                            if (!resultFuture.isDone()) {
+                                resultFuture.complete(null);
+                            }
+                        }
+                    }, ConcurrencyUtil.getDefaultAsyncExecutor());
+        }
+
+        return resultFuture;
+    }
+
+    protected void finalizePutAll(
+            Collection<? extends EntryView<K, V>> entries, Map<Integer,
+            List<SimpleEntryView<Data, Data>>> entryMap) {
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,28 @@
 
 package com.hazelcast.jet.sql.impl.parse;
 
-import com.hazelcast.jet.sql.SqlTestSupport;
 import com.hazelcast.jet.sql.impl.OptimizerContext;
 import com.hazelcast.sql.impl.schema.SqlCatalog;
+import com.hazelcast.sql.impl.security.NoOpSqlSecurityContext;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.pretty.SqlPrettyWriter;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
-public class UnparseTest extends SqlTestSupport {
-    private OptimizerContext context;
+public class UnparseTest {
 
-    @BeforeClass
-    public static void beforeClass() {
-        initialize(1, smallInstanceConfig());
-    }
+    private OptimizerContext context;
 
     @Before
     public void before() {
@@ -79,13 +74,23 @@ public class UnparseTest extends SqlTestSupport {
         checkQuery("SELECT JSON_ARRAY(1, 'b', 3 NULL ON NULL)");
     }
 
+    @Test
+    public void test_ANALYZE() {
+        checkQuery("ANALYZE SELECT JSON_ARRAY()");
+        checkQuery("ANALYZE\n"
+                + "WITH OPTIONS (\n"
+                + "  'processingGuarantee'='exactlyOnce',\n"
+                + "  'snapshotIntervalMillis'='121'\n"
+                + ") SELECT JSON_ARRAY()");
+    }
+
     private void checkQuery(String query) {
         final SqlNode node = context.parse(query).getNode();
         final SqlPrettyWriter writer = new SqlPrettyWriter(SqlPrettyWriter.config());
         node.unparse(writer, 0, 0);
         final String result = writer.toSqlString().toString();
 
-        assertEquals(query, result);
+        Assertions.assertThat(result).isEqualToNormalizingNewlines(query);
         assertNotNull(context.parse(result).getNode());
     }
 
@@ -94,8 +99,8 @@ public class UnparseTest extends SqlTestSupport {
                 new SqlCatalog(emptyList()),
                 emptyList(),
                 emptyList(),
-                1,
-                name -> null
-        );
+                name -> null,
+                null,
+                NoOpSqlSecurityContext.INSTANCE);
     }
 }

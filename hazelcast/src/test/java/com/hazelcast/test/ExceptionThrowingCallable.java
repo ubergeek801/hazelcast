@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
 /**
  * A {@link Callable} which just throws an {@link ExpectedRuntimeException} on execution.
  */
-public class ExceptionThrowingCallable implements Callable, Serializable {
+public class ExceptionThrowingCallable implements Callable<Object>, Serializable {
 
     @Override
     public Object call() throws Exception {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableFactory;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
-import com.hazelcast.test.ObjectTestUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.hazelcast.query.impl.extractor.AbstractExtractionSpecification.PortableAware;
 
@@ -42,7 +42,7 @@ public class ComplexTestDataStructure {
 
     public static class Person implements Serializable, PortableAware {
         String name;
-        List<Limb> limbs_list = new ArrayList<Limb>();
+        List<Limb> limbs_list = new ArrayList<>();
         Limb[] limbs_array;
         Limb firstLimb;
         Limb secondLimb;
@@ -63,12 +63,12 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final Person other = (Person) o;
-            return ObjectTestUtils.equals(this.name, other.name) && ObjectTestUtils.equals(this.limbs_list, other.limbs_list);
+            return Objects.equals(this.name, other.name) && Objects.equals(this.limbs_list, other.limbs_list);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hash(name, limbs_list);
+            return Objects.hash(name, limbs_list);
         }
 
         public PersonPortable getPortable() {
@@ -92,12 +92,12 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final PersonPortable other = (PersonPortable) o;
-            return ObjectTestUtils.equals(this.name, other.name);
+            return Objects.equals(this.name, other.name);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hash(name);
+            return Objects.hash(name);
         }
 
         @Override
@@ -129,9 +129,9 @@ public class ComplexTestDataStructure {
 
     public static class Limb implements Serializable, PortableAware, Comparable<Limb> {
         String name;
-        List<Finger> fingers_list = new ArrayList<Finger>();
+        List<Finger> fingers_list = new ArrayList<>();
         Finger[] fingers_array;
-        List<String> tattoos_list = new ArrayList<String>();
+        List<String> tattoos_list = new ArrayList<>();
         String[] tattoos_array;
 
         public String getName() {
@@ -146,13 +146,13 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final Limb other = (Limb) o;
-            return ObjectTestUtils.equals(this.name, other.name) && ObjectTestUtils.equals(this.fingers_list, other.fingers_list)
-                    && ObjectTestUtils.equals(this.tattoos_list, other.tattoos_list);
+            return Objects.equals(this.name, other.name) && Objects.equals(this.fingers_list, other.fingers_list)
+                    && Objects.equals(this.tattoos_list, other.tattoos_list);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hash(name, fingers_list, tattoos_list);
+            return Objects.hash(name, fingers_list, tattoos_list);
         }
 
         public LimbPortable getPortable() {
@@ -179,12 +179,12 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final LimbPortable other = (LimbPortable) o;
-            return ObjectTestUtils.equals(this.name, other.name);
+            return Objects.equals(this.name, other.name);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hash(name);
+            return Objects.hash(name);
         }
 
         @Override
@@ -227,12 +227,12 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final Finger other = (Finger) o;
-            return ObjectTestUtils.equals(this.name, other.name);
+            return Objects.equals(this.name, other.name);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hashCode(name);
+            return Objects.hashCode(name);
         }
 
         @Override
@@ -260,12 +260,12 @@ public class ComplexTestDataStructure {
                 return false;
             }
             final FingerPortable other = (FingerPortable) o;
-            return ObjectTestUtils.equals(this.name, other.name);
+            return Objects.equals(this.name, other.name);
         }
 
         @Override
         public int hashCode() {
-            return ObjectTestUtils.hashCode(name);
+            return Objects.hashCode(name);
         }
 
         @Override

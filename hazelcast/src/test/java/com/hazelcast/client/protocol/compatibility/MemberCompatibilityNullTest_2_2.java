@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -45,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+@SuppressWarnings("unused")
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class MemberCompatibilityNullTest_2_2 {
@@ -52,15 +51,15 @@ public class MemberCompatibilityNullTest_2_2 {
 
     @Before
     public void setUp() throws IOException {
-        File file = new File(getClass().getResource("/2.2.protocol.compatibility.null.binary").getFile());
-        InputStream inputStream = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        inputStream.read(data);
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-        ClientMessageReader reader = new ClientMessageReader(0);
-        while (reader.readFrom(buffer, true)) {
-            clientMessages.add(reader.getClientMessage());
-            reader.reset();
+        try (InputStream inputStream = getClass().getResourceAsStream("/2.2.protocol.compatibility.null.binary")) {
+            assert inputStream != null;
+            byte[] data = inputStream.readAllBytes();
+            ByteBuffer buffer = ByteBuffer.wrap(data);
+            ClientMessageReader reader = new ClientMessageReader(0);
+            while (reader.readFrom(buffer, true)) {
+                clientMessages.add(reader.getClientMessage());
+                reader.reset();
+            }
         }
     }
 
@@ -78,12 +77,13 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(aString, parameters.clientHazelcastVersion));
         assertTrue(isEqual(aString, parameters.clientName));
         assertTrue(isEqual(aListOfStrings, parameters.labels));
+        assertFalse(parameters.isRoutingModeExists);
     }
 
     @Test
     public void test_ClientAuthenticationCodec_encodeResponse() {
         int fileClientMessageIndex = 1;
-        ClientMessage encoded = ClientAuthenticationCodec.encodeResponse(aByte, null, null, aByte, aString, anInt, aUUID, aBoolean);
+        ClientMessage encoded = ClientAuthenticationCodec.encodeResponse(aByte, null, null, aByte, aString, anInt, aUUID, aBoolean, null, null, anInt, aListOfMemberInfos, anInt, aListOfUUIDToListOfIntegers, aMapOfStringToString);
         ClientMessage fromFile = clientMessages.get(fileClientMessageIndex);
         compareClientMessages(fromFile, encoded);
     }
@@ -101,12 +101,13 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(aString, parameters.clientHazelcastVersion));
         assertTrue(isEqual(aString, parameters.clientName));
         assertTrue(isEqual(aListOfStrings, parameters.labels));
+        assertFalse(parameters.isRoutingModeExists);
     }
 
     @Test
     public void test_ClientAuthenticationCustomCodec_encodeResponse() {
         int fileClientMessageIndex = 3;
-        ClientMessage encoded = ClientAuthenticationCustomCodec.encodeResponse(aByte, null, null, aByte, aString, anInt, aUUID, aBoolean);
+        ClientMessage encoded = ClientAuthenticationCustomCodec.encodeResponse(aByte, null, null, aByte, aString, anInt, aUUID, aBoolean, null, null, anInt, null, anInt, null, aMapOfStringToString);
         ClientMessage fromFile = clientMessages.get(fileClientMessageIndex);
         compareClientMessages(fromFile, encoded);
     }
@@ -566,7 +567,7 @@ public class MemberCompatibilityNullTest_2_2 {
     @Test
     public void test_MapDeleteCodec_encodeResponse() {
         int fileClientMessageIndex = 60;
-        ClientMessage encoded = MapDeleteCodec.encodeResponse();
+        ClientMessage encoded = MapDeleteCodec.encodeResponse(aBoolean);
         ClientMessage fromFile = clientMessages.get(fileClientMessageIndex);
         compareClientMessages(fromFile, encoded);
     }
@@ -6352,6 +6353,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(isEqual(aString, parameters.mergePolicy));
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6377,6 +6379,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(isEqual(aString, parameters.mergePolicy));
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6422,6 +6425,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(isEqual(aString, parameters.mergePolicy));
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6446,6 +6450,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(isEqual(aString, parameters.mergePolicy));
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6469,6 +6474,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.listenerConfigs));
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6489,6 +6495,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(aBoolean, parameters.statisticsEnabled));
         assertTrue(isEqual(aBoolean, parameters.multiThreadingEnabled));
         assertTrue(isEqual(null, parameters.listenerConfigs));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6509,6 +6516,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(anInt, parameters.queueCapacity));
         assertTrue(isEqual(aBoolean, parameters.statisticsEnabled));
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6531,6 +6539,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.splitBrainProtectionName));
         assertTrue(parameters.isStatisticsEnabledExists);
         assertTrue(isEqual(aBoolean, parameters.statisticsEnabled));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6556,6 +6565,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(parameters.isStatisticsEnabledExists);
         assertTrue(isEqual(aBoolean, parameters.statisticsEnabled));
         assertFalse(parameters.isCapacityPolicyExists);
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6584,6 +6594,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(anInt, parameters.mergeBatchSize));
         assertTrue(parameters.isPriorityComparatorClassNameExists);
         assertTrue(isEqual(null, parameters.priorityComparatorClassName));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6631,6 +6642,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertFalse(parameters.isDataPersistenceConfigExists);
         assertFalse(parameters.isTieredStoreConfigExists);
         assertFalse(parameters.isPartitioningAttributeConfigsExists);
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6652,6 +6664,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(aBoolean, parameters.statisticsEnabled));
         assertTrue(isEqual(aString, parameters.topicOverloadPolicy));
         assertTrue(isEqual(null, parameters.executor));
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6695,6 +6708,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(null, parameters.hotRestartConfig));
         assertFalse(parameters.isMerkleTreeConfigExists);
         assertFalse(parameters.isDataPersistenceConfigExists);
+        assertFalse(parameters.isUserCodeNamespaceExists);
     }
 
     @Test
@@ -6959,7 +6973,7 @@ public class MemberCompatibilityNullTest_2_2 {
     @Test
     public void test_MCGetMapConfigCodec_encodeResponse() {
         int fileClientMessageIndex = 774;
-        ClientMessage encoded = MCGetMapConfigCodec.encodeResponse(anInt, anInt, anInt, anInt, anInt, anInt, anInt, aBoolean, anInt, aString, aListOfIndexConfigs);
+        ClientMessage encoded = MCGetMapConfigCodec.encodeResponse(anInt, anInt, anInt, anInt, anInt, anInt, anInt, aBoolean, anInt, aString, aListOfIndexConfigs, null);
         ClientMessage fromFile = clientMessages.get(fileClientMessageIndex);
         compareClientMessages(fromFile, encoded);
     }
@@ -6976,6 +6990,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(aBoolean, parameters.readBackupData));
         assertTrue(isEqual(anInt, parameters.maxSize));
         assertTrue(isEqual(anInt, parameters.maxSizePolicy));
+        assertFalse(parameters.isWanReplicationRefExists);
     }
 
     @Test
@@ -7239,6 +7254,7 @@ public class MemberCompatibilityNullTest_2_2 {
         assertTrue(isEqual(anInt, parameters.responseTimeoutMillis));
         assertTrue(isEqual(anInt, parameters.ackType));
         assertTrue(isEqual(anInt, parameters.queueFullBehavior));
+        assertFalse(parameters.isConsistencyCheckStrategyExists);
     }
 
     @Test
@@ -7553,7 +7569,7 @@ public class MemberCompatibilityNullTest_2_2 {
     public void test_CPSubsystemAddGroupAvailabilityListenerCodec_encodeGroupAvailabilityEventEvent() {
         int fileClientMessageIndex = 850;
         ClientMessage fromFile = clientMessages.get(fileClientMessageIndex);
-        ClientMessage encoded = CPSubsystemAddGroupAvailabilityListenerCodec.encodeGroupAvailabilityEventEvent(aRaftGroupId, aListOfCpMembers, aListOfCpMembers);
+        ClientMessage encoded = CPSubsystemAddGroupAvailabilityListenerCodec.encodeGroupAvailabilityEventEvent(aRaftGroupId, aListOfCpMembers, aListOfCpMembers, aBoolean);
         compareClientMessages(fromFile, encoded);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,33 +21,32 @@ import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuil
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class AvroUpsertTargetDescriptorTest {
-
     private static final InternalSerializationService SERIALIZATION_SERVICE =
             new DefaultSerializationServiceBuilder().build();
 
-    private static final String SCHEMA = "{"
-            + "\"type\": \"record\""
-            + ", \"name\": \"name\""
-            + ", \"fields\": ["
-            + " {\"name\": \"name\", \"type\": \"string\"}"
-            + "]"
-            + "} ";
+    private static final Schema SCHEMA = SchemaBuilder.record("name")
+            .fields()
+            .name("name").type().stringType().noDefault()
+            .endRecord();
 
     @Test
     public void test_create() {
         AvroUpsertTargetDescriptor descriptor = new AvroUpsertTargetDescriptor(SCHEMA);
 
         // when
-        UpsertTarget target = descriptor.create(SERIALIZATION_SERVICE);
+        UpsertTarget target = descriptor.create(mock());
 
         // then
         assertThat(target).isInstanceOf(AvroUpsertTarget.class);

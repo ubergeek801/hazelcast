@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,11 +156,9 @@ public class SerializerConfig {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof SerializerConfig)) {
+        if (!(o instanceof SerializerConfig that)) {
             return false;
         }
-
-        SerializerConfig that = (SerializerConfig) o;
 
         return Objects.equals(implementation, that.implementation)
             && Objects.equals(className, that.className)

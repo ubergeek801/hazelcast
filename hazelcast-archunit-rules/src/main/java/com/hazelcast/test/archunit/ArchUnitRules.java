@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import com.tngtech.archunit.lang.ArchRule;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
-import static com.hazelcast.test.archunit.MatchersUsageCondition.notUseHamcrestMatchers;
-import static com.hazelcast.test.archunit.SerialVersionUidFieldCondition.haveValidSerialVersionUid;
 import static com.hazelcast.test.archunit.CompletableFutureUsageCondition.useExplicitExecutorServiceInCFAsyncMethods;
+import static com.hazelcast.test.archunit.MatchersUsageCondition.notUseHamcrestMatchers;
+import static com.hazelcast.test.archunit.MixTestAnnotationsCondition.notMixJUnit4AndJUnit5Annotations;
+import static com.hazelcast.test.archunit.SerialVersionUidFieldCondition.haveValidSerialVersionUid;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 public final class ArchUnitRules {
@@ -37,7 +38,6 @@ public final class ArchUnitRules {
             .and().doNotHaveModifier(JavaModifier.ABSTRACT)
             .and().implement(Serializable.class)
             .and().doNotImplement("com.hazelcast.nio.serialization.DataSerializable")
-            .and().areNotAnonymousClasses()
             .should(haveValidSerialVersionUid())
             .allowEmptyShould(true);
 
@@ -54,6 +54,20 @@ public final class ArchUnitRules {
     public static final ArchRule MATCHERS_USAGE = classes()
             .that().haveSimpleNameEndingWith("Test")
             .should(notUseHamcrestMatchers());
+
+    /**
+     * ArchUnit rule checking that JUnit4 and JUnit5 annotations are not mixed within the same tes
+     */
+    public static final ArchRule NO_JUNIT_MIXING = classes()
+            .that().haveSimpleNameEndingWith("Test")
+            .should(notMixJUnit4AndJUnit5Annotations());
+
+    /** @see TestsHaveRunnersCondition */
+    public static final ArchRule TESTS_HAVE_RUNNNERS = classes().that()
+            .haveSimpleNameEndingWith("Test")
+            .and()
+            .doNotHaveModifier(JavaModifier.ABSTRACT)
+            .should(new TestsHaveRunnersCondition());
 
     private ArchUnitRules() {
     }

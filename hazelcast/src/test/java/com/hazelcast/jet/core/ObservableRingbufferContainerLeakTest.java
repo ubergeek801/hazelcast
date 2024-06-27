@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,6 @@ public class ObservableRingbufferContainerLeakTest extends JetTestSupport {
                 .iterator()
                 .next(); // We set partition count to 1 so there will be only 1 item
 
-        assertThat(containers).hasSize(0);
+        assertThat(containers).isEmpty();
     }
 }

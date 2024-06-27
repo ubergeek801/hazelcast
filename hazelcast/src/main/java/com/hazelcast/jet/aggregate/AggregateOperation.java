@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ import static com.hazelcast.internal.serialization.impl.SerializationUtil.checkS
  * existing accumulator instead of building a new one from scratch each time
  * the window slides forward. Providing a {@code deduct} primitive that makes
  * the computation more efficient than rebuilding the accumulator from scratch
- * isn't always possible. Therefore it is optional.
+ * isn't always possible. Therefore, it is optional.
  * <p>
  * Depending on usage, the data items may come from one or more inbound
  * streams, and the {@code AggregateOperation} must provide a separate

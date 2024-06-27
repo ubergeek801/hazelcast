@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,20 @@ import com.hazelcast.internal.util.collection.ArrayUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static com.hazelcast.internal.nio.Bits.CHAR_SIZE_IN_BYTES;
+import static com.hazelcast.internal.nio.Bits.FLOAT_SIZE_IN_BYTES;
 import static com.hazelcast.internal.nio.Bits.INT_SIZE_IN_BYTES;
 import static com.hazelcast.internal.nio.Bits.LONG_SIZE_IN_BYTES;
 import static com.hazelcast.internal.nio.Bits.NULL_ARRAY_LENGTH;
 import static com.hazelcast.internal.nio.Bits.SHORT_SIZE_IN_BYTES;
 import static com.hazelcast.version.Version.UNKNOWN;
 
+@SuppressWarnings("MethodCount")
 public class ByteArrayObjectDataOutput extends VersionedObjectDataOutput implements BufferObjectDataOutput {
 
     final int initialSize;
@@ -358,9 +361,10 @@ public class ByteArrayObjectDataOutput extends VersionedObjectDataOutput impleme
         int len = floats != null ? floats.length : NULL_ARRAY_LENGTH;
         writeInt(len);
         if (len > 0) {
-            for (float f : floats) {
-                writeFloat(f);
-            }
+            int sizeInBytes = len * FLOAT_SIZE_IN_BYTES;
+            ensureAvailable(sizeInBytes);
+            ByteBuffer.wrap(this.buffer, pos, sizeInBytes).order(getByteOrder()).asFloatBuffer().put(floats);
+            pos += sizeInBytes;
         }
     }
 
@@ -457,6 +461,7 @@ public class ByteArrayObjectDataOutput extends VersionedObjectDataOutput impleme
     }
 
     @Override
+    @SuppressWarnings("MagicNumber")
     public void clear() {
         pos = 0;
         if (buffer != null && buffer.length > initialSize * 8) {

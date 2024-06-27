@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static com.hazelcast.internal.metrics.impl.FieldProbe.createFieldProbe;
@@ -43,12 +44,12 @@ final class SourceMetadata {
     private final List<MethodProbe> methods = new ArrayList<>();
     private final Collection<MetricTarget> excludedTargetsClass;
 
-    SourceMetadata(Class clazz) {
+    SourceMetadata(Class<?> clazz) {
         // we scan all the methods/fields of the class/interface hierarchy.
-        List<Class<?>> classList = new ArrayList<>();
+        Collection<Class<?>> classList = new LinkedHashSet<>();
         flatten(clazz, classList);
 
-        for (Class flattenedClass : classList) {
+        for (Class<?> flattenedClass : classList) {
             scanFields(flattenedClass);
             scanMethods(flattenedClass);
         }
@@ -66,9 +67,9 @@ final class SourceMetadata {
         }
     }
 
-    private Collection<MetricTarget> getTypeExcludedTarget(Class clazz) {
+    private Collection<MetricTarget> getTypeExcludedTarget(Class<?> clazz) {
         Collection<MetricTarget> typeExclusions;
-        ExcludedMetricTargets targetsAnnotation = (ExcludedMetricTargets) clazz.getAnnotation(ExcludedMetricTargets.class);
+        ExcludedMetricTargets targetsAnnotation = clazz.getAnnotation(ExcludedMetricTargets.class);
         if (targetsAnnotation != null) {
             typeExclusions = unmodifiableList(asList(targetsAnnotation.value()));
         } else {

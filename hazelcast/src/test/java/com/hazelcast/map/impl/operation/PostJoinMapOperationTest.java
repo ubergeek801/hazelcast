@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.IndexType;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapInterceptor;
+import com.hazelcast.map.MapInterceptorAdaptor;
 import com.hazelcast.map.impl.MapContainer;
 import com.hazelcast.map.impl.MapService;
 import com.hazelcast.query.impl.Comparison;
@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class PostJoinMapOperationTest extends HazelcastTestSupport {
         MapService mapService = getNodeEngineImpl(hz2).getService(MapService.SERVICE_NAME);
         MapContainer mapContainerOnNode2 = mapService.getMapServiceContext().getMapContainer("map");
 
-        assertEquals(1, mapContainerOnNode2.getIndexes().getIndexes().length);
+        assertEquals(1, mapContainerOnNode2.getGlobalIndexRegistry().getIndexes().length);
         assertEquals(1, mapContainerOnNode2.getInterceptorRegistry().getInterceptors().size());
         assertEquals(Person.class,
                 mapContainerOnNode2.getInterceptorRegistry().getInterceptors().get(0).interceptGet("anything").getClass());
@@ -205,11 +206,9 @@ public class PostJoinMapOperationTest extends HazelcastTestSupport {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof Person)) {
+            if (!(o instanceof Person person)) {
                 return false;
             }
-
-            Person person = (Person) o;
 
             if (age != person.age) {
                 return false;
@@ -228,7 +227,9 @@ public class PostJoinMapOperationTest extends HazelcastTestSupport {
 
     private static final Person RETURNED_FROM_INTERCEPTOR = new Person("THE_PERSON", 100);
 
-    public static class FixedReturnInterceptor implements MapInterceptor {
+    public static class FixedReturnInterceptor extends MapInterceptorAdaptor {
+        @Serial
+        private static final long serialVersionUID = 1L;
 
         @Override
         public Object interceptGet(Object value) {
@@ -236,29 +237,8 @@ public class PostJoinMapOperationTest extends HazelcastTestSupport {
         }
 
         @Override
-        public void afterGet(Object value) {
-
-        }
-
-        @Override
-        public Object interceptPut(Object oldValue, Object newValue) {
-            // allow put operations to proceed
-            return null;
-        }
-
-        @Override
-        public void afterPut(Object value) {
-
-        }
-
-        @Override
         public Object interceptRemove(Object removedValue) {
             return RETURNED_FROM_INTERCEPTOR;
-        }
-
-        @Override
-        public void afterRemove(Object value) {
-
         }
     }
 

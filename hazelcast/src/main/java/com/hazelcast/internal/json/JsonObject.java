@@ -26,6 +26,7 @@ import com.hazelcast.internal.serialization.SerializableByConvention;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -68,6 +69,7 @@ import java.util.List;
 @SerializableByConvention
 public class JsonObject extends JsonValue implements Iterable<Member> {
 
+  @Serial
   private static final long serialVersionUID = -1139160206104439809L;
 
   private final List<String> names;
@@ -78,8 +80,8 @@ public class JsonObject extends JsonValue implements Iterable<Member> {
    * Creates a new empty JsonObject.
    */
   public JsonObject() {
-    names = new ArrayList<String>();
-    values = new ArrayList<JsonValue>();
+    names = new ArrayList<>();
+    values = new ArrayList<>();
     table = new HashIndexTable();
   }
 
@@ -101,8 +103,8 @@ public class JsonObject extends JsonValue implements Iterable<Member> {
       names = Collections.unmodifiableList(object.names);
       values = Collections.unmodifiableList(object.values);
     } else {
-      names = new ArrayList<String>(object.names);
-      values = new ArrayList<JsonValue>(object.values);
+      names = new ArrayList<>(object.names);
+      values = new ArrayList<>(object.values);
     }
     table = new HashIndexTable();
     updateHashIndex();
@@ -669,7 +671,7 @@ public class JsonObject extends JsonValue implements Iterable<Member> {
   public Iterator<Member> iterator() {
     final Iterator<String> namesIterator = names.iterator();
     final Iterator<JsonValue> valuesIterator = values.iterator();
-    return new Iterator<JsonObject.Member>() {
+    return new Iterator<>() {
 
       public boolean hasNext() {
         return namesIterator.hasNext();
@@ -681,6 +683,7 @@ public class JsonObject extends JsonValue implements Iterable<Member> {
         return new Member(name, value);
       }
 
+      @Override
       public void remove() {
         throw new UnsupportedOperationException();
       }
@@ -748,6 +751,7 @@ public class JsonObject extends JsonValue implements Iterable<Member> {
     return names.lastIndexOf(name);
   }
 
+  @Serial
   private void readObject(ObjectInputStream inputStream)
       throws IOException, ClassNotFoundException
   {

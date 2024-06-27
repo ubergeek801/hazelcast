@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,31 @@ import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapService;
-import com.hazelcast.test.HazelcastParallelClassRunner;
+import com.hazelcast.test.HazelcastParallelParametersRunnerFactory;
+import com.hazelcast.test.HazelcastParametrizedRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
 import java.util.UUID;
 
-@RunWith(HazelcastParallelClassRunner.class)
+import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SMART;
+import static com.hazelcast.client.impl.connection.tcp.RoutingMode.UNISOCKET;
+
+@RunWith(HazelcastParametrizedRunner.class)
+@Parameterized.UseParametersRunnerFactory(HazelcastParallelParametersRunnerFactory.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class EntryListenerOnReconnectTest extends AbstractListenersOnReconnectTest {
 
     private IMap<String, String> iMap;
+
+    @Parameterized.Parameters(name = "{index}: routingMode={0}")
+    public static Iterable<?> parameters() {
+        return Arrays.asList(UNISOCKET, SMART);
+    }
 
     @Override
     String getServiceName() {
@@ -43,7 +55,7 @@ public class EntryListenerOnReconnectTest extends AbstractListenersOnReconnectTe
     protected UUID addListener() {
         iMap = client.getMap(randomString());
 
-        final EntryAdapter<String, String> listener = new EntryAdapter<String, String>() {
+        final EntryAdapter<String, String> listener = new EntryAdapter<>() {
             public void onEntryEvent(EntryEvent<String, String> event) {
                 onEvent(event.getKey());
             }

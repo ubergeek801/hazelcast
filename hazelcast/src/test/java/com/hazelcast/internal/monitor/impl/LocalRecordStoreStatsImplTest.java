@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,6 +172,24 @@ public class LocalRecordStoreStatsImplTest extends HazelcastTestSupport {
         }
 
         assertLastUpdateTimeIsNotUpdated(() -> map.remove("key:0", "value:100"));
+    }
+
+    @Test
+    public void delete_updates_last_update_time() {
+        for (int i = 0; i < 10; i++) {
+            map.set("key:" + i, "value:" + i);
+        }
+
+        assertLastUpdateTimeUpdated(() -> map.delete("key:0"));
+    }
+
+    @Test
+    public void delete_does_not_update_last_update_time_when_no_matching_key() {
+        for (int i = 0; i < 10; i++) {
+            map.set("key:" + i, "value:" + i);
+        }
+
+        assertLastUpdateTimeIsNotUpdated(() -> map.delete("key:100"));
     }
 
     @Test

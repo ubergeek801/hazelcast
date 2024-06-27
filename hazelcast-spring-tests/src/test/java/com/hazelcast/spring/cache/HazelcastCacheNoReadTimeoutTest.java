@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.spring.cache;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapInterceptor;
+import com.hazelcast.map.MapInterceptorAdaptor;
 import com.hazelcast.spring.CustomSpringJUnit4ClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.annotation.QuickTest;
@@ -33,6 +33,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.io.Serial;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -85,7 +86,9 @@ public class HazelcastCacheNoReadTimeoutTest extends HazelcastTestSupport {
         assertTrue(time >= 250L);
     }
 
-    private static class DelayIMapGetInterceptor implements MapInterceptor {
+    private static class DelayIMapGetInterceptor extends MapInterceptorAdaptor {
+        @Serial
+        private static final long serialVersionUID = 1L;
 
         private final int delay;
 
@@ -96,32 +99,7 @@ public class HazelcastCacheNoReadTimeoutTest extends HazelcastTestSupport {
         @Override
         public Object interceptGet(Object value) {
             sleepMillis(delay);
-            return null;
-        }
-
-        @Override
-        public void afterGet(Object value) {
-
-        }
-
-        @Override
-        public Object interceptPut(Object oldValue, Object newValue) {
-            return null;
-        }
-
-        @Override
-        public void afterPut(Object value) {
-
-        }
-
-        @Override
-        public Object interceptRemove(Object removedValue) {
-            return null;
-        }
-
-        @Override
-        public void afterRemove(Object value) {
-
+            return super.interceptGet(value);
         }
     }
 

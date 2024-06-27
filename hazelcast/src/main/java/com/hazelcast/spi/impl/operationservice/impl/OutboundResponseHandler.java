@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,8 +92,8 @@ public final class OutboundResponseHandler implements OperationResponseHandler {
                     response.getBackupAcks(), response.isUrgent(), response.getValue());
         } else if (obj.getClass() == ErrorResponse.class || obj.getClass() == CallTimeoutResponse.class) {
             send = send(connectionManager, target, (Response) obj);
-        } else if (obj instanceof Throwable) {
-            send = send(connectionManager, target, new ErrorResponse((Throwable) obj,
+        } else if (obj instanceof Throwable throwable) {
+            send = send(connectionManager, target, new ErrorResponse(throwable,
                     operation.getCallId(), operation.isUrgent()));
         } else {
             // most regular responses not wrapped in a NormalResponse. So we are now completely skipping the
@@ -140,7 +140,7 @@ public final class OutboundResponseHandler implements OperationResponseHandler {
             writeInt(bytes, OFFSET_DATA_LENGTH, dataLengthInBytes, useBigEndian);
 
             // this is a crucial part. If data is NativeMemoryData, instead of calling Data.toByteArray which causes a
-            // byte-array to be created and a intermediate copy of the data, we immediately copy the NativeMemoryData
+            // byte-array to be created and an intermediate copy of the data, we immediately copy the NativeMemoryData
             // into the bytes for the packet.
             data.copyTo(bytes, OFFSET_DATA_PAYLOAD);
         } else if (value == null) {
@@ -211,7 +211,7 @@ public final class OutboundResponseHandler implements OperationResponseHandler {
     }
 
     private boolean transmit(Address target, Packet packet, ServerConnectionManager connectionManager) {
-        // The response is send over an arbitrary stream id. It needs to be arbitrary so that
+        // The response is sent over an arbitrary stream id. It needs to be arbitrary so that
         // responses don't end up at stream 0 and the connection this stream belongs to, becomes
         // a bottleneck.
         // The order of operations is respected, but the order of responses is not respected, e.g.

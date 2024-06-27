@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.config;
 
 import com.hazelcast.config.tpc.TpcSocketConfig;
 import com.hazelcast.instance.ProtocolType;
-import com.hazelcast.internal.util.StringUtil;
+import com.hazelcast.internal.tpcengine.util.OS;
 import com.hazelcast.spi.annotation.Beta;
 import com.hazelcast.spi.annotation.PrivateApi;
 
@@ -58,8 +58,7 @@ public class ServerSocketEndpointConfig
     private String publicAddress;
 
     public ServerSocketEndpointConfig() {
-        String os = StringUtil.lowerCaseInternal(System.getProperty("os.name"));
-        reuseAddress = (!os.contains("win"));
+        reuseAddress = !OS.isWindows();
     }
 
     public String getPublicAddress() {
@@ -178,7 +177,7 @@ public class ServerSocketEndpointConfig
      * <p>
      * When the member is shutdown, the server socket port will be in TIME_WAIT state for the next 2 minutes or so. If you
      * start the member right after shutting it down, you may not be able to bind to the same port because it is in TIME_WAIT
-     * state. if you set reuseAddress=true then TIME_WAIT will be ignored and you will be able to bind to the same port again.
+     * state. if you set reuseAddress=true then TIME_WAIT will be ignored, and you will be able to bind to the same port again.
      * <p>
      * This property should not be set to true on the Windows platform: see
      * <ol>

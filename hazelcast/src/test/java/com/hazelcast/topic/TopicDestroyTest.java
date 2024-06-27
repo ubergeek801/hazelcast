@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,9 +72,9 @@ public class TopicDestroyTest extends HazelcastTestSupport {
         assertEquals(size, regs.size());
     }
 
-    static class EmptyListener implements MessageListener<Object> {
+    private static class EmptyListener implements MessageListener<Object> {
         @Override
-        public void onMessage(Message message) {
+        public void onMessage(Message<Object> message) {
         }
     }
 }

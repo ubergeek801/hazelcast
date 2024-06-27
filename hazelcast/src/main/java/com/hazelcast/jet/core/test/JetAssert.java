@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public final class JetAssert {
     }
 
     private static void throwNotEqual(String message, Object expected, Object actual) {
-        if (message != null && !message.equals("")) {
+        if (message != null && !message.isEmpty()) {
             message = message + " ";
         }
         String expectedString = String.valueOf(expected);

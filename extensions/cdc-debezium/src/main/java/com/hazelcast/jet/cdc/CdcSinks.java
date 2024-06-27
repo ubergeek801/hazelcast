@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.hazelcast.spi.properties.HazelcastProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.io.Serial;
 import java.security.Permission;
 import java.util.List;
 
@@ -141,7 +142,7 @@ public final class CdcSinks {
      * by applying the provided {@code valueFn} to the change record.
      * <p>
      * <strong>NOTE:</strong> if {@code valueFn} returns {@code null},
-     * then the key will be deleted no matter the operation (ie. even for
+     * then the key will be deleted no matter the operation (i.e. even for
      * update and insert records).
      *
      * @since Jet 4.2
@@ -183,7 +184,7 @@ public final class CdcSinks {
      * by applying the provided {@code valueFn} to the change record.
      * <p>
      * <strong>NOTE:</strong> if {@code valueFn} returns {@code null},
-     * then the key will be deleted no matter the operation (ie. even for
+     * then the key will be deleted no matter the operation (i.e. even for
      * update and insert records).
      *
      * @since Jet 4.2
@@ -207,7 +208,7 @@ public final class CdcSinks {
      * using it.
      * <p>
      * <strong>NOTE 2:</strong> if {@code valueFn} returns {@code null},
-     * then the key will be deleted no matter the operation (ie. even for
+     * then the key will be deleted no matter the operation (i.e. even for
      * update and insert records).
      * <p>
      * Due to the used API, the remote cluster must be at least version 4.0.
@@ -234,7 +235,7 @@ public final class CdcSinks {
             @Nonnull FunctionEx<? super ChangeRecord, ? extends V> valueFn
     ) {
         FunctionEx<? super ChangeRecord, ? extends V> toValueFn =
-                record -> DELETE.equals(record.operation()) ? null : valueFn.apply(record);
+                changeRecord -> DELETE.equals(changeRecord.operation()) ? null : valueFn.apply(changeRecord);
         String clientXml = asXmlString(clientConfig);
         ProcessorSupplier supplier = AbstractHazelcastConnectorSupplier.ofMap(clientXml,
                 procFn(name, map, clientXml, keyFn, toValueFn));
@@ -247,7 +248,11 @@ public final class CdcSinks {
             FunctionEx<? super ChangeRecord, ? extends K> keyFn,
             FunctionEx<? super ChangeRecord, ? extends V> valueFn
     ) {
-        return new FunctionEx<HazelcastInstance, Processor>() {
+        return new FunctionEx<>() {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override
             public Processor applyEx(HazelcastInstance instance) {
                 return new WriteCdcP<>(instance, map, keyFn, valueFn);

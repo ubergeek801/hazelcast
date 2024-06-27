@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class ClientLoggerConfigurationTest extends HazelcastTestSupport {
         ILogger clientLogger = client.getLoggingService().getLogger("loggerName");
         // this part is fragile.
         // client wraps the actual logger in its own class
-        ILogger actualLogger = (ILogger) getFromField(clientLogger, "logger");
+        ILogger actualLogger = getFieldValue(clientLogger, "logger");
         Class<?> clientLoggerClass = actualLogger.getClass();
 
         ILogger expectedLogger = new Log4j2Factory().getLogger("expectedLogger");

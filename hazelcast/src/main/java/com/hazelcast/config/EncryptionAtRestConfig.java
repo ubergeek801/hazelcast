@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,10 +83,9 @@ public class EncryptionAtRestConfig extends AbstractSymmetricEncryptionConfig<En
         if (this == o) {
             return true;
         }
-        if (!(o instanceof EncryptionAtRestConfig)) {
+        if (!(o instanceof EncryptionAtRestConfig other)) {
             return false;
         }
-        EncryptionAtRestConfig other = (EncryptionAtRestConfig) o;
         if (enabled != other.enabled) {
             return false;
         }

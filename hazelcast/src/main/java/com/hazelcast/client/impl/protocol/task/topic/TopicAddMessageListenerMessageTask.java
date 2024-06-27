@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import com.hazelcast.client.impl.protocol.task.AbstractAddListenerMessageTask;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.security.SecurityInterceptorConstants;
 import com.hazelcast.security.permission.ActionConstants;
+import com.hazelcast.security.permission.UserCodeNamespacePermission;
 import com.hazelcast.security.permission.TopicPermission;
 import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
@@ -42,7 +44,7 @@ public class TopicAddMessageListenerMessageTask
         implements MessageListener {
 
     private Data partitionKey;
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
     public TopicAddMessageListenerMessageTask(ClientMessage clientMessage, Node node, Connection connection) {
         super(clientMessage, node, connection);
@@ -76,7 +78,13 @@ public class TopicAddMessageListenerMessageTask
 
     @Override
     public Permission getRequiredPermission() {
-        return new TopicPermission(parameters.name, ActionConstants.ACTION_LISTEN);
+        return new TopicPermission(getDistributedObjectName(), ActionConstants.ACTION_LISTEN);
+    }
+
+    @Override
+    public Permission getUserCodeNamespacePermission() {
+        String namespace = TopicService.lookupNamespace(nodeEngine, getDistributedObjectName());
+        return namespace != null ? new UserCodeNamespacePermission(namespace, ActionConstants.ACTION_USE) : null;
     }
 
     @Override
@@ -86,7 +94,7 @@ public class TopicAddMessageListenerMessageTask
 
     @Override
     public String getMethodName() {
-        return "addMessageListener";
+        return SecurityInterceptorConstants.ADD_MESSAGE_LISTENER;
     }
 
     @Override
@@ -101,12 +109,11 @@ public class TopicAddMessageListenerMessageTask
             return;
         }
 
-        if (!(message instanceof DataAwareMessage)) {
+        if (!(message instanceof DataAwareMessage dataAwareMessage)) {
             throw new IllegalArgumentException("Expecting: DataAwareMessage, Found: "
                     + message.getClass().getSimpleName());
         }
 
-        DataAwareMessage dataAwareMessage = (DataAwareMessage) message;
         Data messageData = dataAwareMessage.getMessageData();
         UUID publisherUuid = message.getPublishingMember().getUuid();
         ClientMessage eventMessage = TopicAddMessageListenerCodec.encodeTopicEvent(messageData,
@@ -121,5 +128,10 @@ public class TopicAddMessageListenerMessageTask
         } else {
             sendClientMessage(partitionKey, eventMessage);
         }
+    }
+
+    @Override
+    protected String getUserCodeNamespace() {
+        return TopicService.lookupNamespace(nodeEngine, parameters.name);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.version;
 
 import com.hazelcast.internal.serialization.SerializableByConvention;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -28,6 +29,7 @@ import java.util.Comparator;
 @SuppressWarnings("checkstyle:magicnumber")
 class MajorMinorVersionComparator implements Comparator<MemberVersion>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 364570099633468810L;
 
     @Override

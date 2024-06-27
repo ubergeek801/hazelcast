@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import com.hazelcast.core.HazelcastException;
 import com.hazelcast.core.ManagedContext;
 import com.hazelcast.core.Offloadable;
 import com.hazelcast.core.ReadOnly;
+import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.internal.util.Clock;
+import com.hazelcast.internal.util.ThreadUtil;
 import com.hazelcast.internal.util.UuidUtil;
 import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.map.impl.ExecutorStats;
@@ -49,6 +51,8 @@ import com.hazelcast.spi.impl.operationservice.OperationResponseHandler;
 import com.hazelcast.spi.impl.operationservice.impl.responses.CallTimeoutResponse;
 import com.hazelcast.wan.impl.CallerProvenance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -186,16 +190,16 @@ public class EntryOperation extends LockAwareOperation
         // to enter map-store-api-offloading procedure.
         if (readOnly && existInMemory(dataKey)) {
             mapStoreOffloadEnabled = false;
-            tieredStoreAndPartitionCompactorEnabled = false;
+            tieredStoreOffloadEnabled = false;
         } else {
             mapStoreOffloadEnabled = isMapStoreOffloadEnabled();
-            tieredStoreAndPartitionCompactorEnabled = isTieredStoreAndPartitionCompactorEnabled();
+            tieredStoreOffloadEnabled = isTieredStoreOffloadEnabled();
         }
     }
 
     private boolean existInMemory(Data dataKey) {
         // When tieredStoreAndPartitionCompactorEnabled is false.
-        if (!tieredStoreAndPartitionCompactorEnabled) {
+        if (!tieredStoreOffloadEnabled) {
             return recordStore.existInMemory(dataKey);
         }
 
@@ -203,11 +207,11 @@ public class EntryOperation extends LockAwareOperation
         // case we will set tieredStoreAndPartitionCompactorEnabled to
         // false if entry is in memory and flow will continue based on
         // the false value of tieredStoreAndPartitionCompactorEnabled
-        recordStore.beforeOperation();
+        int threadIndex = recordStore.beforeOperation();
         if (recordStore.existInMemory(dataKey)) {
             return true;
         } else {
-            recordStore.afterOperation();
+            recordStore.afterOperation(threadIndex);
             return false;
         }
     }
@@ -245,8 +249,7 @@ public class EntryOperation extends LockAwareOperation
     }
 
     private boolean steppedOperationOffloadEnabled() {
-        return mapStoreOffloadEnabled
-                || tieredStoreAndPartitionCompactorEnabled;
+        return mapStoreOffloadEnabled || tieredStoreOffloadEnabled;
     }
 
     @Override
@@ -255,7 +258,7 @@ public class EntryOperation extends LockAwareOperation
                 .setKey(dataKey)
                 .setCallerProvenance(CallerProvenance.NOT_WAN)
                 .setEntryProcessor(entryProcessor)
-                .setEntryProcessorOffload(offload)
+                .setEntryProcessorOffloadable(offload)
                 .setStaticPutParams(StaticParams.SET_WITH_NO_ACCESS_PARAMS);
     }
 
@@ -293,8 +296,8 @@ public class EntryOperation extends LockAwareOperation
     }
 
     private boolean isOffloadingRequested(EntryProcessor entryProcessor) {
-        if (entryProcessor instanceof Offloadable) {
-            String executorName = ((Offloadable) entryProcessor).getExecutorName();
+        if (entryProcessor instanceof Offloadable offloadable) {
+            String executorName = offloadable.getExecutorName();
             return !executorName.equals(NO_OFFLOADING);
         }
         return false;
@@ -378,7 +381,7 @@ public class EntryOperation extends LockAwareOperation
     @Override
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
-        entryProcessor = in.readObject();
+        entryProcessor = callWithNamespaceAwareness(in::readObject);
     }
 
     @Override
@@ -387,7 +390,10 @@ public class EntryOperation extends LockAwareOperation
         out.writeObject(entryProcessor);
     }
 
-    public Object getOldValueByInMemoryFormat(Object oldValue) {
+    @Nullable
+    public Data convertOldValueToHeapData(Object oldValue) {
+        assert ThreadUtil.isRunningOnPartitionThread();
+
         InMemoryFormat inMemoryFormat = mapContainer.getMapConfig().getInMemoryFormat();
         switch (inMemoryFormat) {
             case NATIVE:
@@ -396,7 +402,7 @@ public class EntryOperation extends LockAwareOperation
                 return getNodeEngine().getSerializationService()
                         .toData(oldValue);
             case BINARY:
-                return oldValue;
+                return (Data) oldValue;
             default:
                 throw new IllegalArgumentException("Unknown in memory format: " + inMemoryFormat);
         }
@@ -407,7 +413,7 @@ public class EntryOperation extends LockAwareOperation
 
         public EntryOperationOffload(Object oldValue) {
             super(EntryOperation.this);
-            this.oldValue = getOldValueByInMemoryFormat(oldValue);
+            this.oldValue = convertOldValueToHeapData(oldValue);
         }
 
         @Override
@@ -495,7 +501,9 @@ public class EntryOperation extends LockAwareOperation
             try {
                 Runnable command = statisticsEnabled
                         ? new StatsAwareRunnable(runnable, executorName, executorStats) : runnable;
-                executionService.execute(executorName, command);
+                // Wrap our runnable in a Namespace context-aware runnable
+                executionService.execute(executorName, () ->
+                        NamespaceUtil.runWithNamespace(nodeEngine, mapContainer.getMapConfig().getUserCodeNamespace(), command));
             } catch (RejectedExecutionException e) {
                 if (statisticsEnabled) {
                     executorStats.rejectExecution(executorName);
@@ -564,8 +572,7 @@ public class EntryOperation extends LockAwareOperation
                 }
 
                 private Object toResponse(Object response) {
-                    if (response instanceof Throwable) {
-                        Throwable t = (Throwable) response;
+                    if (response instanceof Throwable t) {
                         // EntryOffloadableLockMismatchException is a marker send from the EntryOffloadableSetUnlockOperation
                         // meaning that the whole invocation of the EntryOffloadableOperation should be retried
                         if (t instanceof EntryOffloadableLockMismatchException) {

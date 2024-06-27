@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.hazelcast.client.impl.protocol.ClientExceptionFactory.ExceptionFactor
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.core.OperationTimeoutException;
-import com.hazelcast.instance.impl.OutOfMemoryErrorDispatcher;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.JobAlreadyExistsException;
 import com.hazelcast.jet.RestartableException;
@@ -37,27 +36,22 @@ import com.hazelcast.jet.impl.execution.TaskletExecutionException;
 import com.hazelcast.jet.impl.operation.InitExecutionOperation;
 import com.hazelcast.jet.impl.operation.StartExecutionOperation;
 import com.hazelcast.jet.pipeline.test.AssertionCompletedException;
-import com.hazelcast.logging.ILogger;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.spi.exception.TargetNotMemberException;
 import com.hazelcast.sql.impl.ResultLimitReachedException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
 
 import static com.hazelcast.client.impl.protocol.ClientProtocolErrorCodes.JET_EXCEPTIONS_RANGE_START;
 import static com.hazelcast.jet.datamodel.Tuple3.tuple3;
 
 public final class ExceptionUtil {
-
     private static final List<Tuple3<Integer, Class<? extends Throwable>, ExceptionFactory>> EXCEPTIONS = Arrays.asList(
             tuple3(JET_EXCEPTIONS_RANGE_START, JetException.class, JetException::new),
             tuple3(JET_EXCEPTIONS_RANGE_START + 1, TopologyChangedException.class, TopologyChangedException::new),
@@ -137,8 +131,8 @@ public final class ExceptionUtil {
     private static RuntimeException peeledAndUnchecked(@Nonnull Throwable t) {
         t = peel(t);
 
-        if (t instanceof RuntimeException) {
-            return (RuntimeException) t;
+        if (t instanceof RuntimeException exception) {
+            return exception;
         }
 
         return new JetException(t);
@@ -146,57 +140,8 @@ public final class ExceptionUtil {
 
     @Nonnull
     public static RuntimeException rethrow(@Nonnull final Throwable t) {
-        if (t instanceof Error) {
-            if (t instanceof OutOfMemoryError) {
-                OutOfMemoryErrorDispatcher.onOutOfMemory((OutOfMemoryError) t);
-            }
-            throw (Error) t;
-        } else {
-            throw peeledAndUnchecked(t);
-        }
-    }
-
-    /**
-     * Utility to make sure exceptions inside
-     * {@link java.util.concurrent.CompletionStage#whenComplete(BiConsumer)} are not swallowed.
-     * Exceptions will be caught and logged using the supplied logger.
-     */
-    @Nonnull
-    public static <T> BiConsumer<T, ? super Throwable> withTryCatch(
-            @Nonnull ILogger logger, @Nonnull BiConsumer<T, ? super Throwable> consumer
-    ) {
-        return withTryCatch(logger, "Exception during callback", consumer);
-    }
-
-    /**
-     * Utility to make sure exceptions inside
-     * {@link java.util.concurrent.CompletionStage#whenComplete(BiConsumer)} are not swallowed.
-     * Exceptions will be caught and logged using the supplied logger and message.
-     */
-    @Nonnull
-    public static <T> BiConsumer<T, ? super Throwable> withTryCatch(
-            @Nonnull ILogger logger, @Nonnull String message, @Nonnull BiConsumer<T, ? super Throwable> consumer
-    ) {
-        return (r, t) -> {
-            try {
-                consumer.accept(r, t);
-            } catch (Throwable e) {
-                logger.severe(message, e);
-            }
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    @Nonnull
-    public static <T extends Throwable> RuntimeException sneakyThrow(@Nonnull Throwable t) throws T {
-        throw (T) t;
-    }
-
-    @Nonnull
-    public static String stackTraceToString(Throwable t) {
-        StringWriter sw = new StringWriter();
-        t.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+        com.hazelcast.internal.util.ExceptionUtil.rethrowIfError(t);
+        throw peeledAndUnchecked(t);
     }
 
     /**
@@ -240,6 +185,7 @@ public final class ExceptionUtil {
         return peeledFailure instanceof JobTerminateRequestedException
                 || peeledFailure instanceof ResultLimitReachedException
                 || peeledFailure instanceof TerminatedWithSnapshotException
+                || peeledFailure instanceof CancellationByUserException
                 || checkCause(peeledFailure);
     }
 

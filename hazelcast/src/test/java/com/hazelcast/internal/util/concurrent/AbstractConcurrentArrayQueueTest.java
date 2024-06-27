@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.function.Predicate;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -252,12 +251,9 @@ public abstract class AbstractConcurrentArrayQueueTest extends HazelcastTestSupp
             queue.offer(i);
         }
 
-        queue.drain(new Predicate<Integer>() {
-            @Override
-            public boolean test(Integer integer) {
-                assertNotNull(integer);
-                return true;
-            }
+        queue.drain(integer -> {
+            assertNotNull(integer);
+            return true;
         });
     }
 
@@ -282,7 +278,7 @@ public abstract class AbstractConcurrentArrayQueueTest extends HazelcastTestSupp
     }
 
     private void testDrainTo(int limit, int expected) {
-        List<Integer> result = new ArrayList<Integer>();
+        List<Integer> result = new ArrayList<>();
         for (int i = 0; i < CAPACITY; i++) {
             queue.offer(i);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.map.impl;
 
 import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.InMemoryFormat;
+import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.config.PartitioningAttributeConfig;
@@ -46,6 +47,8 @@ import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.impl.eventservice.EventFilter;
 import com.hazelcast.spi.properties.HazelcastProperty;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -71,7 +74,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  *
  * @see MapManagedService
  */
-@SuppressWarnings("checkstyle:classfanoutcomplexity")
+@SuppressWarnings({"checkstyle:classfanoutcomplexity", "MethodCount"})
 public interface MapServiceContext extends MapServiceContextInterceptorSupport,
         MapServiceContextEventListenerSupport {
 
@@ -79,7 +82,7 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
      * Following fields for FORCE_OFFLOAD_ALL_OPERATIONS
      * are introduced only for testing purposes.
      *
-     * @see {@link MapServiceContext#isForceOffloadEnabled}
+     * @see MapServiceContext#isForceOffloadEnabled
      */
     boolean DEFAULT_FORCE_OFFLOAD_ALL_OPERATIONS = false;
     String PROP_FORCE_OFFLOAD_ALL_OPERATIONS
@@ -146,6 +149,8 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
 
     void destroyMap(String mapName);
 
+    boolean removeMapContainer(MapContainer mapContainer);
+
     void reset();
 
     /**
@@ -196,8 +201,6 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
 
     Extractors getExtractors(String mapName);
 
-    boolean removeMapContainer(MapContainer mapContainer);
-
     PartitioningStrategy getPartitioningStrategy(
             String mapName,
             PartitioningStrategyConfig config,
@@ -225,6 +228,8 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
     IndexCopyBehavior getIndexCopyBehavior();
 
     boolean globalIndexEnabled();
+
+    boolean isForciblyEnabledGlobalIndex();
 
     ValueComparator getValueComparatorOf(InMemoryFormat inMemoryFormat);
 
@@ -267,15 +272,39 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
     Semaphore getNodeWideLoadedKeyLimiter();
 
     /**
-     * @return {@code true} when Merkle tree maintenance should be enabled for given {@code mapConfig},
-     * otherwise {@code false}.
+     * @param mapConfig the mapConfig to be checked
+     * @return {@code true} when Merkle tree maintenance should be
+     * enabled for given {@code mapConfig}, otherwise {@code false}.
      */
-    default boolean shouldEnableMerkleTree(MapConfig mapConfig, boolean log) {
+    default boolean shouldEnableMerkleTree(MapConfig mapConfig) {
         return false;
     }
 
     /**
-     * @return {@link EventListenerCounter} object.
+     * Same as {@link #shouldEnableMerkleTree(MapConfig)}
+     * but in this case we also have an option to print a
+     * log statement when merkle tree is implicitly enabled.
+     *
+     * @param mapContainer mapContainer to be checked against
+     * @param log          {@code true} to print a log statement to
+     *                     state merkle tree is enabled implicitly otherwise {@code false}
+     * @return {@code true} when Merkle tree maintenance should be enabled for given {@code mapConfig},
+     * otherwise {@code false}.
      */
-    EventListenerCounter getEventListenerCounter();
+    default boolean shouldEnableMerkleTree(MapContainer mapContainer, boolean log) {
+        return false;
+    }
+
+    /**
+     * Tracks indexes created dynamically via {@link com.hazelcast.map.IMap#addIndex}
+     */
+    default void registerIndex(String mapName, IndexConfig config) {
+    }
+
+    /**
+     * Gets remembered indexes created dynamically via {@link com.hazelcast.map.IMap#addIndex}
+     */
+    default Collection<IndexConfig> getMapIndexConfigs(String mapName) {
+        return Collections.emptyList();
+    }
 }

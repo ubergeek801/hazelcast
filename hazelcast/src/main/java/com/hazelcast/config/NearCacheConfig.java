@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ public class NearCacheConfig implements IdentifiedDataSerializable, Serializable
 
     /**
      * Checks if the Near Cache key is stored in serialized format or by-reference.
-     *
+     * <p>
      * <b>NOTE:</b> When the in-memory-format is {@code NATIVE}, this method will always return {@code true}.
      *
      * @return {@code true} if the key is stored in serialized format or in-memory-format is {@code NATIVE},

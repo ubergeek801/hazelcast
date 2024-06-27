@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.jet.hadoop.impl;
 
 import com.hazelcast.cluster.Address;
-import com.hazelcast.cluster.Member;
 import com.hazelcast.function.BiFunctionEx;
 import com.hazelcast.function.ConsumerEx;
 import com.hazelcast.internal.serialization.InternalSerializationService;
@@ -54,6 +53,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.security.Permission;
 import java.util.Arrays;
@@ -64,7 +64,7 @@ import java.util.function.Function;
 
 import static com.hazelcast.jet.Traversers.traverseIterable;
 import static com.hazelcast.jet.hadoop.HadoopSources.COPY_ON_READ;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.jet.impl.util.Util.uncheckCall;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -159,15 +159,15 @@ public final class ReadHadoopNewApiP<K, V, R> extends AbstractProcessor {
     }
 
     public static class MetaSupplier<K, V, R> extends ReadHdfsMetaSupplierBase<R> {
-
-        static final long serialVersionUID = 1L;
+        @Serial
+        private static final long serialVersionUID = 1L;
 
         /**
          * The instance is either {@link SerializableConfiguration} or {@link
          * SerializableJobConf}, which are serializable.
          */
         @SuppressFBWarnings("SE_BAD_FIELD")
-        private Configuration configuration;
+        private final Configuration configuration;
         private final ConsumerEx<Configuration> configureFn;
         private final BiFunctionEx<K, V, R> projectionFn;
         private final Permission permission;
@@ -197,10 +197,7 @@ public final class ReadHadoopNewApiP<K, V, R> extends AbstractProcessor {
                 List<InputSplit> splits = getSplits(configuration);
                 IndexedInputSplit[] indexedInputSplits = new IndexedInputSplit[splits.size()];
                 Arrays.setAll(indexedInputSplits, i -> new IndexedInputSplit(i, splits.get(i)));
-                Address[] addresses = context.hazelcastInstance().getCluster().getMembers()
-                        .stream()
-                        .map(Member::getAddress)
-                        .toArray(Address[]::new);
+                Address[] addresses = context.partitionAssignment().keySet().toArray(Address[]::new);
                 assigned = assignSplitsToMembers(indexedInputSplits, addresses);
                 printAssignments(assigned);
             }
@@ -235,7 +232,8 @@ public final class ReadHadoopNewApiP<K, V, R> extends AbstractProcessor {
     }
 
     private static final class Supplier<K, V, R> implements ProcessorSupplier {
-        static final long serialVersionUID = 1L;
+        @Serial
+        private static final long serialVersionUID = 1L;
 
         /**
          * The instance is either {@link SerializableConfiguration} or {@link

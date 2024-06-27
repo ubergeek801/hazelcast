@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * and then continue receiving any future events.
  * <p>
  * Jet calls this {@code Observer}'s callbacks on an internal thread pool
- * of limited size, shared with many other Hazelcast Jet services. Therefore
+ * of limited size, shared with many other Hazelcast Jet services. Therefore,
  * the callbacks should take care to finish as quickly as possible.
  *
  * @param <T> type of the observed event
@@ -48,7 +48,7 @@ public interface Observer<T> {
             @Nonnull ConsumerEx<? super Throwable> onError,
             @Nonnull RunnableEx onComplete
     ) {
-        return new Observer<T>() {
+        return new Observer<>() {
             @Override
             public void onNext(@Nonnull T t) {
                 onNext.accept(t);

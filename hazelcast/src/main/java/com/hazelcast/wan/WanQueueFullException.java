@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.hazelcast.core.HazelcastException;
 /**
  * A {@link com.hazelcast.core.HazelcastException} that
  * is thrown when the wan replication queues are full
- *
+ * <p>
  * This exception is only thrown when WAN is configured with
  * {@link WanQueueFullBehavior#THROW_EXCEPTION}
  */

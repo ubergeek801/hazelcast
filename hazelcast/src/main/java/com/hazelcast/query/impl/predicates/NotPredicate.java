@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.internal.serialization.BinaryInterface;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
-import com.hazelcast.query.impl.Indexes;
+import com.hazelcast.query.impl.IndexRegistry;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Map;
 
 import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.PREDICATE_DS_FACTORY_ID;
@@ -35,6 +36,7 @@ import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.PREDICAT
 public final class NotPredicate
         implements Predicate, VisitablePredicate, NegatablePredicate, IdentifiedDataSerializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected Predicate predicate;
@@ -71,10 +73,10 @@ public final class NotPredicate
     }
 
     @Override
-    public Predicate accept(Visitor visitor, Indexes indexes) {
+    public Predicate accept(Visitor visitor, IndexRegistry indexes) {
         Predicate target = predicate;
-        if (predicate instanceof VisitablePredicate) {
-            target = ((VisitablePredicate) predicate).accept(visitor, indexes);
+        if (predicate instanceof VisitablePredicate visitablePredicate) {
+            target = visitablePredicate.accept(visitor, indexes);
         }
         if (target == predicate) {
             // visitor didn't change the inner predicate
@@ -107,11 +109,10 @@ public final class NotPredicate
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof NotPredicate)) {
+        if (!(o instanceof NotPredicate that)) {
             return false;
         }
 
-        NotPredicate that = (NotPredicate) o;
         return predicate != null ? predicate.equals(that.predicate) : that.predicate == null;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package com.hazelcast.client.impl.connection.tcp;
 
 import com.hazelcast.client.impl.clientside.CandidateClusterContext;
-import com.hazelcast.client.impl.clientside.HazelcastClientInstanceImpl;
+import com.hazelcast.client.impl.clientside.HazelcastClientInstance;
 import com.hazelcast.client.impl.connection.AddressProvider;
 import com.hazelcast.client.impl.connection.ClientConnection;
 import com.hazelcast.client.impl.protocol.ClientMessage;
-import com.hazelcast.client.impl.protocol.codec.ExperimentalTpcAuthenticationCodec;
+import com.hazelcast.client.impl.protocol.codec.ClientTpcAuthenticationCodec;
 import com.hazelcast.client.impl.spi.impl.ClientInvocation;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.core.HazelcastException;
@@ -49,7 +49,7 @@ import static com.hazelcast.internal.nio.IOUtil.closeResource;
  * with the connection.
  */
 public final class TpcChannelConnector {
-    private final HazelcastClientInstanceImpl client;
+    private final HazelcastClientInstance client;
     private final long authenticationTimeoutMillis;
     private final UUID clientUuid;
     private final TcpClientConnection connection;
@@ -62,7 +62,7 @@ public final class TpcChannelConnector {
     private final AtomicInteger remaining;
     private volatile boolean failed;
 
-    public TpcChannelConnector(HazelcastClientInstanceImpl client,
+    public TpcChannelConnector(HazelcastClientInstance client,
                                long authenticationTimeoutMillis,
                                UUID clientUuid,
                                TcpClientConnection connection,
@@ -129,7 +129,7 @@ public final class TpcChannelConnector {
         ConcurrentMap attributeMap = channel.attributeMap();
         ClientConnection adapter = (ClientConnection) attributeMap.get(TpcChannelClientConnectionAdapter.class);
 
-        ClientMessage request = ExperimentalTpcAuthenticationCodec.encodeRequest(clientUuid, tpcToken);
+        ClientMessage request = ClientTpcAuthenticationCodec.encodeRequest(clientUuid, tpcToken);
         ClientInvocation invocation = new ClientInvocation(client, request, null, adapter);
         // TODO: We might consider not blocking here, and use 'whenCompleteAsync'
         //  on the invocation future and use the client's task scheduler to fail

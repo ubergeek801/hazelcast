@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public final class Logger {
      * @param clazz the class to obtain the logger for.
      * @return the obtained logger.
      */
-    public static ILogger getLogger(@Nonnull Class clazz) {
+    public static ILogger getLogger(@Nonnull Class<?> clazz) {
         checkNotNull(clazz, "class must not be null");
         return getLoggerInternal(clazz.getName());
     }

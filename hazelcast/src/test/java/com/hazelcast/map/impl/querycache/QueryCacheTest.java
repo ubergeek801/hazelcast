@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.QueryCache;
 import com.hazelcast.map.impl.querycache.utils.Employee;
 import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.NoopMapListener;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import com.hazelcast.query.extractor.ValueCollector;
@@ -53,9 +54,7 @@ import static org.junit.Assert.assertEquals;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class QueryCacheTest extends AbstractQueryCacheTestSupport {
 
-    @SuppressWarnings("unchecked")
     private static final Predicate<Integer, Employee> TRUE_PREDICATE = Predicates.alwaysTrue();
-    @SuppressWarnings("unchecked")
     private static final Predicate<Integer, Integer> SQL_PREDICATE = Predicates.sql("this > 20");
 
     private static final Predicate<Integer, Employee> PAGING_PREDICATE = Predicates.pagingPredicate(1);
@@ -143,7 +142,7 @@ public class QueryCacheTest extends AbstractQueryCacheTestSupport {
 
         populateMap(map, 1000);
 
-        IFunction evictAll = (ignored) -> {
+        IFunction<Object, Object> evictAll = (ignored) -> {
             map.evictAll();
             return null;
         };
@@ -158,7 +157,7 @@ public class QueryCacheTest extends AbstractQueryCacheTestSupport {
 
         populateMap(map, 1000);
 
-        IFunction clear = (ignored) -> {
+        IFunction<Object, Object> clear = (ignored) -> {
             map.clear();
             return null;
         };
@@ -247,28 +246,28 @@ public class QueryCacheTest extends AbstractQueryCacheTestSupport {
     public void addEntryListenerThrowsWithPagingPredicate() {
         IMap<Integer, Employee> map = getIMapWithDefaultConfig(TRUE_PREDICATE);
         QueryCache<Integer, Employee> queryCache = map.getQueryCache(cacheName);
-        queryCache.addEntryListener(new NoopMapListener(), PAGING_PREDICATE, true);
+        queryCache.addEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addEntryListenerOnKeyThrowsWithPagingPredicate() {
         IMap<Integer, Employee> map = getIMapWithDefaultConfig(TRUE_PREDICATE);
         QueryCache<Integer, Employee> queryCache = map.getQueryCache(cacheName);
-        queryCache.addEntryListener(new NoopMapListener(), PAGING_PREDICATE, 1, true);
+        queryCache.addEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, 1, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addEntryListenerThrowsWithPredicateIncludingAPagingPredicate() {
         IMap<Integer, Employee> map = getIMapWithDefaultConfig(TRUE_PREDICATE);
         QueryCache<Integer, Employee> queryCache = map.getQueryCache(cacheName);
-        queryCache.addEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
+        queryCache.addEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addEntryListenerOnKeyThrowsWithPredicateIncludingAPagingPredicate() {
         IMap<Integer, Employee> map = getIMapWithDefaultConfig(TRUE_PREDICATE);
         QueryCache<Integer, Employee> queryCache = map.getQueryCache(cacheName);
-        queryCache.addEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, 1, true);
+        queryCache.addEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, 1, true);
     }
 
     public static class EvenNumberEmployeeValueExtractor implements ValueExtractor<Employee, Integer> {
@@ -278,7 +277,6 @@ public class QueryCacheTest extends AbstractQueryCacheTestSupport {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void testQueryCache(boolean includeValue) {
         QueryCacheConfig queryCacheConfig = new QueryCacheConfig(cacheName);
         queryCacheConfig.setIncludeValue(includeValue);
@@ -334,12 +332,5 @@ public class QueryCacheTest extends AbstractQueryCacheTestSupport {
 
     private static void assertQueryCacheSizeEventually(final int expected, final QueryCache cache) {
         assertTrueEventually(() -> assertEquals(expected, cache.size()));
-    }
-
-    private class NoopMapListener implements EntryAddedListener<Integer, Employee> {
-        @Override
-        public void entryAdded(EntryEvent<Integer, Employee> event) {
-            // noop
-        }
     }
 }

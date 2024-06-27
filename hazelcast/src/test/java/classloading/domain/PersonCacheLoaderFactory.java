@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,17 @@ package classloading.domain;
 import javax.cache.configuration.Factory;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PersonCacheLoaderFactory implements Factory<CacheLoader<String, Person>> {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Override
     public CacheLoader<String, Person> create() {
-        return new CacheLoader<String, Person>() {
+        return new CacheLoader<>() {
             @Override
             public Person load(String k) throws CacheLoaderException {
                 return new Person();
@@ -35,7 +37,7 @@ public class PersonCacheLoaderFactory implements Factory<CacheLoader<String, Per
 
             @Override
             public Map<String, Person> loadAll(Iterable<? extends String> itrbl) throws CacheLoaderException {
-                Map<String, Person> rv = new HashMap<String, Person>();
+                Map<String, Person> rv = new HashMap<>();
                 for (String it : itrbl) {
                     rv.put(it, load(it));
                 }

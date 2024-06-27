@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,11 @@ import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.dialect.H2SqlDialect;
+import org.apache.calcite.sql.dialect.MssqlSqlDialect;
 import org.apache.calcite.sql.dialect.MysqlSqlDialect;
+import org.apache.calcite.sql.dialect.OracleSqlDialect;
 import org.apache.calcite.sql.dialect.PostgresqlSqlDialect;
+
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -42,8 +45,8 @@ final class SupportedDatabases {
         SUPPORTED_DATABASE_NAMES.add("MYSQL");
         SUPPORTED_DATABASE_NAMES.add("POSTGRESQL");
         SUPPORTED_DATABASE_NAMES.add("H2");
-        // Uncomment when officially supported
-        // SUPPORTED_DATABASE_NAMES.add("MICROSOFT SQL SERVER");
+        SUPPORTED_DATABASE_NAMES.add("MICROSOFT SQL SERVER");
+        SUPPORTED_DATABASE_NAMES.add("ORACLE");
     }
 
     private SupportedDatabases() {
@@ -72,10 +75,10 @@ final class SupportedDatabases {
     }
 
     static boolean isDialectSupported(SqlDialect dialect) {
-        return dialect instanceof MysqlSqlDialect ||
-               dialect instanceof PostgresqlSqlDialect ||
-               dialect instanceof H2SqlDialect;
-        // Uncomment when officially supported
-        // dialect instanceof MssqlSqlDialect
+        return dialect instanceof H2SqlDialect ||
+               dialect instanceof MssqlSqlDialect ||
+               dialect instanceof MysqlSqlDialect ||
+               dialect instanceof OracleSqlDialect ||
+               dialect instanceof PostgresqlSqlDialect;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Objects;
 
 public class JobSuspensionCauseImpl implements JobSuspensionCause, IdentifiedDataSerializable {
 
@@ -48,6 +49,7 @@ public class JobSuspensionCauseImpl implements JobSuspensionCause, IdentifiedDat
         return error != null;
     }
 
+    @Nonnull
     @Override
     public String errorCause() {
         if (error == null) {
@@ -59,11 +61,7 @@ public class JobSuspensionCauseImpl implements JobSuspensionCause, IdentifiedDat
     @Nonnull
     @Override
     public String description() {
-        if (error == null) {
-            return "Requested by user";
-        } else {
-            return error;
-        }
+        return Objects.requireNonNullElse(error, "Requested by user");
     }
 
     @Override

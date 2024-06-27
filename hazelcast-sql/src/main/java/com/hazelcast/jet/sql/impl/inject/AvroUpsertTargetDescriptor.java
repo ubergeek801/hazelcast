@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,48 @@
 
 package com.hazelcast.jet.sql.impl.inject;
 
-import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.sql.impl.expression.ExpressionEvalContext;
+import org.apache.avro.Schema;
 
 import java.io.IOException;
 import java.util.Objects;
 
 public final class AvroUpsertTargetDescriptor implements UpsertTargetDescriptor {
-
-    private String schema;
+    private Schema schema;
+    private transient String serializedSchema;
 
     @SuppressWarnings("unused")
     private AvroUpsertTargetDescriptor() {
     }
 
-    public AvroUpsertTargetDescriptor(String schema) {
+    public AvroUpsertTargetDescriptor(Schema schema) {
         this.schema = schema;
     }
 
     @Override
-    public UpsertTarget create(InternalSerializationService serializationService) {
+    public UpsertTarget create(ExpressionEvalContext evalContext) {
         return new AvroUpsertTarget(schema);
     }
 
     @Override
+    public Schema getSchema() {
+        return schema;
+    }
+
+    @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeObject(schema);
+        if (serializedSchema == null) {
+            serializedSchema = schema.toString();
+        }
+        out.writeObject(serializedSchema);
     }
 
     @Override
     public void readData(ObjectDataInput in) throws IOException {
-        schema = in.readObject();
+        serializedSchema = in.readObject();
+        schema = new Schema.Parser().parse(serializedSchema);
     }
 
     @Override

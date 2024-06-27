@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import static org.mockito.Mockito.withSettings;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class MapLoaderLifecycleTest extends HazelcastTestSupport {
 
-    private MapLoaderLifecycleSupport loader = mockMapLoaderWithLifecycle();
-    private Config config = new Config();
+    private final MapLoaderLifecycleSupport loader = mockMapLoaderWithLifecycle();
+    private final Config config = new Config();
 
     @Before
     public void configure() {

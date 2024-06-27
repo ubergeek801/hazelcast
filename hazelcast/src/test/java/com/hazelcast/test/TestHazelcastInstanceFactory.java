@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
@@ -258,9 +259,13 @@ public class TestHazelcastInstanceFactory {
     }
 
     public HazelcastInstance[] newInstances(Config config, int nodeCount) {
+        return newInstances(() -> config, nodeCount);
+    }
+
+    public HazelcastInstance[] newInstances(Supplier<Config> configSupplier, int nodeCount) {
         HazelcastInstance[] instances = new HazelcastInstance[nodeCount];
         for (int i = 0; i < nodeCount; i++) {
-            instances[i] = newHazelcastInstance(config);
+            instances[i] = newHazelcastInstance(configSupplier.get());
         }
         return instances;
     }
@@ -293,10 +298,10 @@ public class TestHazelcastInstanceFactory {
     }
 
     private static boolean isMaster(HazelcastInstance inst) {
-        if (inst instanceof HazelcastInstanceImpl) {
-            return ((HazelcastInstanceImpl) inst).node.isMaster();
-        } else if (inst instanceof HazelcastInstanceProxy) {
-            return ((HazelcastInstanceProxy) inst).getOriginal().node.isMaster();
+        if (inst instanceof HazelcastInstanceImpl impl) {
+            return impl.node.isMaster();
+        } else if (inst instanceof HazelcastInstanceProxy proxy) {
+            return proxy.getOriginal().node.isMaster();
         } else {
             throw new IllegalArgumentException("This method can be called only member"
                     + " instances such as HazelcastInstanceImpl and HazelcastInstanceProxy.");

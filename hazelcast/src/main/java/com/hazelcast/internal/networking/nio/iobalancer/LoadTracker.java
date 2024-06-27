@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 
 /**
  * Tracks the load of of NioThread(s) and creates a mapping between NioThread -> NioPipeline.
@@ -43,15 +42,15 @@ class LoadTracker {
     private final Map<NioThread, Set<MigratablePipeline>> ownerToPipelines;
 
     //load per pipeline since an instance started
-    private final ItemCounter<MigratablePipeline> lastLoadCounter = new ItemCounter<MigratablePipeline>();
+    private final ItemCounter<MigratablePipeline> lastLoadCounter = new ItemCounter<>();
 
     //load per NioThread since last calculation
-    private final ItemCounter<NioThread> ownerLoad = new ItemCounter<NioThread>();
+    private final ItemCounter<NioThread> ownerLoad = new ItemCounter<>();
     //load per pipeline since last calculation
-    private final ItemCounter<MigratablePipeline> pipelineLoadCount = new ItemCounter<MigratablePipeline>();
+    private final ItemCounter<MigratablePipeline> pipelineLoadCount = new ItemCounter<>();
 
     //contains all known pipelines
-    private final Set<MigratablePipeline> pipelines = new HashSet<MigratablePipeline>();
+    private final Set<MigratablePipeline> pipelines = new HashSet<>();
 
     private final LoadImbalance imbalance;
 
@@ -63,7 +62,7 @@ class LoadTracker {
 
         this.ownerToPipelines = createHashMap(ioThreads.length);
         for (NioThread selector : ioThreads) {
-            ownerToPipelines.put(selector, new HashSet<MigratablePipeline>());
+            ownerToPipelines.put(selector, new HashSet<>());
         }
         this.imbalance = new LoadImbalance(ownerToPipelines, pipelineLoadCount);
     }
@@ -173,9 +172,9 @@ class LoadTracker {
         if (minThread == null || maxThread == null) {
             return;
         }
-        StringBuilder sb = new StringBuilder(LINE_SEPARATOR)
+        StringBuilder sb = new StringBuilder(System.lineSeparator())
                 .append("------------")
-                .append(LINE_SEPARATOR);
+                .append(System.lineSeparator());
         Long loadPerOwner = ownerLoad.get(minThread);
 
         sb.append("Min NioThread ")
@@ -184,7 +183,7 @@ class LoadTracker {
                 .append(loadPerOwner)
                 .append(" load. ");
         sb.append("It contains following pipelines: ").
-                append(LINE_SEPARATOR);
+                append(System.lineSeparator());
         appendSelectorInfo(minThread, ownerToPipelines, sb);
 
         loadPerOwner = ownerLoad.get(maxThread);
@@ -193,11 +192,11 @@ class LoadTracker {
                 .append(" receive-load ")
                 .append(loadPerOwner);
         sb.append("It contains following pipelines: ")
-                .append(LINE_SEPARATOR);
+                .append(System.lineSeparator());
         appendSelectorInfo(maxThread, ownerToPipelines, sb);
 
         sb.append("Other NioThread: ")
-                .append(LINE_SEPARATOR);
+                .append(System.lineSeparator());
 
         for (NioThread thread : ioThreads) {
             if (!thread.equals(minThread) && !thread.equals(maxThread)) {
@@ -207,12 +206,12 @@ class LoadTracker {
                         .append(" contains ")
                         .append(loadPerOwner)
                         .append(" and has these pipelines: ")
-                        .append(LINE_SEPARATOR);
+                        .append(System.lineSeparator());
                 appendSelectorInfo(thread, ownerToPipelines, sb);
             }
         }
         sb.append("------------")
-                .append(LINE_SEPARATOR);
+                .append(System.lineSeparator());
         logger.finest(sb.toString());
     }
 
@@ -226,8 +225,8 @@ class LoadTracker {
             sb.append(pipeline)
                     .append(":  ")
                     .append(loadPerPipeline)
-                    .append(LINE_SEPARATOR);
+                    .append(System.lineSeparator());
         }
-        sb.append(LINE_SEPARATOR);
+        sb.append(System.lineSeparator());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.core.metrics.JobMetrics_BatchTest.JOB_CONFIG_WITH_METRICS;
 import static org.junit.Assert.assertFalse;
@@ -75,7 +76,7 @@ public class JobMetrics_NonSharedClusterTest extends JetTestSupport {
         // Initial collection interval is 1 second. So let's run a job and wait until it has metrics.
         Job job1 = inst.getJet().newJob(dag, JOB_CONFIG_WITH_METRICS);
         try {
-            JetTestSupport.assertTrueEventually(() -> assertFalse(job1.getMetrics().metrics().isEmpty()), 10);
+            assertTrueEventually(() -> assertTrue(job1.getMetrics().containsTag(MetricTags.EXECUTION)), 10);
         } catch (AssertionError e) {
             // If we don't get metrics in 10 seconds, ignore it, we probably missed the first collection
             // with this job. We might have caught a different error, let's log it at least.
@@ -85,8 +86,8 @@ public class JobMetrics_NonSharedClusterTest extends JetTestSupport {
         // Let's do a second job for which we know there will be no metrics collection. It should
         // return empty metrics because the next collection will be in 10_000 seconds.
         Job job2 = inst.getJet().newJob(dag, JOB_CONFIG_WITH_METRICS);
-        assertJobStatusEventually(job2, RUNNING);
-        assertTrue(job2.getMetrics().metrics().isEmpty());
+        assertThat(job2).eventuallyHasStatus(RUNNING);
+        assertFalse(job2.getMetrics().containsTag(MetricTags.EXECUTION));
     }
 
 }

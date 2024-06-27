@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.spring.cache;
 
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.map.IMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +46,7 @@ public class HazelcastCacheManager implements CacheManager {
      */
     public static final String CACHE_PROP = "hazelcast.spring.cache.prop";
 
-    private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<String, Cache>();
+    private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<>();
 
     private HazelcastInstance hazelcastInstance;
 
@@ -58,7 +59,7 @@ public class HazelcastCacheManager implements CacheManager {
     /**
      * Holds cache specific value retrieval timeouts. Override defaultReadTimeout for specified caches.
      */
-    private Map<String, Long> readTimeoutMap = new HashMap<String, Long>();
+    private final Map<String, Long> readTimeoutMap = new HashMap<>();
 
     public HazelcastCacheManager() {
     }
@@ -85,11 +86,10 @@ public class HazelcastCacheManager implements CacheManager {
 
     @Override
     public Collection<String> getCacheNames() {
-        Set<String> cacheNames = new HashSet<String>();
+        Set<String> cacheNames = new HashSet<>();
         Collection<DistributedObject> distributedObjects = hazelcastInstance.getDistributedObjects();
         for (DistributedObject distributedObject : distributedObjects) {
-            if (distributedObject instanceof IMap) {
-                IMap<?, ?> map = (IMap) distributedObject;
+            if (distributedObject instanceof IMap<?, ?> map) {
                 cacheNames.add(map.getName());
             }
         }
@@ -110,7 +110,7 @@ public class HazelcastCacheManager implements CacheManager {
     }
 
     private void parseOptions(String options) {
-        if (null == options || options.trim().isEmpty()) {
+        if (StringUtil.isNullOrEmptyAfterTrim(options)) {
             return;
         }
         for (String option : options.split(",")) {

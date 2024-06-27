@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public final class Option<T> {
     private final Class<T> type;
 
     /**
-     * Creates a Option with the provided name and type.
+     * Creates an Option with the provided name and type.
      *
      * @param name the name of the Option
      * @param type the type of the Option

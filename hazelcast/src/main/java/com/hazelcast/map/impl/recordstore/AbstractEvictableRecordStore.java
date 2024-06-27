@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import static com.hazelcast.map.impl.recordstore.expiry.ExpiryReason.NOT_EXPIRED
  * Contains eviction specific functionality.
  */
 public abstract class AbstractEvictableRecordStore extends AbstractRecordStore {
+
     protected final Address thisAddress;
     protected final EventService eventService;
     protected final MapEventPublisher mapEventPublisher;
@@ -185,10 +186,14 @@ public abstract class AbstractEvictableRecordStore extends AbstractRecordStore {
         expirySystem.extendExpiryTime(dataKey, now);
     }
 
-    public void mergeRecordExpiration(Data key, Record record,
-                                      MapMergeTypes mergingEntry, long now) {
+    public boolean mergeRecordExpiration(Data key, Record record, MapMergeTypes mergingEntry, long now) {
+        boolean changed = record.getCreationTime() != mergingEntry.getCreationTime()
+                || record.getLastAccessTime() != mergingEntry.getLastAccessTime()
+                || record.getLastUpdateTime() != mergingEntry.getLastUpdateTime();
+
         mergeRecordExpiration(record, mergingEntry.getCreationTime(),
                 mergingEntry.getLastAccessTime(), mergingEntry.getLastUpdateTime());
+
         // WAN events received from source cluster also carry null maxIdle
         // see com.hazelcast.map.impl.wan.WanMapEntryView.getMaxIdle
         Long maxIdle = mergingEntry.getMaxIdle();
@@ -201,6 +206,8 @@ public abstract class AbstractEvictableRecordStore extends AbstractRecordStore {
                     expiryMetadata.getMaxIdle(), mergingEntry.getExpirationTime(),
                     mergingEntry.getLastUpdateTime(), now);
         }
+
+        return changed;
     }
 
     private void mergeRecordExpiration(Record record,

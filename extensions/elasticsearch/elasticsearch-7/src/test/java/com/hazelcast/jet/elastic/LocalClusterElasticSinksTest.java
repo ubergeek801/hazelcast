@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,18 @@ package com.hazelcast.jet.elastic;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.impl.util.Util;
+import com.hazelcast.jet.test.IgnoreInJenkinsOnWindows;
+import com.hazelcast.jet.test.SerialTest;
+import com.hazelcast.test.annotation.NightlyTest;
 import org.junit.AfterClass;
+import org.junit.experimental.categories.Category;
 
 import java.util.function.Supplier;
 
 /**
  * Test running 3 local Jet members in a cluster and Elastic in docker
  */
+@Category({NightlyTest.class, SerialTest.class, IgnoreInJenkinsOnWindows.class})
 public class LocalClusterElasticSinksTest extends CommonElasticSinksTest {
 
     private static HazelcastInstance[] instances;

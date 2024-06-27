@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class AutoDetectionConfig {
     private boolean enabled = true;
 
     /**
-     * Checks whether the auto detection mechanism is enabled.
+     * Checks whether the auto-detection mechanism is enabled.
      *
      * @return {@code true} if enabled
      */
@@ -39,7 +39,7 @@ public class AutoDetectionConfig {
     /**
      * Enables or disables the auto detection join mechanism.
      *
-     * @param enabled {@code true} to enable the auto detection join mechanism, {@code false} to disable
+     * @param enabled {@code true} to enable the auto-detection join mechanism, {@code false} to disable
      * @return AutoDetectionConfig the updated AutoDetectionConfig config
      */
     public AutoDetectionConfig setEnabled(boolean enabled) {

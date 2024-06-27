@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class SocketOptions {
     /**
      * Enable/disable SO_LINGER with the specified linger time in seconds
      * If set to a value of 0 or less then it is disabled.
-     *
+     * <p>
      * Default value is {@link SocketOptions#DEFAULT_LINGER_SECONDS}
      *
      * @param lingerSeconds value in seconds

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.config.replacer;
 
-import com.hazelcast.internal.nio.IOUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -61,7 +60,7 @@ import static java.lang.String.format;
 public class EncryptionReplacer extends AbstractPbeReplacer {
 
     /**
-     * Replacer property name to configure {@code true}/{@code false} flag contolling if users properties should be used as part
+     * Replacer property name to configure {@code true}/{@code false} flag controlling if users properties should be used as part
      * of the encryption password.
      */
     public static final String PROPERTY_PASSWORD_USER_PROPERTIES = "passwordUserProperties";
@@ -103,11 +102,8 @@ public class EncryptionReplacer extends AbstractPbeReplacer {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             if (passwordFile != null) {
-                FileInputStream fis = new FileInputStream(passwordFile);
-                try {
-                    baos.write(IOUtil.toByteArray(fis));
-                } finally {
-                    IOUtil.closeResource(fis);
+                try (FileInputStream fis = new FileInputStream(passwordFile)) {
+                    fis.transferTo(baos);
                 }
             }
             if (passwordUserProperties) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class DbUnreachableJdbcSqlConnectorTest extends JdbcSqlTestSupport {
 
     @Test
     public void createMappingShouldThrowCorrectExceptionWhenDatabaseNotAvailable() {
-        sqlService.execute("CREATE DATA CONNECTION mysql "
+        sqlService.executeUpdate("CREATE DATA CONNECTION mysql "
                 + "TYPE JDBC "
                 + "OPTIONS("
                 + "'jdbcUrl'='jdbc:mysql:/fake-host:12345/noSuchDb', "
@@ -42,7 +42,7 @@ public class DbUnreachableJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 + ")");
 
         assertThatThrownBy(() ->
-                sqlService.execute("CREATE MAPPING people DATA CONNECTION mysql")
+                sqlService.executeUpdate("CREATE MAPPING people DATA CONNECTION mysql")
         ).hasStackTraceContaining("Could not create pool for data connection 'mysql'")
          .hasRootCauseInstanceOf(ConnectException.class);
     }

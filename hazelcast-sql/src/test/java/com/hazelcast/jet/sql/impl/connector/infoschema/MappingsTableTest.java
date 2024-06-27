@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.jet.sql.impl.connector.infoschema;
 
+import com.hazelcast.jet.sql.impl.connector.SqlConnectorCache;
 import com.hazelcast.sql.impl.schema.Mapping;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
@@ -31,6 +32,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.RETURNS_MOCKS;
+import static org.mockito.Mockito.mock;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -49,7 +52,12 @@ public class MappingsTableTest {
                 singletonMap("key", "value")
         );
 
-        MappingsTable mappingTable = new MappingsTable("catalog", null, "table-schema", singletonList(mapping),
+        MappingsTable mappingTable = new MappingsTable(
+                "catalog",
+                null,
+                "table-schema",
+                singletonList(mapping),
+                null,
                 (s) -> fail("Should not be invoked"), false);
 
         // when
@@ -73,13 +81,18 @@ public class MappingsTableTest {
                 "table-name",
                 new String[]{"external-schema", "table-external-name"},
                 null,
-                "table-type",
+                "IMap",
                 null,
                 emptyList(),
                 singletonMap("key", "value")
         );
 
-        MappingsTable mappingTable = new MappingsTable("catalog", null, "table-schema", singletonList(mapping),
+        MappingsTable mappingTable = new MappingsTable(
+                "catalog",
+                null,
+                "table-schema",
+                singletonList(mapping),
+                mock(SqlConnectorCache.class, RETURNS_MOCKS),
                 (s) -> fail("Should not be invoked"), true);
 
         // when
@@ -91,8 +104,8 @@ public class MappingsTableTest {
                 , "table-schema"
                 , "table-name"
                 , "\"external-schema\".\"table-external-name\""
-                , "table-type"
-                , null
+                , "IMap"
+                , "{}"
         });
     }
 
@@ -109,7 +122,12 @@ public class MappingsTableTest {
                 singletonMap("key", "value")
         );
 
-        MappingsTable mappingTable = new MappingsTable("catalog", null, "table-schema", singletonList(mapping),
+        MappingsTable mappingTable = new MappingsTable(
+                "catalog",
+                null,
+                "table-schema",
+                singletonList(mapping),
+                null,
                 (dc) -> {
                     assertThat(dc).isEqualTo("some-dc");
                     return "external-dc-type";

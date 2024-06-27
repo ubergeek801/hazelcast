@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class CacheClearTest extends CacheTestSupport {
 
     private static final int INSTANCE_COUNT = 2;
 
-    private TestHazelcastInstanceFactory factory = getInstanceFactory(INSTANCE_COUNT);
+    private final TestHazelcastInstanceFactory factory = getInstanceFactory(INSTANCE_COUNT);
     private HazelcastInstance[] hazelcastInstances;
     private HazelcastInstance hazelcastInstance;
 
@@ -93,7 +93,7 @@ public class CacheClearTest extends CacheTestSupport {
         final int ENTRY_COUNT_PER_PARTITION = 3;
         Node node = getNode(hazelcastInstance);
         int partitionCount = node.getPartitionService().getPartitionCount();
-        Map<String, String> entries = new HashMap<String, String>(partitionCount * ENTRY_COUNT_PER_PARTITION);
+        Map<String, String> entries = new HashMap<>(partitionCount * ENTRY_COUNT_PER_PARTITION);
 
         for (int partitionId = 0; partitionId < partitionCount; partitionId++) {
             for (int i = 0; i < ENTRY_COUNT_PER_PARTITION; i++) {
@@ -191,8 +191,7 @@ public class CacheClearTest extends CacheTestSupport {
         final CacheConfig config = cache.getConfiguration(CacheConfig.class);
 
         registerInvalidationListener(eventObject -> {
-            if (eventObject instanceof Invalidation) {
-                Invalidation event = (Invalidation) eventObject;
+            if (eventObject instanceof Invalidation event) {
                 if (null == event.getKey() && config.getNameWithPrefix().equals(event.getName())) {
                     counter.incrementAndGet();
                 }

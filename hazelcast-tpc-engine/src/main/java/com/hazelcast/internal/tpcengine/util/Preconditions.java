@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public final class Preconditions {
      * Tests if a {@code value} is positive, that is strictly larger than 0 (value &gt; 0).
      *
      * @param value     the value tested to see if it is positive.
-     * @param paramName the the name of the checked parameter that will be in exception message
+     * @param paramName the name of the checked parameter that will be in exception message
      * @param value     the value tested to see if it is positive.
      * @return the value
      * @throws IllegalArgumentException if the value is not positive.

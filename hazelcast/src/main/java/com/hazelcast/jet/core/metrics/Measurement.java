@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,10 +150,9 @@ public final class Measurement implements IdentifiedDataSerializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Measurement)) {
+        if (!(obj instanceof Measurement that)) {
             return false;
         }
-        final Measurement that = (Measurement) obj;
         return this.timestamp == that.timestamp
                 && this.value == that.value
                 && Objects.equals(this.tags, that.tags);

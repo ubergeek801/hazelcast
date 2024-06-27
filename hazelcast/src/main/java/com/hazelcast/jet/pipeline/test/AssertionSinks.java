@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public final class AssertionSinks {
      * {@link AssertionError} with the given message.
      * <p>
      * Since Jet jobs are distributed, input from multiple upstream processors
-     * is merged in a non-deterministic way. Therefore this assertion is usable
+     * is merged in a non-deterministic way. Therefore, this assertion is usable
      * only for testing of non-distributed sources.
      */
     @Nonnull
@@ -68,7 +68,7 @@ public final class AssertionSinks {
      * {@link AssertionError}.
      * <p>
      * Since Jet jobs are distributed, input from multiple upstream processors
-     * is merged in a non-deterministic way. Therefore this assertion is usable
+     * is merged in a non-deterministic way. Therefore, this assertion is usable
      * only for testing of non-distributed sources.
      */
     @Nonnull
@@ -106,7 +106,7 @@ public final class AssertionSinks {
     }
 
     /**
-     * Asserts that the previous stage emitted all of the given items in any order.
+     * Asserts that the previous stage emitted all the given items in any order.
      * If the assertion fails, the job will fail with a {@link AssertionError} with
      * the given message.
      */

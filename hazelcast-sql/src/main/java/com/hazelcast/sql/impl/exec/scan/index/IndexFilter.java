@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,13 @@
 
 package com.hazelcast.sql.impl.exec.scan.index;
 
-import com.hazelcast.query.impl.InternalIndex;
-import com.hazelcast.query.impl.QueryableEntry;
 import com.hazelcast.sql.impl.expression.ExpressionEvalContext;
-
-import java.util.Iterator;
 
 /**
  * Index filter which is transferred over a wire.
  */
 @SuppressWarnings("rawtypes")
 public interface IndexFilter {
-    /**
-     * Get index entries iterator
-     *
-     * @param index index
-     * @param descending whether the entries should come in the descending order.
-     *                   {@code true} means a descending order,
-     *                   {@code false} means an ascending order.
-     * @return iterator
-     */
-    Iterator<QueryableEntry> getEntries(InternalIndex index, boolean descending, ExpressionEvalContext evalContext);
 
     /**
      * Gets the value to be queried. Used by upper filter to construct the final lookup request.

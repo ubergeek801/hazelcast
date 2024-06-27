@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ final class UrgentPartitionRunnable<T>
         };
     }
 
-    UrgentPartitionRunnable(int partitionId, Callable callable) {
+    UrgentPartitionRunnable(int partitionId, Callable<T> callable) {
         this.partitionId = partitionId;
         this.callable = callable;
     }

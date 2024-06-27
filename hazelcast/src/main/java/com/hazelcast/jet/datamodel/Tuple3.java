@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,10 +81,9 @@ public final class Tuple3<E0, E1, E2> {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Tuple3)) {
+        if (!(obj instanceof Tuple3 that)) {
             return false;
         }
-        final Tuple3 that = (Tuple3) obj;
         return Objects.equals(this.f0, that.f0)
                 && Objects.equals(this.f1, that.f1)
                 && Objects.equals(this.f2, that.f2);

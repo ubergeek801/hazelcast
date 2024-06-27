@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,11 +65,11 @@ public class ClientConnectionStrategyConfig {
     }
 
     /**
-     * Set true for non blocking {@link HazelcastClient#newHazelcastClient()}. The client creation won't wait to
-     * connect to cluster. The client instace will throw exception until it connects to cluster and become ready.
-     * If set to false, {@link HazelcastClient#newHazelcastClient()} will block until a cluster connection established and it's
+     * Set true for non-blocking {@link HazelcastClient#newHazelcastClient()}. The client creation won't wait to
+     * connect to cluster. The client instance will throw exception until it connects to cluster and become ready.
+     * If set to false, {@link HazelcastClient#newHazelcastClient()} will block until a cluster connection established, and it's
      * ready to use client instance
-     *
+     * <p>
      * default value is false
      *
      * @param asyncStart true for async client creation

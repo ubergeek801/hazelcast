@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.internal.eviction;
 
 import com.hazelcast.cluster.Address;
+import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.internal.partition.IPartition;
 import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.util.Clock;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 
 import static com.hazelcast.internal.eviction.ToBackupSender.newToBackupSender;
 import static com.hazelcast.internal.util.CollectionUtil.isEmpty;
@@ -98,7 +100,7 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
                 newBackupExpiryOpFilter(), nodeEngine);
     }
 
-    protected BiFunction<Integer, Integer, Boolean> newBackupExpiryOpFilter() {
+    protected BiPredicate<Integer, Integer> newBackupExpiryOpFilter() {
         return (partitionId, replicaIndex) -> {
             IPartition partition = partitionService.getPartition(partitionId);
             return partition.getReplicaAddress(replicaIndex) != null;
@@ -108,6 +110,9 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
     @Override
     public void run() {
         if (!nodeEngine.isStartCompleted()) {
+            return;
+        }
+        if (nodeEngine.getClusterService().getClusterState() == ClusterState.PASSIVE) {
             return;
         }
         if (!singleRunPermit.compareAndSet(false, true)) {
@@ -201,7 +206,7 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
      *
      * Here, the counter in this method, is used to detect the lost
      * invalidations case. If it is detected, we send expiry operations to
-     * remove leftover backup entries. Otherwise leftover entries can remain on
+     * remove leftover backup entries. Otherwise, leftover entries can remain on
      * backups forever.
      */
     public final void partitionLost(PartitionLostEvent ignored) {
@@ -270,7 +275,7 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
         }
         List<T> partitionIds = partitionContainers.subList(start, end);
         for (T container : partitionIds) {
-            // mark partition container as has on going expiration operation.
+            // mark partition container as has ongoing expiration operation.
             setHasRunningCleanup(container);
             Operation operation = newPrimaryExpiryOp(cleanupPercentage, container);
             operationService.execute(operation);
@@ -278,7 +283,7 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
     }
 
     private BiFunction<S, Collection<ExpiredKey>, Operation> newBackupExpiryOpSupplier() {
-        return (recordStore, expiredKeys) -> newBackupExpiryOp(recordStore, expiredKeys);
+        return this::newBackupExpiryOp;
     }
 
     public final void sendQueuedExpiredKeys(T container) {

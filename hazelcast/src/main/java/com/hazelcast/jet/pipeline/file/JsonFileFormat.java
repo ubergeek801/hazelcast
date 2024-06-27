@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.jet.pipeline.file;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Serial;
 import java.util.Objects;
 
 /**
@@ -34,6 +35,7 @@ public class JsonFileFormat<T> implements FileFormat<T> {
      */
     public static final String FORMAT_JSON = "json";
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private Class<T> clazz;

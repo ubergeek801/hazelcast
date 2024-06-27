@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.hazelcast.jet;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.core.JetTestSupport;
+import com.hazelcast.partition.NoDataMemberInClusterException;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.TestProcessors.batchDag;
 import static com.hazelcast.jet.core.TestProcessors.streamingDag;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,8 +38,8 @@ public class LightJob_StandaloneClusterTest extends JetTestSupport {
         // lite members can be coordinators, though they won't execute processors
         Job job = liteInst.getJet().newLightJob(streamingDag());
 
-        assertTrueEventually(() -> assertJobExecuting(job, nonLiteInst));
-        assertJobNotExecuting(job, liteInst);
+        assertTrueEventually(() -> assertThat(job).isExecutingOn(nonLiteInst));
+        assertThat(job).isNotExecutingOn(liteInst);
     }
 
     @Test
@@ -45,8 +47,8 @@ public class LightJob_StandaloneClusterTest extends JetTestSupport {
         HazelcastInstance liteInst = createHazelcastInstance(smallInstanceConfig().setLiteMember(true));
 
         assertThatThrownBy(() -> liteInst.getJet().newLightJob(batchDag()).join())
-                .hasRootCauseInstanceOf(JetException.class)
-                .hasRootCauseMessage("No data member with version equal to the coordinator version found");
+                .hasRootCauseInstanceOf(NoDataMemberInClusterException.class)
+                .hasRootCauseMessage("Partitions can't be assigned since all nodes in the cluster are lite members");
     }
 
     @Test
@@ -56,7 +58,7 @@ public class LightJob_StandaloneClusterTest extends JetTestSupport {
         HazelcastInstance coordinatorClient = createHazelcastClient(configForNonSmartClientConnectingTo(coordinatorInst));
 
         Job job = coordinatorClient.getJet().newLightJob(streamingDag());
-        assertTrueEventually(() -> assertJobExecuting(job, coordinatorInst));
+        assertTrueEventually(() -> assertThat(job).isExecutingOn(coordinatorInst));
 
         coordinatorInst.shutdown();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.stream.Collector;
  * Specialization of {@code AggregateOperation} (refer to its {@linkplain
  * AggregateOperation extensive documentation}) to the "arity-1" case with
  * a single data stream being aggregated over. {@link AggregateOperations}
- * contains factories for the built-in implementations and you can create
+ * contains factories for the built-in implementations, and you can create
  * your own using the {@linkplain AggregateOperation#withCreate aggregate
  * operation builder}.
  * <p>

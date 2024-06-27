@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,14 @@ import com.hazelcast.jet.impl.execution.ExecutionContext;
 import com.hazelcast.jet.impl.execution.init.ExecutionPlan;
 import com.hazelcast.jet.impl.execution.init.ExecutionPlanBuilder;
 import com.hazelcast.jet.impl.execution.init.JetInitDataSerializerHook;
+import com.hazelcast.jet.impl.processor.ExpectNothingP;
 import com.hazelcast.map.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DataSerializable;
 import com.hazelcast.spi.exception.TargetNotMemberException;
 import com.hazelcast.spi.impl.NodeEngineImpl;
+import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastParametrizedRunner;
 import com.hazelcast.test.HazelcastSerialParametersRunnerFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
@@ -65,6 +67,7 @@ import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,7 +81,10 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.internal.util.RootCauseMatcher.getRootCause;
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.core.Edge.between;
@@ -91,7 +97,6 @@ import static com.hazelcast.jet.impl.JobClassLoaderService.JobPhase.COORDINATOR;
 import static com.hazelcast.jet.impl.JobExecutionRecord.NO_SNAPSHOT;
 import static com.hazelcast.jet.impl.TerminationMode.CANCEL_FORCEFUL;
 import static com.hazelcast.jet.impl.util.ExceptionUtil.peel;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.test.PacketFiltersUtil.delayOperationsFrom;
 import static java.lang.String.format;
 import static java.util.Collections.nCopies;
@@ -232,9 +237,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         }
 
         //Wait for job to finish
-        assertThrows(CompletionException.class, () -> {
-            jobFuture.get().getFuture().join();
-        });
+        assertThrows(CompletionException.class, () -> jobFuture.get().getFuture().join());
         assertJobFailed(jobFuture.get(), NON_SERIALIZABLE_EXCEPTION.get());
     }
 
@@ -344,7 +347,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         // Then
         assertPsClosedWithError();
         assertPmsClosedWithError();
-        assertThrows(CompletionException.class, () -> job.join());
+        assertThrows(CompletionException.class, job::join);
     }
 
     @Test
@@ -366,9 +369,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         }
 
         //Wait for job to finish
-        assertThrows(CompletionException.class, () -> {
-            jobFuture.get().getFuture().join();
-        });
+        assertThrows(CompletionException.class, () -> jobFuture.get().getFuture().join());
         assertJobFailed(jobFuture.get(), NON_SERIALIZABLE_EXCEPTION.get());
     }
 
@@ -637,7 +638,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPS(NoOutputSourceP::new, MEMBER_COUNT)));
 
-        NodeEngineImpl nodeEngineImpl = getNodeEngineImpl(instance());
+        NodeEngineImpl nodeEngineImpl = Accessors.getNodeEngineImpl(instance());
         Address localAddress = nodeEngineImpl.getThisAddress();
         ClusterServiceImpl clusterService = (ClusterServiceImpl) nodeEngineImpl.getClusterService();
         MembersView membersView = clusterService.getMembershipManager().getMembersView();
@@ -681,7 +682,8 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
                 singletonList(JetInitDataSerializerHook.START_EXECUTION_OP));
 
         Job job = instance().getJet().newJob(dag);
-        assertJobStatusEventually(job, RUNNING); // RUNNING status is set on master before sending the StartOp
+        // RUNNING status is set on master before sending the StartOp
+        JobAssertions.assertThat(job).eventuallyHasStatus(RUNNING);
         job.cancel();
         assertThatThrownBy(job::join)
                 .isInstanceOf(CancellationException.class);
@@ -727,11 +729,12 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         DAG dag = new DAG();
         // this is designed to fail when member deserializes the execution plan while executing
         // the InitOperation
-        dag.newVertex("faulty", (ProcessorMetaSupplier) addresses -> address -> new NotDeserializableProcessorSupplier());
+        dag.newVertex("faulty", (ProcessorMetaSupplier) addresses ->
+                address -> new NotDeserializableProcessorSupplier().original());
 
         // Then
         // we can't assert the exception class. Sometimes the HazelcastSerializationException is wrapped
-        // in JetException and sometimes it's not, depending on whether the job managed to write JobResult or not.
+        // in JetException, and sometimes it's not, depending on whether the job managed to write JobResult or not.
         assertThatThrownBy(() -> executeAndPeel(newJob(instance, dag, null)))
                 .hasMessageContaining("java.lang.ClassNotFoundException: fake.Class");
     }
@@ -770,7 +773,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         assertThatThrownBy(job::join)
                 .hasMessageContaining(useLightJob
                         // `checkSerializable` isn't used for light jobs
-                        ? "Failed to serialize 'com.hazelcast.jet.impl.execution.init.ExecutionPlan'"
+                        ? "Failed to serialize 'com.hazelcast.jet.impl.operation.InitExecutionOperation'"
                         : "ProcessorSupplier in vertex 'v'\" must be serializable");
     }
 
@@ -787,7 +790,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         dag.edge(between(noop, faulty));
 
         Job job = newJob(client(), dag, null);
-        assertJobStatusEventually(job, RUNNING);
+        JobAssertions.assertThat(job).eventuallyHasStatus(RUNNING);
         NoOutputSourceP.proceedLatch.countDown();
         Throwable excBeforeComplete;
         Throwable excAfterComplete;
@@ -845,7 +848,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
                         address -> new NotSerializable_DataSerializable_ProcessorSupplier()));
 
         Job job = newJob(dag);
-        Exception e = assertThrows(Exception.class, () -> job.join());
+        Exception e = assertThrows(Exception.class, job::join);
         assertContains(e.getMessage(), "Failed to serialize");
     }
 
@@ -882,7 +885,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         dag.newVertex("v", () -> new MockP().streaming());
 
         Job job = inst1.getJet().newLightJob(dag);
-        assertJobRunningEventually(inst1, job, null);
+        JobAssertions.assertThat(job).eventuallyJobRunning(inst1, null);
         inst2.getLifecycleService().terminate();
 
         try {
@@ -1276,12 +1279,24 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     }
 
     private static class NotDeserializableProcessorSupplier implements ProcessorSupplier {
+        private transient boolean original = false;
+
+        NotDeserializableProcessorSupplier original() {
+            original = true;
+            return this;
+        }
+
         @Nonnull
         @Override
         public Collection<? extends Processor> get(int count) {
+            if (original) {
+                // do not fail if we are on serialization-free path (local execution of light job)
+                return IntStream.range(0, count).mapToObj(i -> new ExpectNothingP()).collect(Collectors.toList());
+            }
             throw new UnsupportedOperationException("should not get here");
         }
 
+        @Serial
         private void readObject(java.io.ObjectInputStream stream) throws ClassNotFoundException {
             // simulate deserialization failure
             throw new ClassNotFoundException("fake.Class");
@@ -1295,6 +1310,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
             throw new UnsupportedOperationException("should not get here");
         }
 
+        @Serial
         private void readObject(java.io.ObjectInputStream stream) throws ClassNotFoundException {
             // simulate deserialization failure
             throw new ClassNotFoundException("fake.Class");
@@ -1313,6 +1329,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
                     throw new UnsupportedOperationException("should not get here");
                 }
 
+                @Serial
                 private void writeObject(java.io.ObjectOutputStream stream) throws Exception {
                     // simulate serialization failure
                     throw new NotSerializableException(getClass().getName());

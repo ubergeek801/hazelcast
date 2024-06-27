@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import javax.cache.spi.CachingProvider;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -47,7 +47,7 @@ public abstract class AbstractCacheEvictionPolicyComparatorTest extends Hazelcas
 
     protected abstract HazelcastInstance createInstance(Config config);
 
-    protected abstract ConcurrentMap getUserContext(HazelcastInstance hazelcastInstance);
+    protected abstract ConcurrentMap<String, Object> getUserContext(HazelcastInstance hazelcastInstance);
 
     protected Config createConfig() {
         return new Config();

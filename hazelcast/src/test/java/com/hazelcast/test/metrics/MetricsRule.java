@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.opentest4j.TestAbortedException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Test rule that records the metrics collected on the Hazelcast instances
  * during a test run and dumps the recorded metrics if the given test
- * fails. By default the last 10 metrics collection is recorded. After
+ * fails. By default, the last 10 metrics collection is recorded. After
  * that, the rule starts overwriting the oldest recording. The metrics are
  * recorded in the memory in compressed format, therefore, it doesn't
  * increase the used heap noticeably.
@@ -61,7 +62,7 @@ public class MetricsRule implements TestRule {
             public void evaluate() throws Throwable {
                 try {
                     base.evaluate();
-                } catch (AssumptionViolatedException e) {
+                } catch (AssumptionViolatedException | TestAbortedException e) {
                     // represents expected exceptions, no need to take an action.
                 } catch (Throwable t) {
                     StringBuilder sb = new StringBuilder();

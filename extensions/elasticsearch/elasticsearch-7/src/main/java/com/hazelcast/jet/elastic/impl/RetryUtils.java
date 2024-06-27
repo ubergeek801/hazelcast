@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.hazelcast.logging.Logger;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 
 /**
  * Static utility class to retry operations related to connecting to AWS Services.
@@ -77,8 +77,7 @@ public final class RetryUtils {
             if (exception.isAssignableFrom(e.getClass())) {
                 return true;
             }
-            if (e.getCause() != null && e.getCause() instanceof Exception && e.getCause() != e) {
-                Exception cause = (Exception) e.getCause();
+            if (e.getCause() != null && e.getCause() instanceof Exception cause && e.getCause() != e) {
                 return anyOf(cause, exceptions);
             }
         }

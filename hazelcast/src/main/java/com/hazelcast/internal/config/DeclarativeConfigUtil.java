@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@ import com.hazelcast.internal.util.StringUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableList;
 
 /**
  * Utility class for handling declarative configuration files.
@@ -64,7 +63,7 @@ public final class DeclarativeConfigUtil {
     /**
      * Array of accepted suffixes for YAML configuration files.
      */
-    public static final Collection<String> YAML_ACCEPTED_SUFFIXES = unmodifiableList(asList("yaml", "yml"));
+    public static final Collection<String> YAML_ACCEPTED_SUFFIXES = List.of("yaml", "yml");
 
     /**
      * List of accepted suffixes for YAML configuration files.
@@ -76,7 +75,7 @@ public final class DeclarativeConfigUtil {
     /**
      * Array of the suffixes accepted in Hazelcast configuration files.
      */
-    public static final Collection<String> ALL_ACCEPTED_SUFFIXES = unmodifiableList(asList("xml", "yaml", "yml"));
+    public static final Collection<String> ALL_ACCEPTED_SUFFIXES = List.of("xml", "yaml", "yml");
 
     /**
      * The list of the suffixes accepted in Hazelcast configuration files.

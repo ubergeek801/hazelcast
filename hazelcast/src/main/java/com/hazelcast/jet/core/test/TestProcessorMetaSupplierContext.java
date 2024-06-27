@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,6 @@ import javax.annotation.Nonnull;
 import java.net.UnknownHostException;
 import java.security.AccessControlException;
 import java.security.Permission;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -62,21 +60,26 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
     private ProcessingGuarantee processingGuarantee = NONE;
     private long maxProcessorAccumulatedRecords = Long.MAX_VALUE;
     private boolean isLightJob;
-    private Map<Address, int[]> partitionAssignment = Collections.unmodifiableMap(new HashMap<Address, int[]>() {{
-        try {
-            put(new Address("1.2.3.4", 1), new int[]{0});
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
-    }});
+    private Map<Address, int[]> partitionAssignment;
     private ClassLoader classLoader;
 
-    @Nonnull @Override
+    @SuppressWarnings("java:S1313")
+    public TestProcessorMetaSupplierContext() {
+        try {
+            partitionAssignment = Map.of(new Address("1.2.3.4", 1), new int[]{0});
+        } catch (UnknownHostException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    @Nonnull
+    @Override
     public HazelcastInstance hazelcastInstance() {
         return instance;
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     @Deprecated
     public JetInstance jetInstance() {
         return (JetInstance) instance.getJet();
@@ -91,7 +94,7 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
         if (this.instance instanceof HazelcastInstanceProxy || this.instance instanceof HazelcastInstanceImpl) {
             NodeEngineImpl nodeEngine = Util.getNodeEngine(this.instance);
             this.partitionAssignment = ExecutionPlanBuilder.getPartitionAssignment(nodeEngine,
-                    Util.getMembersView(nodeEngine).getMembers())
+                            Util.getMembersView(nodeEngine).getMembers(), false, null, null, null)
                     .entrySet().stream().collect(toMap(en -> en.getKey().getAddress(), Entry::getValue));
         }
         return this;
@@ -123,7 +126,8 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
         return this;
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     public JobConfig jobConfig() {
         return jobConfig;
     }
@@ -164,7 +168,8 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
         return this;
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     public ILogger logger() {
         if (logger == null) {
             logger = Logger.getLogger(loggerName());
@@ -185,7 +190,8 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
         return totalParallelism() / localParallelism();
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     public String vertexName() {
         return vertexName;
     }
@@ -262,6 +268,10 @@ public class TestProcessorMetaSupplierContext implements ProcessorMetaSupplier.C
     @Override
     public DataConnectionService dataConnectionService() {
         return Util.getNodeEngine(instance).getDataConnectionService();
+    }
+
+    public NodeEngineImpl getNodeEngine() {
+        return Util.getNodeEngine(hazelcastInstance());
     }
 
     @Nonnull

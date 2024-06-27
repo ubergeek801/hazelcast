@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ public enum GlobalMemoryAccessorType {
      * as appropriate to the underlying platform's architecture.
      * <p>
      * If the underlying platform supports unaligned memory access, it will match the standard
-     * {@link GlobalMemoryAccessor} because there's no need for aligmnent checks.
-     * Otherwise it will match the alignment-aware {@link GlobalMemoryAccessor}.
+     * {@link GlobalMemoryAccessor} because there's no need for alignment checks.
+     * Otherwise, it will match the alignment-aware {@link GlobalMemoryAccessor}.
      */
     PLATFORM_AWARE,
 }

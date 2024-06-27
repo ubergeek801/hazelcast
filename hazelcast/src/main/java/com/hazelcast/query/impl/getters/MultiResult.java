@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ import java.util.List;
  */
 public class MultiResult<T> {
 
-    private List<T> results;
+    private final List<T> results;
 
     /**
      * Indicates that the result of a multi-result evaluation using [any] operator
@@ -77,12 +77,12 @@ public class MultiResult<T> {
      * that is a result of a null or empty target in the expression.
      *
      * For query evaluation the difference is not important - and we need to return null in both cases there.
-     * For aggregations it makes a difference and we need this context knowledge there.
+     * For aggregations it makes a difference, and we need this context knowledge there.
      */
     private boolean nullOrEmptyTarget;
 
     public MultiResult() {
-        this.results = new ArrayList<T>();
+        this.results = new ArrayList<>();
     }
 
     public MultiResult(List<T> results) {

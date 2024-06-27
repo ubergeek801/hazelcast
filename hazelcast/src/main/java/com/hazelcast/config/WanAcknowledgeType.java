@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public enum WanAcknowledgeType {
     /**
      * Gets the ID for the given {@link WanAcknowledgeType}.
      * <p>
-     * The reason this ID is used instead of an the ordinal value is that the ordinal value is more prone to changes due to
+     * The reason this ID is used instead of the ordinal value is that the ordinal value is more prone to changes due to
      * reordering.
      *
      * @return the ID

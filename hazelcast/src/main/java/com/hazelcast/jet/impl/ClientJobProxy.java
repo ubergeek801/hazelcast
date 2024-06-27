@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,9 @@ import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.JobStateSnapshot;
 import com.hazelcast.jet.JobStatusEvent;
 import com.hazelcast.jet.JobStatusListener;
-import com.hazelcast.jet.JobStateSnapshot;
 import com.hazelcast.jet.config.DeltaJobConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.core.JobStatus;
@@ -85,8 +85,8 @@ public class ClientJobProxy extends AbstractJobProxy<HazelcastClientInstanceImpl
             boolean isLightJob,
             @Nonnull Object jobDefinition,
             @Nonnull JobConfig config
-    ) {
-        super(client, jobId, isLightJob, jobDefinition, config);
+            ) {
+        super(client, jobId, isLightJob, jobDefinition, config, null);
     }
 
     @Nonnull
@@ -180,16 +180,7 @@ public class ClientJobProxy extends AbstractJobProxy<HazelcastClientInstanceImpl
     }
 
     @Override
-    public JobStateSnapshot cancelAndExportSnapshot(String name) {
-        return doExportSnapshot(name, true);
-    }
-
-    @Override
-    public JobStateSnapshot exportSnapshot(String name) {
-        return doExportSnapshot(name, false);
-    }
-
-    private JobStateSnapshot doExportSnapshot(String name, boolean cancelJob) {
+    protected JobStateSnapshot doExportSnapshot(String name, boolean cancelJob) {
         checkNotLightJob("export snapshot");
         ClientMessage request = JetExportSnapshotCodec.encodeRequest(getId(), name, cancelJob);
         try {

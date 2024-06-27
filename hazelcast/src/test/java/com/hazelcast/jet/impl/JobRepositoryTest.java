@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
+import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
@@ -42,7 +43,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -124,25 +125,25 @@ public class JobRepositoryTest extends JetTestSupport {
 
     @Test
     public void when_jobJarUploadFails_then_jobResourcesCleanedUp() throws Exception {
-        jobConfig.addJar(new URL("http://site/nonexistent"));
+        jobConfig.addJar(URI.create("http://site/nonexistent").toURL());
         testResourceCleanup();
     }
 
     @Test
     public void when_jobZipUploadFails_then_jobResourcesCleanedUp() throws Exception {
-        jobConfig.addJarsInZip(new URL("http://site/nonexistent"));
+        jobConfig.addJarsInZip(URI.create("http://site/nonexistent").toURL());
         testResourceCleanup();
     }
 
     @Test
     public void when_jobClasspathResourceUploadFails_then_jobResourcesCleanedUp() throws Exception {
-        jobConfig.addClasspathResource(new URL("http://site/nonexistent"));
+        jobConfig.addClasspathResource(URI.create("http://site/nonexistent").toURL());
         testResourceCleanup();
     }
 
     @Test
     public void when_jobFileUploadFails_then_jobResourcesCleanedUp() throws Exception {
-        jobConfig.attachFile(new URL("http://site/nonexistent"));
+        jobConfig.attachFile(URI.create("http://site/nonexistent").toURL());
         testResourceCleanup();
     }
 
@@ -216,12 +217,12 @@ public class JobRepositoryTest extends JetTestSupport {
             instance.getJet().newJob(dag).join();
         }
 
-        jobRepository.cleanup(getNodeEngineImpl(instance));
+        jobRepository.cleanup(Accessors.getNodeEngineImpl(instance));
         assertTrueEventually(() -> assertEquals(MAX_JOB_RESULTS_COUNT, jobRepository.getJobResults().size()));
     }
 
     private void cleanup() {
-        jobRepository.cleanup(getNodeEngineImpl(instance));
+        jobRepository.cleanup(Accessors.getNodeEngineImpl(instance));
     }
 
     private long uploadResourcesForNewJob() {
@@ -234,7 +235,7 @@ public class JobRepositoryTest extends JetTestSupport {
     private Data createDagData() {
         DAG dag = new DAG();
         dag.newVertex("v", () -> new TestProcessors.MockP().streaming());
-        return getNodeEngineImpl(instance).toData(dag);
+        return Accessors.getNodeEngineImpl(instance).toData(dag);
     }
 
     private JobRecord createJobRecord(long jobId, Data dag) {

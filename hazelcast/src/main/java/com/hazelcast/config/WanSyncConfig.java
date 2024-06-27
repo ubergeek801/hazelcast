@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class WanSyncConfig implements IdentifiedDataSerializable {
      * Returns the strategy for checking consistency of data between source and
      * target cluster. Any inconsistency will not be reconciled, it will be
      * merely reported via the usual mechanisms (e.g. statistics, diagnostics).
-     * The user must initiate WAN sync to reconcile there differences. For the
+     * The user must initiate WAN sync to reconcile the differences. For the
      * check procedure to work properly, the target cluster should support the
      * chosen strategy.
      * <p>
@@ -52,7 +52,7 @@ public class WanSyncConfig implements IdentifiedDataSerializable {
      * Sets the strategy for checking consistency of data between source and
      * target cluster. Any inconsistency will not be reconciled, it will be
      * merely reported via the usual mechanisms (e.g. statistics, diagnostics).
-     * The user must initiate WAN sync to reconcile there differences. For the
+     * The user must initiate WAN sync to reconcile the differences. For the
      * check procedure to work properly, the target cluster should support the
      * chosen strategy.
      * <p>

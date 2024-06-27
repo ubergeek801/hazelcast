@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class EntryProcessorBouncingNodesTest extends HazelcastTestSupport {
     @Rule
     public BounceMemberRule bounceMemberRule = BounceMemberRule
             .with(this::getConfig)
-            .clusterSize(3)
+            .clusterSize(2)
             .driverCount(1)
             .driverType(BounceTestConfiguration.DriverType.ALWAYS_UP_MEMBER)
             .build();

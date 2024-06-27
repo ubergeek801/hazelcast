@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,13 @@ public final class ImmutableMultiResult<T> extends MultiResult<T> {
     /**
      * @param result result to be added to this MultiResult
      */
+    @Override
     public void add(T result) {
         throw new UnsupportedOperationException("Can't modify an immutable MultiResult");
     }
 
 
+    @Override
     public void addNullOrEmptyTarget() {
         throw new UnsupportedOperationException("Can't modify an immutable MultiResult");
     }
@@ -46,6 +48,7 @@ public final class ImmutableMultiResult<T> extends MultiResult<T> {
     /**
      * @return a mutable underlying list of collected results
      */
+    @Override
     public List<T> getResults() {
         return multiResult.getResults();
     }
@@ -53,14 +56,17 @@ public final class ImmutableMultiResult<T> extends MultiResult<T> {
     /**
      * @return true if the MultiResult is empty; false otherwise
      */
+    @Override
     public boolean isEmpty() {
         return multiResult.isEmpty();
     }
 
+    @Override
     public boolean isNullEmptyTarget() {
         return multiResult.isNullEmptyTarget();
     }
 
+    @Override
     public void setNullOrEmptyTarget(boolean nullOrEmptyTarget) {
         throw new UnsupportedOperationException("Can't modify an immutable MultiResult");
     }

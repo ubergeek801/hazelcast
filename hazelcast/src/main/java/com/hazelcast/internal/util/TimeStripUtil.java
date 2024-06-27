@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public final class TimeStripUtil {
      * The fixed time in the past (instead of {@link
      * System#currentTimeMillis()} prevents any time
      * discrepancies among nodes, mis-translated as
-     * diffs of -1 ie. {@link Record#UNSET} values.
+     * diffs of -1 i.e. {@link Record#UNSET} values.
      * <p>
      * (see:
      * https://github.com/hazelcast/hazelcast-enterprise/issues/2527)

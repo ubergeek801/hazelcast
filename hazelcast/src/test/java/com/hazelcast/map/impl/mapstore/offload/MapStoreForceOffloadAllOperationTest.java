@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.hazelcast.internal.metrics.MetricDescriptor;
 import com.hazelcast.internal.metrics.MetricsRegistry;
 import com.hazelcast.internal.metrics.collectors.MetricsCollector;
 import com.hazelcast.internal.util.MutableLong;
-import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapServiceContext;
 import com.hazelcast.test.HazelcastParallelClassRunner;
@@ -72,9 +71,9 @@ public class MapStoreForceOffloadAllOperationTest extends HazelcastTestSupport {
     public void metrics_show_offloaded_operation_count_when_forced_offload_enabled() {
         int opCount = 10_000;
 
-        List<Future> futures = new ArrayList<>(opCount);
+        List<Future<?>> futures = new ArrayList<>(opCount);
         for (int i = 0; i < opCount; i++) {
-            futures.add(map.submitToKey(Integer.toString(i), (EntryProcessor) entry -> {
+            futures.add(map.submitToKey(Integer.toString(i), entry -> {
                 // mimic slow execution
                 sleepMillis(10);
                 return null;

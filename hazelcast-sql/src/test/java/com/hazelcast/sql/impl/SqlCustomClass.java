@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Objects;
  * Simple custom class for tests.
  */
 public class SqlCustomClass implements Serializable {
-    private int id;
+    private final int id;
 
     public SqlCustomClass(int id) {
         this.id = id;

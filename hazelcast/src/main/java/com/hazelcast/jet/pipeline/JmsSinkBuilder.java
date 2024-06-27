@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import com.hazelcast.function.SupplierEx;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.config.ProcessingGuarantee;
 import com.hazelcast.jet.impl.connector.WriteJmsP;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Message;
+import jakarta.jms.Session;
+import jakarta.jms.XAConnectionFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.XAConnectionFactory;
 
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.jet.impl.util.Util.checkSerializable;
@@ -116,7 +116,7 @@ public final class JmsSinkBuilder<T> {
      * Sets the function which creates the message from the item.
      * <p>
      * If not provided, the builder creates a function which wraps {@code
-     * item.toString()} into a {@link javax.jms.TextMessage}, unless the item
+     * item.toString()} into a {@link jakarta.jms.TextMessage}, unless the item
      * is already an instance of {@code javax.jms.Message}.
      * <p>
      * The given function must be stateless.
@@ -162,8 +162,7 @@ public final class JmsSinkBuilder<T> {
         checkNotNull(destinationName);
         if (connectionFn == null) {
             connectionFn = factory -> {
-                if (factory instanceof XAConnectionFactory) {
-                    XAConnectionFactory xaFactory = (XAConnectionFactory) factory;
+                if (factory instanceof XAConnectionFactory xaFactory) {
                     return usernameLocal != null || passwordLocal != null
                             ? xaFactory.createXAConnection(usernameLocal, passwordLocal)
                             : xaFactory.createXAConnection();
@@ -176,7 +175,7 @@ public final class JmsSinkBuilder<T> {
         }
         if (messageFn == null) {
             messageFn = (session, item) ->
-                    item instanceof Message ? (Message) item : session.createTextMessage(item.toString());
+                    item instanceof Message m ? m : session.createTextMessage(item.toString());
         }
 
         FunctionEx<ConnectionFactory, Connection> connectionFnLocal = connectionFn;

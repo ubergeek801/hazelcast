@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package com.hazelcast.jet.core.metrics;
  * metrics.
  * <p>
  * The unit values will end up populating the metric tag {@link
- * MetricTags#UNIT}. It can be used by UI tools to format the value and it's
+ * MetricTags#UNIT}. It can be used by UI tools to format the value, and it's
  * not used by Jet itself.
  *
  * @since Jet 4.0

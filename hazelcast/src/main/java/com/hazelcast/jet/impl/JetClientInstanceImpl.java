@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.logging.ILogger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,10 +56,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.jet.impl.operation.GetJobIdsOperation.ALL_JOBS;
 import static com.hazelcast.jet.impl.util.ExceptionUtil.rethrow;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
-import static com.hazelcast.jet.impl.util.LoggingUtil.logFine;
 
 /**
  * Client-side {@code JetInstance} implementation
@@ -141,7 +142,15 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
         return new ClientJobProxy(client, jobId, lightJobCoordinator);
     }
 
-    public Job newJobProxy(long jobId, boolean isLightJob, @Nonnull Object jobDefinition, @Nonnull JobConfig config) {
+    @Override
+    public Job newJobProxy(long jobId,
+                           boolean isLightJob,
+                           @Nonnull Object jobDefinition,
+                           @Nonnull JobConfig config,
+                           @Nullable Subject subject) {
+        if (subject != null) {
+            throw new UnsupportedOperationException("Submitting a job with subject is not allowed for client");
+        }
         return new ClientJobProxy(client, jobId, isLightJob, jobDefinition, config);
     }
 
@@ -190,10 +199,9 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
             JobExecuteCall jobExecuteCall = initializeJobExecuteCall(submitJobParameters.getJarPath());
 
             // Send only job metadata
-            logFine(getLogger(), "Submitting JobMetaData for jarPath: %s", jarPath);
+            getLogger().fine("Submitting JobMetaData for jarPath: %s", jarPath);
             sendJobMetaDataForExecute(jobExecuteCall, submitJobParameters);
-            logFine(getLogger(), "Job execution from jar '%s' finished successfully",
-                    jarPath);
+            getLogger().fine("Job execution from jar '%s' finished successfully", jarPath);
         } catch (Exception exception) {
             sneakyThrow(exception);
         }
@@ -207,13 +215,12 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
             JobUploadCall jobUploadCall = initializeJobUploadCall(submitJobParameters.getJarPath());
 
             // First send job metadata
-            logFine(getLogger(), "Submitting JobMetaData for jarPath: %s", jarPath);
+            getLogger().fine("Submitting JobMetaData for jarPath: %s", jarPath);
             sendJobMetaDataForUpload(jobUploadCall, submitJobParameters);
 
             // Then send job parts
             sendJobMultipart(jobUploadCall, jarPath);
-            logFine(getLogger(), "Job upload from jar '%s' finished successfully",
-                    jarPath);
+            getLogger().fine("Job upload from jar '%s' finished successfully", jarPath);
         } catch (IOException | NoSuchAlgorithmException exception) {
             sneakyThrow(exception);
         }
@@ -286,7 +293,7 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
                         currentPartNumber,
                         jobUploadCall.getTotalParts(), dataToSend, bytesRead, sha256Hex);
 
-                logFine(getLogger(), "Submitting Job Part for jarPath: %s PartNumber %d/%d",
+                getLogger().fine("Submitting Job Part for jarPath: %s PartNumber %d/%d",
                         jarPath, currentPartNumber, jobUploadCall.getTotalParts());
 
                 invokeRequestNoRetryOnRandom(jobUploadCall.getMemberUuid(), jobMultipartRequest);

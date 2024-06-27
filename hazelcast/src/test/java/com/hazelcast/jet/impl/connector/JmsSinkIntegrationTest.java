@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,19 +32,19 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.hazelcast.jet.impl.connector.JmsTestUtil.consumeMessages;
 import static java.util.stream.IntStream.range;
-import static javax.jms.Session.DUPS_OK_ACKNOWLEDGE;
+import static jakarta.jms.Session.DUPS_OK_ACKNOWLEDGE;
 
 @Category({SlowTest.class, ParallelJVMTest.class})
 public class JmsSinkIntegrationTest extends SimpleTestInClusterSupport {
@@ -56,8 +56,8 @@ public class JmsSinkIntegrationTest extends SimpleTestInClusterSupport {
 
     private static int counter;
 
-    private String destinationName = "dest" + counter++;
-    private IList<Object> srcList = instance().getList("src-" + counter++);
+    private final String destinationName = "dest" + counter++;
+    private final IList<Object> srcList = instance().getList("src-" + counter++);
 
     @BeforeClass
     public static void beforeClass() {
@@ -212,10 +212,11 @@ public class JmsSinkIntegrationTest extends SimpleTestInClusterSupport {
                 .exactlyOnce(exactlyOnce)
                 .build();
 
-        try (
-                Connection connection = new ActiveMQConnectionFactory(broker.getVmURL()).createConnection();
-                Session session = connection.createSession(false, DUPS_OK_ACKNOWLEDGE);
-                MessageConsumer consumer = session.createConsumer(session.createQueue(destinationName))
+
+        try (ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(broker.getVmURL());
+             Connection connection = activeMQConnectionFactory.createConnection();
+             Session session = connection.createSession(false, DUPS_OK_ACKNOWLEDGE);
+             MessageConsumer consumer = session.createConsumer(session.createQueue(destinationName))
         ) {
             connection.start();
             List<Integer> actualSinkContents = new ArrayList<>();

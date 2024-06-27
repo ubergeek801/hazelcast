@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ import com.hazelcast.test.annotation.QuickTest;
 import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
 import com.hazelcast.topic.TopicOverloadPolicy;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -90,6 +91,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -97,9 +99,12 @@ import java.util.function.BiFunction;
 
 import static com.hazelcast.config.MaxSizePolicy.ENTRY_COUNT;
 import static com.hazelcast.config.MultiMapConfig.ValueCollectionType.LIST;
+import static com.hazelcast.dataconnection.impl.DataConnectionTestUtil.DUMMY_TYPE;
 import static com.hazelcast.test.TestConfigUtils.NON_DEFAULT_BACKUP_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -109,7 +114,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
     protected static final String NON_DEFAULT_MERGE_POLICY = "AnotherMergePolicy";
     protected static final int NON_DEFAULT_MERGE_BATCH_SIZE = 31415;
 
-    private String name = randomString();
+    private final String name = randomString();
     private HazelcastInstance[] members;
     // add***Config is invoked on driver instance
     private HazelcastInstance driver;
@@ -129,10 +134,16 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         return members[members.length - 1];
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testAddWanReplicationConfigIsNotSupported() {
         WanReplicationConfig wanReplicationConfig = new WanReplicationConfig();
-        getDriver().getConfig().addWanReplicationConfig(wanReplicationConfig);
+        wanReplicationConfig.setName(name);
+
+        UnsupportedOperationException exception = Assertions.catchThrowableOfType(
+                () -> getDriver().getConfig().addWanReplicationConfig(wanReplicationConfig),
+                UnsupportedOperationException.class);
+        assertNotNull(exception);
+        assertThat(exception).hasMessage("Adding new WAN config is not supported.");
     }
 
     @Test
@@ -208,7 +219,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
 
     @Test
     public void testDurableExecutorConfig() {
-        DurableExecutorConfig config = new DurableExecutorConfig(name, 7, 3, 10, false);
+        DurableExecutorConfig config = new DurableExecutorConfig(name, 7, 3, 10, false, null);
 
         driver.getConfig().addDurableExecutorConfig(config);
 
@@ -219,7 +230,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
     public void testScheduledExecutorConfig() {
         ScheduledExecutorConfig config = new ScheduledExecutorConfig(name, 2, 3, 10, null,
                 new MergePolicyConfig(NON_DEFAULT_MERGE_POLICY, NON_DEFAULT_MERGE_BATCH_SIZE),
-                ScheduledExecutorConfig.CapacityPolicy.PER_NODE, false);
+                ScheduledExecutorConfig.CapacityPolicy.PER_NODE, false, null);
 
         driver.getConfig().addScheduledExecutorConfig(config);
 
@@ -449,6 +460,25 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         driver.getConfig().addMapConfig(config);
 
         assertConfigurationsEqualOnAllMembers(config);
+    }
+
+    @Test
+    public void testMapConfig_withDifferentOrderOfIndexes() {
+        MapConfig config = new MapConfig(name);
+        IndexConfig idx1 = new IndexConfig(IndexType.SORTED, "foo");
+        idx1.setName("idx1");
+        IndexConfig idx2 = new IndexConfig(IndexType.SORTED, "bar");
+        idx2.setName("idx2");
+        config.setIndexConfigs(List.of(idx1, idx2));
+
+        MapConfig reordered = new MapConfig(name);
+        reordered.setIndexConfigs(List.of(idx2, idx1));
+
+        driver.getConfig().addMapConfig(config);
+        assertThatNoException().isThrownBy(() -> driver.getConfig().addMapConfig(reordered));
+
+        assertConfigurationsEqualOnAllMembers(config);
+        assertConfigurationsEqualOnAllMembers(reordered);
     }
 
     @Test
@@ -682,7 +712,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         properties.setProperty("prop2", "val2");
         DataConnectionConfig dataConnectionConfig = new DataConnectionConfig()
                 .setName("some-name")
-                .setType("dummy")
+                .setType(DUMMY_TYPE)
                 .setProperties(properties);
 
 
@@ -1090,10 +1120,10 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         }
     }
 
-    public static class SampleMessageListener implements MessageListener, Serializable {
+    private static class SampleMessageListener implements MessageListener<Object>, Serializable {
 
         @Override
-        public void onMessage(Message message) {
+        public void onMessage(Message<Object> message) {
         }
 
         @Override
@@ -1102,7 +1132,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         }
     }
 
-    public static class SampleExecutor implements Executor, Serializable {
+    private static class SampleExecutor implements Executor, Serializable {
 
         @Override
         public void execute(Runnable command) {

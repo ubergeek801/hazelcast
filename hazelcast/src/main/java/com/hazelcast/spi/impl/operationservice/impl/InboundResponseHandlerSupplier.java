@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 /**
  * A {@link Supplier} responsible for providing a {@link Consumer} that
  * processes inbound responses.
- *
+ * <p>
  * Depending on the {@link ClusterProperty#RESPONSE_THREAD_COUNT}
  * it will return the appropriate response handler:
  * <ol>
@@ -72,11 +72,11 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  * </ol>
  * Having multiple threads processing responses improves performance and
  * stability of the throughput.
- *
+ * <p>
  * In case of asynchronous response processing, the response is put in the
  * responseQueue of the ResponseThread. Then the ResponseThread takes it from
  * this responseQueue and calls a {@link Consumer} for the actual processing.
- *
+ * <p>
  * The reason that the IO thread doesn't immediately deal with the response is that
  * dealing with the response and especially notifying the invocation future can be
  * very expensive.

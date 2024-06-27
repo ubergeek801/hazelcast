@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,9 @@ public class PredicatePushDownJdbcSqlConnectorTest extends JdbcSqlTestSupport {
         return new Object[]{
                 // Logical operators
                 "SELECT name FROM people WHERE name = 'John Doe'",
-                "SELECT name FROM people WHERE a AND b",
-                "SELECT name FROM people WHERE a OR b",
-                "SELECT name FROM people WHERE NOT c",
+                "SELECT name FROM people WHERE a = 1 AND b = 1",
+                "SELECT name FROM people WHERE a = 1 OR b = 1",
+                "SELECT name FROM people WHERE NOT (c = 1)",
                 "SELECT name FROM people WHERE c != d",
 
                 // Comparison operators
@@ -81,10 +81,10 @@ public class PredicatePushDownJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 // IS Operator
                 "SELECT name FROM people WHERE nullable_column IS NULL",
                 "SELECT name FROM people WHERE nullable_column_reverse IS NOT NULL",
-                "SELECT name FROM people WHERE a IS TRUE",
-                "SELECT name FROM people WHERE c IS FALSE",
-                "SELECT name FROM people WHERE c IS NOT TRUE",
-                "SELECT name FROM people WHERE a IS NOT FALSE",
+                "SELECT name FROM people WHERE a = 1 IS TRUE",
+                "SELECT name FROM people WHERE c = 1 IS FALSE",
+                "SELECT name FROM people WHERE c = 1 IS NOT TRUE",
+                "SELECT name FROM people WHERE a = 1 IS NOT FALSE",
 
                 // Mathematical operators
                 "SELECT name FROM people WHERE age + 1 = 31",
@@ -99,8 +99,8 @@ public class PredicatePushDownJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 "SELECT name FROM people WHERE COALESCE(nullable_column, nullable_column_reverse) = 'not null reverse'",
 
                 // Conversions
-                "SELECT name FROM people WHERE CAST(age AS VARCHAR) = '30'",
-                "SELECT name FROM people WHERE CAST(age AS VARCHAR) = 'not a number' or age = 30",
+                "SELECT name FROM people WHERE CAST(age AS VARCHAR(100)) = '30'",
+                "SELECT name FROM people WHERE CAST(age AS VARCHAR(100)) = 'not a number' or age = 30",
 
                 // String functions
                 "SELECT name FROM people WHERE 'Hello '||name = 'Hello John Doe'",
@@ -108,7 +108,7 @@ public class PredicatePushDownJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 "SELECT name FROM people WHERE LOWER(name) = 'john doe'",
                 "SELECT name FROM people WHERE UPPER(name) = 'JOHN DOE'",
 
-                // https://docs.hazelcast.com/hazelcast/5.2/sql/functions-and-operators#hide-nav
+                // https://docs.hazelcast.com/hazelcast/latest/sql/functions-and-operators#hide-nav
                 // Mathematical Functions
                 // String Functions
                 // Trigonometric Functions
@@ -130,15 +130,15 @@ public class PredicatePushDownJdbcSqlConnectorTest extends JdbcSqlTestSupport {
                 "name VARCHAR(100)",
                 "age INT",
                 "data VARCHAR(100)",
-                "a BOOLEAN", "b BOOLEAN", "c BOOLEAN", "d BOOLEAN",
+                "a INT", "b INT", "c INT", "d INT",
                 "nullable_column VARCHAR(100)",
                 "nullable_column_reverse VARCHAR(100)"
         );
 
-        executeJdbc("INSERT INTO " + tableName + " VALUES (1, 'John Doe', 30, '{\"value\":42}', true, true, false, " +
-                "true, null, 'not null reverse')");
-        executeJdbc("INSERT INTO " + tableName + " VALUES (2, 'Jane Doe', 35, '{\"value\":0}', false, false, true, " +
-                "true, 'not null', null)");
+        executeJdbc("INSERT INTO " + quote(tableName) + " VALUES (1, 'John Doe', 30, '{\"value\":42}', 1, 1, 0, " +
+                "1, null, 'not null reverse')");
+        executeJdbc("INSERT INTO " + quote(tableName) + " VALUES (2, 'Jane Doe', 35, '{\"value\":0}', 0, 0, 1, " +
+                "1, 'not null', null)");
     }
 
     @Before

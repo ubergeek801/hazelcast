@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.security.SecurityContext;
+import com.hazelcast.security.SecurityInterceptorConstants;
 import com.hazelcast.security.permission.ActionConstants;
 import com.hazelcast.security.permission.ExecutorServicePermission;
 import com.hazelcast.spi.impl.operationservice.Operation;
@@ -38,6 +39,7 @@ public class ExecutorServiceSubmitToPartitionMessageTask
 
     public ExecutorServiceSubmitToPartitionMessageTask(ClientMessage clientMessage, Node node, Connection connection) {
         super(clientMessage, node, connection);
+        setNamespaceAware();
     }
 
     @Override
@@ -48,8 +50,8 @@ public class ExecutorServiceSubmitToPartitionMessageTask
             Subject subject = endpoint.getSubject();
             Object taskObject = serializationService.toObject(parameters.callable);
             Callable callable;
-            if (taskObject instanceof Runnable) {
-                callable = securityContext.createSecureCallable(subject, (Runnable) taskObject);
+            if (taskObject instanceof Runnable runnable) {
+                callable = securityContext.createSecureCallable(subject, runnable);
             } else {
                 callable = securityContext.createSecureCallable(subject, (Callable<? extends Object>) taskObject);
             }
@@ -87,11 +89,16 @@ public class ExecutorServiceSubmitToPartitionMessageTask
 
     @Override
     public String getMethodName() {
-        return null;
+        return SecurityInterceptorConstants.SUBMIT_TO_PARTITION;
     }
 
     @Override
     public Object[] getParameters() {
         return null;
+    }
+
+    @Override
+    protected String getUserCodeNamespace() {
+        return DistributedExecutorService.lookupNamespace(nodeEngine, parameters.name);
     }
 }

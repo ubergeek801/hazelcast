@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ public interface WanReplicationService extends CoreService,
      */
     DelegatingWanScheme getWanReplicationPublishers(String name);
 
+    boolean hasWanReplicationScheme(String name);
     /**
      * Starts the shutdown process of the WAN replication service.
      */
@@ -155,6 +156,16 @@ public interface WanReplicationService extends CoreService,
      *                                       {@code wanReplicationName}
      */
     UUID syncAllMaps(String wanReplicationName, String wanPublisherId);
+
+
+    /**
+     * Retrieve wan sync result.
+     * NOTE: not supported on OS, only on EE
+     *
+     * @param syncUUID the UUID of the synchronization.
+     * @return the result of the synchronization.
+     */
+    WanSyncStateResult getSyncResult(UUID syncUUID);
 
     /**
      * Initiate WAN consistency check for a specific map.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,16 +68,18 @@ public final class MongoUtilities {
     static List<Bson> partitionAggregate(int totalParallelism, int processorIndex, boolean stream) {
         List<Bson> aggregateList = new ArrayList<>(3);
 
-        String hashFunction = "function hash(s) { \n" +
-                "  var hash = 0, i, chr;\n" +
-                "  if (s.length === 0) return hash;\n" +
-                "  for (i = 0; i < s.length; i++) {\n" +
-                "    chr = s.charCodeAt(i);\n" +
-                "    hash = ((hash << 5) - hash) + chr;\n" +
-                "    hash |= 0;\n" +
-                "  }\n" +
-                "  return hash;\n" +
-                "}\n";
+        String hashFunction = """
+                function hash(s) {\s
+                  var hash = 0, i, chr;
+                  if (s.length === 0) return hash;
+                  for (i = 0; i < s.length; i++) {
+                    chr = s.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + chr;
+                    hash |= 0;
+                  }
+                  return hash;
+                }
+                """;
 
         String moduloPart = " %" + totalParallelism + " == " + processorIndex + ";\n";
         String code = "function(id) {\n"
@@ -149,6 +151,15 @@ public final class MongoUtilities {
                             .toLocalDateTime();
     }
 
+
+    public static void checkDatabaseAndCollectionExists(MongoClient client, String databaseName, String collectionName) {
+        checkDatabaseExists(client, databaseName);
+        MongoDatabase database = client.getDatabase(databaseName);
+        if (collectionName != null) {
+            checkCollectionExists(database, collectionName);
+        }
+    }
+
     static void checkCollectionExists(MongoDatabase database, String collectionName) {
         for (String name : database.listCollectionNames()) {
             if (name.equals(collectionName)) {
@@ -167,4 +178,5 @@ public final class MongoUtilities {
         ClusterDescription clusterDescription = client.getClusterDescription();
         throw new JetException("Database " + databaseName + " does not exist in cluster " + clusterDescription);
     }
+
 }

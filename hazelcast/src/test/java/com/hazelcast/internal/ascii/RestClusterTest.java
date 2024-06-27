@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.hazelcast.config.RestServerEndpointConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleEvent;
-import com.hazelcast.core.LifecycleListener;
 import com.hazelcast.instance.BuildInfoProvider;
 import com.hazelcast.internal.ascii.HTTPCommunicator.ConnectionResponse;
 import com.hazelcast.internal.json.Json;
@@ -35,7 +34,6 @@ import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestAwareInstanceFactory;
 import com.hazelcast.test.annotation.QuickTest;
-import org.apache.http.NoHttpResponseException;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,7 +42,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -95,7 +92,7 @@ public class RestClusterTest {
     }
 
     @Test
-    public void testDisabledRest() throws Exception {
+    public void testDisabledRest() {
         // REST should be disabled by default
         HazelcastInstance instance = factory.newHazelcastInstance(createConfig());
         HTTPCommunicator communicator = new HTTPCommunicator(instance);
@@ -231,33 +228,28 @@ public class RestClusterTest {
         String clusterName = config.getClusterName();
         ConnectionResponse resp = communicator.listClusterNodes(clusterName, getPassword());
         assertSuccessJson(resp,
-                "response", String.format("[%s]\n%s\n%s", instance.getCluster().getLocalMember().toString(),
+                "response", String.format("[%s]\n%s\n%s", instance.getCluster().getLocalMember(),
                         BuildInfoProvider.getBuildInfo().getVersion(),
                         System.getProperty("java.version")));
     }
 
     @Test
-    public void testShutdownNode() throws Exception {
+    public void testShutdownNode() {
         Config config = createConfigWithRestEnabled();
         HazelcastInstance instance = factory.newHazelcastInstance(config);
         HTTPCommunicator communicator = new HTTPCommunicator(instance);
 
         final CountDownLatch shutdownLatch = new CountDownLatch(1);
-        instance.getLifecycleService().addLifecycleListener(new LifecycleListener() {
-            @Override
-            public void stateChanged(LifecycleEvent event) {
-                if (event.getState() == LifecycleEvent.LifecycleState.SHUTDOWN) {
-                    shutdownLatch.countDown();
-                }
+        instance.getLifecycleService().addLifecycleListener(event -> {
+            if (event.getState() == LifecycleEvent.LifecycleState.SHUTDOWN) {
+                shutdownLatch.countDown();
             }
         });
         String clusterName = config.getClusterName();
         try {
             assertJsonContains(communicator.shutdownMember(clusterName, getPassword()).response, "status", "success");
-        } catch (SocketException ignored) {
-            // if the node shuts down before response is received, a `SocketException` (or instance of its subclass) is expected
-        } catch (NoHttpResponseException ignored) {
-            // `NoHttpResponseException` is also a possible outcome when a node shut down before it has a chance
+        } catch (IOException ignored) {
+            // exception is also a possible outcome when a node shut down before it has a chance
             // to send a response back to a client.
         }
 

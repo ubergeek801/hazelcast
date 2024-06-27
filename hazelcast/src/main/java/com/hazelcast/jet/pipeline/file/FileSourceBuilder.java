@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 import static com.hazelcast.jet.pipeline.file.WildcardMatcher.hasWildcard;
-import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -47,14 +45,14 @@ import static java.util.Objects.requireNonNull;
  */
 public class FileSourceBuilder<T> {
 
-    private static final List<String> HADOOP_PREFIXES = Collections.unmodifiableList(asList(
+    private static final List<String> HADOOP_PREFIXES = List.of(
             "s3a://",   // Amazon S3
             "hdfs://",  // HDFS
             "wasbs://", // Azure Cloud Storage
             "adl://",   // Azure Data Lake Gen 1
-            "abfs://",   // Azure Data Lake Gen 2
+            "abfs://",  // Azure Data Lake Gen 2
             "gs://"     // Google Cloud Storage
-    ));
+    );
 
     private final Map<String, String> options = new HashMap<>();
 
@@ -109,7 +107,7 @@ public class FileSourceBuilder<T> {
      * <p>
      * Default value is {@code false}.
      *
-     * @param useHadoop if Hadoop should be use for reading local filesystem
+     * @param useHadoop if Hadoop should be used for reading local filesystem
      */
     @Nonnull
     public FileSourceBuilder<T> useHadoopForLocalFiles(boolean useHadoop) {

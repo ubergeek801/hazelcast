@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.concurrent.Callable;
  * This class is for Non-java clients as well. Please do not remove or modify.
  */
 public class TaskWithUnserializableResponse
-        implements Callable, IdentifiedDataSerializable {
+        implements Callable<Object>, IdentifiedDataSerializable {
     public static final int CLASS_ID = 14;
 
     public TaskWithUnserializableResponse() {

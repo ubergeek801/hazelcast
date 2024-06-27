@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,8 @@ import com.hazelcast.map.impl.MapService;
 import com.hazelcast.map.impl.query.QueryResultRow;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
-import com.hazelcast.security.permission.ActionConstants;
-import com.hazelcast.security.permission.MapPermission;
+import com.hazelcast.security.SecurityInterceptorConstants;
 
-import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,7 +43,7 @@ public class MapValuesMessageTask
 
     @Override
     protected Object reduce(Collection<QueryResultRow> result) {
-        List<Data> values = new ArrayList<Data>(result.size());
+        List<Data> values = new ArrayList<>(result.size());
         for (QueryResultRow resultEntry : result) {
             values.add(resultEntry.getValue());
         }
@@ -74,18 +72,13 @@ public class MapValuesMessageTask
     }
 
     @Override
-    public Permission getRequiredPermission() {
-        return new MapPermission(parameters, ActionConstants.ACTION_READ);
-    }
-
-    @Override
     public String getDistributedObjectName() {
         return parameters;
     }
 
     @Override
     public String getMethodName() {
-        return "values";
+        return SecurityInterceptorConstants.VALUES;
     }
 
     @Override

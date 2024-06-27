@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mock;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -70,8 +69,7 @@ public class DiscoveryJoinerTest {
     @Parameterized.Parameter
     public boolean discoveryBehaviourFallbackEnabled;
 
-    @Mock
-    private DiscoveryService service = mock(DiscoveryService.class);
+    private final DiscoveryService service = mock(DiscoveryService.class);
 
     private List<DiscoveryNode> discoveryNodes;
     private TestHazelcastInstanceFactory factory;

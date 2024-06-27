@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.internal.monitor.impl;
 
 import com.hazelcast.cache.impl.CacheStatisticsImpl;
+import com.hazelcast.client.impl.connection.tcp.RoutingMode;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.core.HazelcastInstance;
@@ -78,6 +79,7 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         CacheStatisticsImpl cacheStatistics = new CacheStatisticsImpl(Clock.currentTimeMillis());
         cacheStatistics.increaseCacheHits(5);
         UUID clientUuid = UUID.randomUUID();
+        long connectionTimestamp = System.currentTimeMillis();
 
         Collection<ClientEndPointDTO> clients = new ArrayList<>();
         ClientEndPointDTO client = new ClientEndPointDTO();
@@ -85,7 +87,11 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         client.address = "localhost";
         client.clientType = "undefined";
         client.clientVersion = "5.2";
+        client.enterprise = true;
+        client.statsEnabled = true;
         client.name = "aClient";
+        client.clusterConnectionTimestamp = connectionTimestamp;
+        client.routingMode = RoutingMode.SMART;
         client.labels = new HashSet<>(Collections.singletonList("label"));
         client.ipAddress = "10.176.167.34";
         client.canonicalHostName = "ip-10-176-167-34.ec2.internal";
@@ -99,9 +105,6 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         final BackupTaskStatus backupTaskStatus = new BackupTaskStatus(BackupTaskState.IN_PROGRESS, 5, 10);
         final String backupDirectory = "/hot/backup/dir";
         final HotRestartStateImpl hotRestartState = new HotRestartStateImpl(backupTaskStatus, true, backupDirectory);
-
-        Map<UUID, String> clientStats = new HashMap<>();
-        clientStats.put(clientUuid, "someStats");
 
         Map<EndpointQualifier, Address> endpoints = new HashMap<>();
         endpoints.put(EndpointQualifier.MEMBER, new Address("127.0.0.1", 5701));
@@ -127,11 +130,11 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         memberState.setExecutorsWithStats(singleton("executor-1"));
         memberState.setCachesWithStats(singleton("cache-1"));
         memberState.setFlakeIdGeneratorsWithStats(singleton("flakeIdGenerator-1"));
+        memberState.setUserCodeNamespacesWithStats(singleton("userCodeNamespace-1"));
         memberState.setOperationStats(new LocalOperationStatsImpl());
         memberState.setClients(clients);
         memberState.setNodeState(state);
         memberState.setHotRestartState(hotRestartState);
-        memberState.setClientStats(clientStats);
 
         MemberStateImpl deserialized = new MemberStateImpl();
         deserialized.fromJson(memberState.toJson());
@@ -154,13 +157,18 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         assertEquals(singleton("executor-1"), deserialized.getExecutorsWithStats());
         assertEquals(singleton("cache-1"), deserialized.getCachesWithStats());
         assertEquals(singleton("flakeIdGenerator-1"), deserialized.getFlakeIdGeneratorsWithStats());
+        assertEquals(singleton("userCodeNamespace-1"), deserialized.getUserCodeNamespacesWithStats());
         assertNotNull(deserialized.getOperationStats());
 
         client = deserialized.getClients().iterator().next();
         assertEquals(clientUuid, client.uuid);
         assertEquals("localhost", client.address);
         assertEquals("undefined", client.clientType);
+        assertTrue(client.enterprise);
+        assertTrue(client.statsEnabled);
         assertEquals("aClient", client.name);
+        assertEquals(RoutingMode.SMART, client.routingMode);
+        assertEquals(connectionTimestamp, client.clusterConnectionTimestamp);
         assertContains(client.labels, "label");
         assertEquals("10.176.167.34", client.ipAddress);
         assertEquals("ip-10-176-167-34.ec2.internal", client.canonicalHostName);
@@ -182,8 +190,5 @@ public class MemberStateImplTest extends HazelcastTestSupport {
         assertEquals(-1, clusterHotRestartStatus.getRemainingValidationTimeMillis());
         assertEquals(-1, clusterHotRestartStatus.getRemainingDataLoadTimeMillis());
         assertTrue(clusterHotRestartStatus.getMemberHotRestartStatusMap().isEmpty());
-
-        Map<UUID, String> deserializedClientStats = deserialized.getClientStats();
-        assertEquals("someStats", deserializedClientStats.get(clientUuid));
     }
 }

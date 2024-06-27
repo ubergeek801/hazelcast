@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.jet.impl.deployment;
 import com.hazelcast.core.HazelcastException;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.instance.impl.HazelcastInstanceProxy;
+import com.hazelcast.internal.nio.IOUtil;
 import com.hazelcast.jet.JetService;
 import com.hazelcast.jet.Job;
 import com.hazelcast.jet.Util;
@@ -40,12 +41,15 @@ import com.hazelcast.test.annotation.QuickTest;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import uk.org.webcompere.systemstubs.rules.SystemPropertiesRule;
 
 import java.io.File;
 
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -58,19 +62,21 @@ public class ProcessorClassLoaderCleanupTest extends JetTestSupport {
     private JetService jet;
     private HazelcastInstance member;
 
+    @ClassRule
+    public static final SystemPropertiesRule systemProperties = new SystemPropertiesRule(
+            ClusterProperty.PROCESSOR_CUSTOM_LIB_DIR.getName(),
+            System.getProperty("java.io.tmpdir"));
+
     @BeforeClass
     public static void beforeClass() throws Exception {
         jarFile = File.createTempFile("resources_", ".jar");
         JarUtil.createResourcesJarFile(jarFile);
-
-        System.setProperty(ClusterProperty.PROCESSOR_CUSTOM_LIB_DIR.getName(), System.getProperty("java.io.tmpdir"));
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
         if (jarFile != null) {
-            jarFile.delete();
-            jarFile = null;
+            IOUtil.deleteQuietly(jarFile);
         }
     }
 
@@ -81,7 +87,7 @@ public class ProcessorClassLoaderCleanupTest extends JetTestSupport {
     }
 
     @Test
-    public void processorClassLoaderRemovedAfterJobFinished() throws Exception {
+    public void processorClassLoaderRemovedAfterJobFinished() {
         Pipeline p = Pipeline.create();
 
         StreamSource<SimpleEvent> source = TestSources.itemStream(1);
@@ -92,7 +98,7 @@ public class ProcessorClassLoaderCleanupTest extends JetTestSupport {
         JobConfig jobConfig = new JobConfig();
         jobConfig.addCustomClasspath(source.name(), jarFile.getName());
         Job job = jet.newJob(p, jobConfig);
-        assertJobStatusEventually(job, JobStatus.RUNNING);
+        assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
 
         JetServiceBackend jetServiceBackend =
                 ((HazelcastInstanceProxy) member).getOriginal().node.getNodeEngine().getService(JetServiceBackend.SERVICE_NAME);
@@ -101,7 +107,7 @@ public class ProcessorClassLoaderCleanupTest extends JetTestSupport {
         ChildFirstClassLoader classLoader = (ChildFirstClassLoader) jobClassLoaderService.getProcessorClassLoader(job.getId(), source.name());
 
         job.suspend();
-        assertJobStatusEventually(job, JobStatus.SUSPENDED);
+        assertThat(job).eventuallyHasStatus(JobStatus.SUSPENDED);
 
         assertThat(classLoader.isClosed())
                 .describedAs("classloader hasn't been closed")

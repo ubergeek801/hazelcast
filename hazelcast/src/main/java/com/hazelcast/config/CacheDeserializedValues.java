@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import java.util.Arrays;
 /**
  *
  * Control caching of de-serialized values. Caching makes query evaluation faster but it costs memory.
- *
- * To maintain reusability, cached values are used by read-only operations only and they are never
+ * <p>
+ * To maintain reusability, cached values are used by read-only operations only, and they are never
  * passed to user-code where they could be accidentally mutated. Users will always get a fresh object,
  * which they are free to mutate.
- *
+ * <p>
  * It does not have any effect when {@link com.hazelcast.nio.serialization.Portable} serialization or
  * {@link InMemoryFormat#OBJECT} format is used.
  *

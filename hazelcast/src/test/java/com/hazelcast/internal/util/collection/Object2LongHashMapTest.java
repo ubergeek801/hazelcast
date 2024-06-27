@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class Object2LongHashMapTest {
 
     public static final long MISSING_VALUE = -1L;
 
-    private Object2LongHashMap<String> map = new Object2LongHashMap<>(MISSING_VALUE);
+    private final Object2LongHashMap<String> map = new Object2LongHashMap<>(MISSING_VALUE);
 
     @Test
     public void shouldInitiallyBeEmpty() {

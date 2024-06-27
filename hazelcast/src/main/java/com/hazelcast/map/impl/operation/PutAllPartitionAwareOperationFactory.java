@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.map.impl.MapDataSerializerHook;
 import com.hazelcast.map.impl.MapEntries;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.impl.Versioned;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.impl.operations.PartitionAwareOperationFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -34,7 +35,8 @@ import java.util.Map;
  * <p>
  * Used to reduce the number of remote invocations of an {@link IMap#putAll(Map)} or {@link IMap#setAll(Map)} call.
  */
-public class PutAllPartitionAwareOperationFactory extends PartitionAwareOperationFactory {
+// RU_COMPAT_5_3 "implements Versioned" can be removed in 5.5
+public class PutAllPartitionAwareOperationFactory extends PartitionAwareOperationFactory implements Versioned {
 
     protected String name;
     protected MapEntries[] mapEntries;

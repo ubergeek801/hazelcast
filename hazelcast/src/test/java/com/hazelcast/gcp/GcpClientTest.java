@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -36,7 +35,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class GcpClientTest {
     private static final String CURRENT_PROJECT = "project-1";
     private static final String PROJECT_1 = "project-2";
@@ -46,7 +45,7 @@ public class GcpClientTest {
     private static final String ZONE_2 = "us-east1-c";
     private static final String CURRENT_REGION = "us-east1";
     private static final String REGION = "us-east3";
-    private static final List<String> CURRENT_REGION_ZONES = unmodifiableList(asList(CURRENT_ZONE, ZONE_1, ZONE_2));
+    private static final List<String> CURRENT_REGION_ZONES = List.of(CURRENT_ZONE, ZONE_1, ZONE_2);
     private static final String ACCESS_TOKEN =
             "ya29.c.Elr6BVAeC2CeahNthgBf6Nn8j66IfIfZV6eb0LTkDeoAzELseUL5pFmfq0K_ViJN8BaeVB6b16NNCiPB0YbWPnoHRC2I1ghmnknUTzL36t-79b_OitEF_q_C1GM";
     private static final String PRIVATE_KEY_PATH = "/sample/filesystem/path";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.hazelcast.jet.Util.entry;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 
 @Category(NightlyTest.class)
@@ -62,18 +63,18 @@ public class MySqlCdcListenBeforeExistIntegrationTest extends AbstractMySqlCdcIn
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         try {
             //then
             createDb(DATABASE);
-            createTableWithData(DATABASE, "someTable");
+            createTableWithData();
             insertToTable(DATABASE, "someTable", 1001, "someValue1", "someValue2");
 
             assertEqualsEventually(() -> mapResultsToSortedList(hz.getMap(SINK_MAP_NAME)), expectedRecords);
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
@@ -97,17 +98,17 @@ public class MySqlCdcListenBeforeExistIntegrationTest extends AbstractMySqlCdcIn
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         try {
             //then
-            createTableWithData(DATABASE, "someTable");
+            createTableWithData();
             insertToTable(DATABASE, "someTable", 1001, "someValue1", "someValue2");
 
             assertEqualsEventually(() -> mapResultsToSortedList(hz.getMap(SINK_MAP_NAME)), expectedRecords);
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
@@ -115,7 +116,7 @@ public class MySqlCdcListenBeforeExistIntegrationTest extends AbstractMySqlCdcIn
     public void listenBeforeColumnExists() throws Exception {
         // given
         createDb(DATABASE);
-        createTableWithData(DATABASE, "someTable");
+        createTableWithData();
         insertToTable(DATABASE, "someTable", 1001, "someValue1", "someValue2");
 
         List<String> expectedRecords = Arrays.asList(
@@ -133,7 +134,7 @@ public class MySqlCdcListenBeforeExistIntegrationTest extends AbstractMySqlCdcIn
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         try {
             assertEqualsEventually(() -> mapResultsToSortedList(hz.getMap(SINK_MAP_NAME)), Collections.singletonList(
@@ -146,19 +147,20 @@ public class MySqlCdcListenBeforeExistIntegrationTest extends AbstractMySqlCdcIn
             assertEqualsEventually(() -> mapResultsToSortedList(hz.getMap(SINK_MAP_NAME)), expectedRecords);
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
-    private void createTableWithData(String database, String table) throws SQLException {
-        try (Connection connection = getConnection(mysql, database)) {
+    @SuppressWarnings("SqlResolve")
+    private void createTableWithData() throws SQLException {
+        try (Connection connection = getConnection(mysql, MySqlCdcListenBeforeExistIntegrationTest.DATABASE)) {
             Statement statement = connection.createStatement();
-            statement.addBatch("CREATE TABLE " + table + " (\n"
+            statement.addBatch("CREATE TABLE " + "someTable" + " (\n"
                             + "  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,\n"
                             + "  value_1 VARCHAR(255) NOT NULL,\n"
                             + "  value_2 VARCHAR(255) NOT NULL\n"
                             + ")");
-            statement.addBatch("ALTER TABLE " + table + " AUTO_INCREMENT = 1001 ;");
+            statement.addBatch("ALTER TABLE someTable AUTO_INCREMENT = 1001 ;");
             statement.executeBatch();
         }
     }

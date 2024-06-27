@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public final class MetricTags {
 
     /**
      * Unique ID of the job (sourcing the metric), example value would be a
-     * numerical (long) ID encoded in a human readable form, like {@code
+     * numerical (long) ID encoded in a human-readable form, like {@code
      * "2f7f-d88a-4669-6195"}, see {@link Util#idToString(long)})} for
      * details.
      */
@@ -62,8 +62,8 @@ public final class MetricTags {
 
     /**
      * Unique ID of a particular execution of a job (sourcing the metric),
-     * example value would be a numerical (long) ID encoded in a human
-     * readable form, like {@code "2f7f-d88a-4669-6195"}, see {@link
+     * example value would be a numerical (long) ID encoded in a human-readable
+     * form, like {@code "2f7f-d88a-4669-6195"}, see {@link
      * Util#idToString(long)} for details.
      */
     public static final String EXECUTION = "exec";

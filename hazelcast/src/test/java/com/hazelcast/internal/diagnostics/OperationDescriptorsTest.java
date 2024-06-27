@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Idea: in the future we could check the operation 'names', e.g. it would be helpful to figure out if a Get operation from
- * employees map would be slow. Currently you would see just 'Get operation'
+ * employees map would be slow. Currently, you would see just 'Get operation'
  */
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})

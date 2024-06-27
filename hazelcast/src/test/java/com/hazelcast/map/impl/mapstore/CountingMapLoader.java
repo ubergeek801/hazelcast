@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class CountingMapLoader extends SimpleMapLoader {
 
-    private AtomicInteger loadedValueCount = new AtomicInteger();
-    private AtomicInteger loadAllKeysInvocations = new AtomicInteger();
-    private AtomicBoolean loadAllKeysClosed = new AtomicBoolean();
+    private final AtomicInteger loadedValueCount = new AtomicInteger();
+    private final AtomicInteger loadAllKeysInvocations = new AtomicInteger();
+    private final AtomicBoolean loadAllKeysClosed = new AtomicBoolean();
 
     CountingMapLoader(int size) {
         super(size, false);
@@ -63,6 +63,7 @@ class CountingMapLoader extends SimpleMapLoader {
         return () -> new CloseableIterator<>(allKeys.iterator());
     }
 
+    /** How many times {@link #loadAllKeys()} is invoked */
     public int getLoadAllKeysInvocations() {
         return loadAllKeysInvocations.get();
     }

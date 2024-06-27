@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * references are released. The initial refCount is 1. It is incremented by
  * calling {@link #retain()} and decremented by calling {@link #release()},
  * which must be paired. When the refCount gets to 0, the {@link #destroyAction}
- * is ran, and it is not possible to call {@link #retain()} afterwards.
+ * is run, and it is not possible to call {@link #retain()} afterwards.
  * <p>
  * It is useful to delay closing of a resource provider itself until all
  * resources it provided are closed too. The initial refCount of 1 is for the

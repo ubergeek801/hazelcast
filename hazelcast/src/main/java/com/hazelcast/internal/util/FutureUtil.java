@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.spi.annotation.PrivateApi;
 import com.hazelcast.spi.impl.InternalCompletableFuture;
 import com.hazelcast.transaction.TransactionTimedOutException;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -117,7 +118,7 @@ public final class FutureUtil {
         private List<Throwable> throwables;
 
         private CollectAllExceptionHandler(int count) {
-            this.throwables = Collections.synchronizedList(new ArrayList<Throwable>(count));
+            this.throwables = Collections.synchronizedList(new ArrayList<>(count));
         }
 
         @Override
@@ -263,7 +264,7 @@ public final class FutureUtil {
         // Common deadline for all futures
         long deadline = System.nanoTime() + overallTimeoutNanos;
 
-        List<V> results = new ArrayList<V>(futures.size());
+        List<V> results = new ArrayList<>(futures.size());
         for (Future<V> future : futures) {
             try {
                 long timeoutNanos = calculateFutureTimeout(perFutureTimeoutNanos, deadline);
@@ -448,11 +449,12 @@ public final class FutureUtil {
     /**
      * Get all futures that are done
      *
-     * @param futures
+     * @param futures collection of futures which we will check for done futures.
      * @return list of completed futures
      */
+    @Nonnull
     public static List<Future<?>> getAllDone(Collection<Future<?>> futures) {
-        List<Future<?>> doneFutures = new ArrayList<Future<?>>();
+        List<Future<?>> doneFutures = new ArrayList<>();
         for (Future<?> f : futures) {
             if (f.isDone()) {
                 doneFutures.add(f);

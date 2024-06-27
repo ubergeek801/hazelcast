@@ -690,11 +690,12 @@ these privileges related to data connections:
   non-documented way, so access to this map must be denied.
 * To DROP data connection, we require both `view-dataconnection` and `drop-dataconnection`.
 
-There will be no way to grant/revoke access to individual data connections, or to
+There is a restriction for managing data connections (create/drop/replace/view options), 
+but there will be no way to restrict access for usage to individual data connections, or to
 individual remote resources, every user will be able to access every data connection.
 But the user has to have access to the target resource, which is already covered
 by the [connector
-permissions](https://docs.hazelcast.com/hazelcast/5.2/security/native-client-security#connector-permission).
+permissions](https://docs.hazelcast.com/hazelcast/latest/security/native-client-security#connector-permission).
 
 <!-- Footnotes -->
 

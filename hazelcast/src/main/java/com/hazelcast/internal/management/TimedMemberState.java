@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import static com.hazelcast.internal.util.JsonUtil.getBoolean;
 import static com.hazelcast.internal.util.JsonUtil.getLong;
 import static com.hazelcast.internal.util.JsonUtil.getObject;
 import static com.hazelcast.internal.util.JsonUtil.getString;
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 
 /**
  * Container for a {@link MemberState} with a timestamp.
@@ -189,7 +188,7 @@ public final class TimedMemberState implements Cloneable, JsonSerializable {
         master = getBoolean(json, "master");
         clusterName = getString(json, "clusterName");
         JsonArray jsonMemberList = getArray(json, "memberList");
-        memberList = new ArrayList<String>(jsonMemberList.size());
+        memberList = new ArrayList<>(jsonMemberList.size());
         for (JsonValue member : jsonMemberList.values()) {
             memberList.add(member.asString());
         }
@@ -206,6 +205,6 @@ public final class TimedMemberState implements Cloneable, JsonSerializable {
 
     @Override
     public String toString() {
-        return "TimedMemberState{" + LINE_SEPARATOR + '\t' + memberState + LINE_SEPARATOR + "}";
+        return "TimedMemberState{" + System.lineSeparator() + '\t' + memberState + System.lineSeparator() + "}";
     }
 }

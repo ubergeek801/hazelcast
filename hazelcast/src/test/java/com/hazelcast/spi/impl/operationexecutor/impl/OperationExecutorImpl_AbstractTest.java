@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public abstract class OperationExecutorImpl_AbstractTest extends HazelcastTestSu
     LoggingServiceImpl loggingService;
     HazelcastProperties props;
     Address thisAddress;
+    Node node;
     DefaultNodeExtension nodeExtension;
     OperationRunnerFactory handlerFactory;
     InternalSerializationService serializationService;
@@ -73,12 +74,13 @@ public abstract class OperationExecutorImpl_AbstractTest extends HazelcastTestSu
 
     @Before
     public void setup() throws Exception {
-        loggingService = new LoggingServiceImpl("foo", "jdk", new BuildInfo("1", "1", "1", 1, false, (byte) 1, "1"), true, null);
+        loggingService = new LoggingServiceImpl("foo", "jdk", new BuildInfo("1", "1", "1", 1, false, (byte) 1, "1"),
+                true, false, null);
 
         serializationService = new DefaultSerializationServiceBuilder().build();
         config = smallInstanceConfig();
         thisAddress = new Address("localhost", 5701);
-        Node node = Mockito.mock(Node.class);
+        node = Mockito.mock(Node.class);
         when(node.getConfig()).thenReturn(config);
         when(node.getProperties()).thenReturn(new HazelcastProperties(config));
         when(node.getVersion()).thenReturn(new MemberVersion(0, 0, 0));
@@ -95,7 +97,7 @@ public abstract class OperationExecutorImpl_AbstractTest extends HazelcastTestSu
 
         props = new HazelcastProperties(config);
         executor = new OperationExecutorImpl(
-                props, loggingService, thisAddress, handlerFactory, nodeExtension,
+                props, loggingService, thisAddress, handlerFactory, node.nodeEngine, nodeExtension,
                 "hzName", Thread.currentThread().getContextClassLoader(), bootstrap);
         executor.start();
         return executor;
@@ -235,15 +237,14 @@ public abstract class OperationExecutorImpl_AbstractTest extends HazelcastTestSu
         }
 
         @Override
-        public boolean run(Packet packet) throws Exception {
+        public void run(Packet packet) throws Exception {
             packets.add(packet);
             Operation op = serializationService.toObject(packet);
             run(op);
-            return false;
         }
 
         @Override
-        public boolean run(Operation task) {
+        public void run(Operation task) {
             operations.add(task);
 
             currentTask = task;
@@ -254,7 +255,6 @@ public abstract class OperationExecutorImpl_AbstractTest extends HazelcastTestSu
             } finally {
                 currentTask = null;
             }
-            return false;
         }
     }
 

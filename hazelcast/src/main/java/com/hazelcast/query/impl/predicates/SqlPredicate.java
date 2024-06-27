@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
-import com.hazelcast.query.impl.Indexes;
+import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.QueryContext;
 import com.hazelcast.query.impl.QueryableEntry;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,7 @@ public class SqlPredicate
      */
     private static final boolean SKIP_INDEX_ENABLED = !Boolean.getBoolean("hazelcast.query.disableSkipIndex");
 
+    @Serial
     private static final long serialVersionUID = 1;
 
     private interface ComparisonPredicateFactory {
@@ -93,8 +95,8 @@ public class SqlPredicate
 
     @Override
     public boolean isIndexed(QueryContext queryContext) {
-        if (predicate instanceof IndexAwarePredicate) {
-            return ((IndexAwarePredicate) predicate).isIndexed(queryContext);
+        if (predicate instanceof IndexAwarePredicate awarePredicate) {
+            return awarePredicate.isIndexed(queryContext);
         }
         return false;
     }
@@ -165,7 +167,7 @@ public class SqlPredicate
         SqlParser parser = new SqlParser();
         List<String> sqlTokens = parser.toPrefix(paramSql);
         List<Object> tokens = new ArrayList<>(sqlTokens);
-        if (tokens.size() == 0) {
+        if (tokens.isEmpty()) {
             throw new IllegalArgumentException("Invalid SQL: [" + paramSql + "]");
         }
         if (tokens.size() == 1) {
@@ -176,8 +178,7 @@ public class SqlPredicate
             boolean foundOperand = false;
             for (int i = 0; i < tokens.size(); i++) {
                 Object tokenObj = tokens.get(i);
-                if (tokenObj instanceof String && parser.isOperand((String) tokenObj)) {
-                    String token = (String) tokenObj;
+                if (tokenObj instanceof String token && parser.isOperand(token)) {
                     if ("=".equals(token) || "==".equals(token)) {
                         createComparison(mapPhrases, tokens, i, EQUAL_FACTORY);
                     } else if ("!=".equals(token) || "<>".equals(token)) {
@@ -288,7 +289,7 @@ public class SqlPredicate
         final String value = phrases.get(key);
         if (value != null) {
             return value;
-        } else if (key instanceof String && (equalsIgnoreCase("null", (String) key))) {
+        } else if (key instanceof String string && (equalsIgnoreCase("null", string))) {
             return null;
         } else {
             return key;
@@ -306,7 +307,7 @@ public class SqlPredicate
     }
 
     private void setOrAdd(List tokens, int position, Predicate predicate) {
-        if (tokens.size() == 0) {
+        if (tokens.isEmpty()) {
             tokens.add(predicate);
         } else {
             tokens.set(position, predicate);
@@ -314,13 +315,14 @@ public class SqlPredicate
     }
 
     private Predicate eval(Object statement) {
-        if (statement instanceof String) {
-            return equal((String) statement, "true");
+        if (statement instanceof String string) {
+            return equal(string, "true");
         } else {
             return (Predicate) statement;
         }
     }
 
+    @Serial
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         predicate = createPredicate(sql);
@@ -345,10 +347,10 @@ public class SqlPredicate
             predicates = new Predicate[]{predicateLeft, predicateRight};
         }
         try {
-            T compoundPredicate = klass.newInstance();
+            T compoundPredicate = klass.getDeclaredConstructor().newInstance();
             compoundPredicate.setPredicates(predicates);
             return compoundPredicate;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (ReflectiveOperationException e) {
             throw new IllegalArgumentException(String.format("%s must have a public default constructor", klass.getName()));
         }
     }
@@ -371,11 +373,9 @@ public class SqlPredicate
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SqlPredicate)) {
+        if (!(o instanceof SqlPredicate that)) {
             return false;
         }
-
-        SqlPredicate that = (SqlPredicate) o;
 
         return sql.equals(that.sql);
     }
@@ -386,10 +386,10 @@ public class SqlPredicate
     }
 
     @Override
-    public Predicate accept(Visitor visitor, Indexes indexes) {
+    public Predicate accept(Visitor visitor, IndexRegistry indexes) {
         Predicate target = predicate;
-        if (predicate instanceof VisitablePredicate) {
-            target = ((VisitablePredicate) predicate).accept(visitor, indexes);
+        if (predicate instanceof VisitablePredicate visitablePredicate) {
+            target = visitablePredicate.accept(visitor, indexes);
         }
         return target;
     }

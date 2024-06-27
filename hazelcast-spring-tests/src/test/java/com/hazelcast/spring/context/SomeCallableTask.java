@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
@@ -31,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 public class SomeCallableTask
         implements Callable<Void>, Serializable, ApplicationContextAware {
 
+    @Serial
     private static final long serialVersionUID = 5851289963628278937L;
 
     private transient ApplicationContext context;

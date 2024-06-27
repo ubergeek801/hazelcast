@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,5 +71,5 @@ public abstract class SqlPlan {
      */
     public abstract boolean producesRows();
 
-    public abstract SqlResult execute(QueryId queryId, List<Object> arguments, long timeout);
+    public abstract SqlResult execute(QueryId queryId, List<Object> arguments, long timeout, SqlSecurityContext ssc);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.Set;
  * <p>
  * This is a less type-safe, but more flexible alternative to a tuple. The
  * tuple has a fixed number of integer-indexed, statically-typed fields,
- * and {@code ItemsByTag} has a variable number of tag-indexed fields whose
+ * and {@code ItemsByTag} has a variable number of tag-indexed fields
  * whose static type is encoded in the tags.
  *
  * @since Jet 3.0
@@ -85,8 +85,8 @@ public final class ItemsByTag {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof ItemsByTag
-                && Objects.equals(this.map, ((ItemsByTag) o).map);
+        return o instanceof ItemsByTag tag
+                && Objects.equals(this.map, tag.map);
     }
 
     @Override

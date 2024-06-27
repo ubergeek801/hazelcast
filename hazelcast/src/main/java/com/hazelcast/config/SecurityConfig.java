@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.hazelcast.config.security.RealmConfig;
+import com.hazelcast.logging.Logger;
 import com.hazelcast.security.ICredentialsFactory;
 
 /**
@@ -36,14 +37,15 @@ import com.hazelcast.security.ICredentialsFactory;
 public class SecurityConfig {
 
     private static final boolean DEFAULT_CLIENT_BLOCK_UNMAPPED_ACTIONS = true;
+    private static final boolean DEFAULT_PERMISSION_PRIORITY_GRANT = false;
 
     private boolean enabled;
 
-    private List<SecurityInterceptorConfig> securityInterceptorConfigs = new ArrayList<SecurityInterceptorConfig>();
+    private List<SecurityInterceptorConfig> securityInterceptorConfigs = new ArrayList<>();
 
     private PermissionPolicyConfig clientPolicyConfig = new PermissionPolicyConfig();
 
-    private Set<PermissionConfig> clientPermissionConfigs = new HashSet<PermissionConfig>();
+    private Set<PermissionConfig> clientPermissionConfigs = new HashSet<>();
 
     private Map<String, RealmConfig> realmConfigs = new HashMap<>();
 
@@ -51,6 +53,8 @@ public class SecurityConfig {
     private String clientRealm;
 
     private boolean clientBlockUnmappedActions = DEFAULT_CLIENT_BLOCK_UNMAPPED_ACTIONS;
+
+    private boolean permissionPriorityGrant = DEFAULT_PERMISSION_PRIORITY_GRANT;
 
     private OnJoinPermissionOperationName onJoinPermissionOperation = OnJoinPermissionOperationName.RECEIVE;
 
@@ -210,22 +214,42 @@ public class SecurityConfig {
         return this;
     }
 
+    /**
+     * Returns {@code true} when grant permissions should take precedence over deny ones. Default value is {@code false}.
+     * @since 5.4
+     */
+    public boolean isPermissionPriorityGrant() {
+        return permissionPriorityGrant;
+    }
+
+    /**
+     * Sets if grant permissions should take precedence over deny ones.
+     * @return this instance
+     * @since 5.4
+     */
+    public SecurityConfig setPermissionPriorityGrant(boolean permissionPriorityGrant) {
+        this.permissionPriorityGrant = permissionPriorityGrant;
+        return this;
+    }
+
+
     @Override
     public String toString() {
         return "SecurityConfig [enabled=" + enabled + ", securityInterceptorConfigs=" + securityInterceptorConfigs
                 + ", clientPolicyConfig=" + clientPolicyConfig + ", clientPermissionConfigs=" + clientPermissionConfigs
                 + ", realmConfigs=" + realmConfigs + ", memberRealm=" + memberRealm + ", clientRealm=" + clientRealm
                 + ", clientBlockUnmappedActions=" + clientBlockUnmappedActions + ", onJoinPermissionOperation="
-                + onJoinPermissionOperation + "]";
+                + onJoinPermissionOperation + ", permissionPriorityGrant=" + permissionPriorityGrant + "]";
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(clientBlockUnmappedActions, clientPermissionConfigs, clientPolicyConfig, clientRealm, enabled,
-                memberRealm, onJoinPermissionOperation, realmConfigs, securityInterceptorConfigs);
+                memberRealm, onJoinPermissionOperation, realmConfigs, securityInterceptorConfigs, permissionPriorityGrant);
     }
 
     @Override
+    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -243,12 +267,17 @@ public class SecurityConfig {
                 && Objects.equals(clientRealm, other.clientRealm) && enabled == other.enabled
                 && Objects.equals(memberRealm, other.memberRealm)
                 && onJoinPermissionOperation == other.onJoinPermissionOperation
+                && permissionPriorityGrant == other.permissionPriorityGrant
                 && Objects.equals(realmConfigs, other.realmConfigs)
                 && Objects.equals(securityInterceptorConfigs, other.securityInterceptorConfigs);
     }
 
     private RealmConfig getRealmConfigOrDefault(String realmName) {
         RealmConfig realmConfig = realmName == null ? null : realmConfigs.get(realmName);
+        if (realmConfig == null) {
+            Logger.getLogger(getClass())
+                    .warning("Realm '" + realmName + "' is requested, but it doesn't exist in member configuration.");
+        }
         return realmConfig == null ? RealmConfig.DEFAULT_REALM : realmConfig;
     }
 }

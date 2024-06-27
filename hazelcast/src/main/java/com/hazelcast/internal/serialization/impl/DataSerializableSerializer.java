@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.nio.serialization.StreamSerializer;
 import com.hazelcast.nio.serialization.TypedDataSerializable;
 import com.hazelcast.nio.serialization.TypedStreamDeserializer;
+import com.hazelcast.nio.serialization.impl.VersionedIdentifiedDataSerializable;
 import com.hazelcast.version.Version;
 
 import java.io.IOException;
@@ -68,6 +69,10 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
                     .forEachRemaining(hooks::add);
 
             for (DataSerializerHook hook : hooks) {
+                if (!hook.shouldRegister()) {
+                    continue;
+                }
+
                 final DataSerializableFactory factory = hook.createFactory();
                 if (factory != null) {
                     register(hook.getFactoryId(), factory);
@@ -119,15 +124,15 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
         return readInternal(in, aClass);
     }
 
-    private DataSerializable readInternal(ObjectDataInput in, Class aClass)
+    private DataSerializable readInternal(ObjectDataInput in, Class<?> aClass)
             throws IOException {
         setInputVersion(in, version);
         DataSerializable ds = null;
         if (null != aClass) {
             try {
-                ds = (DataSerializable) aClass.newInstance();
+                ds = (DataSerializable) aClass.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
-                e = tryClarifyInstantiationException(aClass, e);
+                e = tryClarifyReflectiveOperationException(aClass, e);
                 throw new HazelcastSerializationException("Requested class " + aClass + " could not be instantiated.", e);
             }
         }
@@ -177,11 +182,11 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
     }
 
     private IOException rethrowReadException(int id, int factoryId, String className, Exception e) throws IOException {
-        if (e instanceof IOException) {
-            throw (IOException) e;
+        if (e instanceof IOException exception) {
+            throw exception;
         }
-        if (e instanceof HazelcastSerializationException) {
-            throw (HazelcastSerializationException) e;
+        if (e instanceof HazelcastSerializationException exception) {
+            throw exception;
         }
         throw new HazelcastSerializationException("Problem while reading DataSerializable, namespace: "
                 + factoryId
@@ -190,29 +195,36 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
                 + ", exception: " + e.getMessage(), e);
     }
 
-    private Exception tryClarifyInstantiationException(Class aClass, Exception exception) {
-        if (!(exception instanceof InstantiationException)) {
+    /**
+     * @return
+     *         <ul>
+     *         <li>If {@code exception} is an {@link NoSuchMethodError} and matches criteria of
+     *         {@link #tryGenerateClarifiedExceptionMessage(Class)}, a new {@link ReflectiveOperationException} with the new
+     *         message
+     *         <li>Otherwise, {code exception}
+     *         </ul>
+     */
+    private Exception tryClarifyReflectiveOperationException(Class<?> aClass, Exception exception) {
+        if (!(exception instanceof ReflectiveOperationException)) {
             return exception;
         }
-        InstantiationException instantiationException = (InstantiationException) exception;
 
         String message = tryGenerateClarifiedExceptionMessage(aClass);
         if (message == null) {
-            return instantiationException;
+            return exception;
         }
 
-        InstantiationException clarifiedException = new InstantiationException(message);
-        clarifiedException.initCause(instantiationException);
+        Exception clarifiedException = new ReflectiveOperationException(message);
+        clarifiedException.initCause(exception);
         return clarifiedException;
     }
 
     private Exception tryClarifyNoSuchMethodException(ClassLoader classLoader, String className, Exception exception) {
-        if (!(exception instanceof NoSuchMethodException)) {
+        if (!(exception instanceof NoSuchMethodException noSuchMethodException)) {
             return exception;
         }
-        NoSuchMethodException noSuchMethodException = (NoSuchMethodException) exception;
 
-        Class aClass;
+        Class<?> aClass;
         try {
             ClassLoader effectiveClassLoader = classLoader == null ? ClassLoaderUtil.class.getClassLoader() : classLoader;
             aClass = ClassLoaderUtil.loadClass(effectiveClassLoader, className);
@@ -240,10 +252,12 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
         if (identified) {
             final IdentifiedDataSerializable ds = (IdentifiedDataSerializable) obj;
             out.writeInt(ds.getFactoryId());
-            out.writeInt(ds.getClassId());
+            out.writeInt(ds instanceof VersionedIdentifiedDataSerializable vids
+                    ? vids.getClassId(version)
+                    : ds.getClassId());
         } else {
-            if (obj instanceof TypedDataSerializable) {
-                out.writeString(((TypedDataSerializable) obj).getClassType().getName());
+            if (obj instanceof TypedDataSerializable serializable) {
+                out.writeString(serializable.getClassType().getName());
             } else {
                 out.writeString(obj.getClass().getName());
             }
@@ -257,15 +271,23 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
     }
 
     private static void setOutputVersion(ObjectDataOutput out, Version version) {
-        ((VersionedObjectDataOutput) out).setVersion(version);
+        out.setVersion(version);
     }
 
     private static void setInputVersion(ObjectDataInput in, Version version) {
-        ((VersionedObjectDataInput) in).setVersion(version);
+        in.setVersion(version);
     }
 
-    private static String tryGenerateClarifiedExceptionMessage(Class aClass) {
-        String classType;
+    /**
+     * @return an error message if {@code aClass} is:
+     *         <ul>
+     *         <li>{@link Class#isAnonymousClass()}
+     *         <li>{@link Class#isLocalClass()}
+     *         <li>non-{@code static} {@link Class#isMemberClass()}
+     *         </ul>
+     */
+    private static String tryGenerateClarifiedExceptionMessage(Class<?> aClass) {
+        final String classType;
         if (aClass.isAnonymousClass()) {
             classType = "Anonymous";
         } else if (aClass.isLocalClass()) {
@@ -279,5 +301,4 @@ final class DataSerializableSerializer implements StreamSerializer<DataSerializa
         return String.format("%s classes can't conform to DataSerializable since they can't "
                 + "provide an explicit no-arguments constructor.", classType);
     }
-
 }

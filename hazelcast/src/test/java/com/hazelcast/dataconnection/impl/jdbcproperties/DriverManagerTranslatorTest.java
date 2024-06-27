@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@ import java.util.Properties;
 import static com.hazelcast.dataconnection.impl.jdbcproperties.DataConnectionProperties.JDBC_URL;
 import static com.hazelcast.dataconnection.impl.jdbcproperties.DataConnectionProperties.PASSWORD;
 import static com.hazelcast.dataconnection.impl.jdbcproperties.DataConnectionProperties.USER;
+import static com.hazelcast.dataconnection.impl.jdbcproperties.DriverManagerTranslator.translate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DriverManagerTranslatorTest {
 
     @Test
     public void testTranslatableProperties() {
-        DriverManagerTranslator driverManagerTranslator = new DriverManagerTranslator();
-
         Properties hzProperties = new Properties();
         String jdbcUrl = "jdbcUrl";
         String user = "user";
@@ -38,30 +37,30 @@ public class DriverManagerTranslatorTest {
         String myProperty = "5000";
 
 
-        hzProperties.put(JDBC_URL, jdbcUrl);
-        hzProperties.put(USER, user);
-        hzProperties.put(PASSWORD, password);
-        hzProperties.put("myProperty", myProperty);
+        hzProperties.setProperty(JDBC_URL, jdbcUrl);
+        hzProperties.setProperty(USER, user);
+        hzProperties.setProperty(PASSWORD, password);
+        hzProperties.setProperty("myProperty", myProperty);
 
 
-        Properties driverManagerProperties = driverManagerTranslator.translate(hzProperties);
+        Properties driverManagerProperties = translate(hzProperties);
 
         assertThat(driverManagerProperties).doesNotContainKey(JDBC_URL);
         assertThat(driverManagerProperties.getProperty("user")).isEqualTo(user);
         assertThat(driverManagerProperties.getProperty("password")).isEqualTo(password);
         assertThat(driverManagerProperties.getProperty("myProperty")).isEqualTo(myProperty);
+        assertThat(driverManagerProperties).hasSize(3);
     }
 
     @Test
     public void testDriverSpecificProperty() {
-        DriverManagerTranslator driverManagerTranslator = new DriverManagerTranslator();
-
         Properties hzProperties = new Properties();
 
         String myProperty = "myProperty";
         hzProperties.put(myProperty, myProperty);
 
-        Properties driverManagerProperties = driverManagerTranslator.translate(hzProperties);
+        Properties driverManagerProperties = translate(hzProperties);
         assertThat(driverManagerProperties.getProperty(myProperty)).isEqualTo(myProperty);
     }
+
 }

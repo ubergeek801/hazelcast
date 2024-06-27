@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,11 +72,9 @@ public final class StepResponseUtil {
         }
 
         try {
-            if (operation instanceof Notifier) {
-                final Notifier notifier = (Notifier) operation;
+            if (operation instanceof Notifier notifier) {
                 if (notifier.shouldNotify()) {
-                    ((NodeEngineImpl) state.getRecordStore().getMapContainer().getMapServiceContext().getNodeEngine())
-                            .getOperationParker().unpark(notifier);
+                    getNodeEngine(state).getOperationParker().unpark(notifier);
                 }
             }
         } catch (Throwable e) {
@@ -84,10 +82,14 @@ public final class StepResponseUtil {
         }
     }
 
+    private static NodeEngineImpl getNodeEngine(State state) {
+        return (NodeEngineImpl) state.getRecordStore()
+                .getMapContainer().getMapServiceContext().getNodeEngine();
+    }
 
     private static void logOperationError(Operation op, Throwable e) {
-        if (e instanceof OutOfMemoryError) {
-            OutOfMemoryErrorDispatcher.onOutOfMemory((OutOfMemoryError) e);
+        if (e instanceof OutOfMemoryError error) {
+            OutOfMemoryErrorDispatcher.onOutOfMemory(error);
         }
         op.logError(e);
     }
@@ -104,8 +106,6 @@ public final class StepResponseUtil {
     private static OperationService getOperationService(State state) {
         MapContainer mapContainer = state.getOperation().getMapContainer();
         MapServiceContext mapServiceContext = mapContainer.getMapServiceContext();
-        OperationService operationService = mapServiceContext.getNodeEngine().getOperationService();
-        return operationService;
+        return mapServiceContext.getNodeEngine().getOperationService();
     }
-
 }

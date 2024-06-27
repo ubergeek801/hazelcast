@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.hazelcast.internal.nio.BufferObjectDataOutput;
 import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.server.tcp.TcpServerContext;
 import com.hazelcast.internal.util.ByteArrayProcessor;
-import com.hazelcast.internal.util.OsHelper;
+import com.hazelcast.internal.tpcengine.util.OS;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.spi.properties.ClusterProperty;
@@ -137,7 +137,7 @@ public final class MulticastService implements Runnable {
             Boolean loopbackModeEnabled = multicastConfig.getLoopbackModeEnabled();
             if (loopbackModeEnabled != null) {
                 // setting loopbackmode is just a hint - and the argument means "disable"!
-                // to check the real value value we call getLoopbackMode() (and again - return value means "disabled")
+                // to check the real value we call getLoopbackMode() (and again - return value means "disabled")
                 multicastSocket.setLoopbackMode(!loopbackModeEnabled);
             }
             // If LoopBack mode is not enabled (i.e. getLoopbackMode return true) and bind address is a loopback one,
@@ -153,7 +153,7 @@ public final class MulticastService implements Runnable {
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4417033
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6402758
             // https://github.com/hazelcast/hazelcast/pull/19251#issuecomment-891375270
-            boolean callSetInterface = OsHelper.isMac() || !loopbackBind;
+            boolean callSetInterface = OS.isMac() || !loopbackBind;
             String propSetInterface = hzProperties.getString(ClusterProperty.MULTICAST_SOCKET_SET_INTERFACE);
             if (propSetInterface != null) {
                 callSetInterface = Boolean.parseBoolean(propSetInterface);

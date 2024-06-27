@@ -19,7 +19,7 @@
 
 <hazelcast xmlns="http://www.hazelcast.com/schema/config"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+    xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-5.5.xsd">
 
     <!-- 
       Custom cluster name protects against unintended cluster formation between foreign members.
@@ -33,7 +33,7 @@
           You should specify the interface IP address in the socket-endpoint configuration sections
           within the advanced-network configuration part of this file.
           E.g. advanced-network/member-server-socket-endpoint-config/interfaces/interfaces
-          See also https://docs.hazelcast.com/imdg/4.2/clusters/network-configuration.html#interfaces
+          See also https://docs.hazelcast.com/hazelcast/latest/clusters/network-configuration#interfaces
          -->
         <property name="hazelcast.socket.bind.any">false</property>
     </properties>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,6 +225,7 @@ import java.util.function.Function;
  * @param <V> value type
  * @see java.util.concurrent.ConcurrentMap
  */
+@SuppressWarnings("MethodCount")
 public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable<Map.Entry<K, V>> {
 
     /**
@@ -759,6 +760,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @param ttlUnit time unit for the TTL
      * @return CompletionStage from which the old value of the key can be retrieved
      * @throws NullPointerException if the specified key or value is null
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      * @see CompletionStage
      * @see #setAsync(Object, Object, long, TimeUnit)
      */
@@ -846,6 +849,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @param maxIdleUnit time unit for the Max-Idle
      * @return CompletionStage from which the old value of the key can be retrieved
      * @throws NullPointerException if the specified key, value, ttlUnit or maxIdleUnit are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      * @see CompletionStage
      * @see #setAsync(Object, Object, long, TimeUnit)
      */
@@ -1018,6 +1023,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * operation to complete or register callbacks to be invoked
      * upon set operation completion
      * @throws NullPointerException if the specified key, value, ttlUnit
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      * @see CompletionStage
      */
     CompletionStage<Void> setAsync(@Nonnull K key, @Nonnull V value, long ttl, @Nonnull TimeUnit ttlUnit);
@@ -1099,6 +1106,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * operation to complete or register callbacks to be invoked
      * upon set operation completion
      * @throws NullPointerException if the specified key, value, ttlUnit or maxIdleUnit are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      * @see CompletionStage
      */
     CompletionStage<Void> setAsync(@Nonnull K key, @Nonnull V value,
@@ -1138,6 +1147,51 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @see CompletionStage
      */
     CompletionStage<V> removeAsync(@Nonnull K key);
+
+    /**
+     * Asynchronously removes the given key, returning an {@link CompletionStage}
+     * on which the caller can register further computation stages to be invoked
+     * upon delete operation completion or block waiting for the operation to
+     * complete using one of blocking ways to wait on
+     * {@link CompletionStage#toCompletableFuture()}.
+     *
+     * <p>
+     * Unlike {@link #removeAsync(Object)}, this operation does not return
+     * the removed value, which avoids the serialization and network transfer cost of the
+     * returned value. If the removed value will not be used, this operation
+     * is preferred over the removeAsync operation for better performance.
+     *
+     * <p>The returned {@link CompletionStage} completes with a boolean value:
+     * {@code true} if the key is in memory and deletion is successful,
+     * {@code false} otherwise.
+     *
+     * <p>
+     * <b>Warning:</b>
+     * <p>
+     * This method uses {@code hashCode} and {@code equals} of the binary form
+     * of the {@code key}, not the actual implementations of {@code hashCode}
+     * and {@code equals} defined in the {@code key}'s class.
+     *
+     * <p><b>Interactions with the map store</b>
+     * <p>
+     * If write-through persistence mode is configured, before the value
+     * is removed from the memory, {@link MapStore#delete(Object)}
+     * is called to remove the value from the map store. Exceptions
+     * thrown by delete fail the operation and are propagated to the
+     * caller.
+     * <p>
+     * If write-behind persistence mode is configured with
+     * write-coalescing turned off,
+     * {@link com.hazelcast.map.ReachedMaxSizeException} may be thrown
+     * if the write-behind queue has reached its per-node maximum
+     * capacity.
+     *
+     * @param key The key of the map entry to remove
+     * @return {@link CompletionStage} which completes with a {@code boolean} value, indicating the result of the deletion
+     * @throws NullPointerException if the specified key is {@code null}
+     * @see CompletionStage
+     */
+    CompletionStage<Boolean> deleteAsync(@Nonnull K key);
 
     /**
      * Tries to remove the entry with the given key from this map
@@ -1264,6 +1318,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @param ttlUnit time unit for the TTL
      * @return old value of the entry
      * @throws NullPointerException if the specified key or value is {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     V put(@Nonnull K key, @Nonnull V value,
           long ttl, @Nonnull TimeUnit ttlUnit);
@@ -1331,6 +1387,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @param maxIdleUnit time unit for the Max-Idle
      * @return old value of the entry
      * @throws NullPointerException if the specified key, value, ttlUnit or maxIdleUnit are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     V put(@Nonnull K key, @Nonnull V value,
           long ttl, @Nonnull TimeUnit ttlUnit,
@@ -1362,6 +1420,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      *                means map config default)
      * @param ttlUnit time unit for the TTL
      * @throws NullPointerException if the specified key or value is {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     void putTransient(@Nonnull K key, @Nonnull V value, long ttl, @Nonnull TimeUnit ttlUnit);
 
@@ -1403,6 +1463,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @param maxIdleUnit time unit for the Max-Idle
      * @throws NullPointerException if the specified {@code key}, {@code value}, {@code ttlUnit} or
      *                              {@code maxIdleUnit} are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     void putTransient(@Nonnull K key, @Nonnull V value,
                       long ttl, @Nonnull TimeUnit ttlUnit,
@@ -1494,6 +1556,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @return old value of the entry
      * @throws NullPointerException if the specified {@code key} or {@code value}
      *                              is {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     V putIfAbsent(@Nonnull K key, @Nonnull V value, long ttl, @Nonnull TimeUnit ttlUnit);
 
@@ -1560,6 +1624,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @return old value of the entry
      * @throws NullPointerException if the specified {@code key}, {@code value}, {@code ttlUnit} or
      *                              {@code maxIdleUnit} are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     V putIfAbsent(@Nonnull K key, @Nonnull V value,
                   long ttl, @Nonnull TimeUnit ttlUnit,
@@ -1709,6 +1775,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      *                means map config default)
      * @param ttlUnit time unit for the TTL
      * @throws NullPointerException if the specified key or value is {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     void set(@Nonnull K key, @Nonnull V value, long ttl, @Nonnull TimeUnit ttlUnit);
 
@@ -1763,6 +1831,8 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      *                    (0 means infinite, negative means map config default)
      * @param maxIdleUnit time unit for the Max-Idle
      * @throws NullPointerException if the specified key, value, ttlUnit or maxIdleUnit are {@code null}
+     * @throws UnsupportedOperationException if the underlying map storage doesn't
+     *         support TTL-based expiration (all in-memory storages support it).
      */
     void set(@Nonnull K key, @Nonnull V value,
              long ttl, @Nonnull TimeUnit ttlUnit,
@@ -2454,6 +2524,49 @@ public interface IMap<K, V> extends ConcurrentMap<K, V>, BaseMap<K, V>, Iterable
      * @see ClusterProperty#QUERY_RESULT_SIZE_LIMIT
      */
     Collection<V> values(@Nonnull Predicate<K, V> predicate);
+
+    /**
+     * Returns an immutable collection locally owned values contained in this map.
+     * <p>
+     * <b>Warning:</b>
+     * <p>
+     * The collection is <b>NOT</b> backed by the map,
+     * so changes to the map are <b>NOT</b> reflected in the collection.
+     * <p>
+     * This method is always executed by a distributed query,
+     * so it may throw a {@link QueryResultSizeExceededException}
+     * if {@link ClusterProperty#QUERY_RESULT_SIZE_LIMIT} is configured.
+     *
+     * @return an immutable collection clone of the values contained in this map
+     * @throws QueryResultSizeExceededException if query result size limit is exceeded
+     * @see ClusterProperty#QUERY_RESULT_SIZE_LIMIT
+     * @since 5.4.0
+     */
+    Collection<V> localValues();
+
+   /**
+    * Queries the map of locally owned keys based on the specified predicate and returns an immutable
+    * collection of the values of matching entries.
+    * <p>
+    * Specified predicate runs on local member.
+    * <p>
+    * <b>Warning:</b>
+    * <p>
+    * The collection is <b>NOT</b> backed by the map,
+    * so changes to the map are <b>NOT</b> reflected in the collection.
+    * <p>
+    * This method is always executed by a distributed query,
+    * so it may throw a {@link QueryResultSizeExceededException}
+    * if {@link ClusterProperty#QUERY_RESULT_SIZE_LIMIT} is configured.
+    *
+    * @param predicate specified query criteria
+    * @return result value collection of the query
+    * @throws QueryResultSizeExceededException if query result size limit is exceeded
+    * @throws NullPointerException             if the predicate is {@code null}
+    * @see ClusterProperty#QUERY_RESULT_SIZE_LIMIT
+    * @since 5.4.0
+    */
+    Collection<V> localValues(@Nonnull Predicate<K, V> predicate);
 
     /**
      * Returns the locally owned immutable set of keys.

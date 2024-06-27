@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class AvroResolver {
+import static com.hazelcast.jet.sql.impl.connector.keyvalue.KvMetadataAvroResolver.Schemas.AVRO_TO_SQL;
+import static com.hazelcast.sql.impl.type.QueryDataType.OBJECT;
+import static org.apache.avro.Schema.Type.NULL;
 
-    private AvroResolver() {
-    }
+public final class AvroResolver {
+    private AvroResolver() { }
 
+    // CREATE MAPPING <name> TYPE File OPTIONS ('format'='avro', ...)
+    // TABLE(AVRO_FILE(...))
     static List<MappingField> resolveFields(Schema schema) {
         Map<String, MappingField> fields = new LinkedHashMap<>();
-        for (Schema.Field avroField : schema.getFields()) {
-            String name = avroField.name();
-            QueryDataType type = resolveType(avroField.schema().getType());
+        for (Schema.Field schemaField : schema.getFields()) {
+            String name = schemaField.name();
+            // SQL types are nullable by default and NOT NULL is currently unsupported.
+            Schema.Type schemaFieldType = unwrapNullableType(schemaField.schema()).getType();
+            QueryDataType type = AVRO_TO_SQL.getOrDefault(schemaFieldType, OBJECT);
 
             MappingField field = new MappingField(name, type);
             fields.putIfAbsent(field.name(), field);
@@ -42,22 +48,21 @@ final class AvroResolver {
         return new ArrayList<>(fields.values());
     }
 
-    private static QueryDataType resolveType(Schema.Type type) {
-        switch (type) {
-            case BOOLEAN:
-                return QueryDataType.BOOLEAN;
-            case INT:
-                return QueryDataType.INT;
-            case LONG:
-                return QueryDataType.BIGINT;
-            case FLOAT:
-                return QueryDataType.REAL;
-            case DOUBLE:
-                return QueryDataType.DOUBLE;
-            case STRING:
-                return QueryDataType.VARCHAR;
-            default:
-                return QueryDataType.OBJECT;
+    /**
+     * For nullable types, i.e. {@code [aType, null]}, returns {@code aType}.
+     * Otherwise, returns the specified type as-is.
+     */
+    public static Schema unwrapNullableType(Schema schema) {
+        if (schema.isUnion()) {
+            List<Schema> unionSchemas = schema.getTypes();
+            if (unionSchemas.size() == 2) {
+                if (unionSchemas.get(0).getType() == NULL) {
+                    return unionSchemas.get(1);
+                } else if (unionSchemas.get(1).getType() == NULL) {
+                    return unionSchemas.get(0);
+                }
+            }
         }
+        return schema;
     }
 }

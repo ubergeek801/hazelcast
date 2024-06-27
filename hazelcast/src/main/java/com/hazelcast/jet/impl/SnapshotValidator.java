@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@ final class SnapshotValidator {
             // fallback validation that counts using aggregate(), ignoring different snapshot IDs
             long filteredCount = snapshotMap.aggregate(
                     Aggregators.count(),
-                    e -> e.getKey() instanceof SnapshotDataKey
-                            && ((SnapshotDataKey) e.getKey()).snapshotId() == snapshotId);
+                    e -> e.getKey() instanceof SnapshotDataKey snapshotDataKey
+                            && snapshotDataKey.snapshotId() == snapshotId);
             if (validationRecord.numChunks() != filteredCount) {
                 throw new JetException(String.format(
                         "State for %s in IMap '%s' is corrupted: it should have %,d entries, but has %,d",

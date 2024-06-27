@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,8 +142,7 @@ public class MapIndexScanPTest extends SimpleTestInClusterSupport {
         IndexConfig indexConfig = new IndexConfig(IndexType.SORTED, "age").setName(randomName());
         map.addIndex(indexConfig);
 
-        IndexFilter filter = new IndexRangeFilter(null, true, null, true);
-        MapIndexScanMetadata metadata = metadata(indexConfig.getName(), filter, 2, false);
+        MapIndexScanMetadata metadata = metadata(indexConfig.getName(), null, 2, false);
 
         TestSupport
                 .verifyProcessor(adaptSupplier(MapIndexScanP.readMapIndexSupplier(metadata)))
@@ -166,8 +165,7 @@ public class MapIndexScanPTest extends SimpleTestInClusterSupport {
         IndexConfig indexConfig = new IndexConfig(IndexType.SORTED, "age").setName(randomName());
         map.addIndex(indexConfig);
 
-        IndexFilter filter = new IndexRangeFilter(null, true, null, true);
-        MapIndexScanMetadata metadata = metadata(indexConfig.getName(), filter, 2, true);
+        MapIndexScanMetadata metadata = metadata(indexConfig.getName(), null, 2, true);
 
         TestSupport
                 .verifyProcessor(adaptSupplier(MapIndexScanP.readMapIndexSupplier(metadata)))

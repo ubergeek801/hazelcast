@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import static org.mockito.Mockito.when;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class WriteBehindStoreTest {
 
-    private MapStoreContext mapStoreContext = mock(MapStoreContext.class, RETURNS_DEEP_STUBS);
-    private WriteBehindProcessor writeBehindProcessor = mock(WriteBehindProcessor.class, RETURNS_DEEP_STUBS);
+    private final MapStoreContext mapStoreContext = mock(MapStoreContext.class, RETURNS_DEEP_STUBS);
+    private final WriteBehindProcessor writeBehindProcessor = mock(WriteBehindProcessor.class, RETURNS_DEEP_STUBS);
 
     @Test
     public void shouldNotChangeSequenceAfterAddingToQueue() throws IllegalAccessException {
@@ -94,8 +94,8 @@ public class WriteBehindStoreTest {
 
         @Override
         public void addLast(Object o, boolean addWithoutCapacityCheck) {
-            if (o instanceof DelayedEntry) {
-                sequence = ((DelayedEntry<?, ?>) o).getSequence();
+            if (o instanceof DelayedEntry entry) {
+                sequence = entry.getSequence();
             }
         }
 

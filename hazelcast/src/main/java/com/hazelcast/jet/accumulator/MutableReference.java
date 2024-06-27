@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class MutableReference<T> {
     /**
      * Sets the value as given.
      */
-    public MutableReference set(T value) {
+    public MutableReference<T> set(T value) {
         this.value = value;
         return this;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.hazelcast.query.impl.QueryContext;
 import com.hazelcast.query.impl.QueryableEntry;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Set;
 
 /**
@@ -35,6 +36,7 @@ import java.util.Set;
 @BinaryInterface
 public final class GreaterLessPredicate extends AbstractIndexAwarePredicate implements NegatablePredicate, RangePredicate {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected Comparable value;
@@ -129,11 +131,10 @@ public final class GreaterLessPredicate extends AbstractIndexAwarePredicate impl
         if (!super.equals(o)) {
             return false;
         }
-        if (!(o instanceof GreaterLessPredicate)) {
+        if (!(o instanceof GreaterLessPredicate that)) {
             return false;
         }
 
-        GreaterLessPredicate that = (GreaterLessPredicate) o;
         if (!that.canEqual(this)) {
             return false;
         }

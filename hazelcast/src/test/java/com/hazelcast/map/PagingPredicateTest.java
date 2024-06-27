@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import com.hazelcast.aggregation.Aggregators;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.IndexType;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder;
-import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.NoopMapListener;
 import com.hazelcast.projection.Projections;
 import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.PartitionPredicate;
@@ -173,8 +172,8 @@ public class PagingPredicateTest extends HazelcastTestSupport {
     @Test
     public void testPagingWithFilteringAndComparator() {
         Predicate<Integer, Integer> lessEqual = Predicates.lessEqual("this", 8);
-        PagingPredicate<Integer, Integer> predicate
-                = Predicates.pagingPredicate(lessEqual, new TestComparator(false, IterationType.VALUE), pageSize);
+        PagingPredicate<Integer, Integer> predicate =
+                Predicates.pagingPredicate(lessEqual, new TestComparator(false, IterationType.VALUE), pageSize);
 
         Collection<Integer> values = map.values(predicate);
         assertIterableEquals(values, 8, 7, 6, 5, 4);
@@ -545,43 +544,43 @@ public class PagingPredicateTest extends HazelcastTestSupport {
     // Paging predicate validation tests
     @Test(expected = IllegalArgumentException.class)
     public void testAddLocalEntryListenerThrowsWithPagingPredicate() {
-        map.addLocalEntryListener(new NoopMapListener(), PAGING_PREDICATE, true);
+        map.addLocalEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddLocalEntryListenerThrowsWithPredicateIncludingPagingPredicate() {
-        map.addLocalEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
+        map.addLocalEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddLocalEntryListenerWithKeyThrowsWithPagingPredicate() {
-        map.addLocalEntryListener(new NoopMapListener(), PAGING_PREDICATE, 2, true);
+        map.addLocalEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, 2, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddLocalEntryListenerWithKeyThrowsWithPredicateIncludingPagingPredicate() {
-        map.addLocalEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, 2,
+        map.addLocalEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, 2,
                 true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddEntryListenerThrowsWithPagingPredicate() {
-        map.addEntryListener(new NoopMapListener(), PAGING_PREDICATE, true);
+        map.addEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddEntryListenerThrowsWithPredicateIncludingPagingPredicate() {
-        map.addEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
+        map.addEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddEntryListenerWithKeyThrowsWithPagingPredicate() {
-        map.addEntryListener(new NoopMapListener(), PAGING_PREDICATE, 2, true);
+        map.addEntryListener(new NoopMapListener<>(), PAGING_PREDICATE, 2, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddEntryListenerWithKeyThrowsWithPredicateIncludingPagingPredicate() {
-        map.addEntryListener(new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, 2, true);
+        map.addEntryListener(new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, 2, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -616,12 +615,12 @@ public class PagingPredicateTest extends HazelcastTestSupport {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetQueryCacheWithListenerThrowsWithPagingPredicate() {
-        map.getQueryCache("name", new NoopMapListener(), PAGING_PREDICATE, true);
+        map.getQueryCache("name", new NoopMapListener<>(), PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetQueryCacheWithListenerThrowsWithPredicateIncludingPagingPredicate() {
-        map.getQueryCache("name", new NoopMapListener(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
+        map.getQueryCache("name", new NoopMapListener<>(), PREDICATE_INCLUDING_PAGING_PREDICATE, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -694,13 +693,6 @@ public class PagingPredicateTest extends HazelcastTestSupport {
 
     }
 
-    private static class NoopMapListener implements EntryAddedListener<Integer, Integer> {
-        @Override
-        public void entryAdded(EntryEvent<Integer, Integer> event) {
-            // noop
-        }
-    }
-
     @SuppressWarnings("unused")
     private static class BaseEmployee implements Serializable {
 
@@ -755,8 +747,8 @@ public class PagingPredicateTest extends HazelcastTestSupport {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof Employee) {
-                return id == ((Employee) obj).getId();
+            if (obj instanceof Employee employee) {
+                return id == employee.getId();
             }
             return false;
         }

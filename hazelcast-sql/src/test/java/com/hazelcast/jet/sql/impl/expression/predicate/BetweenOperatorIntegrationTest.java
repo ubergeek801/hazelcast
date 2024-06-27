@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ public class BetweenOperatorIntegrationTest extends ExpressionTestSupport {
     ) {
         List<SqlRow> rows = execute(sql, params);
         assertEquals(expectedResults.length, rows.size());
-        if (rows.size() == 0) {
+        if (rows.isEmpty()) {
             return;
         }
 

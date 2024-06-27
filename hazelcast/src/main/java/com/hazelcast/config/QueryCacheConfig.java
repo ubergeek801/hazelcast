@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.hazelcast.internal.config.ConfigDataSerializerHook;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import javax.annotation.Nonnull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -177,10 +179,8 @@ public class QueryCacheConfig implements IdentifiedDataSerializable {
      * @param name the name of {@code QueryCache}
      * @return this {@code QueryCacheConfig} instance
      */
-    public QueryCacheConfig setName(String name) {
-        checkHasText(name, "name");
-
-        this.name = name;
+    public QueryCacheConfig setName(@Nonnull String name) {
+        this.name = checkHasText(name, "name");
         return this;
     }
 
@@ -342,11 +342,11 @@ public class QueryCacheConfig implements IdentifiedDataSerializable {
     }
 
     /**
-     * Returns {@code true} if coalescing is is enabled, otherwise returns {@code false}.
+     * Returns {@code true} if coalescing is enabled, otherwise returns {@code false}.
      * <p>
      * Default value is {@value #DEFAULT_COALESCE}.
      *
-     * @return {@code true} if coalescing is is enabled, otherwise returns {@code false}
+     * @return {@code true} if coalescing is enabled, otherwise returns {@code false}
      * @see #setCoalesce
      */
     public boolean isCoalesce() {
@@ -427,7 +427,7 @@ public class QueryCacheConfig implements IdentifiedDataSerializable {
 
     public List<EntryListenerConfig> getEntryListenerConfigs() {
         if (entryListenerConfigs == null) {
-            entryListenerConfigs = new ArrayList<EntryListenerConfig>();
+            entryListenerConfigs = new ArrayList<>();
         }
         return entryListenerConfigs;
     }
@@ -506,11 +506,9 @@ public class QueryCacheConfig implements IdentifiedDataSerializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof QueryCacheConfig)) {
+        if (!(o instanceof QueryCacheConfig that)) {
             return false;
         }
-
-        QueryCacheConfig that = (QueryCacheConfig) o;
 
         if (batchSize != that.batchSize) {
             return false;

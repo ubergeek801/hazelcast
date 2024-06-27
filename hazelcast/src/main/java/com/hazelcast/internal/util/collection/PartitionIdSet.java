@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,7 +271,7 @@ public class PartitionIdSet extends AbstractSet<Integer> implements IdentifiedDa
     }
 
     /**
-     * Returns the sole partition ID, if this set has a size of 1. Otherwise returns -1.
+     * @returns the sole partition ID, if this set has a size of 1. Otherwise, returns -1.
      */
     public int solePartition() {
         int candidateResult = bitSet.nextSetBit(0);
@@ -280,6 +280,13 @@ public class PartitionIdSet extends AbstractSet<Integer> implements IdentifiedDa
         } else {
             return -1;
         }
+    }
+
+    /**
+     * @eturns the first partition ID, if this set is not empty. Otherwise, returns -1.
+     */
+    public int firstPartition() {
+        return bitSet.nextSetBit(0);
     }
 
     public BitSet bitSetCopy() {

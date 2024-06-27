@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,5 @@ public class MSSQLSinkIntoJdbcSqlConnectorTest extends SinkJdbcSqlConnectorTest 
     @BeforeClass
     public static void beforeClass() {
         initialize(new MSSQLDatabaseProvider());
-    }
-    //Disable this test by overriding it until official MSSQL support
-    @Override
-    public void updateTableWithColumns() {
     }
 }

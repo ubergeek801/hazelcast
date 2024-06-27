@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,16 @@ import com.hazelcast.function.SupplierEx;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.test.IgnoreInJenkinsOnWindows;
+import com.hazelcast.jet.test.SerialTest;
+import com.hazelcast.test.annotation.NightlyTest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import javax.annotation.Nonnull;
@@ -37,6 +41,7 @@ import static com.hazelcast.jet.elastic.ElasticClients.client;
 import static com.hazelcast.jet.elastic.ElasticSupport.PORT;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Category({NightlyTest.class, SerialTest.class, IgnoreInJenkinsOnWindows.class})
 public class AuthElasticSourcesTest extends BaseElasticTest {
 
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
@@ -69,7 +74,7 @@ public class AuthElasticSourcesTest extends BaseElasticTest {
     @Test
     public void given_clientWithWrongPassword_whenReadFromElasticSource_thenFailWithAuthenticationException() {
         ElasticsearchContainer container = ElasticSupport.secureElastic.get();
-        String containerIp = container.getContainerIpAddress();
+        String containerIp = container.getHost();
         Integer port = container.getMappedPort(PORT);
 
         Pipeline p = Pipeline.create();
@@ -84,7 +89,7 @@ public class AuthElasticSourcesTest extends BaseElasticTest {
     @Test
     public void given_clientWithoutAuthentication_whenReadFromElasticSource_then_failWithAuthenticationException() {
         ElasticsearchContainer container = ElasticSupport.secureElastic.get();
-        String containerIp = container.getContainerIpAddress();
+        String containerIp = container.getHost();
         Integer port = container.getMappedPort(PORT);
 
         Pipeline p = Pipeline.create();

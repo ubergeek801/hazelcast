@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,20 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Map;
 
 import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.PREDICATE_DS_FACTORY_ID;
 
 /**
- * Predicate version of `instaceof` operator from Java.
+ * Predicate version of `instanceof` operator from Java.
  *
  */
 @BinaryInterface
 public class InstanceOfPredicate
         implements Predicate, IdentifiedDataSerializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private Class klass;
@@ -92,11 +94,10 @@ public class InstanceOfPredicate
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof InstanceOfPredicate)) {
+        if (!(o instanceof InstanceOfPredicate that)) {
             return false;
         }
 
-        InstanceOfPredicate that = (InstanceOfPredicate) o;
         return klass != null ? klass.equals(that.klass) : that.klass == null;
     }
 

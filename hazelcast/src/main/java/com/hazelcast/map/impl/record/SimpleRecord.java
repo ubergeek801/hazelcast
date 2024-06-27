@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,14 @@ import static com.hazelcast.map.impl.record.RecordReaderWriter.SIMPLE_DATA_RECOR
  * Used when {@link MapConfig#isPerEntryStatsEnabled()} is {@code false}
  */
 @SuppressWarnings({"checkstyle:methodcount", "VolatileLongOrDoubleField"})
-class SimpleRecord<V> implements Record<V> {
+public class SimpleRecord<V> implements Record<V> {
     protected volatile V value;
     private int version;
 
     SimpleRecord() {
     }
 
-    SimpleRecord(V value) {
+    public SimpleRecord(V value) {
         setValue(value);
     }
 
@@ -72,9 +72,9 @@ class SimpleRecord<V> implements Record<V> {
 
     @Override
     public long getCost() {
-        if (value instanceof Data) {
+        if (value instanceof Data data) {
             return OBJECT_HEADER_SIZE
-                    + REFERENCE_COST_IN_BYTES + ((Data) value).getHeapCost();
+                    + REFERENCE_COST_IN_BYTES + data.getHeapCost();
         } else {
             // For OBJECT in-memory-format we
             // don't calculate cost for now.

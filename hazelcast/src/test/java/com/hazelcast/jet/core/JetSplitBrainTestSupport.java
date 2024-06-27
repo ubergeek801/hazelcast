@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.jet.core;
 
-import com.hazelcast.cluster.Address;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
@@ -33,11 +32,9 @@ import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.SplitBrainTestSupport;
-import com.hazelcast.test.TestHazelcastInstanceFactory;
 import org.junit.Before;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -97,76 +94,56 @@ public abstract class JetSplitBrainTestSupport extends JetTestSupport {
     }
 
     protected final void testSplitBrain(int firstSubClusterSize, int secondSubClusterSize,
-                              Consumer<HazelcastInstance[]> beforeSplit,
-                              BiConsumer<HazelcastInstance[], HazelcastInstance[]> onSplit,
-                              Consumer<HazelcastInstance[]> afterMerge) {
+                                        Consumer<HazelcastInstance[]> beforeSplit,
+                                        BiConsumer<HazelcastInstance[], HazelcastInstance[]> onSplit,
+                                        Consumer<HazelcastInstance[]> afterMerge) {
+        testSplitBrain(firstSubClusterSize, secondSubClusterSize, beforeSplit, onSplit, afterMerge, 1);
+    }
+
+    protected final void testSplitBrain(int firstSubClusterSize, int secondSubClusterSize,
+                                        Consumer<HazelcastInstance[]> beforeSplit,
+                                        BiConsumer<HazelcastInstance[], HazelcastInstance[]> onSplit,
+                                        Consumer<HazelcastInstance[]> afterMerge,
+                                        int numberOfRepeats) {
         checkPositive(firstSubClusterSize, "invalid first sub cluster size: " + firstSubClusterSize);
         checkPositive(secondSubClusterSize, "invalid second sub cluster size: " + secondSubClusterSize);
 
         config = createConfig();
+        Config liteMemberConfig = createConfig().setLiteMember(true);
         int clusterSize = firstSubClusterSize + secondSubClusterSize;
-        HazelcastInstance[] instances = startInitialCluster(config, clusterSize);
+        HazelcastInstance[] instances = startInitialCluster(config, liteMemberConfig, clusterSize);
 
         if (beforeSplit != null) {
             beforeSplit.accept(instances);
         }
 
-        LOGGER.info("Going to create split-brain...");
-        createSplitBrain(instances, firstSubClusterSize, secondSubClusterSize);
-        Brains brains = getBrains(instances, firstSubClusterSize, secondSubClusterSize);
-        LOGGER.info("Split-brain created");
+        for (int splitBrainNumber = 0; splitBrainNumber < numberOfRepeats; ++splitBrainNumber) {
 
-        if (onSplit != null) {
-            onSplit.accept(brains.firstSubCluster, brains.secondSubCluster);
-        }
+            LOGGER.info("Going to create split-brain... #" + splitBrainNumber);
+            createSplitBrain(instances, firstSubClusterSize, secondSubClusterSize);
+            Brains brains = getBrains(instances, firstSubClusterSize, secondSubClusterSize);
+            LOGGER.info("Split-brain created");
 
-        LOGGER.info("Going to heal split-brain...");
-        healSplitBrain(instances, firstSubClusterSize);
-        LOGGER.info("Split-brain healed");
+            if (onSplit != null) {
+                onSplit.accept(brains.firstSubCluster, brains.secondSubCluster);
+            }
 
-        if (afterMerge != null) {
-            afterMerge.accept(instances);
+            LOGGER.info("Going to heal split-brain... #" + splitBrainNumber);
+            healSplitBrain(instances, firstSubClusterSize);
+            LOGGER.info("Split-brain healed");
+
+            if (afterMerge != null) {
+                afterMerge.accept(instances);
+            }
         }
     }
 
-    protected HazelcastInstance[] startInitialCluster(Config config, int clusterSize) {
+    protected HazelcastInstance[] startInitialCluster(Config config, @Nullable Config liteConfig, int clusterSize) {
         HazelcastInstance[] instances = new HazelcastInstance[clusterSize];
         for (int i = 0; i < clusterSize; i++) {
             instances[i] = createHazelcastInstance(config);
         }
         return instances;
-    }
-
-    /**
-     * Starts a new {@code HazelcastInstance} which is only able to communicate
-     * with members on one of the two brains.
-     * @param firstSubCluster jet instances in the first sub cluster
-     * @param secondSubCluster jet instances in the first sub cluster
-     * @param createOnFirstSubCluster if true, new instance is created on the first sub cluster.
-     * @return a HazelcastInstance whose {@code MockJoiner} has blacklisted the other brain's
-     *         members and its connection manager blocks connections to other brain's members
-     * @see TestHazelcastInstanceFactory#newHazelcastInstance(Address, com.hazelcast.config.Config, Address[])
-     */
-    protected final HazelcastInstance createHazelcastInstanceInBrain(HazelcastInstance[] firstSubCluster,
-                                                                     HazelcastInstance[] secondSubCluster,
-                                                               boolean createOnFirstSubCluster) {
-        Address newMemberAddress = nextAddress();
-        HazelcastInstance[] instancesToBlock = createOnFirstSubCluster ? secondSubCluster : firstSubCluster;
-
-        List<Address> addressesToBlock = new ArrayList<>(instancesToBlock.length);
-        for (HazelcastInstance anInstancesToBlock : instancesToBlock) {
-            if (isInstanceActive(anInstancesToBlock)) {
-                addressesToBlock.add(getAddress(anInstancesToBlock));
-                // block communication from these instances to the new address
-                FirewallingServerConnectionManager connectionManager = getFireWalledEndpointManager(anInstancesToBlock);
-                connectionManager.blockNewConnection(newMemberAddress);
-                connectionManager.closeActiveConnection(newMemberAddress);
-            }
-        }
-        // indicate we need to unblacklist addresses from joiner when split-brain will be healed
-        unblacklistHint = true;
-        // create a new Hazelcast instance which has blocked addresses blacklisted in its joiner
-        return createHazelcastInstance(createConfig(), addressesToBlock.toArray(new Address[addressesToBlock.size()]));
     }
 
     private void createSplitBrain(HazelcastInstance[] instances, int firstSubClusterSize, int secondSubClusterSize) {
@@ -198,7 +175,7 @@ public abstract class JetSplitBrainTestSupport extends JetTestSupport {
     }
 
     private static FirewallingServerConnectionManager getFireWalledEndpointManager(HazelcastInstance hz) {
-        ServerConnectionManager cm = getNode(hz).getServer().getConnectionManager(EndpointQualifier.MEMBER);
+        ServerConnectionManager cm = Accessors.getNode(hz).getServer().getConnectionManager(EndpointQualifier.MEMBER);
         return (FirewallingServerConnectionManager) cm;
     }
 
@@ -234,15 +211,15 @@ public abstract class JetSplitBrainTestSupport extends JetTestSupport {
     }
 
     private static boolean isInstanceActive(HazelcastInstance instance) {
-        if (instance instanceof HazelcastInstanceProxy) {
+        if (instance instanceof HazelcastInstanceProxy proxy) {
             try {
-                ((HazelcastInstanceProxy) instance).getOriginal();
+                proxy.getOriginal();
                 return true;
             } catch (HazelcastInstanceNotActiveException exception) {
                 return false;
             }
         } else if (instance instanceof HazelcastInstanceImpl) {
-            return getNode(instance).getState() == NodeState.ACTIVE;
+            return Accessors.getNode(instance).getState() == NodeState.ACTIVE;
         } else {
             throw new AssertionError("Unsupported HazelcastInstance type");
         }

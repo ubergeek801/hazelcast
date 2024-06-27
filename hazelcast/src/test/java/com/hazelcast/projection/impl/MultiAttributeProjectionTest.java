@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,8 @@ import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -51,8 +49,6 @@ import static org.junit.Assert.assertEquals;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class MultiAttributeProjectionTest extends HazelcastTestSupport {
 
-    @Rule
-    public ExpectedException expected = ExpectedException.none();
 
     @Test(expected = IllegalArgumentException.class)
     public void multiAttribute_attributeNull() {
@@ -142,8 +138,7 @@ public class MultiAttributeProjectionTest extends HazelcastTestSupport {
 
         Projection<Map.Entry<String, Person>, Object[]> projection = Projections.multiAttribute("age", "height123");
 
-        expected.expect(QueryException.class);
-        map.project(projection);
+        assertThrows(QueryException.class, () -> map.project(projection));
     }
 
     private <K, V> IMap<K, V> getMapWithNodeCount() {

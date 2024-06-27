@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.hazelcast.config;
 import com.hazelcast.core.HazelcastException;
 
 /**
- * A InvalidConfigurationException is thrown when an Hazelcast faces
+ * A InvalidConfigurationException is thrown when Hazelcast faces
  * an invalid configuration. Invalid configuration is detected during
  * initialization of an instance generally. Still, it is possible to
  * run into InvalidConfigurationExceptions during run time.

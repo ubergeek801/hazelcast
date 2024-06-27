@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.jctools.queues.MpmcArrayQueue;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.hazelcast.internal.tpcengine.util.BufferUtil.allocateBuffer;
 
 /**
  * A {@link IOBufferAllocator} that can be used in parallel by multiple threads.
@@ -95,12 +97,12 @@ public class ConcurrentIOBufferAllocator implements IOBufferAllocator {
             // Lets gets some bufs from the queue.
             //int count = queue.drain(pool.consumer, pool.bufs.length);
 
-            // and lets create a bunch of bufs ourselves so we don't end up
+            // and let's create a bunch of bufs ourselves, so we don't end up
             // continuously asking the queue for requests.
             for (int k = count; k < pool.bufs.length; k++) {
                 //newAllocations.incrementAndGet();
                 //System.out.println(" new buf");
-                ByteBuffer buffer = direct ? ByteBuffer.allocateDirect(minSize) : ByteBuffer.allocate(minSize);
+                ByteBuffer buffer = allocateBuffer(direct, minSize);
                 IOBuffer buf = new IOBuffer(buffer);
                 buf.concurrent = true;
                 buf.allocator = this;

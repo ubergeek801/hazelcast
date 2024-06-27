@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,9 +176,9 @@ public class ScheduledExecutorSplitBrainTest extends SplitBrainTestSupport {
     }
 
     private void onAfterMergeDiscardMergePolicy() throws Exception {
-        // assert everything else (ie. tasks created before split) is in order
-        assertContents(scheduledExecutorService1.<Double>getAllScheduledFutures());
-        assertContents(scheduledExecutorService2.<Double>getAllScheduledFutures());
+        // assert everything else (i.e. tasks created before split) is in order
+        assertContents(scheduledExecutorService1.getAllScheduledFutures());
+        assertContents(scheduledExecutorService2.getAllScheduledFutures());
         assertHandlersAreStillCorrect();
         assertDiscardedFutures();
     }
@@ -198,8 +198,8 @@ public class ScheduledExecutorSplitBrainTest extends SplitBrainTestSupport {
     }
 
     private void onAfterMergePassThroughMergePolicy() throws Exception {
-        assertContents(scheduledExecutorService1.<Double>getAllScheduledFutures());
-        assertContents(scheduledExecutorService2.<Double>getAllScheduledFutures());
+        assertContents(scheduledExecutorService1.getAllScheduledFutures());
+        assertContents(scheduledExecutorService2.getAllScheduledFutures());
         assertHandlersAreStillCorrect();
         assertUnexpectedFuturesHaveMergedValue();
     }
@@ -219,8 +219,8 @@ public class ScheduledExecutorSplitBrainTest extends SplitBrainTestSupport {
     }
 
     private void onAfterMergePutIfAbsentMergePolicy() throws Exception {
-        assertContents(scheduledExecutorService1.<Double>getAllScheduledFutures());
-        assertContents(scheduledExecutorService2.<Double>getAllScheduledFutures());
+        assertContents(scheduledExecutorService1.getAllScheduledFutures());
+        assertContents(scheduledExecutorService2.getAllScheduledFutures());
         assertHandlersAreStillCorrect();
         assertUnexpectedFuturesHaveMergedValue();
     }
@@ -245,7 +245,7 @@ public class ScheduledExecutorSplitBrainTest extends SplitBrainTestSupport {
 
         assertEquals(expectedScheduledFutures.size(), total);
 
-        Set<String> seenSoFar = new HashSet<String>();
+        Set<String> seenSoFar = new HashSet<>();
         for (List<IScheduledFuture<Double>> memberFutures : futuresPerMember.values()) {
             for (IScheduledFuture<Double> future : memberFutures) {
                 String taskName = future.getHandler().getTaskName();

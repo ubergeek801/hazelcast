@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public interface Joiner {
 
     /**
      * Adds an address to the blacklist. Blacklist is useful if a node should ignore another node, e.g. when
-     * the clustername of 2 machines is not the same and they should form different clusters.
+     * the cluster name of 2 machines is not the same, and they should form different clusters.
      * <p>
      * If blacklist is permanent, then this operation is write-once. It cannot be unblacklisted again.
      * If blacklist is temporary, blacklist can be removed via {@link #unblacklist(Address)}.

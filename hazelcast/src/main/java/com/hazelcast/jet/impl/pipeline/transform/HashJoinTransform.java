@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.hazelcast.jet.pipeline.JoinClause;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Serial;
 import java.util.List;
 
 import static com.hazelcast.jet.core.Edge.from;
@@ -43,6 +44,7 @@ import static com.hazelcast.jet.impl.util.Util.toList;
 @SuppressWarnings("rawtypes")
 public class HashJoinTransform<T0, R> extends AbstractTransform {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Nonnull
@@ -124,7 +126,7 @@ public class HashJoinTransform<T0, R> extends AbstractTransform {
     @SuppressWarnings("unchecked")
     public void addToDag(Planner p, Context context) {
         determineLocalParallelism(LOCAL_PARALLELISM_USE_DEFAULT, context, p.isPreserveOrder());
-        PlannerVertex primary = p.xform2vertex.get(this.upstream().get(0));
+        PlannerVertex primary = p.transform2vertex.get(this.upstream().get(0));
         List keyFns = toList(this.clauses, JoinClause::leftKeyFn);
 
         List<Tag> tags = this.tags;
@@ -147,7 +149,7 @@ public class HashJoinTransform<T0, R> extends AbstractTransform {
         String collectorName = name() + "-collector";
         int collectorOrdinal = 1;
         for (Transform fromTransform : tailList(this.upstream())) {
-            PlannerVertex fromPv = p.xform2vertex.get(fromTransform);
+            PlannerVertex fromPv = p.transform2vertex.get(fromTransform);
             JoinClause<?, ?, ?, ?> clause = this.clauses.get(collectorOrdinal - 1);
             FunctionEx<Object, Object> getKeyFn = (FunctionEx<Object, Object>) clause.rightKeyFn();
             FunctionEx<Object, Object> projectFn = (FunctionEx<Object, Object>) clause.rightProjectFn();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,14 +76,13 @@ public class CachePartitionEventData extends CacheEventDataImpl implements Cache
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CachePartitionEventData)) {
+        if (!(o instanceof CachePartitionEventData that)) {
             return false;
         }
         if (!super.equals(o)) {
             return false;
         }
 
-        CachePartitionEventData that = (CachePartitionEventData) o;
         if (partitionId != that.partitionId) {
             return false;
         }

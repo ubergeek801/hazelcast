@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.hazelcast.instance.impl.HazelcastInstanceFactory.InstanceFuture;
 import com.hazelcast.instance.impl.OutOfMemoryErrorDispatcher;
 import com.hazelcast.internal.util.EmptyStatement;
 import com.hazelcast.internal.util.ExceptionUtil;
+import com.hazelcast.internal.util.StringUtil;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -340,8 +341,7 @@ public final class HazelcastClient {
      * @param instance the hazelcast client instance
      */
     public static void shutdown(HazelcastInstance instance) {
-        if (instance instanceof HazelcastClientProxy) {
-            final HazelcastClientProxy proxy = (HazelcastClientProxy) instance;
+        if (instance instanceof HazelcastClientProxy proxy) {
             HazelcastClientInstanceImpl client = proxy.client;
             if (client == null) {
                 return;
@@ -492,7 +492,7 @@ public final class HazelcastClient {
         } else {
             instanceName = failoverConfig.getClientConfigs().get(0).getInstanceName();
         }
-        if (instanceName == null || instanceName.trim().length() == 0) {
+        if (StringUtil.isNullOrEmptyAfterTrim(instanceName)) {
             instanceName = "hz.client_" + instanceNum;
         }
         return instanceName;

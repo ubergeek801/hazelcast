@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,11 +112,9 @@ public class CacheSimpleEntryListenerConfig implements IdentifiedDataSerializabl
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CacheSimpleEntryListenerConfig)) {
+        if (!(o instanceof CacheSimpleEntryListenerConfig that)) {
             return false;
         }
-
-        CacheSimpleEntryListenerConfig that = (CacheSimpleEntryListenerConfig) o;
 
         if (oldValueRequired != that.oldValueRequired) {
             return false;

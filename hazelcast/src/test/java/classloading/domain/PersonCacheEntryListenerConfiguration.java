@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,25 @@ package classloading.domain;
 
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Factory;
-import javax.cache.event.CacheEntryEvent;
 import javax.cache.event.CacheEntryEventFilter;
 import javax.cache.event.CacheEntryListener;
-import javax.cache.event.CacheEntryListenerException;
+import java.io.Serial;
 
 public class PersonCacheEntryListenerConfiguration implements CacheEntryListenerConfiguration<String, Person> {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Override
     public Factory<CacheEntryListener<? super String, ? super Person>> getCacheEntryListenerFactory() {
-        return new Factory<CacheEntryListener<? super String, ? super Person>>() {
+        return new Factory<>() {
             @Override
             public CacheEntryListener<? super String, ? super Person> create() {
-                return new CacheEntryListener<String, Person>() {
+                return new CacheEntryListener<>() {
                 };
             }
 
+            @Serial
             private static final long serialVersionUID = 1L;
         };
     }
@@ -47,18 +48,13 @@ public class PersonCacheEntryListenerConfiguration implements CacheEntryListener
 
     @Override
     public Factory<CacheEntryEventFilter<? super String, ? super Person>> getCacheEntryEventFilterFactory() {
-        return new Factory<CacheEntryEventFilter<? super String, ? super Person>>() {
+        return new Factory<>() {
             @Override
             public CacheEntryEventFilter<? super String, ? super Person> create() {
-                return new CacheEntryEventFilter<String, Person>() {
-                    @Override
-                    public boolean evaluate(CacheEntryEvent<? extends String, ? extends Person> cee)
-                            throws CacheEntryListenerException {
-                        return true;
-                    }
-                };
+                return (CacheEntryEventFilter<String, Person>) cee -> true;
             }
 
+            @Serial
             private static final long serialVersionUID = 1L;
         };
     }

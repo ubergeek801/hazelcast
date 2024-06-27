@@ -57,7 +57,7 @@ directly.
 - Reusing existing Kafka Connect ecosystem will give Hazelcast Platform way more broad range of external sources.
   Currently, there are 130 Kafka Connect Source connectors available (e.g. Neo4j, Couchbase, Scylla, Sap, Redis),
   see https://www.confluent.io/hub.
-  Hazelcast officially has 30 dedicated connectors: https://docs.hazelcast.com/hazelcast/5.2/integrate/connectors
+  Hazelcast officially has 30 dedicated connectors: https://docs.hazelcast.com/hazelcast/latest/integrate/connectors
 - To take our connectors' maintenance burden off our shoulders.
 - To make Hazelcast platform a drop-in replacement (as fair as possible) for simple use of Kafka Connect/Kafka Streams.
 - To provide more seamless migration from Kafka to Hazelcast
@@ -111,7 +111,7 @@ To use any Kafka Connect Connector as a source in your pipeline you need to crea
 calling `KafkaConnectSources.connect()`
 method with the Properties object. After that you can use your pipeline like any other source in the Jet pipeline.
 The source will emit items in `SourceRecord` type from Kafka Connect API, where you can access the key and value along
-with their corresponding schemas. Hazelcast Jet will instantiate a single task for the specified source in the cluster.
+with their corresponding schemas. Hazelcast Jet will instantiate **"tasks.max"** number of tasks for the specified source in the cluster.
 You need to make sure the source connector is available on the classpath, either by putting its jar to the classpath of
 the members or by uploading the connector jar as a part for the job config.
 
@@ -189,6 +189,16 @@ There are also nice to have features:
 - Add benchmarks for Kafka connect source
 - Add Soak tests for Kafka connect source
 
+### Task Distribution
+**TaskMaxProcessorMetaSupplier**  evenly distributes the number of tasks specified in the properties input to cluster members.    
+It creates **TaskMaxProcessorSupplier** objects and assigns them a processor order number.   
+The first processor with **processor order 0** is the **master** processor    
+The **master processor** distributes task assignments to all other processors via a 
+**Reliable Topic** named **"__jet." + executionId**  
+**All** processors subscribe to this Reliable Topic  
+A special listener is used to get the only last item if available, or to wait for the next item  
+A processor starts polling Kafka Connector when it receives its task assignment
+
 #### Fault-Tolerance
 
 The Kafka Connect connectors driven by Jet are participating to store their state snapshots (e.g partition offsets +
@@ -234,7 +244,7 @@ connector of your choice for detailed information.
     - leave implementation to users (bad: requires code duplication, no official support is also not good)
     - keep connector in `hazelcast-jet-contrib` repository - but it's not as well tested as main repo and less visible
     - Use Kafka Infrastructure and Hazelcast Kafka Connector, although it requires more infrastructure effort.
-      See https://docs.hazelcast.com/hazelcast/5.2/integrate/kafka-connector
+      See https://docs.hazelcast.com/hazelcast/latest/integrate/kafka-connector
 
 - The most common mistakes by other Hazelcast users I can think of are:
   - property misconfiguration
@@ -329,7 +339,7 @@ Describe testing approach to developed functionality
 ### Resources
 
 - [TDD on GitHub: hazelcast/hazelcast/pull/23303](https://github.com/hazelcast/hazelcast/pull/23303)
-- [Hazelcast: Creating a Custom Streaming Source](https://docs.hazelcast.com/hazelcast/5.2/pipelines/custom-stream-source)
+- [Hazelcast: Creating a Custom Streaming Source](https://docs.hazelcast.com/hazelcast/latest/pipelines/custom-stream-source)
 - [Kafka Connect Concepts | Confluent Documentation](https://docs.confluent.io/platform/current/connect/concepts.html#kconnect-long-concepts)
 - [Kafka Connect | Confluent Documentation](https://docs.confluent.io/platform/current/connect/index.html)
 - [Kafka Connect Deep Dive – Converters and Serialization Explained | Confluent](https://www.confluent.io/blog/kafka-connect-deep-dive-converters-serialization-explained/)

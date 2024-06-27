@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.core;
 
 import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -41,7 +42,7 @@ public interface Partitioner<T> extends Serializable {
     /**
      * Partitioner which calls {@link Object#hashCode()} and coerces it with the
      * modulo operation into the allowed range of partition IDs. The primary
-     * reason to prefer this over the default is performance and it's a safe
+     * reason to prefer this over the default is performance, and it's a safe
      * choice on local edges.
      * <p>
      * <strong>WARNING:</strong> this is a dangerous strategy to use on
@@ -71,7 +72,7 @@ public interface Partitioner<T> extends Serializable {
 
     /**
      * Callback that injects the Hazelcast's default partitioning strategy into
-     * this partitioner so it can be consulted by the
+     * this partitioner, so it can be consulted by the
      * {@link #getPartition(Object, int)} method.
      * <p>
      * The creation of instances of the {@code Partitioner} type is done in
@@ -90,6 +91,16 @@ public interface Partitioner<T> extends Serializable {
     int getPartition(@Nonnull T item, int partitionCount);
 
     /**
+     * @since 5.4
+     * @return constant partition key that is always used by {@link
+     *          #getPartition(Object, int)} or null if different partitions may be
+     *          returned
+     */
+    default T getConstantPartitioningKey() {
+        return null;
+    }
+
+    /**
      * Returns a partitioner which applies the default Hazelcast partitioning.
      * It will serialize the item using Hazelcast Serialization, then apply
      * Hazelcast's {@code MurmurHash}-based algorithm to retrieve the partition
@@ -106,6 +117,7 @@ public interface Partitioner<T> extends Serializable {
      */
     final class Default implements Partitioner<Object> {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         transient DefaultPartitionStrategy defaultPartitioning;

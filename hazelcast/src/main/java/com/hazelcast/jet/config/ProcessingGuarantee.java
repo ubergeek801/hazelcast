@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public enum ProcessingGuarantee {
      * processed before the snapshot might be processed again after the job is resumed.
      * <p>
      * This option requires in-memory snapshotting which will cause additional storage
-     * requirements and overhead compared to {@link #NONE}. However it provides better
+     * requirements and overhead compared to {@link #NONE}. However, it provides better
      * latency than {@link #EXACTLY_ONCE} with weaker guarantees.
      */
     AT_LEAST_ONCE,
@@ -71,7 +71,7 @@ public enum ProcessingGuarantee {
      * <p>
      * This option requires in-memory snapshotting which will cause additional storage
      * requirements and overhead compared to {@link #NONE}. It provides the strongest
-     * correctness guarantee. However latency might increase due to the aligning of
+     * correctness guarantee. However, latency might increase due to the aligning of
      * barriers which are required in this processing mode.
      */
     EXACTLY_ONCE

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.util.Map.Entry;
  * and refer to that method's Javadoc for further details.
  * <p>
  * <strong>Note:</strong> this is not a builder of {@code
- * AggregateOperation}. If that' s what you are looking for, go {@link
+ * AggregateOperation}. If that's what you are looking for, go {@link
  * AggregateOperation#withCreate here}.
  *
  * @param <T0> type of the stream-0 item

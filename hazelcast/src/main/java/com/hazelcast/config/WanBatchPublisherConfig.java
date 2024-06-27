@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * Hazelcast Enterprise). The publisher sends events to another Hazelcast
  * cluster in batches, sending when either when enough events are enqueued
  * or enqueued events have waited for enough time.
- * The publisher can be a different cluster defined by static IP's or
+ * The publisher can be a different cluster defined by static IPs or
  * discovered using a cloud discovery mechanism.
  *
  * @see DiscoveryConfig
@@ -537,7 +537,7 @@ public class WanBatchPublisherConfig extends AbstractWanPublisherConfig {
     /**
      * Returns whether the WAN connection manager should connect to the
      * endpoint on the private address returned by the discovery SPI.
-     * By default this property is {@code false} which means the WAN connection
+     * By default, this property is {@code false} which means the WAN connection
      * manager will always use the public address.
      *
      * @return {@code true} if the WAN connection manager should connect to the endpoint
@@ -552,7 +552,7 @@ public class WanBatchPublisherConfig extends AbstractWanPublisherConfig {
     /**
      * Sets whether the WAN connection manager should connect to the
      * endpoint on the private address returned by the discovery SPI.
-     * By default this property is {@code false} which means the WAN connection
+     * By default, this property is {@code false} which means the WAN connection
      * manager will always use the public address.
      *
      * @return this config

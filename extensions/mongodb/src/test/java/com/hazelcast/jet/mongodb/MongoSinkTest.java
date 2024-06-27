@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.map.EventJournalMapEvent;
 import com.hazelcast.map.IMap;
 import com.hazelcast.test.HazelcastParametrizedRunner;
-import com.hazelcast.test.annotation.QuickTest;
+import com.hazelcast.test.annotation.NightlyTest;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
@@ -51,9 +51,10 @@ import java.util.Objects;
 import java.util.concurrent.CompletionException;
 
 import static com.hazelcast.core.EntryEventType.ADDED;
-import static com.hazelcast.jet.mongodb.WriteMode.INSERT_ONLY;
 import static com.hazelcast.jet.mongodb.MongoSinks.builder;
 import static com.hazelcast.jet.mongodb.MongoSinks.mongodb;
+import static com.hazelcast.jet.mongodb.ResourceChecks.NEVER;
+import static com.hazelcast.jet.mongodb.WriteMode.INSERT_ONLY;
 import static com.hazelcast.jet.pipeline.DataConnectionRef.dataConnectionRef;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
 import static com.hazelcast.jet.pipeline.Sources.mapJournal;
@@ -65,7 +66,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(HazelcastParametrizedRunner.class)
-@Category({QuickTest.class})
+@Category(NightlyTest.class)
 public class MongoSinkTest extends AbstractMongoTest {
 
     private static final long COUNT = 4;
@@ -157,7 +158,7 @@ public class MongoSinkTest extends AbstractMongoTest {
                 .withIngestionTimestamps()
                 .writeTo(builder(Doc.class, () -> createClient(connectionString))
                         .identifyDocumentBy("key", o -> o.key)
-                        .throwOnNonExisting(false)
+                        .checkResourceExistence(NEVER)
                         .into(i -> defaultDatabase, i -> "col_" + (i.key % 2))
                         .withCustomReplaceOptions(opt -> opt.upsert(true))
                         .writeMode(INSERT_ONLY)

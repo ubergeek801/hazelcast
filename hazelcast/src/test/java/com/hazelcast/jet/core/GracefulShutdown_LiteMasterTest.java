@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,10 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.time.Duration;
+
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static junit.framework.TestCase.assertTrue;
@@ -61,10 +64,11 @@ public class GracefulShutdown_LiteMasterTest extends JetTestSupport {
         Job job = instance.getJet().newJob(dag, new JobConfig()
                 .setSnapshotIntervalMillis(DAYS.toMillis(1))
                 .setProcessingGuarantee(EXACTLY_ONCE));
-        assertJobStatusEventually(job, RUNNING, 10);
+        var timeout = Duration.ofSeconds(10);
+        assertThat(job).eventuallyHasStatus(RUNNING, timeout);
         DummyStatefulP.wasRestored = false;
         liteMaster.shutdown();
-        assertJobStatusEventually(job, RUNNING, 10);
+        assertThat(job).eventuallyHasStatus(RUNNING, timeout);
         assertTrueEventually(() -> assertTrue("snapshot wasn't restored", DummyStatefulP.wasRestored), 10);
         assertTrueAllTheTime(() -> assertEquals(RUNNING, job.getStatus()), 1);
     }

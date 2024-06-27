@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class NodeThreadLeakTest extends HazelcastTestSupport {
     private static final int TEST_TIMEOUT_IN_MILLIS = 30_000;
 
     @Test(timeout = TEST_TIMEOUT_IN_MILLIS)
-    public void testLeakWhenCreatingConnectionManager() throws Exception {
+    public void testLeakWhenCreatingConnectionManager() {
         testFailingHazelcastCreation(new DefaultNodeContext() {
             @Override
             public Server createServer(Node node, ServerSocketRegistry registry, LocalAddressRegistry addressRegistry) {
@@ -69,7 +69,7 @@ public class NodeThreadLeakTest extends HazelcastTestSupport {
     }
 
     @Test(timeout = TEST_TIMEOUT_IN_MILLIS)
-    public void testFailingInNodeEngineImplConstructor() throws Exception {
+    public void testFailingInNodeEngineImplConstructor() {
         testFailingHazelcastCreation(new DefaultNodeContext() {
             @Override
             public NodeExtension createNodeExtension(Node node) {

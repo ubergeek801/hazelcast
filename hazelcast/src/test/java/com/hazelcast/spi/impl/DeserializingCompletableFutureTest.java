@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class DeserializingCompletableFutureTest {
     @Test
     public void test_get_Object() throws Exception {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(value);
         assertEquals(value, future.get());
@@ -63,7 +63,7 @@ public class DeserializingCompletableFutureTest {
     @Test
     public void test_get_Data() throws Exception {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(serializationService.toData(value));
 
@@ -77,7 +77,7 @@ public class DeserializingCompletableFutureTest {
     @Test
     public void test_get_Object_withTimeout() throws Exception {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(value);
         assertEquals(value, future.get(1, TimeUnit.MILLISECONDS));
@@ -86,7 +86,7 @@ public class DeserializingCompletableFutureTest {
     @Test
     public void test_get_Data_withTimeout() throws Exception {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(serializationService.toData(value));
 
@@ -98,18 +98,18 @@ public class DeserializingCompletableFutureTest {
     }
 
     @Test
-    public void test_getNow_Object() throws Exception {
+    public void test_getNow_Object() {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(value);
         assertEquals(value, future.getNow("default"));
     }
 
     @Test
-    public void test_getNow_Data() throws Exception {
+    public void test_getNow_Data() {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(serializationService.toData(value));
 
@@ -121,9 +121,9 @@ public class DeserializingCompletableFutureTest {
     }
 
     @Test
-    public void test_joinInternal() throws Exception {
+    public void test_joinInternal() {
         Object value = "value";
-        DeserializingCompletableFuture future = new DeserializingCompletableFuture(serializationService, deserialize);
+        DeserializingCompletableFuture<Object> future = new DeserializingCompletableFuture<>(serializationService, deserialize);
 
         future.complete(value);
         assertEquals(value, future.joinInternal());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.hazelcast.jet.core.Watermark;
 import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.impl.util.ExceptionUtil;
 import com.hazelcast.logging.ILogger;
-import com.hazelcast.security.permission.ConnectorPermission;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,14 +40,13 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
-import java.security.Permission;
+import java.io.Serial;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientException;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -56,8 +54,6 @@ import static com.hazelcast.internal.util.Preconditions.checkPositive;
 import static com.hazelcast.jet.config.ProcessingGuarantee.AT_LEAST_ONCE;
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.impl.util.Util.checkSerializable;
-import static com.hazelcast.security.permission.ActionConstants.ACTION_WRITE;
-import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
@@ -82,6 +78,11 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
     private int idleCount;
     private boolean supportsBatch;
     private int batchCount;
+
+    static {
+        // workaround for https://github.com/hazelcast/hazelcast-jet/issues/2603
+        DriverManager.getDrivers();
+    }
 
     public WriteJdbcP(
             @Nonnull String updateQuery,
@@ -135,8 +136,10 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
         // the JDBC connection metadata is performed in the
         // #connectAndPrepareStatement() instance method.
         return ProcessorMetaSupplier.preferLocalParallelismOne(
-                ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE),
                 new ProcessorSupplier() {
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
                     private transient CommonDataSource dataSource;
 
                     @Override
@@ -146,8 +149,8 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
 
                     @Override
                     public void close(Throwable error) throws Exception {
-                        if (dataSource instanceof AutoCloseable) {
-                            ((AutoCloseable) dataSource).close();
+                        if (dataSource instanceof AutoCloseable autoCloseable) {
+                            autoCloseable.close();
                         }
                     }
 
@@ -158,11 +161,6 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
                                         .mapToObj(i -> new WriteJdbcP<>(updateQuery, dataSource, bindFn,
                                                 exactlyOnce, batchLimit))
                                         .collect(Collectors.toList());
-                    }
-
-                    @Override
-                    public List<Permission> permissions() {
-                        return singletonList(ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE));
                     }
                 });
     }
@@ -182,15 +180,12 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
         checkPositive(batchLimit, "batchLimit");
 
         return ProcessorMetaSupplier.preferLocalParallelismOne(
-                ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE),
                 new WriteJdbcSupplier(dataConnectionName, updateQuery, bindFn, exactlyOnce, batchLimit, jdbcUrl));
     }
 
     @Override
     public void init(@Nonnull Outbox outbox, @Nonnull Context context) throws Exception {
         super.init(outbox, context);
-        // workaround for https://github.com/hazelcast/hazelcast-jet/issues/2603
-        DriverManager.getDrivers();
         logger = context.logger();
         this.context = context;
         connectAndPrepareStatement();
@@ -266,19 +261,16 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
                 // we never ignore errors in ex-once mode
                 assert idleCount == 0 : "idleCount=" + idleCount;
                 setXaResource(xaConnection.getXAResource());
-            } else if (dataSource instanceof DataSource) {
-                connection = ((DataSource) dataSource).getConnection();
-            } else if (dataSource instanceof XADataSource) {
+            } else if (dataSource instanceof DataSource source) {
+                connection = source.getConnection();
+            } else if (dataSource instanceof XADataSource source) {
                 logger.warning("Using " + XADataSource.class.getName() + " when no XA transactions are needed");
-                XAConnection xaConnection = ((XADataSource) dataSource).getXAConnection();
+                XAConnection xaConnection = source.getXAConnection();
                 connection = xaConnection.getConnection();
             } else {
                 throw new JetException("The dataSource implements neither " + DataSource.class.getName() + " nor "
                         + XADataSource.class.getName());
             }
-
-            String url = connection.getMetaData().getURL();
-            context.checkPermission(ConnectorPermission.jdbc(url, ACTION_WRITE));
 
             supportsBatch = connection.getMetaData().supportsBatchUpdates();
 
@@ -361,6 +353,7 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
 
     static class WriteJdbcSupplier<T> implements ProcessorSupplier {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         private final String dataConnectionName;
@@ -403,11 +396,6 @@ public final class WriteJdbcP<T> extends XaSinkProcessorBase {
                             .mapToObj(i -> new WriteJdbcP<>(updateQuery, dataSource, bindFn,
                                     exactlyOnce, batchLimit))
                             .collect(Collectors.toList());
-        }
-
-        @Override
-        public List<Permission> permissions() {
-            return singletonList(ConnectorPermission.jdbc(jdbcUrl, ACTION_WRITE));
         }
     }
 }

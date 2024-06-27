@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,14 @@ import com.hazelcast.map.impl.MapContainer;
 import com.hazelcast.map.impl.MapEntries;
 import com.hazelcast.map.impl.MapServiceContext;
 import com.hazelcast.map.impl.operation.EntryOperator;
-import com.hazelcast.map.impl.operation.steps.engine.Step;
 import com.hazelcast.map.impl.operation.steps.engine.State;
+import com.hazelcast.map.impl.operation.steps.engine.Step;
 import com.hazelcast.map.impl.record.Record;
+import com.hazelcast.map.impl.recordstore.DefaultRecordStore;
 import com.hazelcast.map.impl.recordstore.RecordStore;
+import com.hazelcast.map.impl.recordstore.Storage;
 import com.hazelcast.query.Predicate;
-import com.hazelcast.query.impl.Indexes;
+import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.QueryableEntry;
 import com.hazelcast.query.impl.predicates.QueryOptimizer;
 
@@ -38,15 +40,22 @@ import java.util.List;
 
 import static com.hazelcast.internal.util.ToHeapDataConverter.toHeapData;
 import static com.hazelcast.map.impl.operation.EntryOperator.operator;
+import static com.hazelcast.map.impl.operation.steps.engine.StepSupplier.injectCustomStepsToOperation;
 
 public enum PartitionWideEntryOpSteps implements IMapOpStep {
 
     PROCESS() {
         @Override
         public void runStep(State state) {
-            RecordStore<Record> recordStore = state.getRecordStore();
+            state.setSizeBefore(state.getRecordStore().size());
 
-            if (isHDMap(recordStore) && runWithIndex(state)) {
+            /**
+             * Tiered storage only supports global
+             * indexes no partitioned index is supported.
+             */
+            if (isHDMap(state.getRecordStore())
+                    && !isTieredStoreMap(state.getRecordStore())
+                    && runWithPartitionedIndex(state)) {
                 return;
             }
             runWithPartitionScan(state);
@@ -57,7 +66,12 @@ public enum PartitionWideEntryOpSteps implements IMapOpStep {
                     .getInMemoryFormat() == InMemoryFormat.NATIVE;
         }
 
-        private boolean runWithIndex(State state) {
+        private boolean isTieredStoreMap(RecordStore<Record> recordStore) {
+            return recordStore.getMapContainer().getMapConfig()
+                    .getTieredStoreConfig().isEnabled();
+        }
+
+        private boolean runWithPartitionedIndex(State state) {
             Predicate predicate = state.getPredicate();
             RecordStore recordStore = state.getRecordStore();
             MapContainer mapContainer = recordStore.getMapContainer();
@@ -71,8 +85,8 @@ public enum PartitionWideEntryOpSteps implements IMapOpStep {
             }
 
             // we use the partitioned-index to operate on the selected keys only
-            Indexes indexes = mapContainer.getIndexes(partitionId);
-            Iterable<QueryableEntry> entries = indexes.query(queryOptimizer.optimize(predicate, indexes), 1);
+            IndexRegistry indexRegistry = mapContainer.getOrCreateIndexRegistry(partitionId);
+            Iterable<QueryableEntry> entries = indexRegistry.query(queryOptimizer.optimize(predicate, indexRegistry), 1);
             if (entries == null) {
                 return false;
             }
@@ -113,16 +127,14 @@ public enum PartitionWideEntryOpSteps implements IMapOpStep {
             MapEntries responses = new MapEntries(recordStore.size());
             state.setResult(responses);
 
-            recordStore.forEach((key, record) -> {
-                processInternal(state, toHeapData(key), record);
-
-            }, false);
+            recordStore.forEach((key, record) -> processInternal(state, toHeapData(key), record), false);
         }
 
         private void processInternal(State state, Data key, Record record) {
+            DefaultRecordStore recordStore = (DefaultRecordStore) state.getRecordStore();
             State singleKeyState = new State(state);
             singleKeyState
-                    .setKey(key)
+                    .setKey(((Data) recordStore.copyToHeapWhenNeeded(key)))
                     .setOldValue(record == null ? null : record.getValue())
                     .setEntryOperator(operator(state.getOperation(),
                             state.getEntryProcessor(), state.getPredicate()));
@@ -221,7 +233,9 @@ public enum PartitionWideEntryOpSteps implements IMapOpStep {
 
         @Override
         public Step nextStep(State state) {
-            return UtilSteps.FINAL_STEP;
+            Storage storage = state.getRecordStore().getStorage();
+            state.setSizeAfter(storage.size());
+            return injectCustomStepsToOperation(state.getOperation(), UtilSteps.FINAL_STEP);
         }
     };
 

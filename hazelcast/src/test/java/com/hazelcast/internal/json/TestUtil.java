@@ -24,12 +24,6 @@ package com.hazelcast.internal.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 
 public class TestUtil {
 
@@ -74,31 +68,11 @@ public class TestUtil {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> T serializeAndDeserialize(T instance) throws Exception {
-    return (T)deserialize(serialize(instance));
-  }
-
-  public static byte[] serialize(Object object) throws IOException {
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    new ObjectOutputStream(outputStream).writeObject(object);
-    return outputStream.toByteArray();
-  }
-
-  public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-    return new ObjectInputStream(inputStream).readObject();
-  }
-
   private static RunnableEx adapt(final Runnable runnable) {
-    return new RunnableEx() {
-      public void run() {
-        runnable.run();
-      }
-    };
+    return runnable::run;
   }
 
-  public static interface RunnableEx {
+  public interface RunnableEx {
     void run() throws Exception;
   }
 

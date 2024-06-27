@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.hazelcast.logging.Logger.getLogger;
@@ -33,25 +31,21 @@ import static org.junit.Assert.assertEquals;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class StripedExecutorTest extends HazelcastTestSupport {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Test
-    public void throws_illegalArgumentException_whenThreadCount_isNotPositive() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-
-        new StripedExecutor(getLogger(getClass()), "", 0, 0);
+    public void throws_illegalArgumentException_whenThreadCount_isNotPositive() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new StripedExecutor(getLogger(getClass()), "", 0, 0)
+        );
     }
 
     @Test
-    public void throws_illegalArgumentException_whenMaximumQueueCapacity_isNotPositive() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-
-        new StripedExecutor(getLogger(getClass()), "", 0, 0);
+    public void throws_illegalArgumentException_whenMaximumQueueCapacity_isNotPositive() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new StripedExecutor(getLogger(getClass()), "", 0, 0));
     }
 
     @Test
-    public void total_worker_queue_size_equals_max_queue_capacity() throws Exception {
+    public void total_worker_queue_size_equals_max_queue_capacity() {
         int threadCount = 5;
         int maximumQueueCapacity = 1000000;
 

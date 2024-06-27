@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,11 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.hazelcast.jet.Util.entry;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static org.junit.Assert.assertTrue;
 
-@SuppressWarnings("SameParameterValue")
+@SuppressWarnings({"SameParameterValue", "SqlResolve"})
 @Category(NightlyTest.class)
 public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgresCdcIntegrationTest {
 
@@ -52,7 +53,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
 
     @Test
     public void listenBeforeSchemaExists() throws Exception {
-        List<String> expectedRecords = Arrays.asList(
+        List<String> expectedRecords = List.of(
                 "1001/0:(SYNC|INSERT):TableRow \\{id=1001, value1=someValue1, value2=someValue2, value3=null\\}"
         );
 
@@ -64,7 +65,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         assertReplicationSlotActive();
 
@@ -77,7 +78,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
             assertTrueEventually(() -> assertMatch(expectedRecords, mapResultsToSortedList(hz.getMap(SINK_MAP_NAME))));
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
@@ -100,7 +101,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         assertReplicationSlotActive();
 
         try {
@@ -111,7 +112,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
             assertTrueEventually(() -> assertMatch(expectedRecords, mapResultsToSortedList(hz.getMap(SINK_MAP_NAME))));
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
@@ -137,7 +138,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
         // when
         HazelcastInstance hz = createHazelcastInstances(2)[0];
         Job job = hz.getJet().newJob(pipeline);
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         assertReplicationSlotActive();
 
         try {
@@ -151,7 +152,7 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
             assertTrueEventually(() -> assertMatch(expectedRecords, mapResultsToSortedList(hz.getMap(SINK_MAP_NAME))));
         } finally {
             job.cancel();
-            assertJobStatusEventually(job, JobStatus.FAILED);
+            assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
         }
     }
 
@@ -234,8 +235,9 @@ public class PostgresCdcListenBeforeExistsIntegrationTest extends AbstractPostgr
                         "select * from pg_replication_slots where slot_name = ? and database = ?");
                 preparedStatement.setString(1, REPLICATION_SLOT_NAME);
                 preparedStatement.setString(2, DATABASE_NAME);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                assertTrue(resultSet.next() && resultSet.getBoolean("active"));
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    assertTrue(resultSet.next() && resultSet.getBoolean("active"));
+                }
             }
         });
     }

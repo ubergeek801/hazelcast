@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ import java.util.Map;
  */
 public abstract class HazelcastMBean<T> implements DynamicMBean, MBeanRegistration {
 
-    protected HashMap<String, BeanInfo> attributeMap = new HashMap<String, BeanInfo>();
-    protected HashMap<String, BeanInfo> operationMap = new HashMap<String, BeanInfo>();
+    protected HashMap<String, BeanInfo> attributeMap = new HashMap<>();
+    protected HashMap<String, BeanInfo> operationMap = new HashMap<>();
 
     protected final long updateIntervalSec;
 
@@ -83,7 +83,7 @@ public abstract class HazelcastMBean<T> implements DynamicMBean, MBeanRegistrati
         }
     }
 
-    private void scan() throws Exception {
+    private void scan() {
         ManagedDescription descAnn = getClass().getAnnotation(ManagedDescription.class);
         if (descAnn != null) {
             description = descAnn.value();
@@ -128,7 +128,7 @@ public abstract class HazelcastMBean<T> implements DynamicMBean, MBeanRegistrati
 
     public void setObjectName(Map<String, String> properties) {
         try {
-            objectName = new ObjectName(ManagementService.DOMAIN, new Hashtable<String, String>(properties));
+            objectName = new ObjectName(ManagementService.DOMAIN, new Hashtable<>(properties));
         } catch (MalformedObjectNameException e) {
             throw new IllegalArgumentException("Failed to create an ObjectName", e);
         }
@@ -225,7 +225,7 @@ public abstract class HazelcastMBean<T> implements DynamicMBean, MBeanRegistrati
     }
 
     @Override
-    public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
+    public ObjectName preRegister(MBeanServer server, ObjectName name) {
         try {
             scan();
         } catch (Exception e) {
@@ -239,7 +239,7 @@ public abstract class HazelcastMBean<T> implements DynamicMBean, MBeanRegistrati
     }
 
     @Override
-    public void preDeregister() throws Exception {
+    public void preDeregister() {
     }
 
     @Override

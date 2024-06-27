@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.hazelcast.internal.config.ConfigUtils;
  * This {@code ConfigPatternMatcher} supports a simplified wildcard matching.
  * See "Config.md ## Using Wildcard" for details about the syntax options.
  * <p>
- * In addition the candidates are weighted by the best match. The best result is returned.
+ * In addition, the candidates are weighted by the best match. The best result is returned.
  * Throws {@link com.hazelcast.config.InvalidConfigurationException} is multiple configurations are found.
  */
 public class MatchingPointConfigPatternMatcher implements ConfigPatternMatcher {

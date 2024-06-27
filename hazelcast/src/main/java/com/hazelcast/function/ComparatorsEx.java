@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.function;
 
 import com.hazelcast.internal.serialization.BinaryInterface;
 
+import java.io.Serial;
+
 final class ComparatorsEx {
 
     static final ComparatorEx<Comparable<Object>> NATURAL_ORDER = new NaturalOrderComparator();
@@ -29,6 +31,9 @@ final class ComparatorsEx {
     @BinaryInterface
     private static final class NaturalOrderComparator implements ComparatorEx<Comparable<Object>> {
 
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         @Override
         public int compareEx(Comparable<Object> left, Comparable<Object> right) {
             return left.compareTo(right);
@@ -39,6 +44,7 @@ final class ComparatorsEx {
             return REVERSE_ORDER;
         }
 
+        @Serial
         private Object readResolve() {
             return NATURAL_ORDER;
         }
@@ -46,6 +52,9 @@ final class ComparatorsEx {
 
     @BinaryInterface
     private static final class ReverseOrderComparator implements ComparatorEx<Comparable<Object>> {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
 
         @Override
         public int compareEx(Comparable<Object> left, Comparable<Object> right) {
@@ -57,6 +66,7 @@ final class ComparatorsEx {
             return NATURAL_ORDER;
         }
 
+        @Serial
         private Object readResolve() {
             return REVERSE_ORDER;
         }
@@ -64,9 +74,10 @@ final class ComparatorsEx {
 
     @BinaryInterface
     public static final class NullComparator<T> implements ComparatorEx<T> {
+        @Serial
+        private static final long serialVersionUID = 1L;
         private final boolean isNullFirst;
 
-        @SuppressWarnings("unchecked")
         NullComparator(boolean isNullFirst) {
             this.isNullFirst = isNullFirst;
         }

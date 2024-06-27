@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class AuthenticationInformationLeakTest {
     private ClientMessage authenticate(String clusterName, byte serVersion, OutputStream os, InputStream is)
             throws IOException {
         UUID uuid = new UUID(0, 0);
-        ClientMessage msg = ClientAuthenticationCodec.encodeRequest(clusterName, null, null, uuid, "", serVersion, "", "", new ArrayList<>());
+        ClientMessage msg = ClientAuthenticationCodec.encodeRequest(clusterName, null, null, uuid, "", serVersion, "", "", new ArrayList<>(), (byte) 1);
         ClientTestUtil.writeClientMessage(os, msg);
 
         ClientMessage res = ClientTestUtil.readResponse(is);

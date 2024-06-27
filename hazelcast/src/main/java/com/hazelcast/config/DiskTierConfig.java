@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,11 +115,9 @@ public class DiskTierConfig implements IdentifiedDataSerializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DiskTierConfig)) {
+        if (!(o instanceof DiskTierConfig that)) {
             return false;
         }
-
-        DiskTierConfig that = (DiskTierConfig) o;
 
         if (enabled != that.enabled) {
             return false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public final class DistributedObjectUtil {
          * For example, for the point of view of cache,
          * it has pure name and full name which contains prefixes also.
          *
-         * However both of our `DistributedObject` and `javax.cache.Cache` (from JCache spec) interfaces
+         * However, both of our `DistributedObject` and `javax.cache.Cache` (from JCache spec) interfaces
          * have same method name with same signature. It is `String getName()`.
          *
          * From the distributed object side, name must be fully qualified name of object,
@@ -49,8 +49,8 @@ public final class DistributedObjectUtil {
          * For cache case, the fully qualified name is full cache name contains Hazelcast prefix (`/hz`),
          * cache name prefix regarding to URI and/or classloader if specified and pure cache name.
          */
-        if (distributedObject instanceof PrefixedDistributedObject) {
-            return ((PrefixedDistributedObject) distributedObject).getPrefixedName();
+        if (distributedObject instanceof PrefixedDistributedObject object) {
+            return object.getPrefixedName();
         } else {
             return distributedObject.getName();
         }

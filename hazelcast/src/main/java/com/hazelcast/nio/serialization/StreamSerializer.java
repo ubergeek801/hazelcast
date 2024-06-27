@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ public interface StreamSerializer<T> extends Serializer {
      * @param object that will be written to out
      * @throws IOException in case of failure to write
      */
-
     void write(@Nonnull ObjectDataOutput out, @Nonnull T object) throws IOException;
 
     /**

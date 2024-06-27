@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,9 +86,7 @@ public class TpcEngineTest {
     public void shutdown_whenRunning() throws InterruptedException {
         engine = new TpcEngine();
         engine.start();
-        engine.reactor(0).offer(() -> {
-            sleepMillis(1000);
-        });
+        engine.reactor(0).offer(() -> sleepMillis(1000));
         engine.shutdown();
         assertEquals(SHUTDOWN, engine.state());
         assertTrue(engine.awaitTermination(5, TimeUnit.SECONDS));
@@ -99,9 +97,7 @@ public class TpcEngineTest {
     public void shutdown_whenShutdown() throws InterruptedException {
         engine = new TpcEngine();
         engine.start();
-        engine.reactor(0).offer(() -> {
-            sleepMillis(1000);
-        });
+        engine.reactor(0).offer(() -> sleepMillis(1000));
         engine.shutdown();
 
         engine.shutdown();

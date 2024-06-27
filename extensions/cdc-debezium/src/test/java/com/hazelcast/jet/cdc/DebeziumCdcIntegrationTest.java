@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import io.debezium.connector.mongodb.MongoDbConnector;
 import io.debezium.connector.mysql.MySqlConnector;
 import io.debezium.connector.postgresql.PostgresConnector;
 import org.bson.Document;
-import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -51,29 +50,29 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import static com.hazelcast.jet.cdc.MySQLTestUtils.getMySqlConnection;
 import static com.hazelcast.jet.cdc.Operation.UNSPECIFIED;
+import static com.hazelcast.jet.cdc.MySQLTestUtils.runQuery;
+import static com.hazelcast.jet.cdc.PostgresTestUtils.getPostgreSqlConnection;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testcontainers.containers.MySQLContainer.MYSQL_PORT;
 import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
 
-@SuppressWarnings("SqlNoDataSourceInspection")
 @Category({NightlyTest.class})
 @RunWith(HazelcastSerialClassRunner.class)
+@SuppressWarnings({"SqlNoDataSourceInspection", "SqlResolve"})
 public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
     private static final DockerImageName MYSQL_IMAGE =
-            DockerImageName.parse("debezium/example-mysql:1.9.3.Final").asCompatibleSubstituteFor("mysql");
+            DockerImageName.parse("debezium/example-mysql:2.3.0.Final").asCompatibleSubstituteFor("mysql");
     private static final DockerImageName POSTGRES_IMAGE =
-            DockerImageName.parse("debezium/example-postgres:1.7").asCompatibleSubstituteFor("postgres");
+            DockerImageName.parse("debezium/example-postgres:2.3.0.Final").asCompatibleSubstituteFor("postgres");
     private static final DockerImageName MONGODB_IMAGE =
             DockerImageName.parse("mongo:6.0.3").asCompatibleSubstituteFor("mongodb");
 
     @Test
     public void mysql() throws Exception {
-        Assume.assumeFalse("https://github.com/hazelcast/hazelcast-jet/issues/2623, " +
-                        "https://github.com/hazelcast/hazelcast/issues/18800",
-                System.getProperty("java.version").matches("^1[56].*"));
-
         try (MySQLContainer<?> container = mySqlContainer()) {
             container.start();
 
@@ -128,7 +127,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
                 assertEqualsEventually(() -> String.join("\n", hz.getList("results")), expected);
             } finally {
                 job.cancel();
-                assertJobStatusEventually(job, JobStatus.FAILED);
+                assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
             }
         }
     }
@@ -151,10 +150,6 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
 
     @Test
     public void mysql_simpleJson() {
-        Assume.assumeFalse("https://github.com/hazelcast/hazelcast-jet/issues/2623, " +
-                        "https://github.com/hazelcast/hazelcast/issues/18800",
-                System.getProperty("java.version").matches("^1[56].*"));
-
         try (MySQLContainer<?> container = mySqlContainer()) {
             container.start();
 
@@ -225,7 +220,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
                 assertTrueEventually(() -> assertMatch(expectedRecords, mapResultsToSortedList(hz.getMap("results"))));
             } finally {
                 job.cancel();
-                assertJobStatusEventually(job, JobStatus.FAILED);
+                assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
             }
         }
     }
@@ -264,6 +259,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
                     .setProperty("database.password", "postgres")
                     .setProperty("database.dbname", "postgres")
                     .setProperty("table.whitelist", "inventory.customers")
+                    .setProperty("heartbeat.interval.ms", "1000") // this will add Heartbeat messages to the stream
                     .build();
 
             Pipeline pipeline = Pipeline.create();
@@ -306,7 +302,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
                 assertEqualsEventually(() -> String.join("\n", hz.getList("results")), expected);
             } finally {
                 job.cancel();
-                assertJobStatusEventually(job, JobStatus.FAILED);
+                assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
             }
         }
     }
@@ -377,7 +373,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
                 assertTrueEventually(() -> assertMatch(expectedRecords, mapResultsToSortedList(hz.getMap("results"))));
             } finally {
                 job.cancel();
-                assertJobStatusEventually(job, JobStatus.FAILED);
+                assertThat(job).eventuallyHasStatus(JobStatus.FAILED);
             }
         }
     }
@@ -495,7 +491,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
 
             Job job = hz.getJet().newJob(p);
 
-            assertJobStatusEventually(job, JobStatus.RUNNING);
+            assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
 
             assertTrueEventually(() -> {
                 logger.info(String.format("List size: %s", changeRecordList.size()));
@@ -505,13 +501,50 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
         }
     }
 
+    @Test
+    public void schemaChangesArePassed() {
+        final String listName = "schemaChangesArePassed";
+        try (MySQLContainer<?> container = mySqlContainer()) {
+            container.start();
+
+            HazelcastInstance hz = createHazelcastInstance();
+            IList<ChangeRecord> changeRecordList = hz.getList(listName);
+
+            StreamSource<ChangeRecord> source = mySqlSource(container);
+            Pipeline p = Pipeline.create();
+            p
+                    .readFrom(source)
+                    .withIngestionTimestamps()
+                    .setLocalParallelism(1)
+                    .writeTo(Sinks.list(changeRecordList));
+
+            Job job = hz.getJet().newJob(p);
+            assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
+
+            String query = "CREATE TABLE `inventory`.`tableForSchemaChangesArePassed` (id INT)";
+            runQuery(container, query);
+
+            try {
+                assertTrueEventually(() -> {
+                    logger.info(String.format("List size: %s", changeRecordList.size()));
+                    assertThat(changeRecordList).as(listName).isNotEmpty();
+
+                    assertThat(changeRecordList).anyMatch(r ->
+                            r.value().toJson().contains("CREATE TABLE `tableForSchemaChangesArePassed`"));
+                });
+            } finally {
+                runQuery(container, "DROP TABLE IF EXISTS inventory.tableForSchemaChangesArePassed");
+            }
+        }
+    }
+
     /**
      * {@code before} field in MongoDB CDC is not present at all
      */
     @Test
     public void noFailWhenBeforeIsNotPresent() {
-        try (MongoDBContainer container =  new MongoDBContainer(MONGODB_IMAGE).withExposedPorts(27017)
-                                                                              .withNetworkAliases("mongo")) {
+        try (MongoDBContainer container = new MongoDBContainer(MONGODB_IMAGE).withExposedPorts(27017)
+                                                                             .withNetworkAliases("mongo")) {
             container.start();
             String connectionString = container.getConnectionString();
 
@@ -542,7 +575,7 @@ public class DebeziumCdcIntegrationTest extends AbstractCdcIntegrationTest {
 
                 Job job = hz.getJet().newJob(p);
 
-                assertJobStatusEventually(job, JobStatus.RUNNING);
+                assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
                 mc.getDatabase("test").getCollection("test").insertOne(new Document("test", "test"));
 
                 assertTrueEventually(() ->

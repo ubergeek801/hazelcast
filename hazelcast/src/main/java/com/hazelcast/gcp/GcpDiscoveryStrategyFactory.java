@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.gcp;
 
 import com.hazelcast.config.properties.PropertyDefinition;
-import com.hazelcast.internal.nio.IOUtil;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.spi.discovery.DiscoveryNode;
@@ -26,10 +25,9 @@ import com.hazelcast.spi.discovery.DiscoveryStrategyFactory;
 import com.hazelcast.spi.utils.RestClient;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +53,7 @@ public class GcpDiscoveryStrategyFactory
 
     @Override
     public Collection<PropertyDefinition> getConfigurationProperties() {
-        List<PropertyDefinition> result = new ArrayList<PropertyDefinition>();
+        List<PropertyDefinition> result = new ArrayList<>();
         for (GcpProperties property : GcpProperties.values()) {
             result.add(property.getDefinition());
         }
@@ -73,7 +71,7 @@ public class GcpDiscoveryStrategyFactory
      * GCP discovery will not work.
      *
      * @return true if running on GCP Instance which has a service account attached
-     * @see <a href=https://cloud.google.com/compute/docs/instances/managing-instances#dmi>GCP Managing Instances</a>
+     * @see <a href="https://cloud.google.com/compute/docs/instances/managing-instances#dmi">GCP Managing Instances</a>
      */
     @Override
     public boolean isAutoDetectionApplicable() {
@@ -86,17 +84,11 @@ public class GcpDiscoveryStrategyFactory
     }
 
     static String readFileContents(String fileName) {
-        InputStream is = null;
         try {
             File file = new File(fileName);
-            byte[] data = new byte[(int) file.length()];
-            is = new FileInputStream(file);
-            is.read(data);
-            return new String(data, StandardCharsets.UTF_8);
+            return Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not get " + fileName, e);
-        } finally {
-            IOUtil.closeResource(is);
         }
     }
 
@@ -116,9 +108,8 @@ public class GcpDiscoveryStrategyFactory
     }
 
     static boolean isEndpointAvailable(String url) {
-        return !RestClient.create(url)
-                .withConnectTimeoutSeconds(1)
-                .withReadTimeoutSeconds(1)
+        return !RestClient.create(url, 1)
+                .withRequestTimeoutSeconds(1)
                 .withRetries(1)
                 .withHeader("Metadata-Flavor", "Google")
                 .get()

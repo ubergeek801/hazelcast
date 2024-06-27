@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.util.Properties;
 
 /**
  * Interface to be implemented by pluggable variable replacers for the configuration files. The replacers can be configured in
- * XML configuration files and they are used to replace custom strings during loading the configuration.
+ * XML configuration files, and they are used to replace custom strings during loading the configuration.
  * <p>
- * A Variable to be replaced within the configuration file has following form:
+ * A Variable to be replaced within the configuration file has the following form:
  *
  * <pre>
  * "$" PREFIX "{" MASKED_VALUE "}"

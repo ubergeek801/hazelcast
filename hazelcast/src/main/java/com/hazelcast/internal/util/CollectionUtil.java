@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 
@@ -59,27 +58,6 @@ public final class CollectionUtil {
     }
 
     /**
-     * Adds a value to a list of values in the map.
-     * <p>
-     * Creates a new list if no list is found for the key.
-     *
-     * @param map   the given map of lists
-     * @param key   the key of the target list
-     * @param value the value to add to the target list
-     * @return the updated list of values
-     */
-    public static <K, V> List<V> addToValueList(Map<K, List<V>> map, K key, V value) {
-        List<V> valueList = map.get(key);
-        if (valueList == null) {
-            valueList = new ArrayList<V>();
-            map.put(key, valueList);
-        }
-        valueList.add(value);
-
-        return valueList;
-    }
-
-    /**
      * Returns the n-th item or {@code null} if collection is smaller.
      *
      * @param collection the given collection
@@ -88,7 +66,7 @@ public final class CollectionUtil {
      * @throws NullPointerException if collection is {@code null}
      */
     public static <T> T getItemAtPositionOrNull(Collection<T> collection, int position) {
-        if (position >= collection.size()) {
+        if (position >= collection.size() || position < 0) {
             return null;
         }
         if (collection instanceof List) {
@@ -112,7 +90,7 @@ public final class CollectionUtil {
      */
     public static <C> Collection<Data> objectToDataCollection(Collection<C> collection,
                                                               SerializationService serializationService) {
-        List<Data> dataCollection = new ArrayList<Data>(collection.size());
+        List<Data> dataCollection = new ArrayList<>(collection.size());
         objectToDataCollection(collection, dataCollection, serializationService, null);
         return dataCollection;
     }
@@ -151,31 +129,16 @@ public final class CollectionUtil {
     }
 
     /**
-     * Converts a {@link Collection} of {@link Long} to a primitive {@code long[]} array.
-     *
-     * @param collection the given collection
-     * @return a primitive long[] array
-     * @throws NullPointerException if collection is {@code null}
-     */
-    public static long[] toLongArray(Collection<Long> collection) {
-        long[] collectionArray = new long[collection.size()];
-        int index = 0;
-        for (Long item : collection) {
-            collectionArray[index++] = item;
-        }
-        return collectionArray;
-    }
-
-    /**
      * Adapts an int array to an Integer {@link List}.
+     * <p>
+     * The returned list is not serializable. If serializability is required,
+     * use {@code Arrays.stream(array).boxed().toList()}.
      *
-     * @param array the array
-     * @return the list
      * @throws NullPointerException if array is null.
      */
-    public static List<Integer> asIntegerList(int[] array) {
+    public static List<Integer> asIntegerList(@Nonnull int[] array) {
         checkNotNull(array, "null array");
-        return new AbstractList<Integer>() {
+        return new AbstractList<>() {
             @Override
             public Integer get(int index) {
                 return array[index];
@@ -190,18 +153,6 @@ public final class CollectionUtil {
 
     /** Returns an empty Collection if argument is null. **/
     public static <T> Collection<T> nullToEmpty(Collection<T> collection) {
-        return collection == null ? Collections.<T>emptyList() : collection;
-    }
-
-    /**
-     * Returns true, if the two collections contain any common item.
-     */
-    public static <T> boolean hasNonEmptyIntersection(@Nonnull Collection<T> a, @Nonnull Collection<T> b) {
-        for (T t : a) {
-            if (b.contains(t)) {
-                return true;
-            }
-        }
-        return false;
+        return collection == null ? Collections.emptyList() : collection;
     }
 }

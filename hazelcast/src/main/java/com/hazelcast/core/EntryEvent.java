@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import com.hazelcast.map.AbstractIMapEvent;
 import com.hazelcast.map.IMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.io.Serial;
+
 /**
  * Map Entry event.
  *
@@ -33,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressFBWarnings("SE_BAD_FIELD")
 public class EntryEvent<K, V> extends AbstractIMapEvent {
 
+    @Serial
     private static final long serialVersionUID = -2296203982913729851L;
 
     protected K key;
@@ -85,10 +88,7 @@ public class EntryEvent<K, V> extends AbstractIMapEvent {
      * @throws IllegalArgumentException if source is {@code null}
      */
     public EntryEvent(Object source, Member member, int eventType, K key, V oldValue, V value, V mergingValue) {
-        super(source, member, eventType);
-        this.key = key;
-        this.oldValue = oldValue;
-        this.value = value;
+        this(source, member, eventType, key, oldValue, value);
         this.mergingValue = mergingValue;
     }
 
@@ -107,7 +107,7 @@ public class EntryEvent<K, V> extends AbstractIMapEvent {
      * @return the old value of the entry event
      */
     public V getOldValue() {
-        return this.oldValue;
+        return oldValue;
     }
 
     /**

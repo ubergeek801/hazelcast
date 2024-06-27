@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.hazelcast.test;
 
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.mockito.MockedStatic;
 
 import static com.hazelcast.test.OverridePropertyRule.set;
 import static org.junit.Assert.assertEquals;
@@ -36,6 +38,8 @@ import static org.mockito.Mockito.when;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class OverridePropertyRuleMockTest {
 
+    private static MockedStatic<OtherClass> mockedStatic;
+
     @Rule
     public OverridePropertyRule overridePropertyRule = set("hazelcast.custom.system.property", "5");
     @Rule
@@ -43,7 +47,12 @@ public class OverridePropertyRuleMockTest {
 
     @BeforeClass
     public static void setUp() {
-        mockStatic(OtherClass.class);
+        mockedStatic = mockStatic(OtherClass.class);
+    }
+
+    @AfterClass
+    public static void cleanUpMocks() {
+        mockedStatic.close();
     }
 
     @Test
@@ -80,7 +89,7 @@ public class OverridePropertyRuleMockTest {
         assertEquals("true", testClass.getProperty("java.net.preferIPv4Stack"));
     }
 
-    private TestClass createTestClass() throws Exception {
+    private TestClass createTestClass() {
         when(OtherClass.getName()).thenReturn("mocked-name");
         return new TestClass();
     }

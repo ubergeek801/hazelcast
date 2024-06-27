@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.impl.AndResultSet;
-import com.hazelcast.query.impl.Indexes;
+import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.QueryContext;
 import com.hazelcast.query.impl.QueryableEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.PREDICATE_DS_FACTORY_ID;
-import static com.hazelcast.query.impl.Indexes.SKIP_PARTITIONS_COUNT_CHECK;
+import static com.hazelcast.query.impl.IndexRegistry.SKIP_PARTITIONS_COUNT_CHECK;
 import static com.hazelcast.query.impl.predicates.PredicateUtils.estimatedSizeOf;
 
 /**
@@ -45,6 +46,7 @@ import static com.hazelcast.query.impl.predicates.PredicateUtils.estimatedSizeOf
 public final class AndPredicate
         implements IndexAwarePredicate, IdentifiedDataSerializable, VisitablePredicate, NegatablePredicate, CompoundPredicate {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected Predicate[] predicates;
@@ -57,7 +59,7 @@ public final class AndPredicate
     }
 
     @Override
-    public Predicate accept(Visitor visitor, Indexes indexes) {
+    public Predicate accept(Visitor visitor, IndexRegistry indexes) {
         Predicate[] result = VisitorUtils.acceptVisitor(predicates, visitor, indexes);
         if (result != predicates) {
             //inner predicates were modified by a visitor
@@ -106,13 +108,13 @@ public final class AndPredicate
     }
 
     private static boolean isIndexedPredicate(Predicate predicate, QueryContext queryContext) {
-        return predicate instanceof IndexAwarePredicate
-                && ((IndexAwarePredicate) predicate).isIndexed(queryContext);
+        return predicate instanceof IndexAwarePredicate awarePredicate
+                && awarePredicate.isIndexed(queryContext);
     }
 
     private static <T> List<T> initOrGetListOf(List<T> list) {
         if (list == null) {
-            list = new LinkedList<T>();
+            list = new LinkedList<>();
         }
         return list;
     }
@@ -120,9 +122,8 @@ public final class AndPredicate
     @Override
     public boolean isIndexed(QueryContext queryContext) {
         for (Predicate predicate : predicates) {
-            if (predicate instanceof IndexAwarePredicate) {
-                IndexAwarePredicate iap = (IndexAwarePredicate) predicate;
-                if (iap.isIndexed(queryContext)) {
+            if (predicate instanceof IndexAwarePredicate awarePredicate) {
+                if (awarePredicate.isIndexed(queryContext)) {
                     return true;
                 }
             }
@@ -179,8 +180,8 @@ public final class AndPredicate
         for (int i = 0; i < size; i++) {
             Predicate original = predicates[i];
             Predicate negated;
-            if (original instanceof NegatablePredicate) {
-                negated = ((NegatablePredicate) original).negate();
+            if (original instanceof NegatablePredicate predicate) {
+                negated = predicate.negate();
             } else {
                 negated = new NotPredicate(original);
             }

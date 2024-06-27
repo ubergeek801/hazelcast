@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.core.LocalMemberResetException;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.JobStateSnapshot;
 import com.hazelcast.jet.JobStatusListener;
 import com.hazelcast.jet.config.DeltaJobConfig;
 import com.hazelcast.jet.config.JobConfig;
@@ -39,6 +40,7 @@ import com.hazelcast.spi.impl.eventservice.impl.operations.RegistrationOperation
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.security.auth.Subject;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -48,12 +50,12 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static com.hazelcast.internal.util.ExceptionUtil.withTryCatch;
 import static com.hazelcast.jet.core.JobStatus.COMPLETED;
 import static com.hazelcast.jet.core.JobStatus.FAILED;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.impl.util.ExceptionUtil.peel;
 import static com.hazelcast.jet.impl.util.ExceptionUtil.rethrow;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.withTryCatch;
 import static com.hazelcast.jet.impl.util.Util.memoizeConcurrent;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -73,10 +75,17 @@ public abstract class AbstractJobProxy<C, M> implements Job {
 
     /** Null for normal jobs, non-null for light jobs  */
     protected final M lightJobCoordinator;
+    // Subject that is used to submit a job. Not available for jobs obtained by id.
+    //
+    // Technical debt: this field should is used only in JobProxy and should be there
+    // but because AbstractJobProxy constructor invokes overriden (!) invokeSubmitJob method
+    // that needs this field we initialize in it superclass constructor.
+    protected final Subject subject;
+
+    protected final ILogger logger;
 
     private final long jobId;
     private volatile String name = NOT_LOADED;
-    private final ILogger logger;
     private final C container;
 
     /**
@@ -96,6 +105,7 @@ public abstract class AbstractJobProxy<C, M> implements Job {
      */
     private final boolean submittingInstance;
 
+
     AbstractJobProxy(C container, long jobId, M lightJobCoordinator) {
         this.jobId = jobId;
         this.container = container;
@@ -105,14 +115,21 @@ public abstract class AbstractJobProxy<C, M> implements Job {
         future = new NonCompletableFuture();
         joinJobCallback = new JoinJobCallback();
         submittingInstance = false;
+        subject = null;
     }
 
-    AbstractJobProxy(C container, long jobId, boolean isLightJob, @Nonnull Object jobDefinition, @Nonnull JobConfig config) {
+    AbstractJobProxy(C container,
+                     long jobId,
+                     boolean isLightJob,
+                     @Nonnull Object jobDefinition,
+                     @Nonnull JobConfig config,
+                     @Nullable Subject subject) {
         this.jobId = jobId;
         this.container = container;
         this.lightJobCoordinator = isLightJob ? findLightJobCoordinator() : null;
         this.logger = loggingService().getLogger(Job.class);
         submittingInstance = true;
+        this.subject = subject;
 
         try {
             NonCompletableFuture submitFuture = doSubmitJob(jobDefinition, config);
@@ -175,7 +192,7 @@ public abstract class AbstractJobProxy<C, M> implements Job {
     /**
      * Returns the string {@code <jobId> (name <jobName>)} without risking
      * triggering of lazy-loading of JobConfig: if we don't have it, it will
-     * say {@code name ??}. If we have it and it is null, it will say {@code
+     * say {@code name ??}. If we have it, and it is null, it will say {@code
      * name ''}.
      */
     @SuppressWarnings({"StringEquality", "java:S4973"})
@@ -257,6 +274,16 @@ public abstract class AbstractJobProxy<C, M> implements Job {
         terminate(TerminationMode.SUSPEND_GRACEFUL);
     }
 
+    @Override
+    public JobStateSnapshot exportSnapshot(String name) {
+        return doExportSnapshot(name, false);
+    }
+
+    @Override
+    public JobStateSnapshot cancelAndExportSnapshot(String name) {
+        return doExportSnapshot(name, true);
+    }
+
     private void terminate(TerminationMode mode) {
         if (mode != TerminationMode.CANCEL_FORCEFUL) {
             checkNotLightJob(mode.toString());
@@ -276,7 +303,7 @@ public abstract class AbstractJobProxy<C, M> implements Job {
                         // it can happen that we enqueued the submit operation, but the master handled
                         // the terminate op before the submit op and doesn't yet know about the job. But
                         // it can be that the job already completed, we don't know. We'll look at the submit
-                        // future, if it's done, the job is done. Otherwise we'll retry - the job will eventually
+                        // future, if it's done, the job is done. Otherwise, we'll retry - the job will eventually
                         // start or complete.
                         // This scenario is possible only on the client or lite member. On normal member,
                         // the submit op is executed directly.
@@ -356,6 +383,8 @@ public abstract class AbstractJobProxy<C, M> implements Job {
      * #getConfig()} to reflect the changes); otherwise, the operation fails.
      */
     protected abstract JobConfig doUpdateJobConfig(@Nonnull DeltaJobConfig deltaConfig);
+
+    protected abstract JobStateSnapshot doExportSnapshot(String name, boolean cancelJob);
 
     /**
      * Associates the specified listener to this job.
@@ -481,7 +510,7 @@ public abstract class AbstractJobProxy<C, M> implements Job {
 
         private void retryAction(Throwable t) {
             try {
-                // calling for the side-effect of throwing ISE if master not known
+                // calling for the side effect of throwing ISE if master not known
                 masterId();
             } catch (IllegalStateException e) {
                 // job data will be cleaned up eventually by the coordinator

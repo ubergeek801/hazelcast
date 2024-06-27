@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2023, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,8 @@ import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -43,13 +41,10 @@ import static org.junit.Assert.assertTrue;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class IntHashSetTest extends HazelcastTestSupport {
 
-    @Rule
-    public final ExpectedException rule = ExpectedException.none();
-
     private final IntHashSet set = new IntHashSet(1000, -1);
 
     @Test
-    public void initiallyContainsNoElements() throws Exception {
+    public void initiallyContainsNoElements() {
         for (int i = 0; i < 10000; i++) {
             assertNotContains(set, i);
         }
@@ -94,7 +89,7 @@ public class IntHashSetTest extends HazelcastTestSupport {
 
     @Test
     public void removingAPresentElementRemovesIt() {
-        final Set<Integer> jdkSet = new HashSet<Integer>();
+        final Set<Integer> jdkSet = new HashSet<>();
         final Random rnd = new Random();
         for (int i = 0; i < 1000; i++) {
             final int value = rnd.nextInt();
@@ -277,8 +272,7 @@ public class IntHashSetTest extends HazelcastTestSupport {
     public void failsWhenOverCapacity() {
         final IntHashSet set = new IntHashSet(1, 0);
         set.add(1);
-        rule.expect(IllegalStateException.class);
-        set.add(2);
+        assertThrows(IllegalStateException.class, () -> set.add(2));
     }
 
     @Test
@@ -287,7 +281,7 @@ public class IntHashSetTest extends HazelcastTestSupport {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray();
-        final Set<Object> fromArray = new HashSet<Object>(Arrays.asList(ary));
+        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
         assertEquals(new HashSet<Object>(initial), fromArray);
     }
 
@@ -297,7 +291,7 @@ public class IntHashSetTest extends HazelcastTestSupport {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray(new Integer[0]);
-        final Set<Object> fromArray = new HashSet<Object>(Arrays.asList(ary));
+        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
         assertEquals(new HashSet<Object>(initial), fromArray);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import com.hazelcast.jet.elastic.CommonElasticSinksTest.TestItem;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sink;
 import com.hazelcast.jet.pipeline.test.TestSources;
+import com.hazelcast.jet.test.IgnoreInJenkinsOnWindows;
+import com.hazelcast.jet.test.SerialTest;
+import com.hazelcast.test.annotation.NightlyTest;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -30,6 +33,7 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.client.RestClientBuilder;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import java.io.IOException;
@@ -38,6 +42,7 @@ import static com.hazelcast.jet.elastic.ElasticClients.client;
 import static com.hazelcast.jet.elastic.ElasticSupport.PORT;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Category({NightlyTest.class, SerialTest.class, IgnoreInJenkinsOnWindows.class})
 public class AuthElasticSinksTest extends BaseElasticTest {
 
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
@@ -77,7 +82,7 @@ public class AuthElasticSinksTest extends BaseElasticTest {
     @Test
     public void given_clientWithWrongPassword_whenWriteToElasticSink_thenFailWithAuthenticationException() {
         ElasticsearchContainer container = ElasticSupport.secureElastic.get();
-        String containerIp = container.getContainerIpAddress();
+        String containerIp = container.getHost();
         Integer port = container.getMappedPort(PORT);
 
         Sink<TestItem> elasticSink = new ElasticSinkBuilder<>()
@@ -99,7 +104,7 @@ public class AuthElasticSinksTest extends BaseElasticTest {
     @Test
     public void given_clientWithoutAuthentication_whenWriteToElasticSink_thenFailWithAuthenticationException() {
         ElasticsearchContainer container = ElasticSupport.secureElastic.get();
-        String containerIp = container.getContainerIpAddress();
+        String containerIp = container.getHost();
         Integer port = container.getMappedPort(PORT);
 
         Sink<TestItem> elasticSink = new ElasticSinkBuilder<>()

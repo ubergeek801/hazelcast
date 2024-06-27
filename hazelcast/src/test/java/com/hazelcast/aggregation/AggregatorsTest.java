@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -118,7 +119,7 @@ public class AggregatorsTest extends HazelcastTestSupport {
         // THEN
         assertThat(accumulatedCollection).containsExactlyInAnyOrderElementsOf(accumulatedArray);
         assertThat(accumulatedArray).containsExactlyInAnyOrderElementsOf(accumulatedCollection);
-        assertThat(accumulatedCollection).hasSize(0);
+        assertThat(accumulatedCollection).isEmpty();
     }
 
     private Car getCornerCaseCar(Long... values) {
@@ -126,18 +127,16 @@ public class AggregatorsTest extends HazelcastTestSupport {
 
         Wheel emptyWheel = new Wheel();
         emptyWheel.tiresA = new Long[0];
-        emptyWheel.tiresC = new ArrayList<Long>();
+        emptyWheel.tiresC = new ArrayList<>();
 
         Wheel wheel = new Wheel();
         wheel.tiresA = values;
-        wheel.tiresC = new ArrayList<Long>();
-        for (Long value : values) {
-            wheel.tiresC.add(value);
-        }
+        wheel.tiresC = new ArrayList<>();
+        Collections.addAll(wheel.tiresC, values);
 
         Car car = new Car();
         car.wheelsA = new Wheel[]{wheel, emptyWheel, nullWheel};
-        car.wheelsC = new ArrayList<Wheel>();
+        car.wheelsC = new ArrayList<>();
         car.wheelsC.add(emptyWheel);
         car.wheelsC.add(wheel);
         car.wheelsC.add(nullWheel);
@@ -146,7 +145,7 @@ public class AggregatorsTest extends HazelcastTestSupport {
     }
 
     private static class TestAggregator extends AbstractAggregator<Map.Entry<Integer, Car>, Long, List<Long>> {
-        private List<Long> accumulated = new ArrayList<Long>();
+        private List<Long> accumulated = new ArrayList<>();
 
         TestAggregator(String attribute) {
             super(attribute);

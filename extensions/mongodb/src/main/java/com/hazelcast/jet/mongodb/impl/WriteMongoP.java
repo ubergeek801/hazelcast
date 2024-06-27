@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
 import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,11 +65,10 @@ import java.util.Objects;
 
 import static com.hazelcast.internal.nio.IOUtil.closeResource;
 import static com.hazelcast.internal.util.EmptyStatement.ignore;
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.jet.Util.idToString;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
-import static com.hazelcast.jet.impl.util.LoggingUtil.logFine;
 import static com.hazelcast.jet.mongodb.impl.Mappers.defaultCodecRegistry;
 import static com.hazelcast.jet.mongodb.impl.MongoUtilities.checkCollectionExists;
 import static com.hazelcast.jet.mongodb.impl.MongoUtilities.checkDatabaseExists;
@@ -175,10 +175,10 @@ public class WriteMongoP<IN, I> extends AbstractProcessor {
         this.transactionOptionsSup = params.transactionOptionsSup;
 
         if (params.databaseName != null) {
-            this.collectionPicker = new ConstantCollectionPicker<>(params.throwOnNonExisting, params.databaseName,
+            this.collectionPicker = new ConstantCollectionPicker<>(params.checkExistenceOnEachConnect, params.databaseName,
                     params.collectionName);
         } else {
-            this.collectionPicker = new FunctionalCollectionPicker<>(params.throwOnNonExisting,
+            this.collectionPicker = new FunctionalCollectionPicker<>(params.checkExistenceOnEachConnect,
                     params.databaseNameSelectFn, params.collectionNameSelectFn);
         }
         this.intermediateMappingFn = params.getIntermediateMappingFn();
@@ -371,6 +371,7 @@ public class WriteMongoP<IN, I> extends AbstractProcessor {
 
     private static class MongoTransactionId implements TwoPhaseSnapshotCommitUtility.TransactionId, Serializable {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         private final int processorIndex;
@@ -475,7 +476,7 @@ public class WriteMongoP<IN, I> extends AbstractProcessor {
         @Override
         public void begin() {
             if (!txnInitialized) {
-                logFine(logger, "beginning transaction %s", transactionId);
+                logger.fine("beginning transaction %s", transactionId);
                 txnInitialized = true;
             }
             clientSession = connection.client().startSession();
@@ -606,10 +607,13 @@ public class WriteMongoP<IN, I> extends AbstractProcessor {
     private static final class MongoCollectionKey {
         private final @Nonnull String collectionName;
         private final @Nonnull String databaseName;
-        private final boolean throwOnNonExisting;
+        private final boolean checkExistenceOnReconnect;
 
-        MongoCollectionKey(boolean throwOnNonExisting, @Nonnull String databaseName, @Nonnull String collectionName) {
-            this.throwOnNonExisting = throwOnNonExisting;
+        MongoCollectionKey(
+                boolean checkExistenceOnReconnect,
+                @Nonnull String databaseName,
+                @Nonnull String collectionName) {
+            this.checkExistenceOnReconnect = checkExistenceOnReconnect;
             this.collectionName = collectionName;
             this.databaseName = databaseName;
         }
@@ -641,11 +645,11 @@ public class WriteMongoP<IN, I> extends AbstractProcessor {
 
         @Nonnull
         public <I> MongoCollection<I> get(MongoClient mongoClient, Class<I> documentType) {
-            if (throwOnNonExisting) {
+            if (checkExistenceOnReconnect) {
                 checkDatabaseExists(mongoClient, databaseName);
             }
             MongoDatabase database = mongoClient.getDatabase(databaseName);
-            if (throwOnNonExisting) {
+            if (checkExistenceOnReconnect) {
                 checkCollectionExists(database, collectionName);
             }
             return database.getCollection(collectionName, documentType)

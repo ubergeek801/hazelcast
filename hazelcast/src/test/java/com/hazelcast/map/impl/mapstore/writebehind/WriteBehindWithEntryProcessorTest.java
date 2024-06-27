@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class WriteBehindWithEntryProcessorTest extends HazelcastTestSupport {
                 .build();
 
         final TestObject testObject = new TestObject();
-        map.executeOnKey(1, new EntryProcessor<Integer, TestObject, Object>() {
+        map.executeOnKey(1, new EntryProcessor<>() {
             @Override
             public Object process(Map.Entry<Integer, TestObject> entry) {
                 entry.setValue(testObject);
@@ -265,7 +265,7 @@ public class WriteBehindWithEntryProcessorTest extends HazelcastTestSupport {
 
     private static class CustomerDataStore extends MapStoreAdapter<Long, Customer> {
 
-        private AtomicInteger storeCallCount;
+        private final AtomicInteger storeCallCount;
         private final Map<Long, List<Subscription>> store;
         private final long customerId;
 
@@ -330,7 +330,7 @@ public class WriteBehindWithEntryProcessorTest extends HazelcastTestSupport {
     }
 
     private static class Subscription implements Serializable {
-        private long productId;
+        private final long productId;
 
         private Subscription(long productId) {
             this.productId = productId;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.internal.cluster.impl.MembersViewMetadata;
 import com.hazelcast.internal.util.UUIDSerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.impl.Versioned;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,7 +32,8 @@ import java.util.HashSet;
 import java.util.UUID;
 
 /** A heartbeat sent from one cluster member to another. The sent timestamp is the cluster clock time of the sending member */
-public final class HeartbeatOp extends AbstractClusterOperation {
+// RU_COMPAT_5_3 "implements Versioned" can be removed in 5.5
+public final class HeartbeatOp extends AbstractClusterOperation implements Versioned {
 
     private MembersViewMetadata senderMembersViewMetadata;
     private UUID targetUuid;

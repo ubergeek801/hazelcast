@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,7 @@ public class SpringManagedContext implements ManagedContext, ApplicationContextA
     public Object initialize(Object obj) {
         Object resultObject = obj;
         if (obj != null) {
-            if (obj instanceof RunnableAdapter) {
-                RunnableAdapter adapter = (RunnableAdapter) obj;
+            if (obj instanceof RunnableAdapter adapter) {
                 Object runnable = adapter.getRunnable();
                 runnable = initializeIfSpringAwareIsPresent(runnable);
                 adapter.setRunnable((Runnable) runnable);
@@ -54,8 +53,8 @@ public class SpringManagedContext implements ManagedContext, ApplicationContextA
     }
 
     private Object initializeIfSpringAwareIsPresent(Object obj) {
-        Class clazz = obj.getClass();
-        SpringAware s = (SpringAware) clazz.getAnnotation(SpringAware.class);
+        Class<?> clazz = obj.getClass();
+        SpringAware s = clazz.getAnnotation(SpringAware.class);
         Object resultObject = obj;
         if (s != null) {
             String name = s.beanName().trim();

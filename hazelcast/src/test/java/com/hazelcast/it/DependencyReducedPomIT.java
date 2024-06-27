@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class DependencyReducedPomIT {
     @Test
     public void testZeroCompileScopedDeps() throws Exception {
         DocumentBuilder builder = getNsAwareDocumentBuilderFactory().newDocumentBuilder();
-        Document xmlDocument = null;
+        Document xmlDocument;
         try (FileInputStream fis = new FileInputStream("dependency-reduced-pom.xml")) {
             xmlDocument = builder.parse(fis);
         }
@@ -52,7 +52,7 @@ public class DependencyReducedPomIT {
         xPath.setNamespaceContext(new NamespaceContext() {
 
             @Override
-            public Iterator getPrefixes(String namespaceURI) {
+            public Iterator<String> getPrefixes(String namespaceURI) {
                 return null;
             }
 

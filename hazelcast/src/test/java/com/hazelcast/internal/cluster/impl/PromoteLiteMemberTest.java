@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,7 +314,7 @@ public class PromoteLiteMemberTest extends HazelcastTestSupport {
         dropOperationsFrom(hz1, F_ID, singletonList(HEARTBEAT));
 
         Cluster cluster = hz3.getCluster();
-        Future future = spawn(cluster::promoteLocalLiteMember);
+        Future<?> future = spawn(cluster::promoteLocalLiteMember);
 
         assertPromotionInvocationStarted(hz3);
 
@@ -333,7 +333,7 @@ public class PromoteLiteMemberTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void test_lite_member_promotion_causes_no_data_loss_on_three_members() throws InterruptedException {
+    public void test_lite_member_promotion_causes_no_data_loss_on_three_members() {
         int entryCount = 1000;
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory();
@@ -374,7 +374,7 @@ public class PromoteLiteMemberTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void test_lite_member_promotion_causes_no_data_loss_on_two_members() throws InterruptedException {
+    public void test_lite_member_promotion_causes_no_data_loss_on_two_members() {
         int entryCount = 1000;
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory();
@@ -440,7 +440,7 @@ public class PromoteLiteMemberTest extends HazelcastTestSupport {
                 k++;
             }
         }
-        assertThat(k).isGreaterThan(0);
+        assertThat(k).isPositive();
     }
 
     private static void assertNoPartitionsAssigned(HazelcastInstance instance) {

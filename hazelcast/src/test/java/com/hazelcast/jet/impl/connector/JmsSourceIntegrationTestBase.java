@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.hazelcast.jet.Job;
 import com.hazelcast.jet.SimpleTestInClusterSupport;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.config.ProcessingGuarantee;
-import com.hazelcast.jet.core.JobStatus;
 import com.hazelcast.jet.datamodel.WindowResult;
 import com.hazelcast.jet.impl.JobProxy;
 import com.hazelcast.jet.impl.JobRepository;
@@ -36,14 +35,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
+
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -61,16 +62,17 @@ import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.config.ProcessingGuarantee.AT_LEAST_ONCE;
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.config.ProcessingGuarantee.NONE;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.core.TestProcessors.MapWatermarksToString.mapWatermarksToString;
 import static com.hazelcast.jet.impl.connector.JmsTestUtil.consumeMessages;
-import static com.hazelcast.jet.impl.util.ExceptionUtil.sneakyThrow;
+import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.jet.pipeline.WindowDefinition.tumbling;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static javax.jms.Session.AUTO_ACKNOWLEDGE;
-import static javax.jms.Session.DUPS_OK_ACKNOWLEDGE;
+import static jakarta.jms.Session.AUTO_ACKNOWLEDGE;
+import static jakarta.jms.Session.DUPS_OK_ACKNOWLEDGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -219,7 +221,7 @@ public abstract class JmsSourceIntegrationTestBase extends SimpleTestInClusterSu
          .writeTo(Sinks.logger());
 
         Job job = instance().getJet().newJob(p, new JobConfig().setProcessingGuarantee(EXACTLY_ONCE).setSnapshotIntervalMillis(10));
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         JobRepository jr = new JobRepository(instance());
         waitForFirstSnapshot(jr, job.getId(), 5, true);
         assertTrueAllTheTime(() -> assertEquals(RUNNING, job.getStatus()), 1);
@@ -330,7 +332,7 @@ public abstract class JmsSourceIntegrationTestBase extends SimpleTestInClusterSu
         Job job = instance().getJet().newJob(p, new JobConfig()
                 .setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE)
                 .setSnapshotIntervalMillis(50));
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
 
         // start a producer that will produce MESSAGE_COUNT messages on the background to the queue, 1000 msgs/s
         @SuppressWarnings("rawtypes")
@@ -362,7 +364,7 @@ public abstract class JmsSourceIntegrationTestBase extends SimpleTestInClusterSu
                 waitForNextSnapshot(jr, job.getId(), 20, true);
             }
             ((JobProxy) job).restart(graceful);
-            assertJobStatusEventually(job, RUNNING);
+            assertThat(job).eventuallyHasStatus(RUNNING);
         }
         producerFuture.get(); // call for the side-effect of throwing if the producer failed
 
@@ -443,7 +445,7 @@ public abstract class JmsSourceIntegrationTestBase extends SimpleTestInClusterSu
                 .setProcessingGuarantee(xa ? EXACTLY_ONCE : AT_LEAST_ONCE)
                 .setSnapshotIntervalMillis(100_000_000));
 
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         sleepSeconds(1); // give the job some more time to consume the message
 
         // When
@@ -466,7 +468,7 @@ public abstract class JmsSourceIntegrationTestBase extends SimpleTestInClusterSu
 
     private void startJob() {
         Job job = instance().getJet().newJob(p);
-        assertJobStatusEventually(job, JobStatus.RUNNING, 10);
+        assertThat(job).eventuallyHasStatus(RUNNING, Duration.ofSeconds(10));
     }
 
     protected abstract SupplierEx<ConnectionFactory> getConnectionFactory();

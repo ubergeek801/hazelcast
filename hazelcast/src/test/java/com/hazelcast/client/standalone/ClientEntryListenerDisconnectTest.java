@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import org.junit.Ignore;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
@@ -125,6 +126,7 @@ public class ClientEntryListenerDisconnectTest {
     @SuppressWarnings("unused")
     private static class GenericEvent implements Serializable {
 
+        @Serial
         private static final long serialVersionUID = -933111044641052844L;
 
         private int userId;

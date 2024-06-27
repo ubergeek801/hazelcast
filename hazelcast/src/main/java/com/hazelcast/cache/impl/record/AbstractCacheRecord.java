@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public abstract class AbstractCacheRecord<V, E> implements CacheRecord<V, E>, Id
     protected AbstractCacheRecord() {
     }
 
-    public AbstractCacheRecord(long creationTime, long expirationTime) {
+    protected AbstractCacheRecord(long creationTime, long expirationTime) {
         this.creationTime = creationTime;
         this.expirationTime = expirationTime;
     }

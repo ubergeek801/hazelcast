@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ final class ServerSocketHelper {
         try {
             /*
              * Instead of reusing the ServerSocket/ServerSocketChannel, we are going to close and replace them on
-             * every attempt to find a free port. The reason to do this is because in some cases, when concurrent
+             * every attempt to find a free port. The reason to do this is that in some cases, when concurrent
              * threads/processes try to acquire the same port, the ServerSocket gets corrupted and isn't able to
              * find any free port at all (no matter if there are more than enough free ports available). We have
              * seen this happening on Linux and Windows environments.

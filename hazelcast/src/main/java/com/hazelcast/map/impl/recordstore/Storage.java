@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.map.impl.EntryCostEstimator;
 import com.hazelcast.map.impl.iterator.MapEntriesWithCursor;
 import com.hazelcast.map.impl.iterator.MapKeysWithCursor;
 import com.hazelcast.map.impl.operation.steps.engine.Step;
+import com.hazelcast.map.impl.record.Record;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
@@ -38,20 +39,11 @@ import java.util.Map;
 public interface Storage<K, R> {
 
     /**
-     * @return true if compaction for tiered
-     * store is enabled, false otherwise.
+     * @return true if current configuration of this {@link Storage}
+     * supports executions as a chain of {@link Step} , false otherwise.
      */
-    default boolean isPartitionCompactorEnabled() {
+    default boolean supportsSteppedRun() {
         return false;
-    }
-
-    /**
-     * Injects extra step for an operation which
-     * is modeled as a sequence of {@link Step}
-     * @return new step to be injected before an operation is finalized.
-     */
-    default Step newInjectedStep() {
-        return null;
     }
 
     void put(K key, R record);
@@ -60,14 +52,29 @@ public interface Storage<K, R> {
      * Updates record's value. Performs an update in-place if the record can accommodate the
      * new value (applicable for the inlined records only). Otherwise, creates a new record
      * with the new value.
-     * @param key the entry's key
+     *
+     * @param key    the entry's key
      * @param record the record
-     * @param value the new value
+     * @param value  the new value
      * @return the record that contains new value.
      */
     R updateRecordValue(K key, R record, Object value);
 
     R get(K key);
+
+    /**
+     * Returns a record from storage by key. The record is safe to use
+     * in the scope of the callers thread so that the backing memory
+     * cannot be GCed.
+     * <p>
+     * The call is equivalent to {@link #get(Object)} by default and is
+     * overridden for TS storage.
+     * @param key the search key
+     * @return the record
+     */
+    default Record getSafe(K key) {
+        return (Record) get(key);
+    }
 
     /**
      * Gives the same result as {@link #get(Object)}, but with the
@@ -84,7 +91,7 @@ public interface Storage<K, R> {
 
     /**
      * Read-only and not thread-safe iterator.
-     *
+     * <p>
      * Returned iterator from this method doesn't throw {@link
      * java.util.ConcurrentModificationException} to fail fast. Because fail
      * fast may not be the desired behaviour always. For example if you are
@@ -161,11 +168,12 @@ public interface Storage<K, R> {
 
     Data toBackingDataKeyFormat(Data key);
 
-    default void beforeOperation() {
+    default int beforeOperation() {
         // no-op
+        return -1;
     }
 
-    default void afterOperation() {
+    default void afterOperation(int threadIndex) {
         // no-op
     }
 }

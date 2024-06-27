@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,11 @@ public class AttributeIndexRegistry {
      * there is no more than one writer at any given time.
      *
      * @param index the index to register.
-     * @see Indexes#addOrGetIndex
+     * @see IndexRegistry#addOrGetIndex
      */
+    // squid:S3824 ConcurrentHashMap.computeIfAbsent(K, Function<? super K, ? extends V>) locks the map, which *may* have an
+    // effect on throughput such that it's not a direct replacement
+    @SuppressWarnings("squid:S3824")
     public void register(InternalIndex index) {
         String[] components = index.getComponents();
         String attribute = components[0];
@@ -140,13 +143,11 @@ public class AttributeIndexRegistry {
                 return true;
             }
 
-            if (current instanceof FirstComponentDecorator) {
+            if (current instanceof FirstComponentDecorator currentDecorator) {
                 // the current index is composite
 
                 String[] candidateComponents = candidate.getComponents();
                 if (candidateComponents.length > 1) {
-                    // if the current index has more components, replace it
-                    FirstComponentDecorator currentDecorator = (FirstComponentDecorator) current;
                     return currentDecorator.width > candidateComponents.length;
                 }
 
@@ -239,33 +240,7 @@ public class AttributeIndexRegistry {
         }
 
         @Override
-        public Iterator<QueryableEntry> getSqlRecordIterator(boolean descending) {
-            throw new UnsupportedOperationException("Should not be called");
-        }
-
-        @Override
-        public Iterator<QueryableEntry> getSqlRecordIterator(Comparable value) {
-            throw new UnsupportedOperationException("Should not be called");
-        }
-
-        @Override
-        public Iterator<QueryableEntry> getSqlRecordIterator(Comparison comparison, Comparable value, boolean descending) {
-            throw new UnsupportedOperationException("Should not be called");
-        }
-
-        @Override
-        public Iterator<QueryableEntry> getSqlRecordIterator(
-            Comparable from,
-            boolean fromInclusive,
-            Comparable to,
-            boolean toInclusive,
-            boolean descending
-        ) {
-            throw new UnsupportedOperationException("Should not be called");
-        }
-
-        @Override
-        public Iterator<IndexKeyEntries> getSqlRecordIteratorBatch(Comparable value) {
+        public Iterator<IndexKeyEntries> getSqlRecordIteratorBatch(Comparable value, boolean descending) {
             throw new UnsupportedOperationException("Should not be called");
         }
 

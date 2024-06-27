@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,11 +270,10 @@ public class CardinalityEstimatorConfig implements IdentifiedDataSerializable, N
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CardinalityEstimatorConfig)) {
+        if (!(o instanceof CardinalityEstimatorConfig that)) {
             return false;
         }
 
-        CardinalityEstimatorConfig that = (CardinalityEstimatorConfig) o;
         if (backupCount != that.backupCount) {
             return false;
         }

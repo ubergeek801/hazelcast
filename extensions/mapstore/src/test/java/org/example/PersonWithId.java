@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,9 @@ public class PersonWithId {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PersonWithId)) {
+        if (!(o instanceof PersonWithId that)) {
             return false;
         }
-        PersonWithId that = (PersonWithId) o;
         return personId == that.personId && Objects.equals(name, that.name);
     }
 
@@ -69,9 +68,6 @@ public class PersonWithId {
 
     @Override
     public String toString() {
-        return "PersonWithObjectId{" +
-                ", personId=" + personId +
-                ", name='" + name + '\'' +
-                '}';
+        return "PersonWithObjectId{" + ", personId=" + personId + ", name='" + name + '\'' + '}';
     }
 }

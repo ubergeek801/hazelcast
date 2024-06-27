@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ public class CacheClearExpiredRecordsTask
             ICacheRecordStore recordStore = iterator.next();
             int totalBackupCount = recordStore.getConfig().getTotalBackupCount();
             int partitionId = recordStore.getPartitionId();
-            toBackupSender.invokeBackupExpiryOperation(Collections.<ExpiredKey>emptyList(),
+            toBackupSender.invokeBackupExpiryOperation(Collections.emptyList(),
                     totalBackupCount, partitionId, recordStore);
         }
     }
@@ -152,7 +152,7 @@ public class CacheClearExpiredRecordsTask
         Iterator<ICacheRecordStore> iterator = container.recordStoreIterator();
         while (iterator.hasNext()) {
             ICacheRecordStore store = iterator.next();
-            if (store.getExpiredKeysQueue().size() > 0) {
+            if (!store.getExpiredKeysQueue().isEmpty()) {
                 return true;
             }
         }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <http://www.lightbend.com>
- * Copyright (c) 2017-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2017-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ public class PhiAccrualFailureDetector implements FailureDetector {
      * Holds the heartbeat statistics for a specific member.
      * It is capped by the number of samples specified in `maxSampleSize`.
      *
-     * The stats (mean, variance, stdDeviation) are not defined for
+     * The stats (mean, variance, stdDeviation) are not defined
      * for empty HeartbeatHistory, i.e. throws ArithmeticException.
      */
     private static class HeartbeatHistory {

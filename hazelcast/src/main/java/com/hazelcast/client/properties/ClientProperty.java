@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.client.config.ClientMetricsConfig;
 import com.hazelcast.config.MetricsJmxConfig;
 import com.hazelcast.core.IndeterminateOperationStateException;
 import com.hazelcast.spi.properties.HazelcastProperty;
+import com.hazelcast.client.util.ClientConnectivityLogger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -183,7 +184,7 @@ public final class ClientProperty {
      * setting to 0 should be regarded an experimental feature.
      * <p>
      * If set to 0, the IO_OUTPUT_THREAD_COUNT is really going to matter because the
-     * inbound thread will have more work to do. By default when TLS isn't enable,
+     * inbound thread will have more work to do. By default, when TLS isn't enable,
      * there is just 1 inbound thread.
      */
     public static final HazelcastProperty RESPONSE_THREAD_COUNT
@@ -327,6 +328,29 @@ public final class ClientProperty {
      */
     public static final HazelcastProperty PARTITION_ARGUMENT_CACHE_SIZE
             = new HazelcastProperty("hazelcast.client.sql.partition.argument.cache.size", 1024);
+
+    /**
+     * Class name implementing {@link com.hazelcast.partition.PartitioningStrategy}, which
+     * defines key to partition mapping. Client-side equivalent of member property
+     * {@link com.hazelcast.spi.properties.ClusterProperty#PARTITIONING_STRATEGY_CLASS}.
+     * <p>
+     * This property does not contain the "hazelcast.client" prefix as has been used on the client with
+     * this property name for over 8 years, so it is maintained for backwards compatibility.
+     */
+    public static final HazelcastProperty PARTITIONING_STRATEGY_CLASS
+            = new HazelcastProperty("hazelcast.partitioning.strategy.class", "");
+
+    /**
+     * Sets the client connectivity logging delay in seconds.
+     * This value dictates the delay between a connectivity
+     * stat of clients to cluster members.
+     * <p>
+     * The delay is intended to reduce noise from frequent connection updates that
+     * may occur in bursts. Note that the latest connectivity view will be
+     * logged when the task is run. For more, see {@link ClientConnectivityLogger}
+     */
+    public static final HazelcastProperty CLIENT_CONNECTIVITY_LOGGING_DELAY_SECONDS
+            = new HazelcastProperty("hazelcast.client.connectivity.logging.delay.seconds", 10);
 
     private ClientProperty() {
     }

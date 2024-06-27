@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-import static com.hazelcast.internal.nio.IOUtil.closeResource;
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(HazelcastSerialClassRunner.class)
@@ -80,24 +78,20 @@ public class DiagnosticsStdoutTest extends HazelcastTestSupport {
 
     private static String stdoutToString(ByteArrayOutputStream out) {
         byte[] content = out.toByteArray();
-        BufferedReader br = null;
-        InputStream is;
-        try {
-            is = new ByteArrayInputStream(content);
-            br = new BufferedReader(new InputStreamReader(is));
+
+        try (InputStream is = new ByteArrayInputStream(content);
+             BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
             while (line != null) {
                 sb.append(line);
-                sb.append(LINE_SEPARATOR);
+                sb.append(System.lineSeparator());
                 line = br.readLine();
             }
             return sb.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            closeResource(br);
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.map.impl.proxy;
 
 import com.hazelcast.aggregation.Aggregator;
 import com.hazelcast.cluster.Address;
+import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.EntryListenerConfig;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.IndexConfig;
@@ -33,6 +34,7 @@ import com.hazelcast.core.ReadOnly;
 import com.hazelcast.internal.locksupport.LockProxySupport;
 import com.hazelcast.internal.locksupport.LockSupportServiceImpl;
 import com.hazelcast.internal.monitor.impl.LocalMapStatsImpl;
+import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
 import com.hazelcast.internal.partition.IPartition;
 import com.hazelcast.internal.partition.IPartitionService;
@@ -55,7 +57,7 @@ import com.hazelcast.map.impl.MapService;
 import com.hazelcast.map.impl.MapServiceContext;
 import com.hazelcast.map.impl.PartitionContainer;
 import com.hazelcast.map.impl.event.MapEventPublisher;
-import com.hazelcast.map.impl.operation.AddIndexOperation;
+import com.hazelcast.map.impl.operation.AddIndexOperationFactory;
 import com.hazelcast.map.impl.operation.AddInterceptorOperationSupplier;
 import com.hazelcast.map.impl.operation.AwaitMapFlushOperation;
 import com.hazelcast.map.impl.operation.IsEmptyOperationFactory;
@@ -80,7 +82,6 @@ import com.hazelcast.partition.PartitioningStrategy;
 import com.hazelcast.projection.Projection;
 import com.hazelcast.query.PartitionPredicate;
 import com.hazelcast.query.Predicate;
-import com.hazelcast.query.impl.IndexUtils;
 import com.hazelcast.query.impl.predicates.TruePredicate;
 import com.hazelcast.spi.impl.AbstractDistributedObject;
 import com.hazelcast.spi.impl.InitializingObject;
@@ -141,6 +142,7 @@ import static java.lang.Math.log10;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonMap;
 
+@SuppressWarnings({"ClassDataAbstractionCoupling", "ClassFanOutComplexity", "MethodCount"})
 abstract class MapProxySupport<K, V>
         extends AbstractDistributedObject<MapService>
         implements IMap<K, V>, InitializingObject {
@@ -169,6 +171,7 @@ abstract class MapProxySupport<K, V>
 
     /**
      * Defines the batch size for operations of {@link IMap#putAll(Map)} and {@link IMap#setAll(Map)} calls.
+     * This setting is ignored for async variants of those methods.
      * <p>
      * A value of {@code 0} disables the batching and will send a single operation per member with all map entries.
      * <p>
@@ -270,9 +273,9 @@ abstract class MapProxySupport<K, V>
     public void initialize() {
         initializeListeners();
         if (getNodeEngine().isStartCompleted()) {
-            initializeIndexes();
+            indexAllNodesData();
         } else {
-            initializeLocalIndexes();
+            indexLocalNodeData();
         }
         initializeMapStoreLoad();
     }
@@ -300,8 +303,8 @@ abstract class MapProxySupport<K, V>
     private <T extends EventListener> T initializeListener(ListenerConfig listenerConfig) {
         T listener = getListenerImplOrNull(listenerConfig);
 
-        if (listener instanceof HazelcastInstanceAware) {
-            ((HazelcastInstanceAware) listener).setHazelcastInstance(getNodeEngine().getHazelcastInstance());
+        if (listener instanceof HazelcastInstanceAware aware) {
+            aware.setHazelcastInstance(getNodeEngine().getHazelcastInstance());
         }
 
         return listener;
@@ -317,8 +320,9 @@ abstract class MapProxySupport<K, V>
         String className = listenerConfig.getClassName();
         if (className != null) {
             try {
-                ClassLoader configClassLoader = getNodeEngine().getConfigClassLoader();
-                return ClassLoaderUtil.newInstance(configClassLoader, className);
+                ClassLoader classLoader = NamespaceUtil.getClassLoaderForNamespace(getNodeEngine(),
+                        mapConfig.getUserCodeNamespace());
+                return ClassLoaderUtil.newInstance(classLoader, className);
             } catch (Exception e) {
                 throw rethrow(e);
             }
@@ -328,14 +332,23 @@ abstract class MapProxySupport<K, V>
         return null;
     }
 
-    private void initializeIndexes() {
+    private void indexAllNodesData() {
         for (IndexConfig index : mapConfig.getIndexConfigs()) {
-            addIndex(index);
+            addIndexInternal(index, false);
+        }
+
+        for (IndexConfig index : mapServiceContext.getMapIndexConfigs(name)) {
+            // broadcast the index - can help reaching consistent state if it ever diverges
+            addIndexInternal(index, false);
         }
     }
 
-    private void initializeLocalIndexes() {
+    private void indexLocalNodeData() {
         for (IndexConfig index : mapConfig.getIndexConfigs()) {
+            addIndexInternal(index, true);
+        }
+
+        for (IndexConfig index : mapServiceContext.getMapIndexConfigs(name)) {
             addIndexInternal(index, true);
         }
     }
@@ -373,7 +386,7 @@ abstract class MapProxySupport<K, V>
      * <p>
      * This setting applies only to sync and async operations on single key
      * (e.g. {@link IMap#put(Object, Object)}. It does not affect multi-entry
-     * operations (eg. {@link IMap#clear()}, {@link IMap#putAll}).
+     * operations (e.g. {@link IMap#clear()}, {@link IMap#putAll}).
      * <p>
      * Caveats:
      * <ol>
@@ -702,8 +715,7 @@ abstract class MapProxySupport<K, V>
 
     protected void removeAllInternal(Predicate predicate) {
         try {
-            if (predicate instanceof PartitionPredicate) {
-                PartitionPredicate partitionPredicate = (PartitionPredicate) predicate;
+            if (predicate instanceof PartitionPredicate partitionPredicate) {
                 OperationFactory operation = operationProvider
                         .createPartitionWideEntryWithPredicateOperationFactory(name, ENTRY_REMOVING_PROCESSOR,
                                 partitionPredicate.getTarget());
@@ -716,7 +728,7 @@ abstract class MapProxySupport<K, V>
                         SERVICE_NAME,
                         operation,
                         partitionService.getPartitionIdSet(
-                            partitionPredicate.getPartitionKeys().stream().map(k -> toDataWithStrategy(k))
+                            partitionPredicate.getPartitionKeys().stream().map(this::toDataWithStrategy)
                         )
                 );
             } else {
@@ -739,6 +751,11 @@ abstract class MapProxySupport<K, V>
     protected InternalCompletableFuture<Data> removeAsyncInternal(Object key) {
         Data keyData = toDataWithStrategy(key);
         return invokeOperationAsync(key, operationProvider.createRemoveOperation(name, keyData));
+    }
+
+    protected InternalCompletableFuture<Data> deleteAsyncInternal(Object key) {
+        Data keyData = toDataWithStrategy(key);
+        return invokeOperationAsync(key, operationProvider.createDeleteOperation(name, keyData, false));
     }
 
     protected boolean containsKeyInternal(Object key) {
@@ -1017,7 +1034,7 @@ abstract class MapProxySupport<K, V>
                     long currentSize = ++counterPerMember[partitionId].value;
                     if (currentSize % putAllBatchSize == 0) {
                         List<Integer> partitions = memberPartitionsMap.get(addresses[partitionId]);
-                        invokePutAllOperation(addresses[partitionId], partitions, entriesPerPartition, triggerMapLoader)
+                        invokePutAllOperation(addresses[partitionId], partitions, entriesPerPartition, true, triggerMapLoader)
                                 .get();
                     }
                 }
@@ -1045,7 +1062,7 @@ abstract class MapProxySupport<K, V>
                 }
             };
             for (Entry<Address, List<Integer>> entry : memberPartitionsMap.entrySet()) {
-                invokePutAllOperation(entry.getKey(), entry.getValue(), entriesPerPartition, triggerMapLoader)
+                invokePutAllOperation(entry.getKey(), entry.getValue(), entriesPerPartition, useBatching, triggerMapLoader)
                         .whenCompleteAsync(callback, ConcurrencyUtil.getDefaultAsyncExecutor());
             }
             // if executing in sync mode, block for the responses
@@ -1062,6 +1079,7 @@ abstract class MapProxySupport<K, V>
             Address address,
             List<Integer> memberPartitions,
             MapEntries[] entriesPerPartition,
+            boolean useBatching,
             boolean triggerMapLoader
     ) {
         int size = memberPartitions.size();
@@ -1086,7 +1104,7 @@ abstract class MapProxySupport<K, V>
         long totalSize = 0;
         for (int partitionId : partitions) {
             int batchSize = entriesPerPartition[partitionId].size();
-            assert (putAllBatchSize == 0 || batchSize <= putAllBatchSize);
+            assert !useBatching || putAllBatchSize == 0 || batchSize <= putAllBatchSize;
             entries[index++] = entriesPerPartition[partitionId];
             totalSize += batchSize;
             entriesPerPartition[partitionId] = null;
@@ -1294,8 +1312,7 @@ abstract class MapProxySupport<K, V>
     public void executeOnEntriesInternal(EntryProcessor entryProcessor, Predicate predicate, List<Data> result) {
         try {
             Map<Integer, Object> results;
-            if (predicate instanceof PartitionPredicate) {
-                PartitionPredicate partitionPredicate = (PartitionPredicate) predicate;
+            if (predicate instanceof PartitionPredicate partitionPredicate) {
                 handleHazelcastInstanceAwareParams(partitionPredicate.getTarget());
 
                 OperationFactory operation = operationProvider.createPartitionWideEntryWithPredicateOperationFactory(
@@ -1304,7 +1321,7 @@ abstract class MapProxySupport<K, V>
                         SERVICE_NAME,
                         operation,
                         partitionService.getPartitionIdSet(
-                            partitionPredicate.getPartitionKeys().stream().map(k -> toDataWithStrategy(k))
+                            partitionPredicate.getPartitionKeys().stream().map(this::toDataWithStrategy)
                         )
                 );
             } else {
@@ -1340,6 +1357,9 @@ abstract class MapProxySupport<K, V>
 
     @Override
     public void addIndex(IndexConfig indexConfig) {
+        if (getNodeEngine().getClusterService().getClusterState() == ClusterState.PASSIVE) {
+            throw new IllegalStateException("Cannot add index when cluster is in " + ClusterState.PASSIVE + " state!");
+        }
         addIndexInternal(indexConfig, false);
     }
 
@@ -1348,17 +1368,13 @@ abstract class MapProxySupport<K, V>
         checkFalse(isNativeMemoryAndBitmapIndexingEnabled(indexConfig.getType()),
                 "BITMAP indexes are not supported by NATIVE storage");
 
-        IndexConfig indexConfig0 = IndexUtils.validateAndNormalize(name, indexConfig);
-
         try {
-            AddIndexOperation addIndexOperation = new AddIndexOperation(name, indexConfig0);
+            AddIndexOperationFactory addIndexOperationFactory = new AddIndexOperationFactory(name, indexConfig);
             if (localOnly) {
                 PartitionIdSet ownedPartitions = mapServiceContext.getCachedOwnedPartitions();
-                operationService.invokeOnPartitions(SERVICE_NAME,
-                        new BinaryOperationFactory(addIndexOperation, getNodeEngine()), ownedPartitions);
+                operationService.invokeOnPartitions(SERVICE_NAME, addIndexOperationFactory, ownedPartitions);
             } else {
-                operationService.invokeOnAllPartitions(SERVICE_NAME,
-                        new BinaryOperationFactory(addIndexOperation, getNodeEngine()));
+                operationService.invokeOnAllPartitions(SERVICE_NAME, addIndexOperationFactory);
             }
         } catch (Throwable t) {
             throw rethrow(t);
@@ -1410,10 +1426,9 @@ abstract class MapProxySupport<K, V>
         QueryEngine queryEngine = getMapQueryEngine();
         final Predicate userPredicate;
 
-        if (predicate instanceof PartitionPredicate) {
-            PartitionPredicate partitionPredicate = (PartitionPredicate) predicate;
+        if (predicate instanceof PartitionPredicate partitionPredicate) {
             PartitionIdSet partitionIds = partitionService.getPartitionIdSet(
-                partitionPredicate.getPartitionKeys().stream().map(k -> toDataWithStrategy(k))
+                partitionPredicate.getPartitionKeys().stream().map(this::toDataWithStrategy)
             );
             final Target t = target;
             boolean allAlwaysFalsePredicate = partitionIds.stream().allMatch(
@@ -1443,8 +1458,8 @@ abstract class MapProxySupport<K, V>
 
     protected void handleHazelcastInstanceAwareParams(Object... objects) {
         for (Object object : objects) {
-            if (object instanceof HazelcastInstanceAware) {
-                ((HazelcastInstanceAware) object).setHazelcastInstance(getNodeEngine().getHazelcastInstance());
+            if (object instanceof HazelcastInstanceAware aware) {
+                aware.setHazelcastInstance(getNodeEngine().getHazelcastInstance());
             }
         }
     }

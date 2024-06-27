@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.jet.sql.impl.parse;
 
-import com.hazelcast.jet.sql.SqlTestSupport;
 import com.hazelcast.jet.sql.impl.OptimizerContext;
 import com.hazelcast.jet.sql.impl.TestTableResolver;
 import com.hazelcast.sql.impl.QueryException;
@@ -27,6 +26,7 @@ import com.hazelcast.sql.impl.schema.SqlCatalog;
 import com.hazelcast.sql.impl.schema.TableField;
 import com.hazelcast.sql.impl.schema.TableResolver;
 import com.hazelcast.sql.impl.schema.map.PartitionedMapTable;
+import com.hazelcast.sql.impl.security.NoOpSqlSecurityContext;
 import com.hazelcast.sql.impl.type.QueryDataType;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
@@ -42,6 +42,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.hazelcast.sql.impl.QueryUtils.CATALOG;
@@ -55,7 +56,7 @@ import static org.junit.Assert.fail;
  */
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
-public class ParserNameResolutionTest extends SqlTestSupport {
+public class ParserNameResolutionTest {
     private static OptimizerContext context;
 
     private static final String BAD_CATALOG = "badCatalog";
@@ -77,7 +78,6 @@ public class ParserNameResolutionTest extends SqlTestSupport {
 
     @BeforeClass
     public static void beforeClass() {
-        initialize(1, smallInstanceConfig());
         context = createContext();
     }
 
@@ -199,8 +199,9 @@ public class ParserNameResolutionTest extends SqlTestSupport {
                 null,
                 null,
                 null,
-                false
-        );
+                false,
+                Collections.emptyList(),
+                false);
         PartitionedMapTable table2 = new PartitionedMapTable(
                 SCHEMA_2,
                 TABLE_2,
@@ -212,8 +213,9 @@ public class ParserNameResolutionTest extends SqlTestSupport {
                 null,
                 null,
                 null,
-                false
-        );
+                false,
+                Collections.emptyList(),
+                false);
 
         TableResolver resolver1 = TestTableResolver.create(SCHEMA_1, table1);
         TableResolver resolver2 = TestTableResolver.create(SCHEMA_2, table2);
@@ -224,9 +226,9 @@ public class ParserNameResolutionTest extends SqlTestSupport {
                 new SqlCatalog(tableResolvers),
                 searchPaths,
                 emptyList(),
-                1,
-                name -> null
-        );
+                name -> null,
+                null,
+                NoOpSqlSecurityContext.INSTANCE);
     }
 
     private static <E> E last(E[] array) {

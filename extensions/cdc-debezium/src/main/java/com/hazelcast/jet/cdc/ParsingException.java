@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.jet.cdc;
 
 import com.hazelcast.jet.annotation.EvolvingApi;
 
+import java.io.Serial;
+
 /**
  * Exception to indicate that parsing CDC JSON data has failed irrecoverably.
  *
@@ -26,6 +28,7 @@ import com.hazelcast.jet.annotation.EvolvingApi;
 @EvolvingApi
 public class ParsingException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

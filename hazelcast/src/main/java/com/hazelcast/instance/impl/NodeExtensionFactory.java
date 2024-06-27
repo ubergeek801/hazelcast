@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public final class NodeExtensionFactory {
      * Enterprise's JAR to be swapped in for the core Hazelcast JAR with no
      * changes to user's code or configuration. Hazelcast core code can call
      * this method with a priority list naming both the default and the
-     * enterprise node extension and it will automatically prefer the
+     * enterprise node extension, and it will automatically prefer the
      * Enterprise one when present.
      * <p>
      * The explicit priority list is necessary because a Hazelcast Jet JAR

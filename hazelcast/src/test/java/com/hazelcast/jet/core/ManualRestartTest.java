@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,13 @@ import com.hazelcast.jet.core.TestProcessors.NoOutputSourceP;
 import com.hazelcast.jet.impl.JetServiceBackend;
 import com.hazelcast.jet.impl.JobRepository;
 import com.hazelcast.jet.impl.execution.init.JetInitDataSerializerHook;
+import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.Serializable;
@@ -48,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static com.hazelcast.jet.config.ProcessingGuarantee.EXACTLY_ONCE;
 import static com.hazelcast.jet.core.Edge.between;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.JobStatus.RUNNING;
 import static com.hazelcast.jet.core.JobStatus.STARTING;
 import static com.hazelcast.jet.core.TestUtil.throttle;
@@ -67,9 +67,6 @@ public class ManualRestartTest extends JetTestSupport {
 
     private static final int NODE_COUNT = 2;
     private static final int LOCAL_PARALLELISM = 1;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private DAG dag;
     private HazelcastInstance[] instances;
@@ -123,10 +120,10 @@ public class ManualRestartTest extends JetTestSupport {
         HazelcastInstance client = createHazelcastClient();
         Job job = client.getJet().newJob(dag);
 
-        assertJobStatusEventually(job, STARTING);
+        assertThat(job).eventuallyHasStatus(STARTING);
 
         // Then, the job cannot restart
-        assertThatThrownBy(() -> job.restart())
+        assertThatThrownBy(job::restart)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContainingAll("Cannot RESTART");
 
@@ -143,9 +140,9 @@ public class ManualRestartTest extends JetTestSupport {
         cancelAndJoin(job);
 
         // Then, the job cannot restart
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Cannot RESTART");
-        job.restart();
+        assertThatThrownBy(job::restart)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Cannot RESTART");
     }
 
     @Test
@@ -170,9 +167,9 @@ public class ManualRestartTest extends JetTestSupport {
                 .setSnapshotIntervalMillis(2000));
 
         // wait for the first snapshot
-        JetServiceBackend jetServiceBackend = getNode(instances[0]).nodeEngine.getService(JetServiceBackend.SERVICE_NAME);
+        JetServiceBackend jetServiceBackend = Accessors.getNode(instances[0]).nodeEngine.getService(JetServiceBackend.SERVICE_NAME);
         JobRepository jobRepository = jetServiceBackend.getJobCoordinationService().jobRepository();
-        assertJobStatusEventually(job, RUNNING);
+        assertThat(job).eventuallyHasStatus(RUNNING);
         assertTrueEventually(() -> assertTrue(
                 jobRepository.getJobExecutionRecord(job.getId()).dataMapIndex() >= 0));
 
@@ -190,8 +187,8 @@ public class ManualRestartTest extends JetTestSupport {
                 .map(Entry::getValue)
                 .collect(Collectors.toMap(e -> e, e -> 1, (o, n) -> o + n, TreeMap::new));
 
-        assertEquals("first item != 1, " + actual.toString(), (Integer) 1, actual.get(0));
-        assertEquals("last item != 1, " + actual.toString(), (Integer) 1, actual.get(9999));
+        assertEquals("first item != 1, " + actual, (Integer) 1, actual.get(0));
+        assertEquals("last item != 1, " + actual, (Integer) 1, actual.get(9999));
         // the result should be some ones, then some twos and then some ones. The twos should be during the time
         // since the last successful snapshot until the actual termination, when there was reprocessing.
         boolean sawTwo = false;

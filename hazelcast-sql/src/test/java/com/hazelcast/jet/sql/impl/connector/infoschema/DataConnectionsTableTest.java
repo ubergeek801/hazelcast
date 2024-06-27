@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,47 @@
 
 package com.hazelcast.jet.sql.impl.connector.infoschema;
 
+import com.hazelcast.jet.sql.impl.connector.SqlConnectorCache;
+import com.hazelcast.jet.sql.impl.connector.kafka.KafkaSqlConnector;
+import com.hazelcast.mock.MockUtil;
 import com.hazelcast.sql.impl.schema.dataconnection.DataConnectionCatalogEntry;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 import java.util.List;
+import java.util.Map;
 
+import static com.hazelcast.jet.sql.impl.connector.kafka.KafkaSqlConnector.OPTION_BOOTSTRAP_SERVERS;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class DataConnectionsTableTest {
+    @Mock
+    SqlConnectorCache connectorCache;
+
+    private AutoCloseable openMocks;
+
+    @Before
+    public void before() throws Exception {
+        openMocks = openMocks(this);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        MockUtil.closeMocks(openMocks);
+    }
 
     @Test
     public void test_rows() {
@@ -49,6 +73,7 @@ public class DataConnectionsTableTest {
                 "public",
                 "dc-schema",
                 singletonList(dc),
+                connectorCache,
                 false);
 
         // when
@@ -68,12 +93,14 @@ public class DataConnectionsTableTest {
 
     @Test
     public void test_rows_enabledSecurity() {
+        when(connectorCache.forType("Kafka")).thenReturn(new KafkaSqlConnector());
+
         // given
         DataConnectionCatalogEntry dc = new DataConnectionCatalogEntry(
                 "dc-name",
-                "dc-type",
+                "Kafka",
                 false,
-                singletonMap("key", "value")
+                Map.of(OPTION_BOOTSTRAP_SERVERS, "value", "password", "secret")
         );
 
         DataConnectionsTable dcTable = new DataConnectionsTable(
@@ -81,6 +108,7 @@ public class DataConnectionsTableTest {
                 "public",
                 "dc-schema",
                 singletonList(dc),
+                connectorCache,
                 true);
 
         // when
@@ -91,9 +119,9 @@ public class DataConnectionsTableTest {
                 "catalog"
                 , "dc-schema"
                 , "dc-name"
-                , "dc-type"
+                , "Kafka"
                 , false
-                , null
+                , "{\"" + OPTION_BOOTSTRAP_SERVERS + "\":\"value\"}"
                 , "SQL"
         });
     }

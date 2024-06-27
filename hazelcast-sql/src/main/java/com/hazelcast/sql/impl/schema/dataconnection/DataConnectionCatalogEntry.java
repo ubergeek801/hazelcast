@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ public class DataConnectionCatalogEntry implements SqlCatalogObject {
         this.source = source;
     }
 
+    @Override
     public String name() {
         return name;
     }

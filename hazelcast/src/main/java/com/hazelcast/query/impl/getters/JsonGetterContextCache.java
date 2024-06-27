@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class JsonGetterContextCache {
     public JsonGetterContextCache(int maxContexts, int cleanupRemoveAtLeastItems) {
         this.maxContexts = maxContexts;
         this.cleanupRemoveAtLeastItems = cleanupRemoveAtLeastItems;
-        this.internalCache = new SampleableConcurrentHashMap<String, JsonGetterContext>(maxContexts);
+        this.internalCache = new SampleableConcurrentHashMap<>(maxContexts);
     }
 
     /**
@@ -47,7 +47,7 @@ public class JsonGetterContextCache {
         context = new JsonGetterContext(queryPath);
         JsonGetterContext previousContextValue = internalCache.putIfAbsent(queryPath, context);
         if (previousContextValue == null) {
-            cleanupIfNeccessary(context);
+            cleanupIfNecessary(context);
             return context;
         } else {
             return previousContextValue;
@@ -61,7 +61,7 @@ public class JsonGetterContextCache {
      *
      * @param excluded
      */
-    private void cleanupIfNeccessary(JsonGetterContext excluded) {
+    private void cleanupIfNecessary(JsonGetterContext excluded) {
         int cacheCount;
         while ((cacheCount = internalCache.size()) > maxContexts) {
             int sampleCount = Math.max(cacheCount - maxContexts, cleanupRemoveAtLeastItems) + 1;

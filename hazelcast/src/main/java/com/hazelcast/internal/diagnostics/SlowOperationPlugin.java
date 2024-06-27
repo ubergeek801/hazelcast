@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.spi.properties.HazelcastProperty;
 
 import java.util.List;
 
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
@@ -83,7 +82,7 @@ public class SlowOperationPlugin extends DiagnosticsPlugin {
         List<SlowOperationDTO> slowOperations = operationService.getSlowOperationDTOs();
         writer.startSection("SlowOperations");
 
-        if (slowOperations.size() > 0) {
+        if (!slowOperations.isEmpty()) {
             for (SlowOperationDTO slowOperation : slowOperations) {
                 render(writer, slowOperation);
             }
@@ -116,7 +115,7 @@ public class SlowOperationPlugin extends DiagnosticsPlugin {
     private void renderStackTrace(DiagnosticsLogWriter writer, SlowOperationDTO slowOperation) {
         writer.startSection("stackTrace");
         // this is quite inefficient due to object allocations; it would be cheaper to manually traverse
-        String[] stackTraceLines = slowOperation.stackTrace.split(LINE_SEPARATOR);
+        String[] stackTraceLines = slowOperation.stackTrace.split(System.lineSeparator());
         for (String stackTraceLine : stackTraceLines) {
             writer.writeEntry(stackTraceLine);
         }

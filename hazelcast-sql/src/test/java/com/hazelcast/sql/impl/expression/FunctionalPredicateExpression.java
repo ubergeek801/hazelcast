@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.io.IOException;
 
 public class FunctionalPredicateExpression implements Expression<Boolean> {
 
-    private NullablePredicate predicate;
+    private final NullablePredicate predicate;
 
     public FunctionalPredicateExpression(NullablePredicate predicate) {
         this.predicate = predicate;

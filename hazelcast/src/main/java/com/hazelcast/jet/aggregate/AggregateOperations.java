@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ public final class AggregateOperations {
                     }
                 })
                 .andCombine((a1, a2) -> {
-                    if (a1.isNull() || comparator.compare(a1.get(), a2.get()) < 0) {
+                    if (a1.isNull() || (!a2.isNull() && comparator.compare(a1.get(), a2.get()) < 0)) {
                         a1.set(a2.get());
                     }
                 })
@@ -989,7 +989,7 @@ public final class AggregateOperations {
      * }</pre>
      *
      * This aggregate operation has a similar effect to the dedicated {@link
-     * GeneralStage#groupingKey(FunctionEx) groupingKey()} pipeline transform
+     * GeneralStage#groupingKey(FunctionEx) groupingKey()} pipeline transform,
      * so you may wonder why not use it in all cases, not just cascaded
      * grouping. To see the difference, check out these two snippets:
      * <pre>{@code
@@ -1475,7 +1475,7 @@ public final class AggregateOperations {
     /**
      * Returns a builder object that helps you create a composite of multiple
      * aggregate operations. The resulting aggregate operation will perform all
-     * of the constituent operations at the same time and you can retrieve
+     * of the constituent operations at the same time, and you can retrieve
      * individual results from the {@link ItemsByTag} object you'll get in the
      * output.
      * <p>

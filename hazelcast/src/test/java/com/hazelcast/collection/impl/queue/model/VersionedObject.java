@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,12 @@ package com.hazelcast.collection.impl.queue.model;
 import com.hazelcast.internal.util.Preconditions;
 
 import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 public class VersionedObject<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     private T object;
     private int version;

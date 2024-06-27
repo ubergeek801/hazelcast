@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,8 +107,7 @@ public abstract class ExpressionValues implements Serializable {
                 List<RexNode> project,
                 RelDataType tuplesType,
                 List<ExpressionValues> values,
-                QueryParameterMetadata parameterMetadata
-        ) {
+                QueryParameterMetadata parameterMetadata) {
             PlanNodeSchema schema = OptUtils.schema(tuplesType);
             RexVisitor<Expression<?>> converter =
                     OptUtils.createRexToExpressionVisitor(schema, parameterMetadata);

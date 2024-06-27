@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import static com.hazelcast.jet.Util.entry;
+import static com.hazelcast.jet.core.JobAssertions.assertThat;
 import static com.hazelcast.jet.core.processor.SourceProcessors.readMapP;
 import static com.hazelcast.jet.impl.util.Util.uncheckRun;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
@@ -227,83 +228,6 @@ public class SourcesTest extends PipelineTestSupport {
     }
 
     @Test
-    public void remoteMap() {
-        // Given
-        List<Integer> input = sequence(itemCount);
-        putToMap(remoteHz.getMap(srcName), input);
-
-        // When
-        BatchSource<Entry<Object, Object>> source = Sources.remoteMap(srcName, clientConfig);
-
-        // Then
-        p.readFrom(source).writeTo(sink);
-        execute();
-        List<Entry<String, Integer>> expected = input.stream()
-                                                     .map(i -> entry(String.valueOf(i), i))
-                                                     .collect(toList());
-        assertEquals(toBag(expected), sinkToBag());
-    }
-
-    @Test
-    public void remoteMapWithFilterAndProjection() {
-        // Given
-        List<Integer> input = sequence(itemCount);
-        putToMap(remoteHz.getMap(srcName), input);
-
-        // When
-        BatchSource<Object> source = Sources.remoteMap(
-                srcName, clientConfig, truePredicate(), singleAttribute("value"));
-
-        // Then
-        p.readFrom(source).writeTo(sink);
-        execute();
-        assertEquals(toBag(input), sinkToBag());
-    }
-
-    @Test
-    public void remoteMapWithFilterAndProjectionFn() {
-        // Given
-        List<Integer> input = sequence(itemCount);
-        putToMap(remoteHz.getMap(srcName), input);
-
-        // When
-        BatchSource<Integer> source = Sources.remoteMap(
-                srcName, clientConfig, truePredicate(), Entry<String, Integer>::getValue);
-
-        // Then
-        p.readFrom(source).writeTo(sink);
-        execute();
-        assertEquals(toBag(input), sinkToBag());
-    }
-
-    @Test
-    public void remoteMapWithUnknownValueClass_whenQueryingIsNotNecessary() throws Exception {
-        // Given
-        URL jarResource = Thread.currentThread().getContextClassLoader()
-                                .getResource("deployment/sample-pojo-1.0-car.jar");
-        assertNotNull("jar not found", jarResource);
-        ClassLoader cl = new URLClassLoader(new URL[]{jarResource});
-        Class<?> personClz = cl.loadClass("com.sample.pojo.car.Car");
-        Object person = personClz.getConstructor(String.class, String.class)
-                                 .newInstance("make", "model");
-        IMap<String, Object> map = remoteHz.getMap(srcName);
-        // the class of the value is unknown to the remote IMDG member, it will be only known to Jet
-        map.put("key", person);
-
-        // When
-        BatchSource<Entry<String, Object>> source = Sources.remoteMap(srcName, clientConfig);
-
-        // Then
-        p.readFrom(source).map(en -> en.getValue().toString()).writeTo(sink);
-        JobConfig jobConfig = new JobConfig();
-        jobConfig.addJar(jarResource);
-        hz().getJet().newJob(p, jobConfig).join();
-        List<Object> expected = singletonList(person.toString());
-        List<Object> actual = new ArrayList<>(sinkList);
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void cache_byName() {
         // Given
         List<Integer> input = sequence(itemCount);
@@ -345,13 +269,15 @@ public class SourcesTest extends PipelineTestSupport {
         URL jarResource = Thread.currentThread().getContextClassLoader()
                                 .getResource("deployment/sample-pojo-1.0-car.jar");
         assertNotNull("jar not found", jarResource);
-        ClassLoader cl = new URLClassLoader(new URL[]{jarResource});
-        Class<?> personClz = cl.loadClass("com.sample.pojo.car.Car");
-        Object person = personClz.getConstructor(String.class, String.class)
+        Class<?> carClz;
+        try (URLClassLoader cl = new URLClassLoader(new URL[]{jarResource})) {
+            carClz = cl.loadClass("com.sample.pojo.car.Car");
+        }
+        Object carPojo = carClz.getConstructor(String.class, String.class)
                                  .newInstance("make", "model");
         ICache<String, Object> cache = remoteHz.getCacheManager().getCache(srcName);
         // the class of the value is unknown to the remote IMDG member, it will be only known to Jet
-        cache.put("key", person);
+        cache.put("key", carPojo);
 
         // When
         BatchSource<Entry<String, Object>> source = Sources.remoteCache(srcName, clientConfig);
@@ -361,7 +287,7 @@ public class SourcesTest extends PipelineTestSupport {
         JobConfig jobConfig = new JobConfig();
         jobConfig.addJar(jarResource);
         hz().getJet().newJob(p, jobConfig).join();
-        List<Object> expected = singletonList(person.toString());
+        List<Object> expected = singletonList(carPojo.toString());
         List<Object> actual = new ArrayList<>(sinkList);
         assertEquals(expected, actual);
     }
@@ -480,7 +406,7 @@ public class SourcesTest extends PipelineTestSupport {
         p.readFrom(source).withoutTimestamps().writeTo(sink);
         Job job = hz().getJet().newJob(p);
         // wait for the processor to initialize
-        assertJobStatusEventually(job, JobStatus.RUNNING);
+        assertThat(job).eventuallyHasStatus(JobStatus.RUNNING);
         // pre-existing file should not be picked up
         assertEquals(0, sinkList.size());
         appendToFile(file, "third line");

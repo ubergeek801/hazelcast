@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Hazelcast Inc.
+ * Copyright 2024 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,29 +81,17 @@ public class QueryIdTest extends CoreSqlTestSupport {
         QueryId restored = QueryId.parse(original.toString());
         assertEquals(original, restored);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID().toString());
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID().toString()));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID() + "_");
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID() + "_"));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID() + "!_" + UUID.randomUUID());
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID() + "!_" + UUID.randomUUID()));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "!");
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "!"));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "_");
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "_"));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "_" + UUID.randomUUID());
-        });
+        assertThrows(IllegalArgumentException.class, () -> QueryId.parse(UUID.randomUUID() + "_" + UUID.randomUUID() + "_" + UUID.randomUUID()));
     }
 
     private static QueryId create(UUID memberId, UUID localId) {

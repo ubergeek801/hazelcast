@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public class InterfacesConfig {
 
     private boolean enabled;
 
-    private final Set<String> interfaceSet = new HashSet<String>();
+    private final Set<String> interfaceSet = new HashSet<>();
 
     /**
      * @return {@code true} if the interface is enabled, {@code false} otherwise
@@ -86,11 +86,9 @@ public class InterfacesConfig {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof InterfacesConfig)) {
+        if (!(o instanceof InterfacesConfig that)) {
             return false;
         }
-
-        InterfacesConfig that = (InterfacesConfig) o;
 
         if (enabled != that.enabled) {
             return false;

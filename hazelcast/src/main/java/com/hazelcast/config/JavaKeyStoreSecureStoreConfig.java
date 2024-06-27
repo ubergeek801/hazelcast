@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,10 +194,9 @@ public class JavaKeyStoreSecureStoreConfig
         if (this == o) {
             return true;
         }
-        if (!(o instanceof JavaKeyStoreSecureStoreConfig)) {
+        if (!(o instanceof JavaKeyStoreSecureStoreConfig other)) {
             return false;
         }
-        JavaKeyStoreSecureStoreConfig other = (JavaKeyStoreSecureStoreConfig) o;
         if (!Objects.equals(path, other.path)) {
             return false;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.jet.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class Tuple2<E0, E1> implements Map.Entry<E0, E1>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     private final E0 f0;
     private final E1 f1;
@@ -110,10 +112,9 @@ public final class Tuple2<E0, E1> implements Map.Entry<E0, E1>, Serializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Tuple2)) {
+        if (!(obj instanceof Tuple2 that)) {
             return false;
         }
-        final Tuple2 that = (Tuple2) obj;
         return Objects.equals(this.f0, that.f0)
                 && Objects.equals(this.f1, that.f1);
     }

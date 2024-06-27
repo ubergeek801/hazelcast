@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.client.impl.spi.impl.discovery;
 
 import com.hazelcast.client.impl.connection.AddressProvider;
 import com.hazelcast.client.impl.connection.Addresses;
-import com.hazelcast.client.impl.management.ClientConnectionProcessListenerRunner;
+import com.hazelcast.client.impl.management.ClientConnectionProcessListenerRegistry;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.Member;
 
@@ -31,7 +31,7 @@ public class RemoteAddressProvider implements AddressProvider {
 
     private final Callable<Map<Address, Address>> getAddresses;
     private final boolean usePublic;
-    private volatile Map<Address, Address> privateToPublic = new HashMap<Address, Address>();
+    private volatile Map<Address, Address> privateToPublic = new HashMap<>();
 
     public RemoteAddressProvider(Callable<Map<Address, Address>> getAddresses, boolean usePublic) {
         this.getAddresses = getAddresses;
@@ -39,7 +39,7 @@ public class RemoteAddressProvider implements AddressProvider {
     }
 
     @Override
-    public Addresses loadAddresses(ClientConnectionProcessListenerRunner listenerRunner)
+    public Addresses loadAddresses(ClientConnectionProcessListenerRegistry listenerRunner)
             throws Exception {
         privateToPublic = getAddresses.call();
         Set<Address> addresses = privateToPublic.keySet();

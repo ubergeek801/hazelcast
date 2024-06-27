@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,13 +60,12 @@ public class MapPutAllWithBouncingMemberTest extends HazelcastTestSupport {
         return cfg;
     }
 
-    @Rule(order = 10)
+    @Rule
     public BounceMemberRule bounceMemberRule =
-            BounceMemberRule.with(() -> {
-                        return getConfig();
-                    })
+            BounceMemberRule.with(() -> getConfig())
                     .driverType(BounceTestConfiguration.DriverType.MEMBER)
                     .clusterSize(2)
+                    .driverCount(2)
                     .build();
 
     @Test

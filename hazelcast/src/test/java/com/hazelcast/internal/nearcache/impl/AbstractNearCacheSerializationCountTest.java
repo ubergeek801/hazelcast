@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.internal.adapter.DataStructureAdapter.DataStructureMethods;
 import com.hazelcast.internal.adapter.DataStructureAdapterMethod;
 import com.hazelcast.internal.adapter.ReplicatedMapDataStructureAdapter;
 import com.hazelcast.internal.nearcache.NearCache;
+import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
@@ -35,8 +36,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,10 +80,10 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
     private static final AtomicInteger VALUE_SERIALIZE_COUNT = new AtomicInteger();
     private static final AtomicInteger VALUE_DESERIALIZE_COUNT = new AtomicInteger();
 
-    private static final AtomicReference<List<String>> KEY_SERIALIZE_STACKTRACE = new AtomicReference<List<String>>();
-    private static final AtomicReference<List<String>> KEY_DESERIALIZE_STACKTRACE = new AtomicReference<List<String>>();
-    private static final AtomicReference<List<String>> VALUE_SERIALIZE_STACKTRACE = new AtomicReference<List<String>>();
-    private static final AtomicReference<List<String>> VALUE_DESERIALIZE_STACKTRACE = new AtomicReference<List<String>>();
+    private static final AtomicReference<List<String>> KEY_SERIALIZE_STACKTRACE = new AtomicReference<>();
+    private static final AtomicReference<List<String>> KEY_DESERIALIZE_STACKTRACE = new AtomicReference<>();
+    private static final AtomicReference<List<String>> VALUE_SERIALIZE_STACKTRACE = new AtomicReference<>();
+    private static final AtomicReference<List<String>> VALUE_DESERIALIZE_STACKTRACE = new AtomicReference<>();
 
     /**
      * The {@link DataStructureMethods} which should be used in the test.
@@ -162,10 +161,10 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
         VALUE_SERIALIZE_COUNT.set(0);
         VALUE_DESERIALIZE_COUNT.set(0);
 
-        KEY_SERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<String>());
-        KEY_DESERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<String>());
-        VALUE_SERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<String>());
-        VALUE_DESERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<String>());
+        KEY_SERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<>());
+        KEY_DESERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<>());
+        VALUE_SERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<>());
+        VALUE_DESERIALIZE_STACKTRACE.set(new CopyOnWriteArrayList<>());
     }
 
     /**
@@ -296,10 +295,10 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
         int actualValueSerializeCount = VALUE_SERIALIZE_COUNT.getAndSet(0);
         int actualValueDeserializeCount = VALUE_DESERIALIZE_COUNT.getAndSet(0);
 
-        List<String> keySerializeStackTrace = KEY_SERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<String>());
-        List<String> keyDeserializeStackTrace = KEY_DESERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<String>());
-        List<String> valueSerializeStackTrace = VALUE_SERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<String>());
-        List<String> valueDeserializeStackTrace = VALUE_DESERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<String>());
+        List<String> keySerializeStackTrace = KEY_SERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<>());
+        List<String> keyDeserializeStackTrace = KEY_DESERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<>());
+        List<String> valueSerializeStackTrace = VALUE_SERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<>());
+        List<String> valueDeserializeStackTrace = VALUE_DESERIALIZE_STACKTRACE.getAndSet(new CopyOnWriteArrayList<>());
 
         NearCacheSerializationCountConfigBuilder configBuilder = new NearCacheSerializationCountConfigBuilder();
         configBuilder.append(expectedKeySerializationCounts);
@@ -329,7 +328,7 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
                     label, expectedValueDeserializeCount, actualValueDeserializeCount, getStatsOrEmptyString(context),
                     configBuilder.build(false, false, index, valueDeserializeStackTrace)));
         }
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
             fail(sb.toString());
         }
     }
@@ -382,10 +381,7 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
     }
 
     private static String getStackTrace(String message) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        new HazelcastSerializationException(message).printStackTrace(pw);
-        return sw.toString();
+        return ExceptionUtil.toString(new HazelcastSerializationException(message));
     }
 
     private static class KeySerializationCountingData implements Portable {
@@ -436,10 +432,9 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof KeySerializationCountingData)) {
+            if (!(o instanceof KeySerializationCountingData that)) {
                 return false;
             }
-            KeySerializationCountingData that = (KeySerializationCountingData) o;
             return that.executeEqualsAndHashCode;
         }
 
@@ -500,10 +495,9 @@ public abstract class AbstractNearCacheSerializationCountTest<NK, NV> extends Ha
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ValueSerializationCountingData)) {
+            if (!(o instanceof ValueSerializationCountingData that)) {
                 return false;
             }
-            ValueSerializationCountingData that = (ValueSerializationCountingData) o;
             return that.executeEqualsAndHashCode;
         }
 

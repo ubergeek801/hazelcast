@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class DynamicConfigVersionTest {
     private static final Set<Class<?>> NON_DYNAMIC_CONFIG_CLASSES;
 
     static {
-        Set<Class<?>> nonDynamicConfigClasses = new HashSet<Class<?>>();
+        Set<Class<?>> nonDynamicConfigClasses = new HashSet<>();
         nonDynamicConfigClasses.add(WanReplicationConfig.class);
         nonDynamicConfigClasses.add(SplitBrainProtectionConfig.class);
         nonDynamicConfigClasses.add(ListenerConfig.class);
@@ -61,7 +61,7 @@ public class DynamicConfigVersionTest {
         for (Method method : allConfigMethods) {
             String methodName = method.getName();
             if (methodName.startsWith("add") && methodName.endsWith("Config")) {
-                assert method.getParameterTypes().length == 1;
+                assert method.getParameterCount() == 1;
                 Class klass = method.getParameterTypes()[0];
                 boolean isMappedToVersion = CONFIG_TO_VERSION.get(klass) != null
                         || NON_DYNAMIC_CONFIG_CLASSES.contains(klass);

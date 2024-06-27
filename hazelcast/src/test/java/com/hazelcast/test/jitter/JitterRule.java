@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 
 import static com.hazelcast.test.JenkinsDetector.isOnJenkins;
 import static com.hazelcast.internal.util.QuickMath.nextPowerOfTwo;
-import static com.hazelcast.internal.util.StringUtil.LINE_SEPARATOR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -114,10 +113,10 @@ public class JitterRule implements TestRule {
                 StringBuilder sb = new StringBuilder("Hiccups measured while running test '")
                         .append(description.getDisplayName())
                         .append(":'")
-                        .append(LINE_SEPARATOR);
+                        .append(System.lineSeparator());
                 DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
                 for (Slot slot : slotsBetween) {
-                    sb.append(slot.toHumanFriendly(dateFormat)).append(LINE_SEPARATOR);
+                    sb.append(slot.toHumanFriendly(dateFormat)).append(System.lineSeparator());
                 }
                 System.out.println(sb);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.test.TestHazelcastInstanceFactory;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.Serial;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -63,7 +64,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testRemove() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "remove_" + String.valueOf(i);
+            String key = "remove_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -84,7 +85,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testDelete() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "delete_" + String.valueOf(i);
+            String key = "delete_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -104,7 +105,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testRemoveValue() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "removevalue_" + String.valueOf(i);
+            String key = "removevalue_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -124,7 +125,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testTryRemove() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "tryremove_" + String.valueOf(i);
+            String key = "tryremove_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -144,7 +145,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testRemoveAsync() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "removeasync_" + String.valueOf(i);
+            String key = "removeasync_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -168,10 +169,37 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     }
 
     @Test
+    public void testDeleteAsync() {
+        IMap<String, String> map = hz.getMap(getMapName());
+        for (int i = 0; i < NUM_ITERATIONS; i++) {
+            String key = "deleteasync_" + i;
+            String value = "merhaba-" + key;
+
+            String oldValue = map.put(key, value);
+            // this brings the value into the Near Cache
+            String value1 = map.get(key);
+            Future<Boolean> future = map.deleteAsync(key).toCompletableFuture();
+            Boolean returnValue = null;
+            try {
+                returnValue = future.get();
+            } catch (Exception e) {
+                fail("Exception in future.get(): " + e.getMessage());
+            }
+            // here we _might_ still see the value
+            String value2 = map.get(key);
+
+            assertNull(oldValue);
+            assertEquals(value, value1);
+            assertTrue(returnValue);
+            assertNull(value2);
+        }
+    }
+
+    @Test
     public void testPut() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "put_" + String.valueOf(i);
+            String key = "put_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -190,7 +218,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testTryPut() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "tryput_" + String.valueOf(i);
+            String key = "tryput_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -208,7 +236,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testPutIfAbsent() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "putifabsent_" + String.valueOf(i);
+            String key = "putifabsent_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -227,7 +255,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testPutTransient() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "puttransient_" + String.valueOf(i);
+            String key = "puttransient_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -245,7 +273,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testPutAsync() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "putasync_" + String.valueOf(i);
+            String key = "putasync_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -295,7 +323,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testSetAsync() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "setasync_" + String.valueOf(i);
+            String key = "setasync_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -318,7 +346,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testEvict() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "evict_" + String.valueOf(i);
+            String key = "evict_" + i;
             String value = "merhaba-" + key;
 
             String oldValue = map.put(key, value);
@@ -338,7 +366,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testSet() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "set_" + String.valueOf(i);
+            String key = "set_" + i;
             String value = "merhaba-" + key;
 
             // this brings the CACHED_AS_NULL into the Near Cache
@@ -356,7 +384,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
     public void testReplace() {
         IMap<String, String> map = hz.getMap(getMapName());
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "replace_" + String.valueOf(i);
+            String key = "replace_" + i;
             String value = "merhaba-" + key;
             String valueNew = "merhaba-new" + key;
 
@@ -378,29 +406,28 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
         IMap<String, String> map = hz.getMap(getMapName());
         // loop over several keys to make sure we have keys on both instances
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "executeOnKey_" + String.valueOf(i);
+            String key = "executeOnKey_" + i;
             // bring null local cache
             String expectedNull = map.get(key);
             assertNull(expectedNull);
-            String newValue = (String) map.executeOnKey(key, new WritingEntryProcessor());
+            String newValue = map.executeOnKey(key, new WritingEntryProcessor());
             String value = map.get(key);
             assertEquals(newValue, value);
         }
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testExecuteOnKeys() {
         IMap<String, String> map = hz.getMap(getMapName());
         // loop over several keys to make sure we have keys on both instances
         for (int i = 0; i < NUM_ITERATIONS; i++) {
-            String key = "executeOnKeys_" + String.valueOf(i);
+            String key = "executeOnKeys_" + i;
             // bring null to local cache
             String expectedNull = map.get(key);
             assertNull(expectedNull);
-            HashSet<String> keys = new HashSet<String>();
+            HashSet<String> keys = new HashSet<>();
             keys.add(key);
-            Map<String, String> result = (Map) map.executeOnKeys(keys, new WritingEntryProcessor());
+            Map<String, String> result = map.executeOnKeys(keys, new WritingEntryProcessor());
             for (Map.Entry<String, String> e : result.entrySet()) {
                 String newValue = e.getValue();
                 String cachedValue = map.get(e.getKey());
@@ -418,6 +445,7 @@ public abstract class AbstractMapNearCacheLocalInvalidationTest extends Hazelcas
      */
     public static class WritingEntryProcessor implements EntryProcessor<String, String, String> {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2023, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class SelectorOptimizerTest {
     }
 
     // copied from HazelcastTestSupport
-    private static void assertUtilityConstructor(Class clazz) {
+    private static void assertUtilityConstructor(Class<?> clazz) {
         Constructor[] constructors = clazz.getDeclaredConstructors();
         assertEquals("there are more than 1 constructors", 1, constructors.length);
 
