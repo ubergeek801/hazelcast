@@ -38,6 +38,9 @@ jobs:
 
     - name: Setup Java JDK
       uses: actions/setup-java@v4.2.1
+      with:
+        distribution: 'liberica'
+        java-version: '21'
 
     - name: Setup local maven cache
       uses: actions/cache@v4
