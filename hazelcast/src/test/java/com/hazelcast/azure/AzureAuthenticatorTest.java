@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.net.HttpURLConnection;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -50,7 +52,7 @@ public class AzureAuthenticatorTest {
         // given
         stubFor(post("/" + TENANT_ID + "/oauth2/token")
                 .withRequestBody(matching(START_OF_REQUEST_BODY + ".*"))
-                .willReturn(aResponse().withStatus(200).withBody(responseBody(ACCESS_TOKEN))));
+                .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(responseBody(ACCESS_TOKEN))));
 
         // when
         String result = azureAuthenticator.refreshAccessToken(TENANT_ID, CLIENT_ID, CLIENT_SECRET);

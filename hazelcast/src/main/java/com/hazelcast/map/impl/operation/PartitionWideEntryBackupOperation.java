@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,8 @@ public class PartitionWideEntryBackupOperation extends AbstractMultipleEntryBack
         Queue<Object> outComes = new LinkedList<>();
         recordStore.forEach((key, record) -> {
             Data dataKey = toHeapData(key);
-            operator.operateOnKey(dataKey);
+            // for native use variant that does not expire entries (see comment below)
+            operator.operateOnKeyValueDuringScan(dataKey, record.getValue());
 
             EntryEventType eventType = operator.getEventType();
             if (eventType != null) {

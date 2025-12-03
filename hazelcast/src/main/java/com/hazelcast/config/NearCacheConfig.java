@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,7 @@ public class NearCacheConfig implements IdentifiedDataSerializable, Serializable
      *
      * @return the name of the Near Cache
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -133,6 +134,7 @@ public class NearCacheConfig implements IdentifiedDataSerializable, Serializable
      * @param name the name of the Near Cache
      * @return this Near Cache config instance
      */
+    @Override
     public NearCacheConfig setName(String name) {
         this.name = isNotNull(name, "name");
         return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public class QueryClientStateRegistry {
             // it happens, the cursor is already closed with the error, so we just re-throw.
             throw e;
         } catch (Exception e) {
-            // Any other exception indicates that something has happened outside of the internal query state. For example,
+            // Any other exception indicates that something has happened outside the internal query state. For example,
             // we may fail to serialize a specific column value to Data. We have to close the cursor in this case.
             AbstractSqlResult result = clientCursor.getSqlResult();
 
@@ -188,7 +188,7 @@ public class QueryClientStateRegistry {
 
     public void close(UUID clientId, QueryId queryId) {
         QueryClientState clientCursor =
-            clientCursors.computeIfAbsent(queryId, (ignore) -> new QueryClientState(clientId, queryId, null, true));
+            clientCursors.computeIfAbsent(queryId, ignore -> new QueryClientState(clientId, queryId, null, true));
 
         if (clientCursor.isClosed()) {
             // Received the "close" request before the "execute" request, do nothing.

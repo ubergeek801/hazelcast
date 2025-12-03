@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.hazelcast.com/schema/spring
-        http://www.hazelcast.com/schema/spring/hazelcast-spring-5.5.xsd">
+        http://www.hazelcast.com/schema/spring/hazelcast-spring-5.7.xsd">
 
     <hz:hazelcast id="instance" lazy-init="true" scope="singleton">
         <hz:config>
@@ -41,8 +41,8 @@
     <hz:client id="client" lazy-init="true" scope="prototype">
         <hz:cluster-name>${cluster.name}</hz:cluster-name>
         <hz:network connection-timeout="1000"
-                    redo-operation="true"
-                    smart-routing="true">
+                    redo-operation="true">
+            <hz:cluster-routing mode="ALL_MEMBERS"/>
 
             <hz:member>127.0.0.1:5801</hz:member>
             <hz:member>127.0.0.1:5802</hz:member>

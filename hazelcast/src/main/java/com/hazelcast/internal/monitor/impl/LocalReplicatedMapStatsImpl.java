@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package com.hazelcast.internal.monitor.impl;
 
 import com.hazelcast.internal.metrics.Probe;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.nearcache.NearCacheStats;
 import com.hazelcast.partition.LocalReplicationStats;
 import com.hazelcast.query.LocalIndexStats;
 import com.hazelcast.replicatedmap.LocalReplicatedMapStats;
 
+import java.lang.invoke.VarHandle;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
@@ -30,6 +32,7 @@ import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATE
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_MAX_GET_LATENCY;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_MAX_PUT_LATENCY;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_MAX_REMOVE_LATENCY;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_ENTRYSET_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_GET_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_HITS;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_LAST_ACCESS_TIME;
@@ -41,6 +44,7 @@ import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATE
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_TOTAL_GET_LATENCIES;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_TOTAL_PUT_LATENCIES;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_TOTAL_REMOVE_LATENCIES;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_METRIC_VALUES_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_OWNED_ENTRY_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_OWNED_ENTRY_MEMORY_COST;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.REPLICATED_MAP_TOTAL;
@@ -57,12 +61,9 @@ import static java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater;
 @SuppressWarnings("checkstyle:methodcount")
 public class LocalReplicatedMapStatsImpl implements LocalReplicatedMapStats {
 
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> LAST_ACCESS_TIME =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "lastAccessTime");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> LAST_UPDATE_TIME =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "lastUpdateTime");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> HITS =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "hits");
+    private static final VarHandle LAST_ACCESS_TIME = ReflectionUtil.findVarHandle("lastAccessTime", long.class);
+    private static final VarHandle LAST_UPDATE_TIME = ReflectionUtil.findVarHandle("lastUpdateTime", long.class);
+    private static final VarHandle HITS = ReflectionUtil.findVarHandle("hits", long.class);
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> NUMBER_OF_OTHER_OPERATIONS =
             newUpdater(LocalReplicatedMapStatsImpl.class, "numberOfOtherOperations");
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> NUMBER_OF_EVENTS =
@@ -73,20 +74,20 @@ public class LocalReplicatedMapStatsImpl implements LocalReplicatedMapStats {
             newUpdater(LocalReplicatedMapStatsImpl.class, "putCount");
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> REMOVE_COUNT =
             newUpdater(LocalReplicatedMapStatsImpl.class, "removeCount");
+    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> VALUES_COUNT =
+            newUpdater(LocalReplicatedMapStatsImpl.class, "valuesCount");
+    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> ENTRYSET_COUNT =
+            newUpdater(LocalReplicatedMapStatsImpl.class, "entrySetCount");
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> TOTAL_GET_LATENCIES =
             newUpdater(LocalReplicatedMapStatsImpl.class, "totalGetLatenciesNanos");
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> TOTAL_PUT_LATENCIES =
             newUpdater(LocalReplicatedMapStatsImpl.class, "totalPutLatenciesNanos");
     private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> TOTAL_REMOVE_LATENCIES =
             newUpdater(LocalReplicatedMapStatsImpl.class, "totalRemoveLatenciesNanos");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> MAX_GET_LATENCY =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "maxGetLatencyNanos");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> MAX_PUT_LATENCY =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "maxPutLatencyNanos");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> MAX_REMOVE_LATENCY =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "maxRemoveLatencyNanos");
-    private static final AtomicLongFieldUpdater<LocalReplicatedMapStatsImpl> OWNED_ENTRY_MEMORY_COST =
-            newUpdater(LocalReplicatedMapStatsImpl.class, "ownedEntryMemoryCost");
+    private static final VarHandle MAX_GET_LATENCY = ReflectionUtil.findVarHandle("maxGetLatencyNanos", long.class);
+    private static final VarHandle MAX_PUT_LATENCY = ReflectionUtil.findVarHandle("maxPutLatencyNanos", long.class);
+    private static final VarHandle MAX_REMOVE_LATENCY = ReflectionUtil.findVarHandle("maxRemoveLatencyNanos", long.class);
+    private static final VarHandle OWNED_ENTRY_MEMORY_COST = ReflectionUtil.findVarHandle("ownedEntryMemoryCost", long.class);
 
     // these fields are only accessed through the updaters
     @Probe(name = REPLICATED_MAP_METRIC_LAST_ACCESS_TIME, unit = MS)
@@ -105,6 +106,10 @@ public class LocalReplicatedMapStatsImpl implements LocalReplicatedMapStats {
     private volatile long putCount;
     @Probe(name = REPLICATED_MAP_METRIC_REMOVE_COUNT)
     private volatile long removeCount;
+    @Probe(name = REPLICATED_MAP_METRIC_VALUES_COUNT)
+    private volatile long valuesCount;
+    @Probe(name = REPLICATED_MAP_METRIC_ENTRYSET_COUNT)
+    private volatile long entrySetCount;
 
     private volatile long totalGetLatenciesNanos;
     private volatile long totalPutLatenciesNanos;
@@ -264,6 +269,16 @@ public class LocalReplicatedMapStatsImpl implements LocalReplicatedMapStats {
         return removeCount;
     }
 
+    @Override
+    public long getValuesCallCount() {
+        return valuesCount;
+    }
+
+    @Override
+    public long getEntrySetCallCount() {
+        return entrySetCount;
+    }
+
     public void incrementRemovesNanos(long latencyNanos) {
         REMOVE_COUNT.incrementAndGet(this);
         TOTAL_REMOVE_LATENCIES.addAndGet(this, latencyNanos);
@@ -400,5 +415,15 @@ public class LocalReplicatedMapStatsImpl implements LocalReplicatedMapStats {
                 + ", ownedEntryMemoryCost=" + ownedEntryMemoryCost
                 + ", creationTime=" + creationTime
                 + '}';
+    }
+
+    @Override
+    public void incrementValuesCallCount() {
+        VALUES_COUNT.incrementAndGet(this);
+    }
+
+    @Override
+    public void incrementEntrySetCallCount() {
+        ENTRYSET_COUNT.incrementAndGet(this);
     }
 }

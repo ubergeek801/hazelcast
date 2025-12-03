@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,6 +155,18 @@ public class GenericMapStoreIT extends JdbcSqlTestSupport {
         Person p = map.get(0);
         assertThat(p.getId()).isZero();
         assertThat(p.getName()).isEqualTo("name-0");
+    }
+
+    /**
+     * https://hazelcast.atlassian.net/browse/ESC-26
+     */
+    @Test
+    public void testGetAll() throws Exception {
+        insertItems(tableName, 1, 99);
+        HazelcastInstance client = client();
+        Map<Integer, Person> map = client.getMap(tableName);
+
+        assertTrueEventually(() -> assertThat(map).hasSize(100));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.spi.impl.operationservice.ExceptionAction;
 import com.hazelcast.spi.impl.operationservice.Operation;
+import com.hazelcast.spi.impl.operationservice.SelfResponseOperation;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -40,16 +41,27 @@ import static com.hazelcast.spi.impl.operationservice.ExceptionAction.THROW_EXCE
  * operations from live registry, exception handling and peeling and
  * logging of exceptions
  */
-public abstract class AsyncOperation extends Operation implements IdentifiedDataSerializable {
+public abstract class AsyncOperation extends Operation implements SelfResponseOperation, IdentifiedDataSerializable {
+
+    private transient boolean skip;
 
     @Override
-    public void beforeRun() {
+    public void beforeRun() throws Exception {
         JetServiceBackend service = getJetServiceBackend();
-        service.getLiveOperationRegistry().register(this);
+        // Due to a bug in the retry invocation mechanism, the same operation with the same callId
+        // may be invoked twice. In such cases, we simply ignore the duplicate invocation and avoid
+        // sending a response. The response will be handled by the first invocation.
+        // See more details:
+        // https://hazelcast.atlassian.net/wiki/spaces/EN/pages/5506629766/Inherent+Inconsistencies+in+AP+Subsystem
+        skip = !service.getLiveOperationRegistry().register(this);
     }
 
     @Override
     public final void run() {
+        if (skip) {
+            getLogger().warning("Skipping operation execution: duplicate operation detected during registration: " + this);
+            return;
+        }
         CompletableFuture<?> future;
         try {
             future = doRun();

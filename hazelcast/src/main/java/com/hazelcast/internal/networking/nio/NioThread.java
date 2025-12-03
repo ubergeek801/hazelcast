@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,7 @@ public class NioThread extends HazelcastManagedThread implements OperationHostil
 
     @Override
     public void executeRun() {
-        // This outer loop is a bit complex but it takes care of a lot of stuff:
+        // This outer loop is a bit complex, but it takes care of a lot of stuff:
         // * it calls runSelectNowLoop or runSelectLoop based on selectNow enabled or not.
         // * handles backoff and retrying in case if io exception is thrown
         // * it takes care of other exception handling.
@@ -257,7 +257,7 @@ public class NioThread extends HazelcastManagedThread implements OperationHostil
                     break;
                 } catch (IOException nonFatalException) {
                     selectorIOExceptionCount.inc();
-                    logger.warning(getName() + " " + nonFatalException.toString(), nonFatalException);
+                    logger.warning(getName() + " " + nonFatalException, nonFatalException);
                     coolDown();
                 }
             }
@@ -271,9 +271,9 @@ public class NioThread extends HazelcastManagedThread implements OperationHostil
     }
 
     /**
-     * When an IOException happened, the loop is going to be retried but we need to wait a bit
+     * When an IOException happened, the loop is going to be retried, but we need to wait a bit
      * before retrying. If we don't wait, it can be that a subsequent call will run into an IOException
-     * immediately. This can lead to a very hot loop and we don't want that. A similar approach is used
+     * immediately. This can lead to a very hot loop, and we don't want that. A similar approach is used
      * in Netty
      */
     private void coolDown() {
@@ -388,7 +388,7 @@ public class NioThread extends HazelcastManagedThread implements OperationHostil
 
     private void closeSelector() {
         if (logger.isFinestEnabled()) {
-            logger.finest("Closing selector for:" + getName());
+            logger.finest("Closing selector for:%s", getName());
         }
 
         try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,20 +82,8 @@ final class DateHelper {
                 + "' ! Valid format are: " + sb.toString() + ".", e);
     }
 
-    private static DateFormat getTimestampFormat() {
-        return new SimpleDateFormat(TIMESTAMP_FORMAT, LOCALE_INTERNAL);
-    }
-
-    private static DateFormat getSqlDateFormat() {
-        return new SimpleDateFormat(SQL_DATE_FORMAT, LOCALE_INTERNAL);
-    }
-
     private static DateFormat getUtilDateFormat() {
         return new SimpleDateFormat(DATE_FORMAT, LOCALE_INTERNAL);
-    }
-
-    private static DateFormat getSqlTimeFormat() {
-        return new SimpleDateFormat(SQL_TIME_FORMAT, LOCALE_INTERNAL);
     }
 
 }

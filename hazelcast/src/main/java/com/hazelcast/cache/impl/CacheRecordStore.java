@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ import com.hazelcast.internal.eviction.EvictionChecker;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.internal.serialization.SerializationService;
+
+import javax.annotation.Nullable;
+
+import static com.hazelcast.internal.namespace.NamespaceUtil.callWithNamespace;
 
 /**
  * <h1>On-Heap implementation of the {@link ICacheRecordStore} </h1>
@@ -53,11 +57,14 @@ public class CacheRecordStore
         extends AbstractCacheRecordStore<CacheRecord, CacheRecordHashMap> {
 
     protected SerializationService serializationService;
+    @Nullable
+    private final String userCodeNamespace;
 
     public CacheRecordStore(String cacheNameWithPrefix, int partitionId, NodeEngine nodeEngine,
                             AbstractCacheService cacheService) {
         super(cacheNameWithPrefix, partitionId, nodeEngine, cacheService);
         this.serializationService = nodeEngine.getSerializationService();
+        userCodeNamespace = cacheConfig.getUserCodeNamespace();
     }
 
     /**
@@ -103,32 +110,31 @@ public class CacheRecordStore
         evictIfRequired();
 
         markExpirable(expiryTime);
-        return cacheRecordFactory.newRecordWithExpiry(value, creationTime, expiryTime);
+        return callWithNamespace(nodeEngine, userCodeNamespace,
+                () -> cacheRecordFactory.newRecordWithExpiry(value, creationTime, expiryTime));
     }
 
     @Override
     protected Data valueToData(Object value) {
-        return cacheService.toData(value);
+        return callWithNamespace(nodeEngine, userCodeNamespace, () -> cacheService.toData(value));
     }
 
     @Override
     protected Object dataToValue(Data data) {
-        return serializationService.toObject(data);
+        return callWithNamespace(nodeEngine, userCodeNamespace,
+                () -> serializationService.toObject(data));
     }
 
     @Override
     protected Object recordToValue(CacheRecord record) {
         Object value = record.getValue();
         if (value instanceof Data data) {
-            switch (cacheConfig.getInMemoryFormat()) {
-                case BINARY:
-                    return value;
-                case OBJECT:
-                    return dataToValue(data);
-                default:
-                    throw new IllegalStateException("Unsupported in-memory format: "
-                            + cacheConfig.getInMemoryFormat());
-            }
+            return switch (cacheConfig.getInMemoryFormat()) {
+                case BINARY -> value;
+                case OBJECT -> dataToValue(data);
+                default -> throw new IllegalStateException("Unsupported in-memory format: "
+                        + cacheConfig.getInMemoryFormat());
+            };
         } else {
             return value;
         }
@@ -157,7 +163,8 @@ public class CacheRecordStore
             Object value = record.getValue();
             return toHeapData(value);
         } else {
-            return serializationService.toData(obj);
+            return callWithNamespace(nodeEngine, userCodeNamespace,
+                    () -> serializationService.toData(obj));
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.pipeline.file.CsvFileFormat;
 import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.impl.ReadFileFnProvider;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
-import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Spliterators;
@@ -48,10 +48,10 @@ import static java.util.function.Function.identity;
  * {@link ReadFileFnProvider} for CSV files, reading the given path and
  * deserializing using Jackson {@link CsvMapper}.
  */
-@SuppressFBWarnings(
-        value = "OBL_UNSATISFIED_OBLIGATION",
-        justification = "The FileInputStream is closed via Stream$onClose"
-)
+//@SuppressFBWarnings(
+//        value = "OBL_UNSATISFIED_OBLIGATION",
+//        justification = "The FileInputStream is closed via Stream$onClose"
+//)
 public class CsvReadFileFnProvider implements ReadFileFnProvider {
 
     @SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public class CsvReadFileFnProvider implements ReadFileFnProvider {
         Class<?> formatClazz = csvFileFormat.clazz(); // Format is not Serializable
 
         return path -> {
-            FileInputStream fis = new FileInputStream(path.toFile());
+            InputStream inputStream = Files.newInputStream(path);
 
             MappingIterator<T> iterator;
             Function<T, T> projection = identity();
@@ -72,7 +72,7 @@ public class CsvReadFileFnProvider implements ReadFileFnProvider {
                                                      .with(SKIP_EMPTY_LINES)
                                                      .with(CsvSchema.emptySchema().withSkipFirstDataRow(false));
 
-                iterator = reader.readValues(fis);
+                iterator = reader.readValues(inputStream);
                 if (!iterator.hasNext()) {
                     throw new JetException("Header row missing in " + path);
                 }
@@ -86,11 +86,11 @@ public class CsvReadFileFnProvider implements ReadFileFnProvider {
                                           .withoutFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                                           .with(SKIP_EMPTY_LINES)
                                           .with(CsvSchema.emptySchema().withHeader())
-                                          .readValues(fis);
+                                          .readValues(inputStream);
             }
             return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, ORDERED), false)
                     .map(projection)
-                    .onClose(() -> uncheckRun(fis::close));
+                    .onClose(() -> uncheckRun(inputStream::close));
         };
     }
 

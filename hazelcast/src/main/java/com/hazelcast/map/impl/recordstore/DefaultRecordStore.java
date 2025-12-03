@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.config.NativeMemoryConfig;
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.internal.iteration.IterationPointer;
 import com.hazelcast.internal.locksupport.LockSupportService;
+import com.hazelcast.internal.nio.Disposable;
 import com.hazelcast.internal.partition.IPartition;
 import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.serialization.Data;
@@ -56,6 +57,7 @@ import com.hazelcast.map.impl.record.Record;
 import com.hazelcast.map.impl.record.Records;
 import com.hazelcast.map.impl.recordstore.expiry.ExpiryMetadata;
 import com.hazelcast.map.impl.recordstore.expiry.ExpiryReason;
+import com.hazelcast.map.impl.recordstore.expiry.ExpirySystem;
 import com.hazelcast.spi.exception.RetryableHazelcastException;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.merge.SplitBrainMergePolicy;
@@ -72,6 +74,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -84,11 +87,13 @@ import static com.hazelcast.core.EntryEventType.ADDED;
 import static com.hazelcast.core.EntryEventType.LOADED;
 import static com.hazelcast.core.EntryEventType.UPDATED;
 import static com.hazelcast.internal.util.ConcurrencyUtil.CALLER_RUNS;
+import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
 import static com.hazelcast.internal.util.ToHeapDataConverter.toHeapData;
 import static com.hazelcast.internal.util.counters.SwCounter.newSwCounter;
 import static com.hazelcast.map.impl.mapstore.MapDataStores.EMPTY_MAP_DATA_STORE;
 import static com.hazelcast.map.impl.record.Record.UNSET;
+import static com.hazelcast.map.impl.recordstore.StaticParams.PUT_BACKUP_FOR_ENTRY_PROCESSOR_PARAMS;
 import static com.hazelcast.map.impl.recordstore.StaticParams.PUT_BACKUP_PARAMS;
 import static com.hazelcast.spi.impl.merge.MergingValueFactory.createMergingEntry;
 import static java.util.Collections.emptyList;
@@ -272,14 +277,14 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
                             boolean putTransient, CallerProvenance provenance) {
         return putBackupInternal(dataKey, newRecord.getValue(), true,
                 expiryMetadata.getTtl(), expiryMetadata.getMaxIdle(),
-                expiryMetadata.getExpirationTime(), putTransient, provenance, null);
+                expiryMetadata.getExpirationTime(), putTransient, provenance, null, PUT_BACKUP_PARAMS);
     }
 
     @Override
     public Record putBackup(Data dataKey, Record record, long ttl,
                             long maxIdle, long nowOrExpiryTime, CallerProvenance provenance) {
         return putBackupInternal(dataKey, record.getValue(), true,
-                ttl, maxIdle, nowOrExpiryTime, false, provenance, null);
+                ttl, maxIdle, nowOrExpiryTime, false, provenance, null, PUT_BACKUP_PARAMS);
     }
 
     @Override
@@ -287,24 +292,24 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
                                boolean putTransient, CallerProvenance provenance, UUID transactionId) {
         return putBackupInternal(dataKey, newRecord.getValue(), true,
                 expiryMetadata.getTtl(), expiryMetadata.getMaxIdle(),
-                expiryMetadata.getExpirationTime(), putTransient, provenance, transactionId);
+                expiryMetadata.getExpirationTime(), putTransient, provenance, transactionId, PUT_BACKUP_PARAMS);
     }
 
     @Override
-    public Record putBackup(Data key, Object value, boolean changeExpiryOnUpdate, long ttl, long maxIdle,
-                            long nowOrExpiryTime, CallerProvenance provenance) {
+    public Record putBackupForEntryProcessor(Data key, Object value, boolean changeExpiryOnUpdate, long ttl, long maxIdle,
+                                             long nowOrExpiryTime, CallerProvenance provenance) {
         return putBackupInternal(key, value, changeExpiryOnUpdate, ttl, maxIdle,
-                nowOrExpiryTime, false, provenance, null);
+                nowOrExpiryTime, false, provenance, null, PUT_BACKUP_FOR_ENTRY_PROCESSOR_PARAMS);
     }
 
     @SuppressWarnings("checkstyle:parameternumber")
     private Record putBackupInternal(Data key, Object value, boolean changeExpiryOnUpdate,
                                      long ttl, long maxIdle, long expiryTime,
                                      boolean putTransient, CallerProvenance provenance,
-                                     UUID transactionId) {
+                                     UUID transactionId, StaticParams staticParams) {
         long now = getNow();
         putInternal(key, value, changeExpiryOnUpdate, ttl, maxIdle, expiryTime,
-                now, null, null, null, PUT_BACKUP_PARAMS);
+                now, null, null, null, staticParams);
 
         Record record = getRecord(key);
 
@@ -342,6 +347,9 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
 
             Data key = entry.getKey();
             Record record = entry.getValue();
+
+            assert key != null : "Got null key from storage iterator";
+            assert record != null : "Got null record from storage iterator";
 
             if (includeExpiredRecords
                     || hasExpired(key, now, backup) == ExpiryReason.NOT_EXPIRED) {
@@ -488,21 +496,21 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
      *
      * @return loaded value from map-store as a BiTuple which
      * holds value and expirationTime together, when no value or expirationTime is
-     * found, associated fields in BiTuple is set to null.
+     * found, associated fields in BiTuple is set to {@link Record#UNSET}
      */
-    public BiTuple<Object, Long> loadValueWithExpiry(Data key, long now) {
+    public BiTuple<Object, Long> loadValueWithTtl(Data key, long now) {
         Object value = mapDataStore.load(key);
-        return getOldValueWithExpiryTupleOrNull(value, now);
+        return getOldValueWithTtlTupleOrNull(value, now);
     }
 
     public Object loadValueOfKey(Data key, long now) {
         Object value = mapDataStore.load(key);
-        BiTuple<Object, Long> valueWithExpiry = getOldValueWithExpiryTupleOrNull(value, now);
-        return valueWithExpiry == null ? null : valueWithExpiry.element1;
+        BiTuple<Object, Long> valueWithTtl = getOldValueWithTtlTupleOrNull(value, now);
+        return valueWithTtl == null ? null : valueWithTtl.element1;
     }
 
     @Nullable
-    public BiTuple<Object, Long> getOldValueWithExpiryTupleOrNull(Object loadedValue, long now) {
+    public BiTuple<Object, Long> getOldValueWithTtlTupleOrNull(Object loadedValue, long now) {
         Object value = loadedValue;
         if (value == null) {
             return null;
@@ -511,22 +519,23 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         if (mapDataStore.isWithExpirationTime()) {
             MetadataAwareValue loaderEntry = (MetadataAwareValue) value;
             long expirationTime = loaderEntry.getExpirationTime();
-            if (toTtlFromExpiryTime(expirationTime, now) <= 0) {
+            long ttlFromExpiryTime = toTtlFromExpiryTime(expirationTime, now);
+            if (ttlFromExpiryTime <= 0) {
                 return null;
             }
             value = loaderEntry.getValue();
             if (value == null) {
                 return null;
             }
-            return BiTuple.of(value, expirationTime);
+            return BiTuple.of(value, ttlFromExpiryTime);
         }
 
-        return BiTuple.of(value, MetadataAwareValue.NO_TIME_SET);
+        return BiTuple.of(value, (long) UNSET);
     }
 
     @Override
     public Record loadRecordOrNull(Data key, boolean backup, Address callerAddress, long now) {
-        BiTuple<Object, Long> biTuple = loadValueWithExpiry(key, now);
+        BiTuple<Object, Long> biTuple = loadValueWithTtl(key, now);
         if (biTuple == null) {
             return null;
         }
@@ -534,17 +543,13 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         return onLoadRecord(key, biTuple, backup, callerAddress, now);
     }
 
-    public Record onLoadRecord(Data key, BiTuple<Object, Long> valueWithExpiry,
+    public Record onLoadRecord(Data key, BiTuple<Object, Long> valueWithTtl,
                                boolean backup, Address callerAddress, long now) {
         assert key != null;
-        assert valueWithExpiry != null;
+        assert valueWithTtl != null;
 
-        Object loadedValue = valueWithExpiry.element1;
-        Long expiryTime = valueWithExpiry.element2;
-
-        long ttl = toTtlFromExpiryTime(expiryTime, now);
-
-        assert ttl >= 0;
+        Object loadedValue = valueWithTtl.element1;
+        Long ttl = valueWithTtl.element2;
 
         Record record = putNewRecord(key, null, loadedValue, ttl, UNSET, UNSET, now,
                 null, LOADED, false, backup);
@@ -605,12 +610,17 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
 
     @Override
     public Object evict(Data key, boolean backup) {
+        Throwable throwable = null;
         Record record = storage.get(key);
         Object value = null;
         if (record != null) {
             value = copyToHeapWhenNeeded(record.getValue());
             mapDataStore.flush(key, value, backup);
-            mutationObserver.onEvictRecord(key, record, backup);
+            try {
+                mutationObserver.onEvictRecord(key, record, backup);
+            } catch (Throwable t) {
+                throwable = t;
+            }
             removeKeyFromExpirySystem(key);
             storage.removeRecord(key, record);
             if (!backup) {
@@ -619,6 +629,9 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
             if (wanReplicateEvictions) {
                 mapEventPublisher.publishWanRemove(name, toHeapData(key));
             }
+        }
+        if (throwable != null) {
+            throw rethrow(throwable);
         }
         return value;
     }
@@ -770,7 +783,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
             }
         }
 
-        Object value = record.getValue();
+        Object value = mapServiceContext.interceptGet(interceptorRegistry, record.getValue());
         mapServiceContext.interceptAfterGet(interceptorRegistry, value);
         // this serialization step is needed not to expose the object, see issue 1292
         return mapServiceContext.toData(value);
@@ -786,7 +799,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         // then try to load missing keys from map-store
         if (mapDataStore != EMPTY_MAP_DATA_STORE && !keys.isEmpty()) {
             List keyBiTupleList = loadMultipleKeys(keys);
-            Map<Data, Object> loadedEntries = putAndGetLoadedEntries(keyBiTupleList, callerAddress, now);
+            Map<Data, Object> loadedEntries = putAndGetLoadedEntries(keyBiTupleList, callerAddress);
             addToMapEntrySet(mapEntries, loadedEntries);
         }
 
@@ -832,7 +845,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
                 continue;
             }
 
-            BiTuple<Object, Long> biTuple = getOldValueWithExpiryTupleOrNull(loadedValue, now);
+            BiTuple<Object, Long> biTuple = getOldValueWithTtlTupleOrNull(loadedValue, now);
             if (biTuple != null) {
                 if (biTuple.element1 == null) {
                     // EntryLoader#MetadataAwareValue can hold value as null,
@@ -847,28 +860,26 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         return keyBiTupleList;
     }
 
-    public Map<Data, Object> putAndGetLoadedEntries(List loadedKeyAndOldValueWithExpiryPairs,
-                                                    Address callerAddress, long now) {
-        if (CollectionUtil.isEmpty(loadedKeyAndOldValueWithExpiryPairs)) {
+    public Map<Data, Object> putAndGetLoadedEntries(List loadedKeyAndOldValueWithTtlPairs,
+                                                    Address callerAddress) {
+        if (CollectionUtil.isEmpty(loadedKeyAndOldValueWithTtlPairs)) {
             return Collections.emptyMap();
         }
 
         // holds serialized keys and if values are
         // serialized, also holds them in serialized format.
-        Map<Data, Object> resultMap = createHashMap(loadedKeyAndOldValueWithExpiryPairs.size() / 2);
+        Map<Data, Object> resultMap = createHashMap(loadedKeyAndOldValueWithTtlPairs.size() / 2);
 
         // add loaded key-value pairs to this record-store.
-        for (int i = 0; i < loadedKeyAndOldValueWithExpiryPairs.size(); i += 2) {
-            Object loadedKey = loadedKeyAndOldValueWithExpiryPairs.get(i);
-            BiTuple<Object, Long> valueAndExpiryTime = (BiTuple<Object, Long>) loadedKeyAndOldValueWithExpiryPairs.get(i + 1);
+        for (int i = 0; i < loadedKeyAndOldValueWithTtlPairs.size(); i += 2) {
+            Object loadedKey = loadedKeyAndOldValueWithTtlPairs.get(i);
+            BiTuple<Object, Long> valueAndTtl = (BiTuple<Object, Long>) loadedKeyAndOldValueWithTtlPairs.get(i + 1);
             Data key = toData(loadedKey);
-            Object value = valueAndExpiryTime.element1;
-            Long expirationTime = valueAndExpiryTime.element2;
-            putFromLoad(key, value, expirationTime, callerAddress, now);
+            Object value = valueAndTtl.element1;
+            Long ttl = valueAndTtl.element2;
+            putFromLoadInternal(key, value, ttl, UNSET, callerAddress, StaticParams.PUT_FROM_LOAD_PARAMS);
 
-            if (toTtlFromExpiryTime(expirationTime, now) > 0) {
-                resultMap.put(key, value);
-            }
+            resultMap.put(key, value);
         }
 
         if (hasQueryCache()) {
@@ -924,6 +935,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
     /**
      * @return {@code true} if this IMap has any query-cache, otherwise return {@code false}
      */
+    @Override
     public boolean hasQueryCache() {
         QueryCacheContext queryCacheContext = mapServiceContext.getQueryCacheContext();
         PublisherContext publisherContext = queryCacheContext.getPublisherContext();
@@ -1026,7 +1038,14 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         }
 
         // Intercept put on owner partition.
-        if (!staticParams.isBackup()) {
+        //
+        // As an exception to the above statement, we allow the
+        // interceptor to run on backup replicas when an EntryProcessor
+        // (EP) is used. This is because the EP is executed on backup
+        // replicas as well (instead of simply copying the result
+        // from the owner replica to the backup), and we need to
+        // ensure consistency between replicas in this scenario.
+        if (!staticParams.isBackup() || staticParams.isBackupEntryProcessor()) {
             newValue = mapServiceContext.interceptPut(interceptorRegistry, oldValue, newValue);
         }
 
@@ -1238,9 +1257,6 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
 
     @Override
     public Object putFromLoad(Data key, Object value, long expirationTime, Address callerAddress, long now) {
-        if (expirationTime == MetadataAwareValue.NO_TIME_SET) {
-            return putFromLoad(key, value, callerAddress);
-        }
         long ttl = toTtlFromExpiryTime(expirationTime, now);
         if (ttl <= 0) {
             return null;
@@ -1256,9 +1272,6 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
 
     @Override
     public Object putFromLoadBackup(Data key, Object value, long expirationTime, long now) {
-        if (expirationTime == MetadataAwareValue.NO_TIME_SET) {
-            return putFromLoadBackup(key, value);
-        }
         long ttl = toTtlFromExpiryTime(expirationTime, now);
         if (ttl <= 0) {
             return null;
@@ -1460,20 +1473,20 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
     @Override
     public void startLoading() {
         if (logger.isFinestEnabled()) {
-            logger.finest("StartLoading invoked " + getStateMessage());
+            logger.finest("StartLoading invoked %s", getStateMessage());
         }
         if (mapStoreContext.isMapLoader() && !loadedOnCreate) {
             assert keyLoader != null;
 
             if (!loadedOnPreMigration) {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("Triggering load " + getStateMessage());
+                    logger.finest("Triggering load %s", getStateMessage());
                 }
                 loadedOnCreate = true;
                 addLoadingFuture(keyLoader.startInitialLoad(mapStoreContext, partitionId));
             } else {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("Promoting to loaded on migration " + getStateMessage());
+                    logger.finest("Promoting to loaded on migration %s", getStateMessage());
                 }
                 keyLoader.promoteToLoadedOnMigration();
             }
@@ -1502,7 +1515,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
             return;
         }
         if (logger.isFinestEnabled()) {
-            logger.finest("loadAll invoked " + getStateMessage());
+            logger.finest("loadAll invoked %s", getStateMessage());
         }
 
         logger.info("Starting to load all keys for map " + name + " on partitionId=" + partitionId);
@@ -1532,7 +1545,7 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         keyLoader.trackLoading(lastBatch, exception);
 
         if (lastBatch) {
-            logger.finest("Completed loading map " + name + " on partitionId=" + partitionId);
+            logger.finest("Completed loading map %s on partitionId=%s", name, partitionId);
         }
     }
 
@@ -1634,23 +1647,24 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
 
     @Override
     public void destroy() {
-        clearPartition(false, true);
+        clearPartition(false, true, null);
     }
 
     @Override
-    public void clearPartition(boolean onShutdown, boolean onStorageDestroy) {
+    public void clearPartition(boolean onShutdown, boolean onStorageDestroy,
+                               @Nullable Queue<Disposable> disposables) {
         clearLockStore();
         mapDataStore.reset();
 
         if (onShutdown) {
             if (hasPooledMemoryAllocator()) {
-                destroyStorageImmediate(true, true);
+                destroyStorageImmediate(true, true, disposables);
             } else {
-                destroyStorageAfterClear(true, true);
+                destroyStorageAfterClear(true, true, disposables);
             }
         } else {
             if (onStorageDestroy) {
-                destroyStorageAfterClear(false, false);
+                destroyStorageAfterClear(false, false, disposables);
             } else {
                 clearStorage(false);
             }
@@ -1663,13 +1677,31 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
         return nativeMemoryConfig != null && nativeMemoryConfig.getAllocatorType() == POOLED;
     }
 
-    public void destroyStorageImmediate(boolean isDuringShutdown,
-                                        boolean internal) {
+    public void destroyStorageImmediate(boolean isDuringShutdown, boolean internal,
+                                        @Nullable Queue<Disposable> disposableQueue) {
         mutationObserver.onDestroy(isDuringShutdown, internal);
-        expirySystem.destroy();
+        destroyExpirySystem(disposableQueue);
         destroyMetadataStore();
         // Destroy storage in the end
         storage.destroy(isDuringShutdown);
+    }
+
+    private void destroyExpirySystem(Queue<Disposable> disposableQueue) {
+        Disposable disposable = expirySystem.createDisposable();
+        // 1. We defer disposal only for maps with expiry enabled.
+        // Even if the IMap is HD-backed, we need to ensure it
+        // uses expiry. This is checked by comparing it against
+        // EMPTY_DISPOSABLE.
+        //
+        // 2. disposableQueue is non-null only during
+        // node shutdown; it is null during partition destruction.
+        if (disposable != ExpirySystem.EMPTY_DISPOSABLE
+                && inMemoryFormat == InMemoryFormat.NATIVE
+                && disposableQueue != null) {
+            disposableQueue.add(disposable);
+        } else {
+            disposable.dispose();
+        }
     }
 
     /**
@@ -1680,9 +1712,10 @@ public class DefaultRecordStore extends AbstractEvictableRecordStore {
      * @param isDuringShutdown {@link Storage#clear(boolean)}
      * @param internal         see {@link MutationObserver#onDestroy(boolean, boolean)}}
      */
-    public void destroyStorageAfterClear(boolean isDuringShutdown, boolean internal) {
+    public void destroyStorageAfterClear(boolean isDuringShutdown, boolean internal,
+                                         @Nullable Queue<Disposable> deferredDisposables) {
         clearStorage(isDuringShutdown);
-        destroyStorageImmediate(isDuringShutdown, internal);
+        destroyStorageImmediate(isDuringShutdown, internal, deferredDisposables);
     }
 
     private void clearStorage(boolean isDuringShutdown) {

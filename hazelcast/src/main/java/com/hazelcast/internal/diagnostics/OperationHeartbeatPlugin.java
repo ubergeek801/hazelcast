@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package com.hazelcast.internal.diagnostics;
 
 import com.hazelcast.cluster.Address;
-import com.hazelcast.spi.impl.NodeEngineImpl;
+import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.impl.operationservice.impl.InvocationMonitor;
-import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
 import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
 
@@ -64,20 +63,26 @@ public class OperationHeartbeatPlugin extends DiagnosticsPlugin {
 
     private static final float HUNDRED = 100f;
 
-    private final long periodMillis;
-    private final long expectedIntervalMillis;
-    private final int maxDeviationPercentage;
     private final ConcurrentMap<Address, AtomicLong> heartbeatPerMember;
+    private final HazelcastProperties properties;
     private boolean mainSectionStarted;
+    private long periodMillis;
+    private int maxDeviationPercentage;
+    private final long expectedIntervalMillis;
 
-    public OperationHeartbeatPlugin(NodeEngineImpl nodeEngine) {
-        super(nodeEngine.getLogger(OperationHeartbeatPlugin.class));
-        InvocationMonitor invocationMonitor = ((OperationServiceImpl) nodeEngine.getOperationService()).getInvocationMonitor();
-        HazelcastProperties properties = nodeEngine.getProperties();
-        this.periodMillis = properties.getMillis(PERIOD_SECONDS);
-        this.maxDeviationPercentage = properties.getInteger(MAX_DEVIATION_PERCENTAGE);
+    public OperationHeartbeatPlugin(ILogger logger, InvocationMonitor invocationMonitor, HazelcastProperties properties) {
+        super(logger);
+        this.properties = properties;
+        readProperties();
         this.expectedIntervalMillis = invocationMonitor.getHeartbeatBroadcastPeriodMillis();
         this.heartbeatPerMember = invocationMonitor.getHeartbeatPerMember();
+        readProperties();
+    }
+
+    @Override
+    void readProperties() {
+        this.periodMillis = properties.getMillis(overrideProperty(PERIOD_SECONDS));
+        this.maxDeviationPercentage = properties.getInteger(overrideProperty(MAX_DEVIATION_PERCENTAGE));
     }
 
     @Override
@@ -87,11 +92,21 @@ public class OperationHeartbeatPlugin extends DiagnosticsPlugin {
 
     @Override
     public void onStart() {
+        super.onStart();
         logger.info("Plugin:active: period-millis:" + periodMillis + " max-deviation:" + maxDeviationPercentage + "%");
     }
 
     @Override
+    public void onShutdown() {
+        super.onShutdown();
+        logger.info("Plugin:inactive");
+    }
+
+    @Override
     public void run(DiagnosticsLogWriter writer) {
+        if (!isActive()) {
+            return;
+        }
         long nowMillis = System.currentTimeMillis();
         for (Map.Entry<Address, AtomicLong> entry : heartbeatPerMember.entrySet()) {
             Address member = entry.getKey();
@@ -110,9 +125,17 @@ public class OperationHeartbeatPlugin extends DiagnosticsPlugin {
                 writer.writeKeyValueEntryAsDateTime("now(date-time)", nowMillis);
                 writer.endSection();
             }
+            if (!isActive()) {
+                break;
+            }
         }
 
         endLazyMainSection(writer);
+    }
+
+    // for testing
+    int getMaxDeviationPercentage() {
+        return maxDeviationPercentage;
     }
 
     private void startLazyMainSection(DiagnosticsLogWriter writer) {

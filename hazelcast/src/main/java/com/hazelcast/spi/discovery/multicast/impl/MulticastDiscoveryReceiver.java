@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class MulticastDiscoveryReceiver {
             return serializationHelper.deserialize(data);
         } catch (Exception e) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Couldn't get member info from multicast channel " + e.getMessage());
+                logger.finest("Couldn't get member info from multicast channel %s", e.getMessage());
             }
         }
         return null;

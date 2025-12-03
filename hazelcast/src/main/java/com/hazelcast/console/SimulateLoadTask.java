@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.internal.serialization.BinaryInterface;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
@@ -29,8 +30,9 @@ import static java.lang.Thread.currentThread;
  * A simulated load test.
  */
 @BinaryInterface
-public final class SimulateLoadTask implements Callable, Serializable, HazelcastInstanceAware {
+public final class SimulateLoadTask implements Callable<Object>, Serializable, HazelcastInstanceAware {
 
+    @Serial
     private static final long serialVersionUID = 1;
     private static final long ONE_THOUSAND = 1000L;
 

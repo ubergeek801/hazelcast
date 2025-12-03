@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public abstract class AbstractSplitBrainMergePolicyTest {
                 fail("Unsupported MergePolicy type");
             }
             when(mergingEntry.getRawValue()).thenReturn(value);
-            when(mergingEntry.getValue()).thenReturn(SERIALIZATION_SERVICE.toObject(value));
+            when(mergingEntry.getDeserializedValue()).thenReturn(SERIALIZATION_SERVICE.toObject(value));
             return mergingEntry;
         } catch (Exception e) {
             throw new RuntimeException(e);

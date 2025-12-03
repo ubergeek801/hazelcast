@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.internal.util.concurrent;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Collection;
 import java.util.Queue;
@@ -210,8 +209,8 @@ public class ConcurrentConveyor<E> {
         return queues[index];
     }
 
-    @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
-            justification = "liveQueueCount is updated only by the drainer thread")
+//    @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
+//            justification = "liveQueueCount is updated only by the drainer thread")
     public final boolean removeQueue(int index) {
         final boolean didRemove = queues[index] != null;
         queues[index] = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package com.hazelcast.internal.util;
+
+import javax.annotation.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
@@ -103,7 +105,7 @@ public final class StringUtil {
     /**
      * Check if any String from the provided Strings
      * @param values the strings to check
-     * @return true if at least one string of the {@param values} are not {@code null} and not blank
+     * @return true if at least one string of the {@code values} are not {@code null} and not blank
      */
     public static boolean isAnyNullOrEmptyAfterTrim(String... values) {
         if (values == null) {
@@ -229,9 +231,6 @@ public final class StringUtil {
      * (4) patch version, eg "0"
      * (5) 1st -qualifier, if exists
      * (6) -SNAPSHOT qualifier, if exists
-     *
-     * @param version
-     * @return
      */
     public static String[] tokenizeVersionString(String version) {
         Matcher matcher = VERSION_PATTERN.matcher(version);
@@ -246,16 +245,8 @@ public final class StringUtil {
         }
     }
 
-
-    /**
-     * Trim whitespaces using the more aggressive approach of {@link String#strip()}.
-     * This method removes leading and trailing whitespaces, including a broader set of Unicode whitespace characters,
-     * compared to {@link String#trim()}.
-     *
-     * @param input string to trim
-     * @return {@code null} if provided value was {@code null}, input with removed leading and trailing whitespaces
-     */
-    public static String trim(String input) {
+    /** A {@code null}-safe version of {@link String#strip()} */
+    public static String strip(@Nullable String input) {
         if (input == null) {
             return null;
         }
@@ -268,11 +259,12 @@ public final class StringUtil {
      * @param input string to split
      * @return {@code null} if provided value was {@code null}, split parts otherwise (trimmed)
      */
-    public static String[] splitByComma(String input, boolean allowEmpty) {
+    @Nullable
+    public static String[] splitByComma(@Nullable String input, boolean allowEmpty) {
         if (input == null) {
             return null;
         }
-        String[] splitWithEmptyValues = trim(input).split("\\s*,\\s*", -1);
+        String[] splitWithEmptyValues = input.strip().split("\\s*,\\s*", -1);
         return allowEmpty ? splitWithEmptyValues : subtraction(splitWithEmptyValues, new String[]{""});
     }
 
@@ -324,7 +316,6 @@ public final class StringUtil {
     /**
      * Strips the trailing slash from the input string, if it is present
      *
-     * @param str
      * @return the string with trailing slash removed
      */
     public static String stripTrailingSlash(String str) {

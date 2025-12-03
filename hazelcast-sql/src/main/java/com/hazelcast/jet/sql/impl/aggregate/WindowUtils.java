@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public final class WindowUtils {
         long slideStep = windowPolicy.frameSize();
         long firstWindowStart = windowPolicy.floorFrameTs(millis - windowPolicy.windowSize() + slideStep);
 
-        return new Traverser<JetSqlRow>() {
+        return new Traverser<>() {
             long currentStart = firstWindowStart;
 
             @Override
@@ -155,16 +155,16 @@ public final class WindowUtils {
     }
 
     public static long extractMillis(Object value) {
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
+        if (value instanceof Number number) {
+            return number.longValue();
         } else if (value instanceof LocalTime) {
             return QueryDataType.TIME.getConverter().asTimestampWithTimezone(value).toInstant().toEpochMilli();
         } else if (value instanceof LocalDate) {
             return QueryDataType.DATE.getConverter().asTimestampWithTimezone(value).toInstant().toEpochMilli();
         } else if (value instanceof LocalDateTime) {
             return QueryDataType.TIMESTAMP.getConverter().asTimestampWithTimezone(value).toInstant().toEpochMilli();
-        } else if (value instanceof OffsetDateTime) {
-            return ((OffsetDateTime) value).toInstant().toEpochMilli();
+        } else if (value instanceof OffsetDateTime time) {
+            return time.toInstant().toEpochMilli();
         } else {
             return value.hashCode();
         }
@@ -172,7 +172,7 @@ public final class WindowUtils {
 
     public static long extractMillis(Expression<?> expression, ExpressionEvalContext evalContext) {
         Object lag = expression.eval(EmptyRow.INSTANCE, evalContext);
-        return lag instanceof Number ? ((Number) lag).longValue() : ((SqlDaySecondInterval) lag).getMillis();
+        return lag instanceof Number n ? n.longValue() : ((SqlDaySecondInterval) lag).getMillis();
     }
 
     /**

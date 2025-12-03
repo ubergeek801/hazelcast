@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import static com.hazelcast.internal.util.EmptyStatement.ignore;
 
 /**
  * Provides {@link ClassData} to remote members.
- *
- * It may consult a local class cache when enabled and then it delegates to a local classloader.
+ * <p>
+ * It may consult a local class cache when enabled, and then it delegates to a local classloader.
  */
 public final class ClassDataProvider {
     private final UserCodeDeploymentConfig.ProviderMode providerMode;

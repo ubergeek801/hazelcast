@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 
 import static com.hazelcast.test.UserCodeUtil.pathRelativeToBinariesFolder;
 import static java.util.Collections.singletonList;
-import static junit.framework.TestCase.fail;
+import static org.junit.Assert.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
@@ -54,7 +54,7 @@ public class ClientUserCodeDeploymentExceptionTest extends HazelcastTestSupport 
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         factory.terminateAll();
     }
 

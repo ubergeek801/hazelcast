@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import com.hazelcast.internal.locksupport.LockSupportService;
 import com.hazelcast.internal.locksupport.LockSupportServiceImpl;
 import com.hazelcast.internal.metrics.impl.MetricsService;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
-import com.hazelcast.internal.partition.InternalPartitionService;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.services.ConfigurableService;
 import com.hazelcast.internal.services.ManagedService;
 import com.hazelcast.internal.util.ServiceLoader;
@@ -121,7 +121,7 @@ public final class ServiceManagerImpl implements ServiceManager {
 
         Node node = nodeEngine.getNode();
         registerService(ClusterServiceImpl.SERVICE_NAME, node.getClusterService());
-        registerService(InternalPartitionService.SERVICE_NAME, node.getPartitionService());
+        registerService(IPartitionService.SERVICE_NAME, node.getPartitionService());
         registerService(ProxyServiceImpl.SERVICE_NAME, nodeEngine.getProxyService());
         registerService(TransactionManagerServiceImpl.SERVICE_NAME, nodeEngine.getTransactionManagerService());
         registerService(ClientEngineImpl.SERVICE_NAME, node.clientEngine);
@@ -219,7 +219,7 @@ public final class ServiceManagerImpl implements ServiceManager {
         if (serviceInfo.isConfigurableService()) {
             try {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("Configuring service -> " + service);
+                    logger.finest("Configuring service -> %s", service);
                 }
                 final Object configObject = serviceConfigObjects.get(serviceInfo.getName());
                 ((ConfigurableService) service).configure(configObject);
@@ -230,7 +230,7 @@ public final class ServiceManagerImpl implements ServiceManager {
         if (serviceInfo.isManagedService()) {
             try {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("Initializing service -> " + service);
+                    logger.finest("Initializing service -> %s", service);
                 }
                 final Properties props = serviceProps.get(serviceInfo.getName());
                 ((ManagedService) service).init(nodeEngine, props != null ? props : new Properties());
@@ -304,7 +304,7 @@ public final class ServiceManagerImpl implements ServiceManager {
     private void shutdownService(final ManagedService service, final boolean terminate) {
         try {
             if (logger.isFinestEnabled()) {
-                logger.finest("Shutting down service -> " + service);
+                logger.finest("Shutting down service -> %s", service);
             }
             service.shutdown(terminate);
         } catch (Throwable t) {
@@ -314,7 +314,7 @@ public final class ServiceManagerImpl implements ServiceManager {
 
     public synchronized void registerService(String serviceName, Object service) {
         if (logger.isFinestEnabled()) {
-            logger.finest("Registering service: '" + serviceName + "'");
+            logger.finest("Registering service: '%s'", serviceName);
         }
         final ServiceInfo serviceInfo = new ServiceInfo(serviceName, service);
         final ServiceInfo currentServiceInfo = services.putIfAbsent(serviceName, serviceInfo);

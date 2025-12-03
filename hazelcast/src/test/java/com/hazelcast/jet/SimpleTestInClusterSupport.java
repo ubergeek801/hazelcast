@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public abstract class SimpleTestInClusterSupport extends JetTestSupport {
     private static Config config;
     private static HazelcastInstance[] instances;
     private static HazelcastInstance client;
-    private final Supplier<Boolean> parallelExecution = com.hazelcast.jet.impl.util.Util.memoize(() -> isParallelTestExecution());
+    private final Supplier<Boolean> parallelExecution = com.hazelcast.jet.impl.util.Util.memoize(this::isParallelTestExecution);
 
     protected static void initialize(int memberCount, @Nullable Config config) {
         assertNoRunningInstances();
@@ -171,7 +171,7 @@ public abstract class SimpleTestInClusterSupport extends JetTestSupport {
                 : instance().getDistributedObjects();
         SUPPORT_LOGGER.info("Destroying " + objects.size()
                 + " distributed objects in SimpleTestInClusterSupport.@After: "
-                + objects.stream().map(o -> o.getServiceName() + "/" + o.getName())
+                + objects.stream().map(o -> o.getServiceName() + "/" + String.valueOf(o.getName()))
                 .collect(Collectors.joining(", ", "[", "]")));
         // Jet keeps some IMap references in JobRepository.
         // Destroying proxies removes the objects from proxy registry but JobRepository keeps

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,6 +110,7 @@ public class S3SinkTest extends S3TestBase {
         testSink(BUCKET, prefix + "non-ascii-file-", 10, "测试");
     }
 
+    @Override
     SupplierEx<S3Client> clientSupplier() {
         return S3SinkTest::client;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import static com.hazelcast.internal.util.Preconditions.checkTrue;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
+import static com.hazelcast.internal.util.Preconditions.checkTrue;
 
 /**
  * Adapts a generated <a
@@ -36,7 +36,7 @@ import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
  * StreamSerializer} interface.
  * <p>
  * To learn how to use this class, visit Jet's <a
- * href="https://jet-start.sh/docs/api/serialization#google-protocol-buffers">
+ * href="https://docs.hazelcast.com/hazelcast/latest/pipelines/serialization#google-protocol-buffers">
  * Serialization Guide</a>. In brief, you should create a subclass that
  * does nothing else but call this class's protected constructor, and then
  * you can use it in two ways:
@@ -99,7 +99,7 @@ public abstract class ProtobufSerializer<T extends GeneratedMessageV3> implement
     }
 
     /**
-     * An utility method that creates an anonymous {@link ProtobufSerializer}.
+     * A utility method that creates an anonymous {@link ProtobufSerializer}.
      *
      * @param clazz  {@link GeneratedMessageV3} type of created serializer
      * @param typeId unique type id of created serializer
@@ -108,7 +108,7 @@ public abstract class ProtobufSerializer<T extends GeneratedMessageV3> implement
      */
     @Nonnull
     public static <T extends GeneratedMessageV3> ProtobufSerializer<T> from(@Nonnull Class<T> clazz, int typeId) {
-        return new ProtobufSerializer<T>(clazz, typeId) {
+        return new ProtobufSerializer<>(clazz, typeId) {
         };
     }
 }

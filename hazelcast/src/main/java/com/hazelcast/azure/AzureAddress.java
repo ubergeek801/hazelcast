@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package com.hazelcast.azure;
+
+import java.util.Objects;
 
 /**
  * Structure that represents the discovery output information. It is used to store public and private IP Addresses that
@@ -48,10 +50,10 @@ final class AzureAddress {
 
         AzureAddress that = (AzureAddress) o;
 
-        if (privateAddress != null ? !privateAddress.equals(that.privateAddress) : that.privateAddress != null) {
+        if (!Objects.equals(privateAddress, that.privateAddress)) {
             return false;
         }
-        return publicAddress != null ? publicAddress.equals(that.publicAddress) : that.publicAddress == null;
+        return Objects.equals(publicAddress, that.publicAddress);
     }
 
     @Override

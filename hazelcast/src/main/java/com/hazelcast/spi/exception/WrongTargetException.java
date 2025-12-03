@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.spi.exception;
 
 import com.hazelcast.cluster.Member;
 
+import java.io.Serial;
+
 /**
  * A {@link com.hazelcast.spi.exception.RetryableHazelcastException} indicating that an operation is executed on
  * a wrong member.
@@ -25,6 +27,7 @@ import com.hazelcast.cluster.Member;
 public class WrongTargetException extends RetryableHazelcastException {
 
     // RU_COMPAT
+    @Serial
     private static final long serialVersionUID = -84600702836709317L;
 
     private transient Member target;

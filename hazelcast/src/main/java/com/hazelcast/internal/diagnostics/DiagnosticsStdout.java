@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,13 @@ final class DiagnosticsStdout implements DiagnosticsLog {
     DiagnosticsStdout(Diagnostics diagnostics) {
         this.diagnostics = diagnostics;
         this.logger = diagnostics.logger;
-        this.logWriter = new DiagnosticsLogWriterImpl(diagnostics.includeEpochTime, diagnostics.logger);
+        this.logWriter = new DiagnosticsLogWriterImpl(diagnostics.isIncludeEpochTime(), diagnostics.logger);
         this.printWriter = newWriter();
         logWriter.init(printWriter);
         logger.info("Sending diagnostics logs to the stdout");
     }
 
+    @Override
     public void write(DiagnosticsPlugin plugin) {
         try {
             if (!staticPluginsRendered) {
@@ -57,6 +58,11 @@ final class DiagnosticsStdout implements DiagnosticsLog {
         } catch (RuntimeException e) {
             logger.warning("Failed to write stdout: ", e);
         }
+    }
+
+    @Override
+    public void close() {
+        printWriter.flush();
     }
 
     private void renderStaticPlugins() {

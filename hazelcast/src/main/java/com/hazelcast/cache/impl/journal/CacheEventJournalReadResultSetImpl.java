@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.hazelcast.internal.serialization.SerializableByConvention;
 import com.hazelcast.projection.Projection;
 import com.hazelcast.ringbuffer.impl.ReadResultSetImpl;
 import com.hazelcast.internal.serialization.SerializationService;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -38,15 +37,14 @@ public class CacheEventJournalReadResultSetImpl<K, V, T> extends ReadResultSetIm
             final Function<? super EventJournalCacheEvent<K, V>, ? extends T> projection
     ) {
         super(minSize, maxSize, serializationService,
-                predicate == null ? null : new Predicate<InternalEventJournalCacheEvent>() {
+                predicate == null ? null : new Predicate<>() {
                     @Override
                     @SuppressWarnings("unchecked")
-                    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
                     public boolean test(InternalEventJournalCacheEvent e) {
                         return predicate.test((DeserializingEventJournalCacheEvent<K, V>) e);
                     }
                 },
-                projection == null ? null : new ProjectionAdapter<K, V, T>(projection));
+                projection == null ? null : new ProjectionAdapter<>(projection));
     }
 
     @Override
@@ -54,7 +52,7 @@ public class CacheEventJournalReadResultSetImpl<K, V, T> extends ReadResultSetIm
         // the event journal ringbuffer supports only OBJECT format for now
         final InternalEventJournalCacheEvent e = (InternalEventJournalCacheEvent) item;
         final DeserializingEventJournalCacheEvent<K, V> deserialisingEvent
-                = new DeserializingEventJournalCacheEvent<>(serializationService, e);
+                = new DeserializingEventJournalCacheEvent<>(serializationService, e, getAndClearLostEventsFlag());
         super.addItem(seq, deserialisingEvent);
     }
 
@@ -79,7 +77,6 @@ public class CacheEventJournalReadResultSetImpl<K, V, T> extends ReadResultSetIm
 
         @Override
         @SuppressWarnings("unchecked")
-        @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
         public T transform(InternalEventJournalCacheEvent input) {
             return projection.apply((DeserializingEventJournalCacheEvent<K, V>) input);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static com.hazelcast.json.internal.JsonDataSerializerHook.JSON_SCHEMA_NAME_VALUE;
 
@@ -73,8 +74,6 @@ public class JsonSchemaNameValue implements IdentifiedDataSerializable {
 
     /**
      * Returns the description of the value stored in here
-     *
-     * @return
      */
     public JsonSchemaNode getValue() {
         return value;
@@ -94,7 +93,7 @@ public class JsonSchemaNameValue implements IdentifiedDataSerializable {
         if (nameStart != that.nameStart) {
             return false;
         }
-        return value != null ? value.equals(that.value) : that.value == null;
+        return Objects.equals(value, that.value);
     }
 
     @Override

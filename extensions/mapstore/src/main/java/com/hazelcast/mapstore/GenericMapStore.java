@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import static com.hazelcast.mapstore.JdbcParameters.convert;
  * This mapping is removed when the map is destroyed.
  * <p>
  * Note : When GenericMapStore uses GenericRecord as value, even if the GenericRecord contains the primary key as a field,
- * the primary key is still received from @{link {@link com.hazelcast.map.IMap} method call
+ * the primary key is still received from {@link com.hazelcast.map.IMap} method call
  *
  * @param <K> type of the key
  * @param <V> type of the value

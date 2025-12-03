@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,18 +80,18 @@ public class ProtobufSerializerTest {
     }
 
     private static <T extends GeneratedMessageV3> byte[] serialize(StreamSerializer<T> serializer, T object) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectDataOutputStream output = new ObjectDataOutputStream(baos, SERIALIZATION_SERVICE)) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectDataOutputStream output = new ObjectDataOutputStream(byteArrayOutputStream, SERIALIZATION_SERVICE)) {
             serializer.write(output, object);
-            return baos.toByteArray();
+            return byteArrayOutputStream.toByteArray();
         } catch (IOException ioe) {
             throw sneakyThrow(ioe);
         }
     }
 
     private static <T extends GeneratedMessageV3> T deserialize(StreamSerializer<T> serializer, byte[] bytes) {
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-             ObjectDataInputStream input = new ObjectDataInputStream(bais, SERIALIZATION_SERVICE)) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+             ObjectDataInputStream input = new ObjectDataInputStream(byteArrayInputStream, SERIALIZATION_SERVICE)) {
             return serializer.read(input);
         } catch (IOException ioe) {
             throw sneakyThrow(ioe);

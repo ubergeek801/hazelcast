@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,8 +259,6 @@ public class MySqlCdcWhiteBlackListIntegrationTest extends AbstractMySqlCdcInteg
         pipeline.readFrom(source)
                 .withNativeTimestamps(0)
                 .filter(t -> t.database().startsWith(DB_PREFIX))
-                .setLocalParallelism(1)
-                .<ChangeRecord>customTransform("filter_timestamps", filterTimestampsProcessorSupplier())
                 .setLocalParallelism(1)
                 .groupingKey(record -> (Integer) record.key().toMap().get("id"))
                 .mapStateful(

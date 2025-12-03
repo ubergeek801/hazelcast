@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,9 @@ package com.hazelcast.instance.impl;
 public interface ClusterTopologyIntentTracker {
 
     int UNKNOWN = -1;
+
+    /** Default value used when {@code status.*Replicas} fields are missing in the Kubernetes API response. */
+    int DEFAULT_STATUS_REPLICA_COUNT = 0;
 
     /**
      * Process an update of the cluster topology. Each update carries information about
@@ -114,13 +117,11 @@ public interface ClusterTopologyIntentTracker {
 
     /**
      * Initialize explicitly the cluster topology intent.
-     * @param clusterTopologyIntent
      */
     void initializeClusterTopologyIntent(ClusterTopologyIntent clusterTopologyIntent);
 
     /**
      * Handle Hazelcast node shutdown with the given cluster topology intent.
-     * @param clusterTopologyIntent
      */
     void shutdownWithIntent(ClusterTopologyIntent clusterTopologyIntent);
 

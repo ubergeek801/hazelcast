@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.core.LifecycleService;
 import com.hazelcast.flakeidgen.FlakeIdGenerator;
 import com.hazelcast.internal.nio.IOUtil;
 import com.hazelcast.internal.tpcengine.util.OS;
+import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.Job;
 import com.hazelcast.jet.config.JobConfig;
@@ -33,7 +34,6 @@ import com.hazelcast.jet.impl.deployment.IMapOutputStream;
 import com.hazelcast.jet.impl.execution.init.JetInitDataSerializerHook;
 import com.hazelcast.jet.impl.metrics.RawJobMetrics;
 import com.hazelcast.jet.impl.util.ConcurrentMemoizingSupplier;
-import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.jet.impl.util.ImdgUtil;
 import com.hazelcast.jet.impl.util.Util;
 import com.hazelcast.logging.ILogger;
@@ -46,7 +46,6 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.properties.ClusterProperty;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,6 +53,7 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -224,8 +224,9 @@ public class JobRepository {
      */
     void uploadJobResources(long jobId, JobConfig jobConfig) {
         Map<String, byte[]> tmpMap = new HashMap<>();
+        boolean resourceImapCreated = false;
+        Supplier<IMap<String, byte[]>> jobFileStorage = Util.memoize(() -> getJobResources(jobId));
         try {
-            Supplier<IMap<String, byte[]>> jobFileStorage = Util.memoize(() -> getJobResources(jobId));
             for (ResourceConfig rc : jobConfig.getResourceConfigs().values()) {
                 switch (rc.getResourceType()) {
                     case CLASSPATH_RESOURCE, CLASS -> {
@@ -237,12 +238,14 @@ public class JobRepository {
                         try (InputStream in = rc.getUrl().openStream();
                              IMapOutputStream os = new IMapOutputStream(jobFileStorage.get(), fileKeyName(rc.getId()))
                         ) {
+                            resourceImapCreated = true;
                             packStreamIntoZip(in, os, requireNonNull(fileNameFromUrl(rc.getUrl())));
                         }
                     }
                     case DIRECTORY -> {
                         Path baseDir = validateAndGetDirectoryPath(rc);
                         try (IMapOutputStream os = new IMapOutputStream(jobFileStorage.get(), fileKeyName(rc.getId()))) {
+                            resourceImapCreated = true;
                             packDirectoryIntoZip(baseDir, os);
                         }
                     }
@@ -252,11 +255,14 @@ public class JobRepository {
                 }
             }
         } catch (IOException | URISyntaxException e) {
+            if (resourceImapCreated) {
+                jobFileStorage.get().destroy();
+            }
             throw new JetException("Job resource upload failed", e);
         }
         // avoid creating resources map if map is empty
         if (!tmpMap.isEmpty()) {
-            IMap<String, byte[]> jobResourcesMap = getJobResources(jobId);
+            IMap<String, byte[]> jobResourcesMap = jobFileStorage.get();
             // now upload it all
             try {
                 jobResourcesMap.putAll(tmpMap);
@@ -437,13 +443,13 @@ public class JobRepository {
             }
         }
 
-        deleteJob(jobId);
+        deleteJob(jobId, !config.getResourceConfigs().isEmpty());
     }
 
     /**
      * Performs cleanup after job completion.
      */
-    void deleteJob(long jobId) {
+    void deleteJob(long jobId, boolean hasResources) {
         // delete the job record and related records
         // ignore the eventual failure - there's a separate cleanup process that will take care
         BiConsumer<Object, Throwable> callback = (v, t) -> {
@@ -454,6 +460,10 @@ public class JobRepository {
         };
         jobExecutionRecords.get().removeAsync(jobId).whenComplete(callback);
         jobRecords.get().removeAsync(jobId).whenComplete(callback);
+        if (hasResources) {
+            // avoid creating resource map if that is not necessary
+            getJobResources(jobId).destroy();
+        }
     }
 
     /**
@@ -478,7 +488,7 @@ public class JobRepository {
         cleanupJobResults(nodeEngine);
 
         long elapsed = System.nanoTime() - start;
-        logger.fine("Job cleanup took " + TimeUnit.NANOSECONDS.toMillis(elapsed) + "ms");
+        logger.fine("Job cleanup took %sms", TimeUnit.NANOSECONDS.toMillis(elapsed));
     }
 
     private void cleanupMaps(NodeEngine nodeEngine) {
@@ -521,7 +531,7 @@ public class JobRepository {
             IMap resourceMap = (IMap) map;
             long creationTime = resourceMap.getLocalMapStats().getCreationTime();
             if (isResourceMapExpired(creationTime)) {
-                logger.fine("Deleting job resource map " + map.getName() + " because the map " +
+                logger.fine("Deleting job resource map %s because the map %s", map.getName(),
                         "was created long ago and job record or result still doesn't exist");
                 resourceMap.destroy();
             }
@@ -740,10 +750,11 @@ public class JobRepository {
     public static final class UpdateJobExecutionRecordEntryProcessor implements
             EntryProcessor<Long, JobExecutionRecord, Object>,
             IdentifiedDataSerializable {
-
+        @Serial
+        private static final long serialVersionUID = 1L;
         private long jobId;
-        @SuppressFBWarnings(value = "SE_BAD_FIELD",
-                justification = "this class is not going to be java-serialized")
+//        @SuppressFBWarnings(value = "SE_BAD_FIELD",
+//                justification = "this class is not going to be java-serialized")
         private JobExecutionRecord jobExecutionRecord;
         private boolean canCreate;
 
@@ -801,7 +812,8 @@ public class JobRepository {
 
     public static class FilterJobResultByNamePredicate
             implements Predicate<Long, JobResult>, IdentifiedDataSerializable {
-
+        @Serial
+        private static final long serialVersionUID = 1L;
         private String name;
 
         public FilterJobResultByNamePredicate() {

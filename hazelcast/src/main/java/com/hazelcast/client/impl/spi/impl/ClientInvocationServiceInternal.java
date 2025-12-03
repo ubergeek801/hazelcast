@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.hazelcast.client.impl.spi.impl;
 
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.spi.ClientInvocationService;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.impl.sequence.CallIdSequence;
@@ -82,7 +82,7 @@ public interface ClientInvocationServiceInternal extends ClientInvocationService
     boolean shouldFailOnIndeterminateOperationState();
 
     /**
-     * @return returns the configured routing mode(by default it is {@link RoutingMode#SMART})
+     * @return returns the configured routing mode(by default it is {@link RoutingMode#ALL_MEMBERS})
      * @see RoutingMode
      */
     RoutingMode getRoutingMode();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,22 +29,18 @@ public interface EventHandler<E> {
 
     /**
      * This method is called before registration request is sent to node.
-     *
+     * <p>
      * Note that this method will also be called while first registered node is dead
      * and re-registering to a second node.
-     *
-     * @param connection
      */
     default void beforeListenerRegister(Connection connection) {
     }
 
     /**
      * This method is called when registration request response is successfully returned from node.
-     *
+     * <p>
      * Note that this method will also be called while first registered node is dead
      * and re-registering to a second node.
-     *
-     * @param connection
      */
     default void onListenerRegister(Connection connection) {
     }

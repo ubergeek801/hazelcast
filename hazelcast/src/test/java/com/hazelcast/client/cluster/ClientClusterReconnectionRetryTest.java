@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static com.hazelcast.client.impl.clientside.ClientTestUtil.getHazelcastClientInstanceImpl;
+import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastParallelClassRunner.class)
@@ -58,7 +59,7 @@ public class ClientClusterReconnectionRetryTest extends HazelcastTestSupport {
         HazelcastInstance member = factory.newHazelcastInstance(getMemberConfig());
         HazelcastInstance client = factory.newHazelcastClient(clientConfig);
 
-        factory.terminate(member);
+        terminateInstance(member);
 
         ClientConnectionManager connectionManager = getHazelcastClientInstanceImpl(client)
                 .getConnectionManager();

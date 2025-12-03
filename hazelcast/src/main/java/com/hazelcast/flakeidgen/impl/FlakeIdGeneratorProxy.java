@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.Preconditions.checkPositive;
 import static com.hazelcast.internal.util.Preconditions.checkTrue;
 import static java.lang.Thread.currentThread;
-import static java.util.Collections.newSetFromMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class FlakeIdGeneratorProxy
@@ -77,7 +76,7 @@ public class FlakeIdGeneratorProxy
      * Set of member UUIDs of which we know have node IDs out of range. These members are never again used
      * to generate unique IDs, because this error is unrecoverable.
      */
-    private final Set<UUID> outOfRangeMembers = newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> outOfRangeMembers = ConcurrentHashMap.newKeySet();
 
     FlakeIdGeneratorProxy(String name, NodeEngine nodeEngine, FlakeIdGeneratorService service, UUID source) {
         super(nodeEngine, service);
@@ -111,9 +110,7 @@ public class FlakeIdGeneratorProxy
                     }
                 });
 
-        if (logger.isFinestEnabled()) {
-            logger.finest("Created FlakeIdGeneratorProxy, name='" + name + "'");
-        }
+        logger.finest("Created FlakeIdGeneratorProxy, name='%s'", name);
     }
 
     @Override
@@ -232,9 +229,7 @@ public class FlakeIdGeneratorProxy
                 // we ignore possible double initialization
                 this.nodeId = localNodeId;
                 this.nextNodeIdUpdate = nanoTime + NODE_ID_UPDATE_INTERVAL_NS;
-                if (logger.isFineEnabled()) {
-                    logger.fine("Node ID assigned to '" + name + "': " + localNodeId);
-                }
+                logger.fine("Node ID assigned to '%s': %s", name, localNodeId);
             }
         }
        return localNodeId;

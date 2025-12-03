@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public final class UpsertTargetUtils {
                     throw QueryException.error("Cannot pass NULL to a method with a primitive argument: " + setter);
                 }
                 try {
-                    if (typeField.getType().getTypeFamily().equals(QueryDataTypeFamily.OBJECT)) {
+                    if (typeField.getType().getTypeFamily() == QueryDataTypeFamily.OBJECT) {
                         setter.invoke(result, fieldValue);
                     } else {
                         setter.invoke(result, toConverter.convert(fieldValue));
@@ -97,7 +97,7 @@ public final class UpsertTargetUtils {
                 if (fieldValue == null && field.getType().isPrimitive()) {
                     throw QueryException.error("Cannot set NULL to a primitive field: " + field);
                 }
-                if (typeField.getType().getTypeFamily().equals(QueryDataTypeFamily.OBJECT)) {
+                if (typeField.getType().getTypeFamily() == QueryDataTypeFamily.OBJECT) {
                     field.set(result, fieldValue);
                 } else {
                     field.set(result, toConverter.convert(fieldValue));
@@ -182,15 +182,15 @@ public final class UpsertTargetUtils {
                     builder.setTimestampWithTimezone(name, value == null ? null : (OffsetDateTime) value);
                     break;
                 case PORTABLE:
-                    if (value instanceof RowValue) {
+                    if (value instanceof RowValue tmpRowValue) {
                         final QueryDataType fieldQDT = queryDataType.getObjectFields().get(i).getType();
                         final ClassDefinition fieldClassDefinition = toPortableClassDefinition(fieldQDT);
                         final GenericRecordBuilder fieldBuilder = GenericRecordBuilder.portable(fieldClassDefinition);
 
-                        setPortableFields(fieldBuilder, (RowValue) value, fieldClassDefinition, fieldQDT);
+                        setPortableFields(fieldBuilder, tmpRowValue, fieldClassDefinition, fieldQDT);
                         builder.setGenericRecord(name, fieldBuilder.build());
-                    } else if (value instanceof GenericRecord) {
-                        builder.setGenericRecord(name, (GenericRecord) value);
+                    } else if (value instanceof GenericRecord record) {
+                        builder.setGenericRecord(name, record);
                     } else {
                         throw QueryException.error("Can not set non-GenericRecord or RowValue to field " + name);
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import static com.hazelcast.internal.nio.IOUtil.compactOrClear;
 
 /**
  * A {@link OutboundHandler} that for member to member communication.
- *
+ * <p>
  * It writes {@link Packet} instances to the {@link ByteBuffer}.
- *
+ * <p>
  * It makes use of a flyweight to allow the sharing of a packet-instance over
  * multiple connections. The flyweight contains the actual 'position' state of
  * what has been written.

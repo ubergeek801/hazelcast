@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class ClientNonStopNearCacheTest extends ClientTestSupport {
 
         CountDownLatch disconnectedLatch = new CountDownLatch(1);
         config.addListenerConfig(new ListenerConfig().setImplementation((LifecycleListener) event -> {
-            if (LifecycleEvent.LifecycleState.CLIENT_DISCONNECTED.equals(event.getState())) {
+            if (LifecycleEvent.LifecycleState.CLIENT_DISCONNECTED == event.getState()) {
                 disconnectedLatch.countDown();
             }
         }));

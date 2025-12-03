@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import java.util.concurrent.Future;
 import static com.hazelcast.internal.util.CollectionUtil.isEmpty;
 import static com.hazelcast.internal.util.FutureUtil.returnWithDeadline;
 import static com.hazelcast.internal.util.FutureUtil.waitWithDeadline;
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -58,7 +57,7 @@ public class NodeQueryCacheEndToEndConstructor extends AbstractQueryCacheEndToEn
         boolean populate = info.isPopulate();
 
         if (logger.isFinestEnabled()) {
-            logger.finest(format("Pre population is %s", populate ? "enabled" : "disabled"));
+            logger.finest("Pre population is %s", populate ? "enabled" : "disabled");
         }
 
         if (populate) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,30 +46,26 @@ public interface EventBuilder<T extends EventBuilder<T>> {
     /**
      * Adds single event parameter to the parameters Map.
      * @param key Must not be {@code null}
-     * @param value
      * @return this instance
      */
     T addParameter(String key, Object value);
 
     /**
      * Sets the event {@link Level}. The default value is {@link Level#INFO}.
-     * @param level
      * @return this instance
      */
     T level(Level level);
 
     /**
      * Sets error/exception which caused the event (if any).
-     * @param throwable
      * @return this instance
      */
     T cause(Throwable throwable);
 
     /**
-     * If provided value greater than zero, then it sets the event timestamp explicitly. Otherwise the timestamp is filled by
+     * If provided value greater than zero, then it sets the event timestamp explicitly. Otherwise, the timestamp is filled by
      * calling {@link #build()} method.
      *
-     * @param throwable
      * @return this instance
      */
     T timestamp(long timestamp);

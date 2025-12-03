@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,8 +158,8 @@ final class SparseArray<E> {
         @Override
         public long advance() {
             long current = index;
-            if (current == Iterator.END) {
-                return Iterator.END;
+            if (current == AscendingLongIterator.END) {
+                return AscendingLongIterator.END;
             }
 
             // Try to advance the current storage.
@@ -193,8 +193,8 @@ final class SparseArray<E> {
         public long advanceAtLeastTo(long member) {
             assert member >= 0;
             long current = index;
-            if (current == Iterator.END) {
-                return Iterator.END;
+            if (current == AscendingLongIterator.END) {
+                return AscendingLongIterator.END;
             }
 
             if (current >= member) {

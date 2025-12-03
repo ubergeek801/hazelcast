@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ class MockJoiner extends AbstractJoiner {
         maxTryCount = node.getProperties().getInteger(MOCK_JOIN_PORT_TRY_COUNT);
     }
 
+    @Override
     public void doJoin() {
         registry.registerNode(node);
 
@@ -75,9 +76,9 @@ class MockJoiner extends AbstractJoiner {
                     break;
                 }
 
-                logger.fine("Sending join request to " + joinAddress);
+                logger.fine("Sending join request to %s", joinAddress);
                 if (!clusterJoinManager.sendJoinRequest(joinAddress)) {
-                    logger.fine("Could not send join request to " + joinAddress);
+                    logger.fine("Could not send join request to %s", joinAddress);
                     clusterService.setMasterAddressToJoin(null);
                 }
 
@@ -106,7 +107,7 @@ class MockJoiner extends AbstractJoiner {
             return targetAddress;
         }
         Address joinAddress = node.getMasterAddress();
-        logger.fine("Known master address is: " + joinAddress);
+        logger.fine("Known master address is: %s", joinAddress);
         if (joinAddress == null) {
             joinAddress = lookupJoinAddress();
             if (!node.getThisAddress().equals(joinAddress)) {
@@ -123,17 +124,17 @@ class MockJoiner extends AbstractJoiner {
             return node.getThisAddress();
         }
 
-        logger.fine("Found alive node. Will try to connect to " + foundNode.getThisAddress());
+        logger.fine("Found alive node. Will try to connect to %s", foundNode.getThisAddress());
         return foundNode.getThisAddress();
     }
 
     private Node findAliveNode() {
         Collection<Address> joinAddresses = registry.getJoinAddresses();
-        logger.fine("Searching possible addresses for master " + joinAddresses);
+        logger.fine("Searching possible addresses for master %s", joinAddresses);
         for (Address address : joinAddresses) {
             Node foundNode = registry.getNode(address);
             if (foundNode == null) {
-                logger.fine("Node for " + address + " is null.");
+                logger.fine("Node for %s is null.", address);
                 continue;
             }
 
@@ -144,17 +145,17 @@ class MockJoiner extends AbstractJoiner {
             }
 
             if (!foundNode.isRunning()) {
-                logger.fine("Node for " + address + " is not running. -> " + foundNode.getState());
+                logger.fine("Node for %s is not running. -> %s", address, foundNode.getState());
                 continue;
             }
 
             if (!foundNode.getClusterService().isJoined()) {
-                logger.fine("Node for " + address + " is not joined yet.");
+                logger.fine("Node for %s is not joined yet.", address);
                 continue;
             }
 
             if (isBlacklisted(address)) {
-                logger.fine("Node for " + address + " is blacklisted and should not be joined.");
+                logger.fine("Node for %s is blacklisted and should not be joined.", address);
                 continue;
             }
 
@@ -165,7 +166,7 @@ class MockJoiner extends AbstractJoiner {
                 continue;
             }
 
-            logger.fine("Found an alive node. Will ask master of " + address);
+            logger.fine("Found an alive node. Will ask master of %s", address);
             return foundNode;
         }
         return null;
@@ -184,6 +185,7 @@ class MockJoiner extends AbstractJoiner {
                 || rangeStartPort > foundNodePort;
     }
 
+    @Override
     public void searchForOtherClusters() {
         Collection<Address> possibleAddresses = new ArrayList<>(registry.getJoinAddresses());
         possibleAddresses.remove(node.getThisAddress());

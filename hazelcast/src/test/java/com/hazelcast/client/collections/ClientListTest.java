@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.ListIterator;
 import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -55,7 +53,7 @@ public class ClientListTest extends HazelcastTestSupport {
     private IList<String> list;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() {
         hazelcastFactory = new TestHazelcastFactory();
         hazelcastFactory.newHazelcastInstance();
         HazelcastInstance client = hazelcastFactory.newHazelcastClient();
@@ -158,7 +156,7 @@ public class ClientListTest extends HazelcastTestSupport {
         Spliterator spliterator = list.spliterator();
 
         ArrayList recorder = new ArrayList(list.size());
-        Consumer consumer = value -> recorder.add(value);
+        Consumer consumer = recorder::add;
 
         // tryAdvance.
         assertTrue(spliterator.tryAdvance(consumer));
@@ -223,15 +221,17 @@ public class ClientListTest extends HazelcastTestSupport {
     @Test
     public void testListener() throws Exception {
 
-        final CountDownLatch latch = new CountDownLatch(6);
+        final CountDownLatch addLatch = new CountDownLatch(6);
+        final CountDownLatch removeLatch = new CountDownLatch(1);
 
         ItemListener<String> listener = new ItemListener<>() {
 
             public void itemAdded(ItemEvent<String> itemEvent) {
-                latch.countDown();
+                addLatch.countDown();
             }
 
             public void itemRemoved(ItemEvent<String> item) {
+                removeLatch.countDown();
             }
         };
         UUID registrationId = list.addItemListener(listener, true);
@@ -241,8 +241,10 @@ public class ClientListTest extends HazelcastTestSupport {
                 list.add("item" + i);
             }
             list.add("done");
+            list.remove("done");
         }).start();
-        assertTrue(latch.await(20, TimeUnit.SECONDS));
+        assertOpenEventually(addLatch);
+        assertOpenEventually(removeLatch);
         list.removeItemListener(registrationId);
     }
 

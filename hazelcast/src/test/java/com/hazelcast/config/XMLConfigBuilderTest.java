@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ import com.hazelcast.test.annotation.QuickTest;
 import com.hazelcast.topic.TopicOverloadPolicy;
 import com.hazelcast.wan.WanPublisherState;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -99,6 +98,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -120,7 +120,7 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
 
     static final String HAZELCAST_START_TAG = "<hazelcast xmlns=\"http://www.hazelcast.com/schema/config\">\n";
@@ -891,7 +891,7 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
                 + "    <backup-count>1</backup-count>"
                 + "    <async-backup-count>0</async-backup-count>"
                 + "    <time-to-live-seconds>0</time-to-live-seconds>"
-                + "    <max-idle-seconds>0</max-idle-seconds>    "
+                + "    <max-idle-seconds>0</max-idle-seconds>"
                 + "    <eviction eviction-policy=\"NONE\" max-size-policy=\"per_partition\" size=\"0\"/>"
                 + "    <merge-policy batch-size=\"2342\">CustomMergePolicy</merge-policy>"
                 + "</map>"
@@ -916,7 +916,7 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
         String xml = HAZELCAST_START_TAG
                 + "<map name=\"expiry\">"
                 + "    <time-to-live-seconds>2147483647</time-to-live-seconds>"
-                + "    <max-idle-seconds>2147483647</max-idle-seconds>    "
+                + "    <max-idle-seconds>2147483647</max-idle-seconds>"
                 + "</map>"
                 + HAZELCAST_END_TAG;
 
@@ -2635,7 +2635,7 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
         assertTrue(mapConfig.isReadBackupData());
         assertEquals(1, mapConfig.getIndexConfigs().size());
         assertEquals("age", mapConfig.getIndexConfigs().get(0).getAttributes().get(0));
-        assertTrue(mapConfig.getIndexConfigs().get(0).getType() == IndexType.SORTED);
+        assertSame(mapConfig.getIndexConfigs().get(0).getType(), IndexType.SORTED);
         assertEquals(1, mapConfig.getAttributeConfigs().size());
         assertEquals("com.bank.CurrencyExtractor", mapConfig.getAttributeConfigs().get(0).getExtractorClassName());
         assertEquals("currency", mapConfig.getAttributeConfigs().get(0).getName());
@@ -2975,7 +2975,7 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
     private void assertIndexesEqual(QueryCacheConfig queryCacheConfig) {
         for (IndexConfig indexConfig : queryCacheConfig.getIndexConfigs()) {
             assertEquals("name", indexConfig.getAttributes().get(0));
-            assertFalse(indexConfig.getType() == IndexType.SORTED);
+            assertNotSame(indexConfig.getType(), IndexType.SORTED);
         }
     }
 
@@ -3134,27 +3134,27 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
     @Test
     public void testJavaReflectionFilter() {
         String xml = HAZELCAST_START_TAG
-            + "  <sql>\n"
-            + "      <java-reflection-filter defaults-disabled='true'>\n"
-            + "          <whitelist>\n"
-            + "              <class>java.lang.String</class>\n"
-            + "              <class>example.Foo</class>\n"
-            + "              <package>com.acme.app</package>\n"
-            + "              <package>com.acme.app.subpkg</package>\n"
-            + "              <prefix>java</prefix>\n"
-            + "              <prefix>com.hazelcast.</prefix>\n"
-            + "              <prefix>[</prefix>\n"
-            + "          </whitelist>\n"
-            + "          <blacklist>\n"
-            + "              <class>com.acme.app.BeanComparator</class>\n"
-            + "          </blacklist>\n"
-            + "      </java-reflection-filter>\n"
-            + "  </sql>\n"
-            + HAZELCAST_END_TAG;
+                + "  <sql>\n"
+                + "      <java-reflection-filter defaults-disabled='true'>\n"
+                + "          <whitelist>\n"
+                + "              <class>java.lang.String</class>\n"
+                + "              <class>example.Foo</class>\n"
+                + "              <package>com.acme.app</package>\n"
+                + "              <package>com.acme.app.subpkg</package>\n"
+                + "              <prefix>java</prefix>\n"
+                + "              <prefix>com.hazelcast.</prefix>\n"
+                + "              <prefix>[</prefix>\n"
+                + "          </whitelist>\n"
+                + "          <blacklist>\n"
+                + "              <class>com.acme.app.BeanComparator</class>\n"
+                + "          </blacklist>\n"
+                + "      </java-reflection-filter>\n"
+                + "  </sql>\n"
+                + HAZELCAST_END_TAG;
 
         Config config = new InMemoryXmlConfig(xml);
         JavaSerializationFilterConfig javaReflectionFilterConfig
-            = config.getSqlConfig().getJavaReflectionFilterConfig();
+                = config.getSqlConfig().getJavaReflectionFilterConfig();
         assertNotNull(javaReflectionFilterConfig);
         ClassFilter blackList = javaReflectionFilterConfig.getBlacklist();
         assertNotNull(blackList);
@@ -3477,7 +3477,6 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
         assertEquals(DEFAULT_READ_IO_THREAD_COUNT, localDeviceConfig.getReadIOThreadCount());
         assertEquals(DEFAULT_WRITE_IO_THREAD_COUNT, localDeviceConfig.getWriteIOThreadCount());
         assertEquals(LocalDeviceConfig.DEFAULT_CAPACITY, localDeviceConfig.getCapacity());
-
 
 
         xml = HAZELCAST_START_TAG
@@ -4274,7 +4273,94 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
     }
 
     @Override
-    @Ignore("XSD validation allows multiple config, no programmatic validation is implemented")
+    @Test
+    public void testMultipleClientEndpointConfigs_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <client-server-socket-endpoint-config name=\"client-1\"/>"
+                + "  <client-server-socket-endpoint-config name=\"client-2\"/>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleRestEndpointConfigs_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <rest-server-socket-endpoint-config name=\"rest-1\"/>"
+                + "  <rest-server-socket-endpoint-config name=\"rest-2\"/>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleMemcacheEndpointConfigs_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <memcache-server-socket-endpoint-config name=\"mc-1\"/>"
+                + "  <memcache-server-socket-endpoint-config name=\"mc-2\"/>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleJoinElements_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <join><auto-detection enabled=\"true\"/></join>"
+                + "  <join><auto-detection enabled=\"false\"/></join>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleFailureDetectorElements_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <failure-detector enabled=\"true\"/>"
+                + "  <failure-detector enabled=\"false\"/>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleMemberAddressProviderElements_throwsException() {
+        String xml = HAZELCAST_START_TAG
+                + "<advanced-network enabled=\"true\">"
+                + "  <member-address-provider enabled=\"true\">"
+                + "    <class-name>com.acme.DummyProvider</class-name>"
+                + "  </member-address-provider>"
+                + "  <member-address-provider enabled=\"true\">"
+                + "    <class-name>com.acme.DummyProvider</class-name>"
+                + "  </member-address-provider>"
+                + "</advanced-network>"
+                + HAZELCAST_END_TAG;
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(xml);
+    }
+
+    @Override
     @Test
     public void testMultipleMemberEndpointConfigs_throwsException() {
         String xml = HAZELCAST_START_TAG
@@ -4768,6 +4854,7 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
         assertThat(tpcSocketConfig.getSendBufferSizeKB()).isEqualTo(256);
     }
 
+    @Override
     @Test
     public void testTpcSocketConfigAdvanced() {
         String xml = HAZELCAST_START_TAG
@@ -4955,34 +5042,197 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
     @Override
     public void testVectorCollectionConfig() {
         String xml = HAZELCAST_START_TAG
-                + "    <vector-collection name=\"vector-1\">\n"
-                + "      <indexes>\n"
-                + "        <index name=\"index-1-1\">\n"
-                + "            <dimension>2</dimension>\n"
-                + "            <metric>DOT</metric>\n"
-                + "            <max-degree>10</max-degree>\n"
-                + "            <ef-construction>10</ef-construction>\n"
-                + "            <use-deduplication>true</use-deduplication>\n"
-                + "        </index>\n"
-                + "        <index name=\"index-1-2\">\n"
-                + "            <dimension>3</dimension>\n"
-                + "            <metric>EUCLIDEAN</metric>\n"
-                + "        </index>\n"
-                + "      </indexes>\n"
-                + "    </vector-collection>\n"
-                + "    <vector-collection name=\"vector-2\">\n"
-                + "      <indexes>\n"
-                + "        <index>\n"
-                + "            <dimension>4</dimension>\n"
-                + "            <metric>COSINE</metric>\n"
-                + "            <use-deduplication>false</use-deduplication>\n"
-                + "        </index>\n"
-                + "      </indexes>\n"
-                + "    </vector-collection>\n"
+                + """
+                    <vector-collection name="vector-1">
+                      <indexes>
+                        <index name="index-1-1">
+                            <dimension>2</dimension>
+                            <metric>DOT</metric>
+                            <max-degree>10</max-degree>
+                            <ef-construction>10</ef-construction>
+                            <use-deduplication>true</use-deduplication>
+                        </index>
+                        <index name="index-1-2">
+                            <dimension>3</dimension>
+                            <metric>EUCLIDEAN</metric>
+                        </index>
+                      </indexes>
+                    </vector-collection>
+                    <vector-collection name="vector-2">
+                      <backup-count>2</backup-count>
+                      <async-backup-count>1</async-backup-count>
+                      <split-brain-protection-ref>splitBrainProtectionName</split-brain-protection-ref>
+                      <merge-policy batch-size="132">CustomMergePolicy</merge-policy>
+                      <user-code-namespace>ns1</user-code-namespace>
+                      <indexes>
+                        <index>
+                            <dimension>4</dimension>
+                            <metric>COSINE</metric>
+                            <use-deduplication>false</use-deduplication>
+                        </index>
+                      </indexes>
+                    </vector-collection>
+                """
                 + HAZELCAST_END_TAG;
 
         Config config = buildConfig(xml);
         validateVectorCollectionConfig(config);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupCount_max() {
+        int backupCount = 6;
+        String xml = simpleVectorCollectionBackupCountConfig(backupCount);
+        Config config = buildConfig(xml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_backupCount_moreThanMax() {
+        String xml = simpleVectorCollectionBackupCountConfig(7);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupCount_min() {
+        int backupCount = 0;
+        String xml = simpleVectorCollectionBackupCountConfig(backupCount);
+        Config config = buildConfig(xml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_backupCount_lessThanMin() {
+        String xml = simpleVectorCollectionBackupCountConfig(-1);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_asyncBackupCount_max() {
+        int asyncBackupCount = 6;
+        // we need to set backup-count=0 since default is 1
+        // and backup count + async backup count must not exceed 6
+        String xml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(0, asyncBackupCount);
+        Config config = buildConfig(xml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(0);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_asyncBackupCount_moreThanMax() {
+        // we need to set backup-count=0 since default is 1
+        // and backup count + async backup count must not exceed 6
+        String xml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(0, 7);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_asyncBackupCount_min() {
+        int asyncBackupCount = 0;
+        String xml = simpleVectorCollectionAsyncBackupCountConfig(asyncBackupCount);
+        Config config = buildConfig(xml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_asyncBackupCount_lessThanMin() {
+        String xml = simpleVectorCollectionAsyncBackupCountConfig(-1);
+        buildConfig(xml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupSyncAndAsyncCount_max() {
+        int backupCount = 4;
+        int asyncBackupCount = 2;
+        String xml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(backupCount, asyncBackupCount);
+        Config config = buildConfig(xml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+    }
+
+    @Override
+    @Test(expected = IllegalArgumentException.class)
+    public void testVectorCollectionConfig_backupSyncAndAsyncCount_moreThanMax() {
+        int backupCount = 4;
+        int asyncBackupCount = 3;
+        String xml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(backupCount, asyncBackupCount);
+        buildConfig(xml);
+    }
+
+    @Override
+    public void testVectorCollectionConfig_multipleIndexesWithTheSameName_fail() {
+        String xml = HAZELCAST_START_TAG
+                + """
+                    <vector-collection name="vector-1">
+                      <indexes>
+                        <index name="index-1">
+                            <dimension>2</dimension>
+                            <metric>DOT</metric>
+                            <max-degree>10</max-degree>
+                            <ef-construction>10</ef-construction>
+                            <use-deduplication>true</use-deduplication>
+                        </index>
+                        <index name="index-1">
+                            <dimension>3</dimension>
+                            <metric>EUCLIDEAN</metric>
+                        </index>
+                      </indexes>
+                    </vector-collection>
+                """
+                + HAZELCAST_END_TAG;
+
+        Config config = buildConfig(xml);
+    }
+
+    private String simpleVectorCollectionBackupCountConfig(int count) {
+        return simpleVectorCollectionBackupCountConfig("backup-count", count);
+    }
+
+    private String simpleVectorCollectionAsyncBackupCountConfig(int count) {
+        return simpleVectorCollectionBackupCountConfig("async-backup-count", count);
+    }
+
+    private String simpleVectorCollectionBackupCountConfig(String tagName, int count) {
+        return String.format(HAZELCAST_START_TAG
+                + """
+                    <vector-collection name="vector-1">
+                      <%s>%d</%s>
+                      <indexes>
+                        <index>
+                            <dimension>4</dimension>
+                            <metric>COSINE</metric>
+                        </index>
+                      </indexes>
+                    </vector-collection>
+                """
+                + HAZELCAST_END_TAG, tagName, count, tagName);
+    }
+
+    private String simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(
+            int backupCount, int asyncBackupCount) {
+        return String.format(HAZELCAST_START_TAG
+                + """
+                    <vector-collection name="vector-1">
+                      <backup-count>%d</backup-count>
+                      <async-backup-count>%d</async-backup-count>
+                      <indexes>
+                        <index>
+                            <dimension>4</dimension>
+                            <metric>COSINE</metric>
+                        </index>
+                      </indexes>
+                    </vector-collection>
+                """
+                + HAZELCAST_END_TAG, backupCount, asyncBackupCount);
     }
 
     static Config buildRestConfigFromXmlString() {
@@ -4991,6 +5241,8 @@ public class XMLConfigBuilderTest extends AbstractConfigBuilderTest {
                 + "        <port>8080</port>\n"
                 + "        <security-realm>realmName</security-realm>\n"
                 + "        <token-validity-seconds>500</token-validity-seconds>\n"
+                + "        <max-login-attempts>10</max-login-attempts>\n"
+                + "        <lockout-duration-seconds>10</lockout-duration-seconds>\n"
                 + "        <ssl enabled=\"true\">\n"
                 + "            <client-auth>NEED</client-auth>\n"
                 + "            <ciphers>TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA256</ciphers>\n"

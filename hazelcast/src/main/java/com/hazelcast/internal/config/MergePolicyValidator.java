@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.internal.config;
 
 import com.hazelcast.config.InvalidConfigurationException;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.vector.VectorCollectionConfig;
 import com.hazelcast.spi.merge.MergingCreationTime;
 import com.hazelcast.spi.merge.MergingHits;
 import com.hazelcast.spi.merge.MergingLastAccessTime;
@@ -25,6 +26,7 @@ import com.hazelcast.spi.merge.MergingLastStoredTime;
 import com.hazelcast.spi.merge.MergingLastUpdateTime;
 import com.hazelcast.spi.merge.MergingValue;
 import com.hazelcast.spi.merge.MergingView;
+import com.hazelcast.spi.merge.NamespaceAwareSplitBrainMergePolicyProvider;
 import com.hazelcast.spi.merge.SplitBrainMergePolicy;
 import com.hazelcast.spi.merge.SplitBrainMergePolicyProvider;
 import com.hazelcast.spi.merge.SplitBrainMergeTypes;
@@ -55,12 +57,23 @@ public final class MergePolicyValidator {
     public static void checkMapMergePolicy(MapConfig mapConfig,
                                            String mergePolicyClassName,
                                            SplitBrainMergePolicyProvider mergePolicyProvider) {
-        SplitBrainMergePolicy mergePolicyInstance = mergePolicyProvider.getMergePolicy(mergePolicyClassName);
+        SplitBrainMergePolicy mergePolicyInstance = mergePolicyProvider.getMergePolicy(
+                mergePolicyClassName,
+                mapConfig.getUserCodeNamespace()
+        );
         List<Class> requiredMergeTypes =
                 checkSplitBrainMergePolicy(SplitBrainMergeTypes.MapMergeTypes.class, mergePolicyInstance);
         if (!mapConfig.isPerEntryStatsEnabled() && requiredMergeTypes != null) {
             checkMapMergePolicyWhenStatisticsAreDisabled(mergePolicyClassName, requiredMergeTypes);
         }
+    }
+
+    public static void checkVectorCollectionMergePolicy(VectorCollectionConfig vectorCollectionConfig,
+                                                        String mergePolicyClassName,
+                                                        SplitBrainMergePolicyProvider mergePolicyProvider) {
+        var namespace = vectorCollectionConfig.getUserCodeNamespace();
+        SplitBrainMergePolicy mergePolicyInstance = mergePolicyProvider.getMergePolicy(mergePolicyClassName, namespace);
+        checkSplitBrainMergePolicy(SplitBrainMergeTypes.VectorCollectionMergeTypes.class, mergePolicyInstance);
     }
 
     /**
@@ -94,26 +107,42 @@ public final class MergePolicyValidator {
      * @param mergePolicyClassName the merge policy class name
      * @throws InvalidConfigurationException if the given merge policy is no {@link SplitBrainMergePolicy}
      */
-    static void checkMergeTypeProviderHasRequiredTypes(Class<? extends MergingValue> mergeTypes,
-                                                       SplitBrainMergePolicyProvider mergePolicyProvider,
-                                                       String mergePolicyClassName) {
+    static void checkMergeTypeProviderHasRequiredTypes(
+            Class<? extends MergingValue> mergeTypes,
+            SplitBrainMergePolicyProvider mergePolicyProvider,
+            String mergePolicyClassName,
+            String namespace
+    ) {
         if (mergePolicyProvider == null) {
             return;
         }
 
-        SplitBrainMergePolicy mergePolicy = getMergePolicyInstance(mergePolicyProvider,
-                mergePolicyClassName);
+        SplitBrainMergePolicy mergePolicy = getMergePolicyInstance(
+                mergePolicyProvider,
+                mergePolicyClassName,
+                namespace
+        );
         checkSplitBrainMergePolicy(mergeTypes, mergePolicy);
     }
 
-    private static SplitBrainMergePolicy getMergePolicyInstance(SplitBrainMergePolicyProvider mergePolicyProvider,
-                                                                String mergePolicyClassName) {
+    private static SplitBrainMergePolicy getMergePolicyInstance(
+            SplitBrainMergePolicyProvider mergePolicyProvider,
+            String mergePolicyClassName,
+            String namespace
+    ) {
         try {
-            return mergePolicyProvider.getMergePolicy(mergePolicyClassName);
+            // RU_COMPAT_5_5
+            return isUCNAwareVersion(mergePolicyProvider)
+                    ? mergePolicyProvider.getMergePolicy(mergePolicyClassName, namespace)
+                    : mergePolicyProvider.getMergePolicy(mergePolicyClassName);
         } catch (InvalidConfigurationException e) {
             throw new InvalidConfigurationException("Merge policy must be an instance of SplitBrainMergePolicy,"
                     + " but was " + mergePolicyClassName, e.getCause());
         }
+    }
+
+    private static boolean isUCNAwareVersion(SplitBrainMergePolicyProvider provider) {
+        return provider instanceof NamespaceAwareSplitBrainMergePolicyProvider;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -167,11 +166,11 @@ public final class Measurement implements IdentifiedDataSerializable {
                 .append(Util.toLocalTime(timestamp))
                 .append(" [");
 
-        String tags = this.tags.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
+        String str = this.tags.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining(", "));
-        sb.append(tags).append(']');
+        sb.append(str).append(']');
 
         return sb.toString();
     }

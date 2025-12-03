@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,6 +196,7 @@ public abstract class TwoPhaseSnapshotCommitUtility<TXN_ID extends TransactionId
      * - the job might have failed between after snapshot phase 1 and 2. The
      * pending transactions might be recovered after the restart.
      */
+    @Override
     public abstract void close() throws Exception;
 
     public boolean usesTransactionLifecycle() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.internal.management.dto;
 
 import com.hazelcast.client.impl.ClientEndpoint;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.internal.json.Json;
 import com.hazelcast.internal.json.JsonArray;
 import com.hazelcast.internal.json.JsonObject;
@@ -67,6 +67,11 @@ public class ClientEndPointDTO implements JsonSerializable {
      */
     public String canonicalHostName;
 
+    /**
+     * Whether the Client has cp direct-to-leader operation routing enabled (requires member-side license components)
+     */
+    public boolean cpDirectToLeader;
+
     public ClientEndPointDTO() {
     }
 
@@ -87,6 +92,7 @@ public class ClientEndPointDTO implements JsonSerializable {
         InetAddress address = socketAddress.getAddress();
         this.ipAddress = address != null ? address.getHostAddress() : null;
         this.canonicalHostName = address != null ? address.getCanonicalHostName() : null;
+        this.cpDirectToLeader = clientEndpoint.isCpDirectToLeaderEnabled();
     }
 
     @Override
@@ -108,6 +114,7 @@ public class ClientEndPointDTO implements JsonSerializable {
         root.add("labels", labelsObject);
         root.add("ipAddress", ipAddress);
         root.add("canonicalHostName", canonicalHostName);
+        root.add("cpDirectToLeader", cpDirectToLeader);
         return root;
     }
 
@@ -129,5 +136,6 @@ public class ClientEndPointDTO implements JsonSerializable {
         }
         ipAddress = getString(json, "ipAddress", null);
         canonicalHostName = getString(json, "canonicalHostName", null);
+        cpDirectToLeader = getBoolean(json, "cpDirectToLeader", false);
     }
 }

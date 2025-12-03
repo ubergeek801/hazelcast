@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,12 @@ import com.hazelcast.instance.impl.OutOfMemoryErrorDispatcher;
 import com.hazelcast.map.impl.MapContainer;
 import com.hazelcast.map.impl.MapServiceContext;
 import com.hazelcast.map.impl.operation.MapOperation;
-import com.hazelcast.spi.exception.ResponseAlreadySentException;
 import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.spi.impl.operationexecutor.OperationRunner;
 import com.hazelcast.spi.impl.operationservice.Notifier;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationService;
 import com.hazelcast.spi.impl.operationservice.impl.OperationRunnerImpl;
-import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
-import com.hazelcast.spi.impl.operationservice.impl.responses.NormalResponse;
 
 import static com.hazelcast.internal.util.ThreadUtil.isRunningOnPartitionThread;
 import static com.hazelcast.map.impl.record.Record.UNSET;
@@ -49,8 +46,6 @@ public final class StepResponseUtil {
      * <li>Sends backup operation if there is backup</li>
      * <li>Notifies parked operations</li>
      * </lu>
-     *
-     * @param state
      */
     public static void sendResponse(State state) {
         assert isRunningOnPartitionThread();
@@ -58,18 +53,7 @@ public final class StepResponseUtil {
         MapOperation operation = state.getOperation();
         operation.applyState(state);
 
-        int backupAcks = handleBackup(state);
-        Object response = operation.getResponse();
-        if (backupAcks > 0) {
-            response = new NormalResponse(response, operation.getCallId(),
-                    backupAcks, operation.isUrgent());
-        }
-
-        try {
-            operation.sendResponse(response);
-        } catch (ResponseAlreadySentException e) {
-            logOperationError(operation, e);
-        }
+        handleBackupAndSendResponse(state);
 
         try {
             if (operation instanceof Notifier notifier) {
@@ -94,13 +78,13 @@ public final class StepResponseUtil {
         op.logError(e);
     }
 
-    private static int handleBackup(State state) {
+    private static void handleBackupAndSendResponse(State state) {
         assert state.getPartitionId() != UNSET;
 
-        OperationService operationService = getOperationService(state);
-        OperationRunner runner = ((OperationServiceImpl) operationService)
+        OperationRunner runner = getOperationService(state)
                 .getOperationExecutor().getPartitionOperationRunners()[state.getPartitionId()];
-        return ((OperationRunnerImpl) runner).getBackupHandler().sendBackups(state.getOperation());
+
+        ((OperationRunnerImpl) runner).sendBackupsAndResponse(state.getOperation());
     }
 
     private static OperationService getOperationService(State state) {

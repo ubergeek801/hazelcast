@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.hazelcast.config.security;
 
-import static com.hazelcast.internal.util.StringUtil.trim;
+import javax.annotation.Nullable;
 
 /**
  * Enum for LDAP role mapping modes.
@@ -51,14 +51,14 @@ public enum LdapRoleMappingMode {
         return valueString;
     }
 
-    public static LdapRoleMappingMode getRoleMappingMode(String label) {
-        label = trim(label);
-        if (label == null) {
-            return DEFAULT;
-        }
-        for (LdapRoleMappingMode mode : LdapRoleMappingMode.values()) {
-            if (mode.toString().equals(label)) {
-                return mode;
+    public static LdapRoleMappingMode getRoleMappingMode(@Nullable String label) {
+        if (label != null) {
+            label = label.strip();
+            for (LdapRoleMappingMode mode : LdapRoleMappingMode.values()) {
+                if (mode.toString()
+                        .equals(label)) {
+                    return mode;
+                }
             }
         }
         return DEFAULT;

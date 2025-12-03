@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,13 +165,11 @@ public abstract class OperationThread extends HazelcastManagedThread implements 
      * Processes/executes the provided operation.
      *
      * @param operation the operation to execute
-     * @return {@code true} if this operation was not executed and should be retried at a later time,
-     * {@code false} if the operation should not be retried, either because it
-     * timed out or has run successfully
      */
     private void process(Operation operation) {
         currentRunner = operationRunner(operation.getPartitionId());
         currentRunner.run(operation);
+        completedOperationCount.inc();
     }
 
     /**

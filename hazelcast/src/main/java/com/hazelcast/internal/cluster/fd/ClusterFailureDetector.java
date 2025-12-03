@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ public interface ClusterFailureDetector {
     /**
      * Returns suspicion level about a given member. Returned value is mostly implementation dependent.
      * <code>0</code> indicates no suspicion at all.
-     * @param member member
      * @param timestamp timestamp in milliseconds
      * @return suspicion level
      */

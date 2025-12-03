@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class H2UpsertQueryBuilderTest {
     SqlDialect dialect = H2SqlDialect.DEFAULT;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(table.getExternalNameList()).thenReturn(Collections.singletonList("table1"));
         when(table.getPrimaryKeyList()).thenReturn(Arrays.asList("pk1", "pk2"));
         when(table.dbFieldNames()).thenReturn(Arrays.asList("field1", "field2"));

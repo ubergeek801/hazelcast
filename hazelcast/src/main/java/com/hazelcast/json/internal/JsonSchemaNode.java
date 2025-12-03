@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ public abstract class JsonSchemaNode implements IdentifiedDataSerializable {
 
     private JsonSchemaStructNode parent;
 
-    public JsonSchemaNode() {
+    protected JsonSchemaNode() {
         // no-op
     }
     /**
@@ -33,7 +33,7 @@ public abstract class JsonSchemaNode implements IdentifiedDataSerializable {
      *
      * @param parent may be null for top element
      */
-    public JsonSchemaNode(JsonSchemaStructNode parent) {
+    protected JsonSchemaNode(JsonSchemaStructNode parent) {
         this.parent = parent;
     }
 
@@ -49,8 +49,6 @@ public abstract class JsonSchemaNode implements IdentifiedDataSerializable {
 
     /**
      * Sets the parent of this node. May be null for top element.
-     *
-     * @param parent
      */
     public void setParent(JsonSchemaStructNode parent) {
         this.parent = parent;

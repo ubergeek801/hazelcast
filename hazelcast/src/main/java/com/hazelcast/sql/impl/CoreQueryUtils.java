@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public final class CoreQueryUtils {
     /**
      * Finds a larger same-version group of data members from a collection of
      * members and, if {@code localMember} is from that group, return that.
-     * Otherwise return a random member from the group. If the same-version
+     * Otherwise, return a random member from the group. If the same-version
      * groups have the same size, return a member from the newer group
      * (preferably the local one).
      * <p>

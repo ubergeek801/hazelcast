@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 package com.hazelcast.client.impl.spi.impl;
 
+import com.hazelcast.client.impl.clientside.HazelcastClientInstanceImpl;
 import com.hazelcast.client.impl.clientside.SubsetMembers;
+import com.hazelcast.client.impl.connection.ClientConnection;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.proxy.ClientClusterProxy;
 import com.hazelcast.client.impl.spi.ClientClusterService;
+import com.hazelcast.client.util.ClientConnectivityLogger;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.Cluster;
 import com.hazelcast.cluster.InitialMembershipEvent;
@@ -33,7 +37,6 @@ import com.hazelcast.internal.cluster.MemberInfo;
 import com.hazelcast.internal.cluster.impl.MemberSelectingCollection;
 import com.hazelcast.internal.util.UuidUtil;
 import com.hazelcast.logging.ILogger;
-import com.hazelcast.logging.LoggingService;
 import com.hazelcast.version.Version;
 
 import javax.annotation.Nonnull;
@@ -51,6 +54,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.hazelcast.client.impl.connection.tcp.AuthenticationKeyValuePairConstants.CLUSTER_VERSION;
 import static com.hazelcast.instance.EndpointQualifier.CLIENT;
@@ -76,12 +80,18 @@ public class ClientClusterServiceImpl implements ClientClusterService {
             new AtomicReference<>(new MemberListSnapshot(INITIAL_MEMBER_LIST_VERSION, new LinkedHashMap<>(), null));
 
     protected volatile UUID clusterId;
+    protected final HazelcastClientInstanceImpl clientInstance;
+    private final ClientConnectivityLogger connectivityLogger;
     private final ConcurrentMap<UUID, MembershipListener> listeners = new ConcurrentHashMap<>();
     private final ILogger logger;
     private final Object clusterViewLock = new Object();
 
-    public ClientClusterServiceImpl(LoggingService loggingService) {
-        this.logger = loggingService.getLogger(ClientClusterService.class);
+
+    public ClientClusterServiceImpl(HazelcastClientInstanceImpl client) {
+        this.logger = client.getLoggingService().getLogger(ClientClusterService.class);
+        this.clientInstance = client;
+        this.connectivityLogger = new ClientConnectivityLogger(client.getLoggingService(),
+                client.getTaskScheduler(), client.getProperties());
     }
 
     @Override
@@ -118,6 +128,19 @@ public class ClientClusterServiceImpl implements ClientClusterService {
             return Collections.emptyList();
         }
 
+        if (clientInstance.getConnectionManager().getRoutingMode()
+                == RoutingMode.SINGLE_MEMBER) {
+            UUID activeConnection = clientInstance.getConnectionManager()
+                    .getActiveConnections().stream()
+                    .findFirst()
+                    .map(ClientConnection::getRemoteUuid)
+                    .orElse(null);
+            if (activeConnection == null || !snapshot.members().containsKey(activeConnection)) {
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(snapshot.members().get(activeConnection));
+        }
+
         return snapshot.members().values();
     }
 
@@ -147,7 +170,7 @@ public class ClientClusterServiceImpl implements ClientClusterService {
             if (listener instanceof InitialMembershipListener membershipListener) {
                 Cluster cluster = getCluster();
                 Collection<Member> members = memberListSnapshot.get().members().values();
-                //if members are empty,it means initial event did not arrive yet
+                //if members are empty,it means initial event did not arrive, yet
                 //it will be redirected to listeners when it arrives see #handleInitialMembershipEvent
                 if (!members.isEmpty()) {
                     InitialMembershipEvent event = new InitialMembershipEvent(cluster, toUnmodifiableHasSet(members));
@@ -172,7 +195,7 @@ public class ClientClusterServiceImpl implements ClientClusterService {
 
     @Override
     public void start(Collection<EventListener> configuredListeners) {
-        configuredListeners.stream().filter(listener -> listener instanceof MembershipListener)
+        configuredListeners.stream().filter(MembershipListener.class::isInstance)
                 .forEach(listener -> addMembershipListener((MembershipListener) listener));
     }
 
@@ -190,6 +213,7 @@ public class ClientClusterServiceImpl implements ClientClusterService {
                 memberListSnapshot.set(new MemberListSnapshot(0,
                         clusterViewSnapshot.members(),
                         clusterViewSnapshot.clusterUuid()));
+                submitConnectivityLoggingTask();
             }
         }
     }
@@ -208,6 +232,7 @@ public class ClientClusterServiceImpl implements ClientClusterService {
     }
 
     //public for tests on enterprise
+    @Override
     public int getMemberListVersion() {
         return memberListSnapshot.get().version();
     }
@@ -216,6 +241,7 @@ public class ClientClusterServiceImpl implements ClientClusterService {
         MemberListSnapshot snapshot = createSnapshot(version, memberInfos, clusterUuid);
         memberListSnapshot.set(snapshot);
         logger.info(membersString(snapshot));
+        submitConnectivityLoggingTask();
         Set<Member> members = toUnmodifiableHasSet(snapshot.members().values());
         InitialMembershipEvent event = new InitialMembershipEvent(getCluster(), members);
         for (MembershipListener listener : listeners.values()) {
@@ -286,19 +312,17 @@ public class ClientClusterServiceImpl implements ClientClusterService {
         return events;
     }
 
-    private String membersString(MemberListSnapshot snapshot) {
+    private static String membersString(MemberListSnapshot snapshot) {
         Collection<Member> members = snapshot.members().values();
-        StringBuilder sb = new StringBuilder(lineSeparator());
-        sb.append(lineSeparator());
-        sb.append("Members [");
-        sb.append(members.size());
-        sb.append("] {");
-        for (Member member : members) {
-            sb.append(lineSeparator()).append("\t").append(member);
-        }
-        sb.append(lineSeparator()).append("}").append(lineSeparator());
-        return sb.toString();
+                return """
+                Members [%s] {%n\
+                %s%n\
+                }%n\
+                """.formatted(members.size(), members.stream()
+                .map(member -> "\t" + member)
+                .collect(Collectors.joining(lineSeparator())));
     }
+
 
     @Override
     public SubsetMembers getSubsetMembers() {
@@ -325,8 +349,8 @@ public class ClientClusterServiceImpl implements ClientClusterService {
     public void handleMembersViewEvent(int memberListVersion, Collection<MemberInfo> memberInfos, UUID clusterUuid) {
         if (logger.isFinestEnabled()) {
             MemberListSnapshot snapshot = createSnapshot(memberListVersion, memberInfos, clusterUuid);
-            logger.finest("Handling new snapshot with membership version: " + memberListVersion + ", membersString "
-                    + membersString(snapshot));
+            logger.finest("Handling new snapshot with membership version: %s, membersString %s", memberListVersion,
+                    membersString(snapshot));
         }
         MemberListSnapshot clusterViewSnapshot = memberListSnapshot.get();
         if (clusterViewSnapshot.version() == INITIAL_MEMBER_LIST_VERSION) {
@@ -351,6 +375,9 @@ public class ClientClusterServiceImpl implements ClientClusterService {
                     memberListSnapshot.set(snapshot);
                     Set<Member> currentMembers = toUnmodifiableHasSet(snapshot.members().values());
                     events = detectMembershipEvents(prevMembers, currentMembers, previousClusterUuid);
+                    if (!events.isEmpty()) {
+                        submitConnectivityLoggingTask();
+                    }
                 }
             }
         }
@@ -372,5 +399,15 @@ public class ClientClusterServiceImpl implements ClientClusterService {
                 }
             }
         }
+    }
+
+    private void submitConnectivityLoggingTask() {
+        connectivityLogger.submitLoggingTask(getEffectiveMemberList(),
+                getMemberList());
+    }
+
+    @Override
+    public void terminateClientConnectivityLogging() {
+        connectivityLogger.terminate();
     }
 }

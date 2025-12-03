@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class WriteCdcP<K, V> extends AbstractUpdateMapP<ChangeRecord, K, V> {
     /**
      * This processor uses {@link IMap#submitToKeys(Set, EntryProcessor)}, which
      * if used from multiple parallel async operations can end up reordering
-     * the changes done to the map and this in turn can result in unforseen
+     * the changes done to the map and this in turn can result in unforeseen
      * consequences. For this reason we need to limit ourselves to a single
      * in-flight operation at a time.
      */
@@ -53,7 +53,7 @@ public class WriteCdcP<K, V> extends AbstractUpdateMapP<ChangeRecord, K, V> {
     /**
      * Tracks the last seen sequence for a set of keys.
      * <p>
-     * It behaves as a LRU cache, which means it evicts the entries that
+     * It behaves as an LRU cache, which means it evicts the entries that
      * haven't been accessed for the configured time (see the {@code
      * expirationMs} parameter). This limits memory consumption without
      * affecting the detection of reordering because the events are ordered at

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.PartitioningAttributeConfig;
 import com.hazelcast.config.PartitioningStrategyConfig;
 import com.hazelcast.internal.eviction.ExpirationManager;
+import com.hazelcast.internal.nio.Disposable;
 import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.DataType;
@@ -83,11 +84,13 @@ import com.hazelcast.spi.impl.eventservice.EventService;
 import com.hazelcast.spi.impl.operationservice.Operation;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,6 +112,7 @@ import static com.hazelcast.query.impl.predicates.QueryOptimizerFactory.newOptim
 import static com.hazelcast.spi.impl.executionservice.ExecutionService.QUERY_EXECUTOR;
 import static com.hazelcast.spi.impl.operationservice.Operation.GENERIC_PARTITION_ID;
 import static com.hazelcast.spi.properties.ClusterProperty.AGGREGATION_ACCUMULATION_PARALLEL_EVALUATION;
+import static com.hazelcast.spi.properties.ClusterProperty.EXPENSIVE_IMAP_INVOCATION_REPORTING_THRESHOLD;
 import static com.hazelcast.spi.properties.ClusterProperty.INDEX_COPY_BEHAVIOR;
 import static com.hazelcast.spi.properties.ClusterProperty.OPERATION_CALL_TIMEOUT_MILLIS;
 import static com.hazelcast.spi.properties.ClusterProperty.QUERY_PREDICATE_PARALLEL_EVALUATION;
@@ -151,11 +155,12 @@ class MapServiceContextImpl implements MapServiceContext {
     private final AtomicReference<PartitionIdSet> cachedOwnedPartitions = new AtomicReference<>();
 
     /**
-     * @see {@link MapKeyLoader#DEFAULT_LOADED_KEY_LIMIT_PER_NODE}
+     * @see MapKeyLoader#DEFAULT_LOADED_KEY_LIMIT_PER_NODE
      */
     private final Semaphore nodeWideLoadedKeyLimiter;
     private final boolean forceOffloadEnabled;
     private final long maxSuccessiveOffloadedOpRunNanos;
+    private final int expensiveInvocationReportingThreshold;
 
     private MapService mapService;
 
@@ -189,6 +194,8 @@ class MapServiceContextImpl implements MapServiceContext {
                 .getBoolean(FORCE_OFFLOAD_ALL_OPERATIONS);
         this.maxSuccessiveOffloadedOpRunNanos = nodeEngine.getProperties()
                 .getNanos(MAX_SUCCESSIVE_OFFLOADED_OP_RUN_NANOS);
+        this.expensiveInvocationReportingThreshold = nodeEngine.getProperties()
+                .getInteger(EXPENSIVE_IMAP_INVOCATION_REPORTING_THRESHOLD);
         if (this.forceOffloadEnabled) {
             logger.info("Force offload is enabled for all maps. This "
                     + "means all map operations will run as if they have map-store configured. "
@@ -366,16 +373,24 @@ class MapServiceContextImpl implements MapServiceContext {
             return;
         }
 
+        Queue<Disposable> disposalQueue = new ArrayDeque<>();
         List<RecordStore> removedRecordStores = new ArrayList<>();
         Iterator<RecordStore> recordStoreIterator = container.getMaps().values().iterator();
         while (recordStoreIterator.hasNext()) {
             RecordStore recordStore = recordStoreIterator.next();
             if (predicate.test(recordStore)) {
+                // First, remove the record store to reduce the chance of access
+                // from non-partition threads. See `MapContainerImpl#hasNotExpired`,
+                // which may be called by query threads.
+                recordStoreIterator.remove();
+
                 recordStore.beforeOperation();
                 try {
-                    boolean empty = recordStore.isEmpty();
+                    // isEmpty can throw an exception here if there are any active loads on the recordStore
+                    @SuppressWarnings({"SizeReplaceableByIsEmpty"})
+                    boolean empty = recordStore.size() == 0;
 
-                    recordStore.clearPartition(onShutdown, onRecordStoreDestroy);
+                    recordStore.clearPartition(onShutdown, onRecordStoreDestroy, disposalQueue);
 
                     if (!empty) {
                         removedRecordStores.add(recordStore);
@@ -383,11 +398,16 @@ class MapServiceContextImpl implements MapServiceContext {
                 } finally {
                     recordStore.afterOperation();
                 }
-                recordStoreIterator.remove();
             }
         }
 
         postProcessNonEmptyRemovedRecordStores(removedRecordStores, partitionId, onShutdown);
+        processDisposalQueue(disposalQueue, partitionId, onShutdown);
+    }
+
+    protected void processDisposalQueue(Queue<Disposable> disposalQueue,
+                                        int partitionId, boolean onShutdown) {
+        // NOP
     }
 
     protected void postProcessNonEmptyRemovedRecordStores(List<RecordStore> removedRecordStores,
@@ -948,6 +968,7 @@ class MapServiceContextImpl implements MapServiceContext {
         return nodeWideLoadedKeyLimiter;
     }
 
+    @Override
     public NodeWideUsedCapacityCounter getNodeWideUsedCapacityCounter() {
         return nodeWideUsedCapacityCounter;
     }
@@ -957,4 +978,8 @@ class MapServiceContextImpl implements MapServiceContext {
         return partitioningStrategyFactory;
     }
 
+    @Override
+    public int getExpensiveInvocationReportingThreshold() {
+        return expensiveInvocationReportingThreshold;
+    }
 }

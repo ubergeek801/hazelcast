@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static com.hazelcast.client.impl.protocol.ClientMessage.*;
 import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCodec.*;
 
 @SuppressWarnings("unused")
-@Generated("3cb91649f71ce9524163564f9db8533c")
+@Generated("20408531eaa77e98223bd2ff11c2e53c")
 public final class WanCustomPublisherConfigHolderCodec {
 
     private WanCustomPublisherConfigHolderCodec() {
@@ -36,7 +36,7 @@ public final class WanCustomPublisherConfigHolderCodec {
 
         CodecUtil.encodeNullable(clientMessage, wanCustomPublisherConfigHolder.getPublisherId(), StringCodec::encode);
         CodecUtil.encodeNullable(clientMessage, wanCustomPublisherConfigHolder.getClassName(), StringCodec::encode);
-        CodecUtil.encodeNullable(clientMessage, wanCustomPublisherConfigHolder.getImplementation(), DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, wanCustomPublisherConfigHolder.getImplementation());
         MapCodec.encode(clientMessage, wanCustomPublisherConfigHolder.getProperties(), StringCodec::encode, DataCodec::encode);
 
         clientMessage.add(END_FRAME.copy());
@@ -48,7 +48,7 @@ public final class WanCustomPublisherConfigHolderCodec {
 
         java.lang.String publisherId = CodecUtil.decodeNullable(iterator, StringCodec::decode);
         java.lang.String className = CodecUtil.decodeNullable(iterator, StringCodec::decode);
-        com.hazelcast.internal.serialization.Data implementation = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+        com.hazelcast.internal.serialization.Data implementation = DataCodec.decodeNullable(iterator);
         java.util.Map<java.lang.String, com.hazelcast.internal.serialization.Data> properties = MapCodec.decode(iterator, StringCodec::decode, DataCodec::decode);
 
         fastForwardToEndFrame(iterator);

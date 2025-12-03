@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ import com.hazelcast.config.MetricsJmxConfig;
 import com.hazelcast.config.MetricsManagementCenterConfig;
 import com.hazelcast.config.MultiMapConfig;
 import com.hazelcast.config.MulticastConfig;
-import com.hazelcast.config.UserCodeNamespaceConfig;
 import com.hazelcast.config.NearCacheConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.OnJoinPermissionOperationName;
@@ -120,6 +119,7 @@ import com.hazelcast.config.TieredStoreConfig;
 import com.hazelcast.config.TopicConfig;
 import com.hazelcast.config.TrustedInterfacesConfigurable;
 import com.hazelcast.config.UserCodeDeploymentConfig;
+import com.hazelcast.config.UserCodeNamespaceConfig;
 import com.hazelcast.config.VaultSecureStoreConfig;
 import com.hazelcast.config.WanAcknowledgeType;
 import com.hazelcast.config.WanBatchPublisherConfig;
@@ -130,13 +130,11 @@ import com.hazelcast.config.WanReplicationConfig;
 import com.hazelcast.config.WanReplicationRef;
 import com.hazelcast.config.WanSyncConfig;
 import com.hazelcast.config.cp.CPMapConfig;
-import com.hazelcast.config.rest.RestConfig;
-import com.hazelcast.config.tpc.TpcConfig;
-import com.hazelcast.config.tpc.TpcSocketConfig;
 import com.hazelcast.config.cp.CPSubsystemConfig;
 import com.hazelcast.config.cp.FencedLockConfig;
 import com.hazelcast.config.cp.RaftAlgorithmConfig;
 import com.hazelcast.config.cp.SemaphoreConfig;
+import com.hazelcast.config.rest.RestConfig;
 import com.hazelcast.config.security.AbstractClusterLoginConfig;
 import com.hazelcast.config.security.AccessControlServiceConfig;
 import com.hazelcast.config.security.KerberosAuthenticationConfig;
@@ -147,6 +145,8 @@ import com.hazelcast.config.security.SimpleAuthenticationConfig;
 import com.hazelcast.config.security.TlsAuthenticationConfig;
 import com.hazelcast.config.security.TokenEncoding;
 import com.hazelcast.config.security.TokenIdentityConfig;
+import com.hazelcast.config.tpc.TpcConfig;
+import com.hazelcast.config.tpc.TpcSocketConfig;
 import com.hazelcast.config.vector.Metric;
 import com.hazelcast.config.vector.VectorCollectionConfig;
 import com.hazelcast.config.vector.VectorIndexConfig;
@@ -196,8 +196,6 @@ import static com.hazelcast.config.security.LdapRoleMappingMode.getRoleMappingMo
 import static com.hazelcast.config.security.LdapSearchScope.getSearchScope;
 import static com.hazelcast.internal.config.AliasedDiscoveryConfigUtils.getConfigByTag;
 import static com.hazelcast.internal.config.ConfigSections.ADVANCED_NETWORK;
-import static com.hazelcast.internal.config.ConfigSections.REST;
-import static com.hazelcast.internal.config.ConfigSections.TPC;
 import static com.hazelcast.internal.config.ConfigSections.AUDITLOG;
 import static com.hazelcast.internal.config.ConfigSections.CACHE;
 import static com.hazelcast.internal.config.ConfigSections.CARDINALITY_ESTIMATOR;
@@ -225,7 +223,6 @@ import static com.hazelcast.internal.config.ConfigSections.MAP;
 import static com.hazelcast.internal.config.ConfigSections.MEMBER_ATTRIBUTES;
 import static com.hazelcast.internal.config.ConfigSections.METRICS;
 import static com.hazelcast.internal.config.ConfigSections.MULTIMAP;
-import static com.hazelcast.internal.config.ConfigSections.USER_CODE_NAMESPACES;
 import static com.hazelcast.internal.config.ConfigSections.NATIVE_MEMORY;
 import static com.hazelcast.internal.config.ConfigSections.NETWORK;
 import static com.hazelcast.internal.config.ConfigSections.PARTITION_GROUP;
@@ -235,6 +232,7 @@ import static com.hazelcast.internal.config.ConfigSections.PROPERTIES;
 import static com.hazelcast.internal.config.ConfigSections.QUEUE;
 import static com.hazelcast.internal.config.ConfigSections.RELIABLE_TOPIC;
 import static com.hazelcast.internal.config.ConfigSections.REPLICATED_MAP;
+import static com.hazelcast.internal.config.ConfigSections.REST;
 import static com.hazelcast.internal.config.ConfigSections.RINGBUFFER;
 import static com.hazelcast.internal.config.ConfigSections.SCHEDULED_EXECUTOR_SERVICE;
 import static com.hazelcast.internal.config.ConfigSections.SECURITY;
@@ -243,7 +241,9 @@ import static com.hazelcast.internal.config.ConfigSections.SET;
 import static com.hazelcast.internal.config.ConfigSections.SPLIT_BRAIN_PROTECTION;
 import static com.hazelcast.internal.config.ConfigSections.SQL;
 import static com.hazelcast.internal.config.ConfigSections.TOPIC;
+import static com.hazelcast.internal.config.ConfigSections.TPC;
 import static com.hazelcast.internal.config.ConfigSections.USER_CODE_DEPLOYMENT;
+import static com.hazelcast.internal.config.ConfigSections.USER_CODE_NAMESPACES;
 import static com.hazelcast.internal.config.ConfigSections.VECTOR;
 import static com.hazelcast.internal.config.ConfigSections.WAN_REPLICATION;
 import static com.hazelcast.internal.config.ConfigSections.canOccurMultipleTimes;
@@ -774,7 +774,7 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
                     !isNullOrEmpty(splitBrainProtectionConfig.getFunctionClassName());
             if (splitBrainProtectionFunctionDefinedByClassName) {
                 throw new InvalidConfigurationException("A split brain protection cannot simultaneously"
-                        + " define probabilistic-split-brain-protectionm or "
+                        + " define probabilistic-split-brain-protection or "
                         + "recently-active-split-brain-protection and a split brain protection function class name.");
             }
             // ensure parsed attributes are reflected in constructed split brain protection config
@@ -1005,8 +1005,24 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
         }
     }
 
-    private void handleAdvancedNetwork(Node node)
-            throws Exception {
+    private void handleAdvancedNetwork(Node node) throws Exception {
+        // XSD 1.0 limitation: with the existing <xs:choice maxOccurs="unbounded"> model,
+        // the schema can’t restrict these elements to a single occurrence without a
+        // backward-incompatible change (e.g., introducing wrapper elements).
+        // To stay compatible, we enforce uniqueness in the parser and fail fast with
+        // InvalidConfigurationException when a duplicate singleton is encountered.
+        final Set<String> singletonElements = Set.of(
+                "join",
+                "failure-detector",
+                "member-address-provider",
+                "member-server-socket-endpoint-config",
+                "client-server-socket-endpoint-config",
+                "rest-server-socket-endpoint-config",
+                "memcache-server-socket-endpoint-config"
+        );
+        final Set<String> seen = new HashSet<>(singletonElements.size());
+
+        // enabled attribute
         NamedNodeMap attributes = node.getAttributes();
         for (int a = 0; a < attributes.getLength(); a++) {
             Node att = attributes.item(a);
@@ -1014,8 +1030,15 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
                 config.getAdvancedNetworkConfig().setEnabled(getBooleanValue(att.getNodeValue()));
             }
         }
+
         for (Node child : childElements(node)) {
             String nodeName = cleanNodeName(child);
+            if (singletonElements.contains(nodeName) && !seen.add(nodeName)) {
+                throw new InvalidConfigurationException(
+                        "At most one " + nodeName + " is allowed under advanced-network."
+                );
+            }
+
             if (matches("join", nodeName)) {
                 handleJoin(child, true);
             } else if (matches("wan-endpoint-config", nodeName)) {
@@ -1668,7 +1691,7 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
                         getIntegerValue("connection-timeout-seconds", getTextContent(att)));
             }
         }
-        Set<String> memberTags = new HashSet<>(Arrays.asList("interface", "member", "members"));
+        Set<String> memberTags = Set.of("interface", "member", "members");
         for (Node n : childElements(node)) {
             if (matches(cleanNodeName(n), "member-list")) {
                 handleMemberList(n, advancedNetworkConfig);
@@ -3674,6 +3697,9 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
         final String portName = "port";
         final String securityRealmName = "security-realm";
         final String tokenValiditySecondsName = "token-validity-seconds";
+        final String requestTimeoutSecondsName = "request-timeout-seconds";
+        final String maxLoginAttempts = "max-login-attempts";
+        final String lockoutDuration = "lockout-duration-seconds";
 
         for (Node child : childElements(node)) {
             String childName = cleanNodeName(child);
@@ -3686,6 +3712,14 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
                 restConfig.setTokenValidityDuration(Duration.of(durationSeconds, SECONDS));
             } else if (matches("ssl", childName)) {
                 handleRestSsl(restConfig.getSsl(), child);
+            } else if (matches(requestTimeoutSecondsName, childName)) {
+                restConfig.setRequestTimeoutDuration(Duration
+                        .ofSeconds(getIntegerValue(requestTimeoutSecondsName, getTextContent(child))));
+            } else if (matches(maxLoginAttempts, childName)) {
+                restConfig.setMaxLoginAttempts(getIntegerValue(maxLoginAttempts, getTextContent(child)));
+            } else if (matches(lockoutDuration, childName)) {
+                int durationSeconds = getIntegerValue(lockoutDuration, getTextContent(child));
+                restConfig.setLockoutDuration(Duration.of(durationSeconds, SECONDS));
             }
         }
     }
@@ -3752,26 +3786,42 @@ public class MemberDomConfigProcessor extends AbstractDomConfigProcessor {
 
     protected void handleVector(Node node) {
         String name = getAttribute(node, "name");
-        VectorCollectionConfig mapConfig = ConfigUtils.getByNameOrNew(
+        VectorCollectionConfig collectionConfig = ConfigUtils.getByNameOrNew(
                 config.getVectorCollectionConfigs(),
                 name,
                 VectorCollectionConfig.class
         );
-        handleVectorNode(node, mapConfig);
+        handleVectorNode(node, collectionConfig);
     }
 
-    protected void handleVectorNode(Node node, VectorCollectionConfig collectionConfig) {
-        var indexesNode = firstChildElement(node);
-        if (indexesNode == null) {
-            return;
+    protected void handleVectorNode(Node parentNode, VectorCollectionConfig collectionConfig) {
+        for (Node node : childElements(parentNode)) {
+            String nodeName = cleanNodeName(node);
+            if (matches("indexes", nodeName)) {
+                handleVectorIndexesNode(node, collectionConfig);
+            } else if (matches("backup-count", nodeName)) {
+                collectionConfig.setBackupCount(getIntegerValue("backup-count", getTextContent(node)));
+            } else if (matches("async-backup-count", nodeName)) {
+                collectionConfig.setAsyncBackupCount(getIntegerValue("async-backup-count", getTextContent(node)));
+            } else if (matches("merge-policy", nodeName)) {
+                MergePolicyConfig mpConfig = createMergePolicyConfig(node, collectionConfig.getMergePolicyConfig());
+                collectionConfig.setMergePolicyConfig(mpConfig);
+            } else if (matches("split-brain-protection-ref", nodeName)) {
+                collectionConfig.setSplitBrainProtectionName(getTextContent(node));
+            } else if (matches("user-code-namespace", nodeName)) {
+                collectionConfig.setUserCodeNamespace(getTextContent(node));
+            }
         }
+        config.addVectorCollectionConfig(collectionConfig);
+    }
+
+    protected void handleVectorIndexesNode(Node indexesNode, VectorCollectionConfig collectionConfig) {
         for (Node n : childElements(indexesNode)) {
             String nodeName = cleanNodeName(n);
             if (matches("index", nodeName)) {
                 handleVectorIndex(n, collectionConfig);
             }
         }
-        config.addVectorCollectionConfig(collectionConfig);
     }
 
     protected void handleVectorIndex(Node node, VectorCollectionConfig collectionConfig) {

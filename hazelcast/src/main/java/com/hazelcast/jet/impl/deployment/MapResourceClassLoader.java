@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ public class MapResourceClassLoader extends JetDelegatingClassLoader {
     }
 
     @Override
-    protected Enumeration<URL> findResources(String name) throws IOException {
+    protected Enumeration<URL> findResources(String name) {
         URL foundResource = findResource(name);
         return foundResource == null
                 ? Collections.emptyEnumeration()
@@ -319,7 +319,7 @@ public class MapResourceClassLoader extends JetDelegatingClassLoader {
 
     protected final class MapResourceURLStreamHandler extends URLStreamHandler {
         @Override
-        protected URLConnection openConnection(URL u) throws IOException {
+        protected URLConnection openConnection(URL u) {
             return new MapResourceURLConnection(u);
         }
     }
@@ -330,11 +330,11 @@ public class MapResourceClassLoader extends JetDelegatingClassLoader {
         }
 
         @Override
-        public void connect() throws IOException {
+        public void connect() {
         }
 
         @Override
-        public InputStream getInputStream() throws IOException {
+        public InputStream getInputStream() {
             return resourceStream(url.getFile());
         }
     }

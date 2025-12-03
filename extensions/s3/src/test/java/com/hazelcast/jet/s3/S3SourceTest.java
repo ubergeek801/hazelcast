@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ public class S3SourceTest extends S3TestBase {
         testSource(buckets, "file-999", 2, LINE_COUNT);
     }
 
+    @Override
     SupplierEx<S3Client> clientSupplier() {
         return () -> S3Client.builder()
                              .region(Region.US_EAST_1)

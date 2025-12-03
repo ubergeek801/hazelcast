@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ interface MigrationStrategy {
      * Looks for imbalance in {@link MigratablePipeline pipeline} to {@link NioThread ioThread}
      * mapping.
      *
-     * @param imbalance
      * @return <code>true</code> when imbalance is detected
      */
     boolean imbalanceDetected(LoadImbalance imbalance);
@@ -39,7 +38,6 @@ interface MigrationStrategy {
     /**
      * Finds a {@link MigratablePipeline pipeline} to migrate
      *
-     * @param imbalance
      * @return Handler to migrate or <code>null</code> if no suitable candidate is found
      */
     MigratablePipeline findPipelineToMigrate(LoadImbalance imbalance);

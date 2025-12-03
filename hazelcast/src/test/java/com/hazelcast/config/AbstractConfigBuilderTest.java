@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -521,6 +521,24 @@ public abstract class AbstractConfigBuilderTest extends HazelcastTestSupport {
     public abstract void testNetworkConfigUnambiguous_whenAdvancedNetworkDisabled();
 
     @Test
+    public abstract void testMultipleClientEndpointConfigs_throwsException();
+
+    @Test
+    public abstract void testMultipleRestEndpointConfigs_throwsException();
+
+    @Test
+    public abstract void testMultipleMemcacheEndpointConfigs_throwsException();
+
+    @Test
+    public abstract void testMultipleJoinElements_throwsException();
+
+    @Test
+    public abstract void testMultipleFailureDetectorElements_throwsException();
+
+    @Test
+    public abstract void testMultipleMemberAddressProviderElements_throwsException();
+
+    @Test
     public abstract void testMultipleMemberEndpointConfigs_throwsException();
 
     @Test
@@ -730,6 +748,8 @@ public abstract class AbstractConfigBuilderTest extends HazelcastTestSupport {
         assertEquals(8080, restConfig.getPort());
         assertEquals("realmName", restConfig.getSecurityRealm());
         assertEquals(500, restConfig.getTokenValidityDuration().toSeconds());
+        assertEquals(10, restConfig.getMaxLoginAttempts());
+        assertEquals(10, restConfig.getLockoutDuration().getSeconds());
         assertTrue(restConfig.getSsl().isEnabled());
         assertEquals(RestConfig.Ssl.ClientAuth.NEED, restConfig.getSsl().getClientAuth());
         assertEquals("TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA256", restConfig.getSsl().getCiphers());
@@ -781,9 +801,43 @@ public abstract class AbstractConfigBuilderTest extends HazelcastTestSupport {
     @Test
     public abstract void testVectorCollectionConfig();
 
+    @Test
+    public abstract void testVectorCollectionConfig_backupCount_max();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_backupCount_moreThanMax();
+
+    @Test
+    public abstract void testVectorCollectionConfig_backupCount_min();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_backupCount_lessThanMin();
+
+    @Test
+    public abstract void testVectorCollectionConfig_asyncBackupCount_max();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_asyncBackupCount_moreThanMax();
+
+    @Test
+    public abstract void testVectorCollectionConfig_asyncBackupCount_min();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_asyncBackupCount_lessThanMin();
+
+    @Test
+    public abstract void testVectorCollectionConfig_backupSyncAndAsyncCount_max();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_backupSyncAndAsyncCount_moreThanMax();
+
+    @Test(expected = InvalidConfigurationException.class)
+    public abstract void testVectorCollectionConfig_multipleIndexesWithTheSameName_fail();
+
     protected void validateVectorCollectionConfig(Config config) {
         var vectorCollectionConfigs = config.getVectorCollectionConfigs();
         var expectedCollectionConfigs = new HashMap<String, VectorCollectionConfig>();
+        var expectedMergePolicyConfig = new MergePolicyConfig("CustomMergePolicy", 132);
         expectedCollectionConfigs.put(
                 "vector-1",
                 new VectorCollectionConfig("vector-1")
@@ -806,6 +860,11 @@ public abstract class AbstractConfigBuilderTest extends HazelcastTestSupport {
         expectedCollectionConfigs.put(
                 "vector-2",
                 new VectorCollectionConfig("vector-2")
+                        .setBackupCount(2)
+                        .setAsyncBackupCount(1)
+                        .setSplitBrainProtectionName("splitBrainProtectionName")
+                        .setMergePolicyConfig(expectedMergePolicyConfig)
+                        .setUserCodeNamespace("ns1")
                         .addVectorIndexConfig(
                                 new VectorIndexConfig()
                                         .setDimension(4)

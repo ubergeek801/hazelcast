@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.config.Config;
 import com.hazelcast.instance.impl.DefaultNodeExtension;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import com.hazelcast.instance.impl.Node;
-import com.hazelcast.instance.impl.NodeExtension;
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.security.SimpleTokenCredentials;
@@ -30,24 +27,24 @@ import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import com.hazelcast.test.mocknetwork.MockNodeContext;
 import org.junit.After;
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import static com.hazelcast.client.impl.management.ManagementCenterService.MC_CLIENT_MODE_PROP;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class ClientAuthenticationTest extends HazelcastTestSupport {
 
-    private final TestHazelcastFactory hazelcastFactory = new TestHazelcastFactory();
+    private TestHazelcastFactory hazelcastFactory;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    @Before
+    public void setup() {
+        hazelcastFactory = new TestHazelcastFactory();
+    }
 
     @After
     public void cleanup() {
@@ -74,10 +71,9 @@ public class ClientAuthenticationTest extends HazelcastTestSupport {
         clientConfig.getSecurityConfig().setCredentials(new CustomCredentials());
 
         // custom credentials are not supported when security is disabled on members
-        expectedException.expect(IllegalStateException.class);
-
         clientConfig.getConnectionStrategyConfig().getConnectionRetryConfig().setClusterConnectTimeoutMillis(1000);
-        hazelcastFactory.newHazelcastClient(clientConfig);
+        assertThatThrownBy(() -> hazelcastFactory.newHazelcastClient(clientConfig))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -85,28 +81,26 @@ public class ClientAuthenticationTest extends HazelcastTestSupport {
         hazelcastFactory.newHazelcastInstance();
 
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.setProperty(MC_CLIENT_MODE_PROP.getName(), "true");
+        clientConfig.setProperty("hazelcast.client.internal.mc.mode", "true");
+
         // if the client is able to connect, it's a pass
         hazelcastFactory.newHazelcastClient(clientConfig);
     }
 
     @Test
     public void testAuthentication_with_mcModeEnabled_when_clusterStart_isNotComplete() {
-        HazelcastInstanceFactory.newHazelcastInstance(new Config(), randomName(),
-                new MockNodeContext(hazelcastFactory.getRegistry(), hazelcastFactory.nextAddress()) {
+        hazelcastFactory
+                .withNodeExtensionCustomizer(node -> new DefaultNodeExtension(node) {
                     @Override
-                    public NodeExtension createNodeExtension(Node node) {
-                        return new DefaultNodeExtension(node) {
-                            @Override
-                            public boolean isStartCompleted() {
-                                return false;
-                            }
-                        };
+                    public boolean isStartCompleted() {
+                        return false;
                     }
-                });
+                })
+                .newHazelcastInstance();
 
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.setProperty(MC_CLIENT_MODE_PROP.getName(), "true");
+        clientConfig.setProperty("hazelcast.client.internal.mc.mode", "true");
+
         // if the client is able to connect, it's a pass
         hazelcastFactory.newHazelcastClient(clientConfig);
     }

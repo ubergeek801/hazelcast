@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,6 +260,7 @@ public class JobProxy extends AbstractJobProxy<NodeEngineImpl, Address> {
     }
 
     public static void checkJobStatusListenerSupported(NodeEngine nodeEngine) {
+        // RU_COMPAT 5.2
         if (nodeEngine.getClusterService().getClusterVersion().isLessThan(V5_3)) {
             throw new UnsupportedOperationException("Job status listener is not supported.");
         }

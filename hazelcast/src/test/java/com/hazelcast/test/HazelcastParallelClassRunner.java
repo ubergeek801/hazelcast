@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class HazelcastParallelClassRunner extends AbstractHazelcastClassRunner {
         return cpuWorkers;
     }
 
-    private final AtomicInteger numThreads = new AtomicInteger(0);
+    private final AtomicInteger numThreads = new AtomicInteger();
     private final int maxThreads;
 
     public HazelcastParallelClassRunner(Class<?> clazz) throws InitializationError {
@@ -173,7 +173,7 @@ public class HazelcastParallelClassRunner extends AbstractHazelcastClassRunner {
                 Category classAnnotations = method.getDeclaringClass().getAnnotation(Category.class);
 
                 if (classAnnotations != null && ArrayUtils.contains(classAnnotations.value(), QuickTest.class)) {
-                    QuickTest.logMessageIfTestOverran(method, tookSeconds);
+                    logMessageIfTestOverran(method, tookSeconds);
                 }
             } finally {
                 removeThreadLocalTestMethodName();
@@ -181,7 +181,7 @@ public class HazelcastParallelClassRunner extends AbstractHazelcastClassRunner {
         }
     }
 
-    @SuppressWarnings({"deprecation"})
+    @SuppressWarnings("deprecation")
     private static final class ThreadLocalProperties extends Properties {
 
         private final Properties globalProperties;

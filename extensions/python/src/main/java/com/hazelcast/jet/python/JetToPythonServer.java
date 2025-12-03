@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.hazelcast.jet.python;
 
 import com.hazelcast.logging.ILogger;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
@@ -81,7 +80,7 @@ class JetToPythonServer {
         }
     }
 
-    @SuppressFBWarnings(value = "OS_OPEN_STREAM", justification = "PrintStream wraps Python's stdin, not to be closed")
+    //@SuppressFBWarnings(value = "OS_OPEN_STREAM", justification = "PrintStream wraps Python's stdin, not to be closed")
     void stop() {
         try {
             new PrintStream(pythonProcess.getOutputStream(), true, UTF_8.name()).println("stop");

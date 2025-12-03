@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,6 @@ public class JsonGetterContextCache {
      * Returns an existing or newly created context for given query path.
      * If maximum cache size is reached, then some entries are evicted.
      * The newly created entry is not evicted.
-     *
-     * @param queryPath
-     * @return
      */
     public JsonGetterContext getContext(String queryPath) {
         JsonGetterContext context = internalCache.get(queryPath);
@@ -58,8 +55,6 @@ public class JsonGetterContextCache {
      * Cleanup on best effort basis. Concurrent calls to this method may
      * leave the cache empty. In that case, lost entries are re-cached
      * at a later call to {@link #getContext(String)}.
-     *
-     * @param excluded
      */
     private void cleanupIfNecessary(JsonGetterContext excluded) {
         int cacheCount;

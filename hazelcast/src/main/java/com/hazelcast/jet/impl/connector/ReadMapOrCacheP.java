@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serial;
-import java.security.Permission;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -294,9 +293,6 @@ public final class ReadMapOrCacheP<F extends CompletableFuture, B, R> extends Ab
         }
 
         @Override
-        public abstract Permission getRequiredPermission();
-
-        @Override
         public boolean isReusable() {
             return true;
         }
@@ -461,7 +457,7 @@ public final class ReadMapOrCacheP<F extends CompletableFuture, B, R> extends Ab
         protected InternalSerializationService serializationService;
 
         private final FunctionEx<B, IterationPointer[]> toNextIterationPointerFn;
-        private FunctionEx<B, List<R>> toRecordSetFn;
+        private final FunctionEx<B, List<R>> toRecordSetFn;
 
         Reader(@Nonnull String objectName,
                @Nonnull FunctionEx<B, IterationPointer[]> toNextIterationPointerFn,

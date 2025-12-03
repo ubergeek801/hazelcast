@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(HazelcastParallelClassRunner.class)
@@ -261,7 +260,7 @@ public class StepSupplierTest extends HazelcastTestSupport {
             }
         }
 
-        assertTrue(expectedSteps.equals(actualSteps));
+        assertEquals(expectedSteps, actualSteps);
         int[] expectedExecutions = IntStream.range(0, headSteps).toArray();
         int[] actualExecutions = actualExecutionOrder.stream().mapToInt(i -> i).toArray();
         assertArrayEquals(expectedExecutions, actualExecutions);

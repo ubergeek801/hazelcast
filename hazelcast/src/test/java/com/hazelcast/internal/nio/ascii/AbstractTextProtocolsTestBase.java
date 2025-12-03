@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package com.hazelcast.internal.nio.ascii;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 
 import com.hazelcast.config.RestApiConfig;
 import com.hazelcast.test.AssertTask;
@@ -31,12 +29,7 @@ import com.hazelcast.test.TestAwareInstanceFactory;
  */
 public abstract class AbstractTextProtocolsTestBase {
 
-    public static final String CRLF = "\r\n";
-
     protected final TestAwareInstanceFactory factory = new TestAwareInstanceFactory();
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @After
     public void cleanup() {

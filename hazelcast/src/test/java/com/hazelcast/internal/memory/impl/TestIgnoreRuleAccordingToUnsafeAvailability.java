@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class TestIgnoreRuleAccordingToUnsafeAvailability implements TestRule {
             return new Statement() {
                 @Override
                 public void evaluate() throws Throwable {
-                    LOGGER.finest("Ignoring `" + description.getClassName() + "` because Unsafe is not available");
+                    LOGGER.finest("Ignoring `%s` because Unsafe is not available", description.getClassName());
                 }
             };
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.hazelcast.jet.impl;
 
 import com.hazelcast.core.HazelcastException;
+import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.namespace.UserCodeNamespaceService;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.Util;
 import com.hazelcast.jet.config.JetConfig;
@@ -100,8 +102,8 @@ public class JobClassLoaderService {
     private JobClassLoaders createJobClassLoaders(JobConfig config, long jobId, JetConfig jetConfig) {
         return AccessController.doPrivileged(
                 (PrivilegedAction<JobClassLoaders>) () -> {
-                    logger.fine("Creating job classLoader for job " + idToString(jobId));
-                    ClassLoader parent = parentClassLoader(config);
+                    logger.fine("Creating job classLoader for job %s", idToString(jobId));
+                    ClassLoader parent = parentClassLoader(config, jobId);
                     JetDelegatingClassLoader jobClassLoader;
                     if (!jetConfig.isResourceUploadEnabled()) {
                         jobClassLoader = new JetDelegatingClassLoader(parent);
@@ -117,17 +119,49 @@ public class JobClassLoaderService {
                 });
     }
 
-    private ClassLoader parentClassLoader(JobConfig config) {
+    private ClassLoader parentClassLoader(JobConfig config, long jobId) {
         // config can be null for light jobs initialized after receiving a packet, but before the
         // InitExecutionOperation was received. We can ignore the classLoaderFactory, because
         // it's not supported anyway for light jobs.
-        return config != null && config.getClassLoaderFactory() != null
-                ? config.getClassLoaderFactory().getJobClassLoader()
-                : nodeEngine.getConfigClassLoader();
+        if (config != null) {
+            String userCodeNamespace = config.getUserCodeNamespace();
+            if (config.getClassLoaderFactory() != null) {
+                // If a UCN is provided as well as this factory, throw an exception to avoid ambiguous behaviour
+                if (userCodeNamespace != null) {
+                    throw new JetException(String.format("Job %s has both a User Code Namespace job argument and"
+                            + " a JobClassLoaderFactory definition provided - these options are mutually exclusive, only one"
+                            + " should be used. User Code Namespaces are the modern approach to user code deployment for Jet",
+                            Util.idToString(jobId)));
+                }
+                return config.getClassLoaderFactory().getJobClassLoader();
+            }
+
+            // Jet Job UCN arguments must be non-null
+            UserCodeNamespaceService nsService = nodeEngine.getNamespaceService();
+            if (userCodeNamespace != null) {
+                if (!nsService.isEnabled()) {
+                    throw new JetException(
+                            String.format("User Code Namespace '%s' is defined for jobId=%s, but User Code Namespaces are not "
+                                            + "enabled!", userCodeNamespace, Util.idToString(jobId)));
+                }
+                ClassLoader loader = nsService.getClassLoaderForNamespace(userCodeNamespace);
+                if (loader == null) {
+                    throw new JetException(
+                            String.format("User Code Namespace '%s' is defined for jobId=%s, but the Namespace does not exist",
+                                    userCodeNamespace, Util.idToString(jobId)));
+                }
+                logger.fine("Using User Code Namespace '%s' as parent ClassLoader for job %s",
+                        userCodeNamespace, idToString(jobId));
+                return loader;
+            }
+        }
+
+        // Use the UCN default ClassLoader if it's available, else falls back to config ClassLoader
+        return NamespaceUtil.getDefaultClassloader(nodeEngine);
     }
 
     private Map<String, ClassLoader> createProcessorClassLoaders(long jobId, JobConfig jobConfig, ClassLoader parent) {
-        logger.fine("Create processor classloader map for job " + idToString(jobId));
+        logger.fine("Create processor classloader map for job %s", idToString(jobId));
         String customLibDir = nodeEngine.getProperties().getString(ClusterProperty.PROCESSOR_CUSTOM_LIB_DIR);
         Map<String, ClassLoader> classLoaderMap = new HashMap<>();
         for (Entry<String, List<String>> entry : jobConfig.getCustomClassPaths().entrySet()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
     public static final int DEFAULT_ASYNC_BACKUP_COUNT = 0;
 
     /**
-     * Default value for the TTL (time to live) for empty Queue.
+     * Default value for the {@link #getEmptyQueueTtl()}
      */
     public static final int DEFAULT_EMPTY_QUEUE_TTL = -1;
 
@@ -70,6 +70,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
     private int backupCount = DEFAULT_SYNC_BACKUP_COUNT;
     private int asyncBackupCount = DEFAULT_ASYNC_BACKUP_COUNT;
     private int maxSize = DEFAULT_MAX_SIZE;
+    /** @see #getEmptyQueueTtl() */
     private int emptyQueueTtl = DEFAULT_EMPTY_QUEUE_TTL;
     private QueueStoreConfig queueStoreConfig;
     private boolean statisticsEnabled = true;
@@ -102,18 +103,18 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
     }
 
     /**
-     * Returns the TTL (time to live) for emptying the Queue.
-     *
-     * @return the TTL (time to live) for emptying the Queue
+     * @return the TTL (time to live) for destroying the Queue (in seconds). <br>
+     *         Once items have been removed and the Queue has been empty for a given amount of time, the Queue will be
+     *         destroyed. Has no effect until the Queue has been populated.
      */
     public int getEmptyQueueTtl() {
         return emptyQueueTtl;
     }
 
     /**
-     * Sets the TTL (time to live) for emptying the Queue.
-     *
-     * @param emptyQueueTtl set the TTL (time to live) for emptying the Queue to this value
+     * @param emptyQueueTtl set the TTL (time to live) for destroying the Queue (in seconds). <br>
+     *        Once items have been removed and the Queue has been empty for a given amount of time, the Queue will be destroyed.
+     *        Has no effect until the Queue has been populated.
      * @return the Queue configuration
      */
     public QueueConfig setEmptyQueueTtl(int emptyQueueTtl) {
@@ -248,6 +249,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
     /**
      * @return the name of this queue
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -258,6 +260,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
      * @param name the name to set for this queue
      * @return this queue configuration
      */
+    @Override
     public QueueConfig setName(String name) {
         this.name = name;
         return this;
@@ -394,6 +397,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
      * @return the updated {@link QueueConfig} instance
      * @since 5.4
      */
+    @Override
     public QueueConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;
@@ -467,7 +471,7 @@ public class QueueConfig implements IdentifiedDataSerializable, NamedConfig, Ver
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:cyclomaticcomplexity"})
+    @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     public final boolean equals(Object o) {
         if (this == o) {
             return true;

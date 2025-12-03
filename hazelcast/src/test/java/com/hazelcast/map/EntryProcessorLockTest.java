@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static com.hazelcast.config.InMemoryFormat.BINARY;
@@ -114,7 +114,7 @@ public class EntryProcessorLockTest extends HazelcastTestSupport {
         IMap<String, String> map = getInitializedMap();
 
         map.lock("key1");
-        Map<String, Object> result = map.executeOnKeys(new HashSet<>(asList("key1", "key2")),
+        Map<String, Object> result = map.executeOnKeys(Set.of("key1", "key2"),
                 new TestNonOffloadableEntryProcessor());
 
         assertTrue((Boolean) result.get("key1"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import static java.util.Objects.requireNonNull;
  * transforms you allow the source to apply these functions early, before
  * generating any output, with the potential of significantly reducing
  * data traffic. If your data is stored in the IMDG using the <a href=
- *     "http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#implementing-portable-serialization">
+ *     "https://docs.hazelcast.com/hazelcast/latest/serialization/implementing-portable-serialization">
  * portable serialization format</a>, there are additional optimizations
  * available when using {@link Projections#singleAttribute} and {@link
  * Projections#multiAttribute}) to create your projection instance and

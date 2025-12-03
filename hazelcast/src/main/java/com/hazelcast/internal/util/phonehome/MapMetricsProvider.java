@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,9 @@ import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.MAP_COUNT_W
 import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.MAP_COUNT_WITH_MAP_STORE_ENABLED;
 import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.MAP_COUNT_WITH_READ_ENABLED;
 import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.MAP_COUNT_WITH_WAN_REPLICATION;
+import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.TOTAL_MAP_ENTRYSET_CALLS;
+import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.TOTAL_MAP_QUERY_SIZE_LIMITER_HITS;
+import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.TOTAL_MAP_VALUES_CALLS;
 
 /**
  * Collects information about IMap
@@ -78,6 +81,10 @@ class MapMetricsProvider implements MetricsProvider {
         context.collect(AVERAGE_GET_LATENCY_OF_MAPS_WITHOUT_MAPSTORE,
                 mapOperationLatency(node, IS_MAP_STORE_ENABLED.negate(),
                         LocalMapStats::getTotalGetLatency, LocalMapStats::getGetOperationCount));
+        context.collect(TOTAL_MAP_VALUES_CALLS, mapCallAggregator(node, LocalMapStats::getValuesCallCount));
+        context.collect(TOTAL_MAP_ENTRYSET_CALLS, mapCallAggregator(node, LocalMapStats::getEntrySetCallCount));
+        context.collect(TOTAL_MAP_QUERY_SIZE_LIMITER_HITS,
+                mapCallAggregator(node, LocalMapStats::getQueryResultSizeExceededCount));
     }
 
     private void initMapConfigs(Node node) {
@@ -169,5 +176,13 @@ class MapMetricsProvider implements MetricsProvider {
                 .forEach(mapStats -> latencyInfo.add(totalLatencyProvider.applyAsLong(mapStats),
                         operationCountProvider.applyAsLong(mapStats)));
         return latencyInfo.calculateAverage();
+    }
+
+    private long mapCallAggregator(Node node,
+                                   ToLongFunction<LocalMapStats> mapStatProvider) {
+        return mapConfigs.keySet().stream()
+                .map(mapConfig -> node.hazelcastInstance.getMap(mapConfig).getLocalMapStats())
+                .mapToLong(mapStatProvider::applyAsLong)
+                .sum();
     }
 }

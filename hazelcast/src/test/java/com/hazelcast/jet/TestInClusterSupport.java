@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,8 @@ public abstract class TestInClusterSupport extends JetTestSupport {
     protected static final String JOURNALED_MAP_PREFIX = "journaledMap.";
     protected static final String JOURNALED_CACHE_PREFIX = "journaledCache.";
     protected static final int MEMBER_COUNT = 2;
+    protected static final int JOURNAL_CAPACITY_PER_PARTITION = 1000;
+
     protected static TestHazelcastFactory factory = new TestHazelcastFactory();
     private static HazelcastInstance[] allHazelcastInstances;
 
@@ -88,10 +90,17 @@ public abstract class TestInClusterSupport extends JetTestSupport {
         // Set partition count to match the parallelism of IMap sources.
         // Their preferred local parallelism is 2, therefore partition count
         // should be 2 * MEMBER_COUNT.
-        config.setProperty(ClusterProperty.PARTITION_COUNT.getName(), "" + 2 * MEMBER_COUNT);
+        int partitionCount = 2 * MEMBER_COUNT;
+        config.setProperty(ClusterProperty.PARTITION_COUNT.getName(), String.valueOf(partitionCount));
         config.addCacheConfig(new CacheSimpleConfig().setName("*"));
-        config.getMapConfig(JOURNALED_MAP_PREFIX + '*').getEventJournalConfig().setEnabled(true);
-        config.getCacheConfig(JOURNALED_CACHE_PREFIX + '*').getEventJournalConfig().setEnabled(true);
+        config.getMapConfig(JOURNALED_MAP_PREFIX + '*')
+                .getEventJournalConfig()
+                .setCapacity(partitionCount * JOURNAL_CAPACITY_PER_PARTITION)
+                .setEnabled(true);
+        config.getCacheConfig(JOURNALED_CACHE_PREFIX + '*')
+                .getEventJournalConfig()
+                .setCapacity(partitionCount * JOURNAL_CAPACITY_PER_PARTITION)
+                .setEnabled(true);
         return config;
     }
 
@@ -108,7 +117,7 @@ public abstract class TestInClusterSupport extends JetTestSupport {
 
     @After
     public void after() throws Exception {
-        Future future = spawn(() ->
+        Future<?> future = spawn(() ->
                 cleanUpCluster(allHazelcastInstances()));
         future.get(1, TimeUnit.MINUTES);
     }

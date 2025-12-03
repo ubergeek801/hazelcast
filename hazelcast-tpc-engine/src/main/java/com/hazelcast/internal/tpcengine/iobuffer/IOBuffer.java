@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,8 +107,6 @@ public class IOBuffer {
 
     /**
      * Returns the number of bytes remaining in this buffer for reading or writing
-     *
-     * @return
      */
     public int remaining() {
         return buff.remaining();
@@ -163,7 +161,7 @@ public class IOBuffer {
     @SuppressWarnings("checkstyle:MagicNumber")
     public void writeShortL(short v) {
         ensureRemaining(SIZEOF_INT);
-        buff.put((byte) ((v) & 0xFF));
+        buff.put((byte) (v & 0xFF));
         buff.put((byte) ((v >>> 8) & 0xFF));
     }
 
@@ -187,7 +185,7 @@ public class IOBuffer {
     @SuppressWarnings("checkstyle:MagicNumber")
     public void writeIntL(int v) {
         ensureRemaining(SIZEOF_INT);
-        buff.put((byte) ((v) & 0xFF));
+        buff.put((byte) (v & 0xFF));
         buff.put((byte) ((v >>> 8) & 0xFF));
         buff.put((byte) ((v >>> 16) & 0xFF));
         buff.put((byte) ((v >>> 24) & 0xFF));

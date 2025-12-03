@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class JsonMetadataCreationMigrationTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void testMetadataIsCreatedWhenRecordsAreMigrated() throws InterruptedException {
+    public void testMetadataIsCreatedWhenRecordsAreMigrated() {
         HazelcastInstance instance = factory.newHazelcastInstance(getConfig());
 
         final IMap<HazelcastJsonValue, HazelcastJsonValue> map = instance.getMap(randomMapName());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.hazelcast.map.impl.querycache.subscriber.SubscriberAccumulator;
 import com.hazelcast.map.impl.querycache.subscriber.SubscriberAccumulatorFactory;
 import com.hazelcast.map.impl.querycache.subscriber.SubscriberRegistry;
 
-import java.util.Collections;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,7 +86,7 @@ public class TestClientSubscriberContext extends ClientSubscriberContext {
 
     private class TestSubscriberAccumulator extends SubscriberAccumulator {
 
-        private final Set<Long> lostSequenceNumber = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+        private final Set<Long> lostSequenceNumber = ConcurrentHashMap.newKeySet();
 
         TestSubscriberAccumulator(QueryCacheContext context, AccumulatorInfo info) {
             super(context, info);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.internal.partition;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Readonly/immutable implementation of {@link InternalPartition} interface.
@@ -26,7 +25,6 @@ public class ReadonlyInternalPartition extends AbstractInternalPartition {
     private final PartitionReplica[] replicas;
     private final int version;
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ReadonlyInternalPartition(PartitionReplica[] replicas, int partitionId, int version) {
         super(partitionId);
         this.replicas = replicas;

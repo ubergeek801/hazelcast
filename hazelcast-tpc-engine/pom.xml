@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2024 Hazelcast Inc.
+  ~ Copyright 2025 Hazelcast Inc.
   ~
   ~ Licensed under the Hazelcast Community License (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
     <parent>
         <groupId>com.hazelcast</groupId>
         <artifactId>hazelcast-root</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -65,9 +65,9 @@
                         </goals>
                     </execution>
                     <execution>
+                        <phase>package</phase>
                         <!-- We must generate a -javadoc JAR file to publish on Maven Central -->
                         <id>empty-javadoc-jar</id>
-                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -83,7 +83,6 @@
             </plugin>
         </plugins>
     </build>
-
 
     <dependencies>
         <dependency>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ import java.util.Set;
  * </ul>
  * </ul>
  */
-@SuppressWarnings({"checkstyle:classdataabstractioncoupling"})
+@SuppressWarnings("checkstyle:classdataabstractioncoupling")
 public final class Predicates {
 
     //we don't want instances. private constructor.
@@ -221,7 +221,7 @@ public final class Predicates {
      * @param <V>   the type of values the predicate operates on.
      * @return the created <b>instance of</b> predicate.
      */
-    public static <K, V> Predicate<K, V> instanceOf(final Class klass) {
+    public static <K, V> Predicate<K, V> instanceOf(final Class<?> klass) {
         return new InstanceOfPredicate(klass);
     }
 
@@ -485,7 +485,7 @@ public final class Predicates {
      * operators are supported: {@code =}, {@code <}, {@code >}, {@code <=}, {@code >=}, {@code ==},
      * {@code !=}, {@code <>}, {@code BETWEEN}, {@code IN}, {@code LIKE}, {@code ILIKE}, {@code REGEX},
      * {@code AND}, {@code OR} and {@code NOT}. The operators are case-insensitive, but attribute names are
-     * case sensitive.
+     * case-sensitive.
      * <p>
      * Example: {@code active AND (age > 20 OR salary < 60000)}
      * <p>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ public class NodeStateImpl implements NodeState {
         return clusterVersion;
     }
 
+    @Override
     public MemberVersion getMemberVersion() {
         return memberVersion;
     }
@@ -99,7 +100,7 @@ public class NodeStateImpl implements NodeState {
         return root;
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity"})
+    @SuppressWarnings("checkstyle:npathcomplexity")
     @Override
     public void fromJson(JsonObject json) {
         String jsonClusterState = getString(json, "clusterState", null);

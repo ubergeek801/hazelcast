@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.hazelcast.internal.metrics.Probe;
 import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.internal.nio.ConnectionListener;
+import com.hazelcast.internal.partition.operation.SafeStateCheckOperation;
 import com.hazelcast.internal.services.ManagedService;
 import com.hazelcast.internal.services.TransactionalService;
 import com.hazelcast.internal.util.Timer;
@@ -66,7 +67,6 @@ import com.hazelcast.transaction.TransactionOptions;
 import com.hazelcast.transaction.TransactionalObject;
 import com.hazelcast.transaction.impl.Transaction;
 import com.hazelcast.version.Version;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -140,6 +140,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         }
     }
 
+    @SuppressWarnings("resource")
     public ClusterServiceImpl(Node node, MemberImpl localMember) {
         this.node = node;
         this.localMember = localMember;
@@ -208,7 +209,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
             MemberImpl member = getMember(address);
             if (member == null) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Cannot suspect " + address + ", since it's not a member.");
+                    logger.fine("Cannot suspect %s, since it's not a member.", address);
                 }
 
                 return;
@@ -217,7 +218,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
             Connection conn = node.getServer().getConnectionManager(MEMBER).get(address);
             if (conn != null && conn.isAlive()) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Cannot suspect " + member + ", since there's a live connection -> " + conn);
+                    logger.fine("Cannot suspect %s, since there's a live connection -> %s", member, conn);
                 }
 
                 return;
@@ -348,15 +349,18 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
 
         logger.warning("Resetting local member UUID. Previous: " + localMember.getUuid() + ", new: " + newUuid);
         node.setThisUuid(newUuid);
-        localMember = new MemberImpl.Builder(addressMap)
-                .version(localMember.getVersion())
+
+        var localMemberLocal = localMember;
+        localMemberLocal = new MemberImpl.Builder(addressMap)
+                .version(localMemberLocal.getVersion())
                 .localMember(true)
                 .uuid(newUuid)
-                .attributes(localMember.getAttributes())
-                .liteMember(localMember.isLiteMember())
-                .memberListJoinVersion(localMember.getMemberListJoinVersion())
+                .attributes(localMemberLocal.getAttributes())
+                .liteMember(localMemberLocal.isLiteMember())
+                .memberListJoinVersion(localMemberLocal.getMemberListJoinVersion())
                 .instance(node.hazelcastInstance)
                 .build();
+        localMember = localMemberLocal;
         node.loggingService.setThisMember(localMember);
         node.getLocalAddressRegistry().setLocalUuid(newUuid);
     }
@@ -377,10 +381,10 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
                                 long masterTime, OnJoinOp preJoinOp) {
         clusterServiceLock.lock();
         try {
-            if (!checkValidMaster(callerAddress)) {
+            if (masterInvalid(callerAddress)) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Not finalizing join because caller: " + callerAddress + " is not known master: "
-                            + getMasterAddress());
+                    logger.fine("Not finalizing join because caller: %s is not known master: %s", callerAddress,
+                            getMasterAddress());
                 }
                 MembersViewMetadata membersViewMetadata = new MembersViewMetadata(callerAddress, callerUuid,
                         callerAddress, membersView.getVersion());
@@ -440,7 +444,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
                 return false;
             }
 
-            if (!checkValidMaster(callerAddress)) {
+            if (masterInvalid(callerAddress)) {
                 logger.warning("Not updating members because caller: " + callerAddress + " is not known master: "
                         + getMasterAddress());
                 MembersViewMetadata callerMembersViewMetadata = new MembersViewMetadata(callerAddress, callerUuid,
@@ -480,16 +484,16 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         }
     }
 
-    private boolean checkValidMaster(Address callerAddress) {
-        return (callerAddress != null && callerAddress.equals(getMasterAddress()));
+    private boolean masterInvalid(Address callerAddress) {
+        return callerAddress == null || !callerAddress.equals(getMasterAddress());
     }
 
     private boolean shouldProcessMemberUpdate(MembersView membersView) {
         int memberListVersion = membershipManager.getMemberListVersion();
         if (memberListVersion > membersView.getVersion()) {
             if (logger.isFineEnabled()) {
-                logger.fine("Received an older member update, ignoring... Current version: "
-                        + memberListVersion + ", Received version: " + membersView.getVersion());
+                logger.fine("Received an older member update, ignoring... Current version: %s, Received version: %s",
+                        memberListVersion, membersView.getVersion());
             }
 
             return false;
@@ -508,7 +512,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
             }
 
             if (logger.isFineEnabled()) {
-                logger.fine("Received a periodic member update, ignoring... Version: " + memberListVersion);
+                logger.fine("Received a periodic member update, ignoring... Version: %s", memberListVersion);
             }
 
             return false;
@@ -524,7 +528,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
     @Override
     public void connectionRemoved(Connection connection) {
         if (logger.isFineEnabled()) {
-            logger.fine("Removed connection to " + connection.getRemoteAddress());
+            logger.fine("Removed connection to %s", connection.getRemoteAddress());
         }
         if (!isJoined()) {
             Address masterAddress = getMasterAddress();
@@ -623,22 +627,21 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         }
     }
 
-    public boolean setMasterAddressToJoin(final Address master) {
+    public void setMasterAddressToJoin(final Address master) {
         clusterServiceLock.lock();
         try {
             if (isJoined()) {
                 Address currentMasterAddress = getMasterAddress();
+                checkNotNull(currentMasterAddress, "Current master address must be non-null");
                 if (!currentMasterAddress.equals(master)) {
                     logger.warning("Cannot set master address to " + master
                             + " because node is already joined! Current master: " + currentMasterAddress);
                 } else if (logger.isFineEnabled()) {
-                    logger.fine("Master address is already set to " + master);
+                    logger.fine("Master address is already set to %s", master);
                 }
-                return false;
             }
 
             setMasterAddress(master);
-            return true;
         } finally {
             clusterServiceLock.unlock();
         }
@@ -648,7 +651,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
     void setMasterAddress(Address master) {
         assert clusterServiceLock.isHeldByCurrentThread() : "Called without holding cluster service lock!";
         if (logger.isFineEnabled()) {
-            logger.fine("Setting master address to " + master);
+            logger.fine("Setting master address to %s", master);
         }
         masterAddress = master;
         joined.getAndUpdate(holder -> new JoinHolder(holder.isJoined)).latch.countDown();
@@ -754,6 +757,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
     }
 
     @Nonnull
+    @Override
     public UUID addMembershipListener(@Nonnull MembershipListener listener) {
         checkNotNull(listener, "listener cannot be null");
 
@@ -774,6 +778,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         return registration.getId();
     }
 
+    @Override
     public boolean removeMembershipListener(@Nonnull UUID registrationId) {
         checkNotNull(registrationId, "registrationId cannot be null");
 
@@ -781,7 +786,6 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         return eventService.deregisterListener(SERVICE_NAME, SERVICE_NAME, registrationId);
     }
 
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     @Override
     public void dispatchEvent(MembershipEvent event, MembershipListener listener) {
         // Call with `null` namespace, which will fallback to a default Namespace if available
@@ -936,7 +940,8 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         long timeoutNanos = node.getProperties().getNanos(ClusterProperty.CLUSTER_SHUTDOWN_TIMEOUT_SECONDS);
         long startNanos = Timer.nanos();
         node.getNodeExtension().getInternalHotRestartService()
-            .waitPartitionReplicaSyncOnCluster(timeoutNanos, TimeUnit.NANOSECONDS);
+            .waitPartitionReplicaSyncOnCluster(timeoutNanos, TimeUnit.NANOSECONDS,
+                    () -> new SafeStateCheckOperation(true));
         timeoutNanos -= (Timer.nanosElapsed(startNanos));
 
         if (node.config.getCPSubsystemConfig().getCPMemberCount() == 0) {
@@ -959,6 +964,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
             }
 
             try {
+                //noinspection BusyWait
                 Thread.sleep(CLUSTER_SHUTDOWN_SLEEP_DURATION_IN_MILLIS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -988,6 +994,7 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
             members = getMembers(NON_LOCAL_MEMBER_SELECTOR);
 
             try {
+                //noinspection BusyWait
                 Thread.sleep(CLUSTER_SHUTDOWN_SLEEP_DURATION_IN_MILLIS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -1097,12 +1104,11 @@ public class ClusterServiceImpl implements ClusterService, ConnectionListener, M
         return localMember;
     }
 
-
     @Override
     public void demoteLocalDataMember() {
-
         if (getClusterVersion().isUnknownOrLessThan(Versions.V5_4)) {
-            throw new UnsupportedOperationException("demoteLocalDataMember requires cluster version 5.4 or greater");
+            throw new UnsupportedOperationException(
+                    String.format("demoteLocalDataMember requires cluster version %s or greater", Versions.V5_4));
         }
 
         MemberImpl member = getLocalMember();

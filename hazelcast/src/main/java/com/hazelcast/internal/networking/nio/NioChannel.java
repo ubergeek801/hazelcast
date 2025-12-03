@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import com.hazelcast.internal.networking.ChannelInitializer;
 import com.hazelcast.internal.networking.OutboundFrame;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executor;
@@ -63,10 +61,12 @@ public final class NioChannel extends AbstractChannel {
         this.outboundPipeline = outboundPipeline;
     }
 
+    @Override
     public NioOutboundPipeline outboundPipeline() {
         return outboundPipeline;
     }
 
+    @Override
     public NioInboundPipeline inboundPipeline() {
         return inboundPipeline;
     }
@@ -166,8 +166,8 @@ public final class NioChannel extends AbstractChannel {
 //        Date date = new Date();
 //        return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + " " + s;
 //    }
-
-    private String getPort(SocketAddress socketAddress) {
-        return socketAddress == null ? "*missing*" : Integer.toString(((InetSocketAddress) socketAddress).getPort());
-    }
+//
+//    private String getPort(SocketAddress socketAddress) {
+//        return socketAddress == null ? "*missing*" : Integer.toString(((InetSocketAddress) socketAddress).getPort());
+//    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,25 +303,25 @@ public class ExecutionPlan implements IdentifiedDataSerializable {
      *   that will send the data from V1 to V2. The communication between V1 {@link ProcessorTasklet} and {@link SenderTasklet}
      *   is done through the concurrent conveyors.
      * To make it even more clear that's what are our possibilities (<a href="http://viz-js.com/">http://viz-js.com</a>):
-     *
+     * <p>
      * digraph Local {
      *     subgraph cluster_0 {
      *         "V1 ProcessorTasklet" -> "V2 ProcessorTasklet" [label="local conveyor"]
      *         label = "member #1";
      *     }
      * }
-     *
+     * <p>
      * digraph Remote {
      *     subgraph cluster_0 {
      *         "V1 ProcessorTasklet" -> "V1 SenderTasklet" [label="concurrent conveyor"]
      *         label = "member #1";
      *     }
-     *
+     * <p>
      *     subgraph cluster_1 {
      *         "V2 ReceiverTasklet" -> "V2 ProcessorTasklet" [label="local conveyor"]
      *         label = "member #2";
      *     }
-     *
+     * <p>
      *     "V1 SenderTasklet" -> "V2 ReceiverTasklet" [label="network"]
      * }
      */
@@ -725,13 +725,13 @@ public class ExecutionPlan implements IdentifiedDataSerializable {
      * list of partitions.
      */
     private int[][] getLocalPartitionDistribution(EdgeDef edge, int downstreamParallelism) {
-        if (!edge.routingPolicy().equals(RoutingPolicy.PARTITIONED)) {
+        if (edge.routingPolicy() != RoutingPolicy.PARTITIONED) {
             // the edge is not partitioned, use `null` for each processor
             return new int[downstreamParallelism][];
         }
 
         if (edge.isLocal() || nodeEngine.getThisAddress().equals(edge.getDistributedTo())) {
-            // the edge is local-partitioned or it is distributed to one member and this member is the target
+            // the edge is local-partitioned, or it is distributed to one member and this member is the target
             return ptionArrgmt.assignPartitionsToProcessors(downstreamParallelism, false);
         }
 
@@ -836,13 +836,13 @@ public class ExecutionPlan implements IdentifiedDataSerializable {
 
     public int getStoreSnapshotTaskletCount() {
         return (int) tasklets.stream()
-                .filter(t -> t instanceof StoreSnapshotTasklet)
+                .filter(StoreSnapshotTasklet.class::isInstance)
                 .count();
     }
 
     public int getProcessorTaskletCount() {
         return (int) tasklets.stream()
-                .filter(t -> t instanceof ProcessorTasklet)
+                .filter(ProcessorTasklet.class::isInstance)
                 .count();
     }
 

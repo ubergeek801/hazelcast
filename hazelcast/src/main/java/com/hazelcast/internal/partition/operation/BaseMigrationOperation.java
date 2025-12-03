@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,9 +119,9 @@ abstract class BaseMigrationOperation extends AbstractPartitionOperation
         }
         if (partitionService.getMigrationManager().isFinalizingMigrationRegistered(migrationInfo.getPartitionId())) {
             // There's a pending migration finalization operation in the queue.
-            // This happens when this node was the source of a backup replica migration
+            // This happens when this node was the source of a backup replica migration,
             // and now it is destination of another replica migration on the same partition.
-            // Sources of backup migrations are not part of migration transaction
+            // Sources of backup migrations are not part of migration transaction,
             // and they learn the migration only while applying completed migrations.
             throw new RetryableHazelcastException("There is a scheduled FinalizeMigrationOperation for the same partition => "
                     + migrationInfo);

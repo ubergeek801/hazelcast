@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,16 +26,13 @@
     <parent>
         <groupId>com.hazelcast</groupId>
         <artifactId>hazelcast-root</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <properties>
         <!-- needed for CheckStyle -->
         <main.basedir>${project.parent.basedir}</main.basedir>
-
-        <jsp.api.version>2.2.1</jsp.api.version>
-        <servlet.api.version>3.0.1</servlet.api.version>
 
         <pax.exam.version>2.6.0</pax.exam.version>
         <pax.runner.version>1.8.6</pax.runner.version>
@@ -218,17 +215,6 @@
                                 </excludes>
                             </artifactSet>
                             <relocations>
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>${relocation.root}.com.fasterxml.jackson</shadedPattern>
-                                    <excludes>
-                                        <!--
-                                        The annotation package is excluded so the relocated classes are
-                                        able to process non-relocated annotations, which are used by the users.
-                                        -->
-                                        <exclude>com.fasterxml.jackson.annotation.*</exclude>
-                                    </excludes>
-                                </relocation>
                                 <relocation>
                                     <pattern>org.snakeyaml</pattern>
                                     <shadedPattern>${relocation.root}.org.snakeyaml</shadedPattern>
@@ -486,6 +472,21 @@
                         <id>add-notice-and-license</id>
                         <phase>process-classes</phase>
                     </execution>
+                    <execution>
+                        <id>filter-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources-filtered</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -577,6 +578,17 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -585,7 +597,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-tpc-engine</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.7.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -611,7 +623,6 @@
         <dependency>
             <groupId>org.snakeyaml</groupId>
             <artifactId>snakeyaml-engine</artifactId>
-            <version>${snakeyaml.engine.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -622,13 +633,13 @@
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>${classgraph.version}</version>
+            <version>4.8.184</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.erosb</groupId>
             <artifactId>everit-json-schema</artifactId>
-            <version>1.14.4</version>
+            <version>1.14.6</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.re2j</groupId>
@@ -677,7 +688,7 @@
         <dependency>
             <groupId>jakarta.jms</groupId>
             <artifactId>jakarta.jms-api</artifactId>
-            <version>${jms.api.version}</version>
+            <version>3.1.0</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
@@ -700,7 +711,7 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>2.2</version>
+            <version>3.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -746,7 +757,7 @@
             <groupId>com.atomikos</groupId>
             <artifactId>transactions-jdbc</artifactId>
             <scope>test</scope>
-            <version>${atomikos.version}</version>
+            <version>3.9.3</version>
         </dependency>
         <dependency>
             <groupId>javax.transaction</groupId>
@@ -820,7 +831,6 @@
             <version>${activemq-artemis.version}</version>
             <type>pom</type>
             <scope>test</scope>
-
         </dependency>
 
         <dependency>
@@ -857,14 +867,13 @@
         <dependency>
             <groupId>com.rabbitmq.jms</groupId>
             <artifactId>rabbitmq-jms</artifactId>
-            <version>3.2.0</version>
+            <version>3.5.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -928,7 +937,6 @@
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -942,7 +950,7 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>${hikari.version}</version>
+            <version>7.0.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -954,6 +962,17 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-server-mock</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>junit</artifactId>
+                    <groupId>junit</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
             <scope>test</scope>
             <exclusions>
                 <exclusion>

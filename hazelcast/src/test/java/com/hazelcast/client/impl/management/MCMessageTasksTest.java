@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-import static com.hazelcast.cp.CPSubsystemStubImpl.CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS;
+import static com.hazelcast.cp.CPSubsystemStubImpl.CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS;
 import static com.hazelcast.internal.util.StringUtil.isNullOrEmptyAfterTrim;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
@@ -200,7 +200,7 @@ public class MCMessageTasksTest extends HazelcastTestSupport {
 
     @Test
     public void testGetCPMembersMessageTask() throws Exception {
-        assertFailure(MCGetCPMembersCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS);
+        assertFailure(MCGetCPMembersCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS);
     }
 
     @Test
@@ -419,17 +419,17 @@ public class MCMessageTasksTest extends HazelcastTestSupport {
 
     @Test
     public void testPromoteToCPMemberMessageTask() throws Exception {
-        assertFailure(MCPromoteToCPMemberCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS);
+        assertFailure(MCPromoteToCPMemberCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS);
     }
 
     @Test
     public void testRemoveCPMemberMessageTask() throws Exception {
-        assertFailure(MCRemoveCPMemberCodec.encodeRequest(UUID.randomUUID()), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS);
+        assertFailure(MCRemoveCPMemberCodec.encodeRequest(UUID.randomUUID()), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS);
     }
 
     @Test
     public void testResetCPSubsystemMessageTask() throws Exception {
-        assertFailure(MCResetCPSubsystemCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS);
+        assertFailure(MCResetCPSubsystemCodec.encodeRequest(), UnsupportedOperationException.class, CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS);
     }
 
     @Test

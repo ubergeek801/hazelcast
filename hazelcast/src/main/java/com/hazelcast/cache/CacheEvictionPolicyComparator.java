@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.hazelcast.spi.eviction.EvictionPolicyComparator;
 /**
  * {@link ICache} specific {@link EvictionPolicyComparator}
  * for comparing {@link CacheEntryView}s to be evicted.
- *
+ * <p>
  * Implementors of the comparator have to implement {@code equals} and {@code hashCode} methods
  * to support correct config comparison.
  *

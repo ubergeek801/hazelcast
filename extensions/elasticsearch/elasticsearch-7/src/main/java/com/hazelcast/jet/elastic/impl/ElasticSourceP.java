@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,21 +78,21 @@ final class ElasticSourceP<T> extends AbstractProcessor {
                 int sliceId = context.localProcessorIndex();
                 int totalSlices = context.localParallelism();
                 if (totalSlices > 1) {
-                    logger.fine("Slice id=" + sliceId + ", max=" + totalSlices);
+                    logger.fine("Slice id=%s, max=%s", sliceId, totalSlices);
                     sr.source().slice(new SliceBuilder(sliceId, totalSlices));
                 }
             } else {
                 int sliceId = context.globalProcessorIndex();
                 int totalSlices = context.totalParallelism();
                 if (totalSlices > 1) {
-                    logger.fine("Slice id=" + sliceId + ", max=" + totalSlices);
+                    logger.fine("Slice id=%s, max=%s", sliceId, totalSlices);
                     sr.source().slice(new SliceBuilder(sliceId, totalSlices));
                 }
             }
         }
 
         if (configuration.isCoLocatedReadingEnabled()) {
-            logger.fine("Assigned shards: " + shards);
+            logger.fine("Assigned shards: %s", shards);
             if (shards.isEmpty()) {
                 traverser = Traversers.empty();
                 return;
@@ -130,7 +130,7 @@ final class ElasticSourceP<T> extends AbstractProcessor {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         // scrollTraverser is null when scroll init failed
         if (scrollTraverser != null) {
             scrollTraverser.close();
@@ -232,7 +232,7 @@ final class ElasticSourceP<T> extends AbstractProcessor {
                 );
 
                 if (response.isSucceeded()) {
-                    logger.fine("Succeeded clearing " + response.getNumFreed() + " scrolls");
+                    logger.fine("Succeeded clearing %s scrolls", response.getNumFreed());
                 } else {
                     logger.warning("Clearing scroll " + scrollId + " failed");
                 }

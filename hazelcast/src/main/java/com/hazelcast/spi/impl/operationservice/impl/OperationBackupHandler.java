@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -350,11 +350,9 @@ public final class OperationBackupHandler {
         if (clusterService.getMember(target.address(), target.uuid()) == null) {
             if (logger.isFinestEnabled()) {
                 if (clusterService.isMissingMember(target.address(), target.uuid())) {
-                    logger.finest("Could not send backup operation, because " + target + " is a missing member. "
-                            + partition);
+                    logger.finest("Could not send backup operation, because %s is a missing member. %s", target, partition);
                 } else {
-                    logger.finest("Could not send backup operation, because " + target + " is not a known member. "
-                            + partition);
+                    logger.finest("Could not send backup operation, because %s is not a known member. %s", target, partition);
                 }
             }
             return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package com.hazelcast.commandline;
 import com.hazelcast.instance.GeneratedBuildProperties;
 import org.junit.Test;
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -29,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.reflections.scanners.Scanners.Resources;
 
 public class VersionProviderTest {
     @Test
@@ -72,7 +74,10 @@ public class VersionProviderTest {
             System.out.println();
 
             System.out.println("Classpath Contents:");
-            new Reflections(null, new ResourcesScanner()).getResources(x -> true)
+            ConfigurationBuilder configuration = new ConfigurationBuilder()
+                    .setUrls(ClasspathHelper.forJavaClassPath())
+                    .setScanners(Resources);
+            new Reflections(configuration).getResources(".*")
                     .forEach(System.out::println);
 
             System.out.println();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,11 @@ public interface MergingValue<V> extends MergingView {
      * {@code Exception} being raised.
      *
      * @return the deserialized merging value
-     * @deprecated since 5.4 - this method name is too ambiguous and does
+     * @deprecated this method name is too ambiguous and does
      * not convey its functionality well (it deserializes the value) - so
      * it is being replaced by {@link #getDeserializedValue()}.
      */
-    @Deprecated
+    @Deprecated(since = "5.4")
     default V getValue() {
         return getDeserializedValue();
     }

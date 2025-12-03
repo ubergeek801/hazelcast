@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import com.hazelcast.scheduledexecutor.NamedTask;
 import com.hazelcast.scheduledexecutor.ScheduledTaskHandler;
 import com.hazelcast.scheduledexecutor.impl.AbstractTaskDecorator;
 import com.hazelcast.scheduledexecutor.impl.ScheduledRunnableAdapter;
+import com.hazelcast.scheduledexecutor.impl.ScheduledTaskHandlerAccessor;
 import com.hazelcast.scheduledexecutor.impl.ScheduledTaskHandlerImpl;
 import com.hazelcast.scheduledexecutor.impl.TaskDefinition;
 import com.hazelcast.splitbrainprotection.SplitBrainProtectionException;
@@ -321,6 +322,11 @@ public class ClientScheduledExecutorProxy
             UUID memberUuid = scheduledTaskHandler.getUuid();
             Member member = getContext().getClusterService().getMember(memberUuid);
 
+            int partitionId = scheduledTaskHandler.getPartitionId();
+            // clear the uuid if the task is partition specific to comply with the ScheduledTaskHandler.getUuid() contract
+            if (partitionId != -1) {
+                ScheduledTaskHandlerAccessor.setUuid(scheduledTaskHandler, null);
+            }
             tasksMap.compute(member,
                     (BiFunctionEx<Member, List<IScheduledFuture<V>>, List<IScheduledFuture<V>>>) (m, iScheduledFutures) -> {
                         if (iScheduledFutures == null) {
@@ -399,8 +405,8 @@ public class ClientScheduledExecutorProxy
     }
 
     private String getNamedTaskName(Object command) {
-        if (command instanceof AbstractTaskDecorator) {
-            NamedTask namedTask = ((AbstractTaskDecorator<?>) command).undecorateTo(NamedTask.class);
+        if (command instanceof AbstractTaskDecorator<?> decorator) {
+            NamedTask namedTask = decorator.undecorateTo(NamedTask.class);
             if (namedTask != null) {
                 return namedTask.getName();
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
 import static com.hazelcast.test.Accessors.getNodeEngineImpl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -115,13 +116,13 @@ public class PostJoinMapOperationTest extends HazelcastTestSupport {
         HazelcastInstance hz2 = hzFactory.newHazelcastInstance(config);
         waitAllForSafeState(hz1, hz2);
 
-        hzFactory.terminate(hz1);
+        terminateInstance(hz1);
         waitAllForSafeState(hz2);
 
         // then: once all migrations are committed, the query is executed *with* the index and
         // returns the expected results.
         IMap<String, Person> mapOnNode2 = hz2.getMap("map");
-        AtomicInteger invocationCounter = new AtomicInteger(0);
+        AtomicInteger invocationCounter = new AtomicInteger();
 
         // eventually index should be created after join
         assertTrueEventually(() -> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ public class MockServerConnection implements ServerConnection {
         return remoteUuid;
     }
 
+    @Override
     public InetAddress getInetAddress() {
         try {
             return localAddress.getInetAddress();
@@ -135,6 +136,7 @@ public class MockServerConnection implements ServerConnection {
         }
     }
 
+    @Override
     public boolean write(OutboundFrame frame) {
         if (!isAlive()) {
             return false;
@@ -171,10 +173,12 @@ public class MockServerConnection implements ServerConnection {
         return newPacket;
     }
 
+    @Override
     public long lastReadTimeMillis() {
         return System.currentTimeMillis();
     }
 
+    @Override
     public long lastWriteTimeMillis() {
         return System.currentTimeMillis();
     }
@@ -184,6 +188,7 @@ public class MockServerConnection implements ServerConnection {
         return startTime;
     }
 
+    @Override
     public void close(String msg, Throwable cause) {
         try {
             if (!alive.compareAndSet(true, false)) {
@@ -205,6 +210,7 @@ public class MockServerConnection implements ServerConnection {
         //NO OP
     }
 
+    @Override
     public boolean isClient() {
         return false;
     }
@@ -214,6 +220,7 @@ public class MockServerConnection implements ServerConnection {
         return ConnectionType.MEMBER;
     }
 
+    @Override
     public InetSocketAddress getRemoteSocketAddress() {
         InetAddress inetAddress;
         try {

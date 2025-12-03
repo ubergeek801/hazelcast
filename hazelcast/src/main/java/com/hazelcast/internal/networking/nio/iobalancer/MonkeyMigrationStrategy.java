@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * IOBalancer Migration Strategy intended to be used by stress tests only. It always tries to
  * select a random {@link MigratablePipeline pipeline} to be migrated.
- *
+ * <p>
  * It stresses the pipeline migration mechanism increasing a chance to reveal possible race-conditions.
  */
 class MonkeyMigrationStrategy implements MigrationStrategy {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public final class AssertionSinks {
      * complete the job before the other ones succeeded.
      * <p>
      * The assertion can be validated as follows:
-     * <pre>{@code
+     * <pre>
      * try {
      *     jetInstance.newJob(p).join();
      *     Assert.fail("Job should have completed with an AssertionCompletedException, " +
@@ -188,8 +188,8 @@ public final class AssertionSinks {
         private final long start = System.nanoTime();
         private final List<T> collected = new ArrayList<>();
 
-        private ConsumerEx<? super List<T>> assertFn;
-        private long timeoutNanos;
+        private final ConsumerEx<? super List<T>> assertFn;
+        private final long timeoutNanos;
         private AssertionError lastError;
 
         CollectingSinkWithTimer(ConsumerEx<? super List<T>> assertFn, int timeoutSeconds) {

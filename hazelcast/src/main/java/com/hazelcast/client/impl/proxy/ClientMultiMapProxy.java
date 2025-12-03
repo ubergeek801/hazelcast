@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,6 +228,7 @@ public class ClientMultiMapProxy<K, V> extends ClientProxy implements MultiMap<K
         return new UnmodifiableLazyList(MultiMapRemoveCodec.decodeResponse(response), getSerializationService());
     }
 
+    @Override
     public void delete(@Nonnull Object key) {
         checkNotNull(key, NULL_KEY_IS_NOT_ALLOWED);
         Data keyData = toData(key);
@@ -583,15 +584,10 @@ public class ClientMultiMapProxy<K, V> extends ClientProxy implements MultiMap<K
             IMapEvent iMapEvent;
             EntryEventType entryEventType = EntryEventType.getByType(eventType);
             switch (entryEventType) {
-                case ADDED:
-                case REMOVED:
-                case UPDATED:
-                case EVICTED:
-                case MERGED:
+                case ADDED, REMOVED, UPDATED, EVICTED, MERGED:
                     iMapEvent = createEntryEvent(key, value, oldValue, mergingValue, eventType, member);
                     break;
-                case EVICT_ALL:
-                case CLEAR_ALL:
+                case EVICT_ALL, CLEAR_ALL:
                     iMapEvent = createMapEvent(eventType, numberOfAffectedEntries, member);
                     break;
                 default:

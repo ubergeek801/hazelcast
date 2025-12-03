@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class CompletableFutureUsageCondition extends ArchCondition<JavaClass> {
         return COMPLETION_STAGE_METHODS.stream()
                 .flatMap(method -> {
                     if (method.endsWith("Async")) {
-                        String syncMethod = method.substring(0, method.lastIndexOf(("Async")));
+                        String syncMethod = method.substring(0, method.lastIndexOf("Async"));
                         return COMPLETION_STAGE_METHODS.contains(syncMethod) ? Stream.of(syncMethod, method) : Stream.of(method);
                     } else {
                         return Stream.empty();
@@ -84,6 +84,7 @@ public class CompletableFutureUsageCondition extends ArchCondition<JavaClass> {
         return new CompletableFutureUsageCondition();
     }
 
+    @Override
     public void check(JavaClass item, ConditionEvents events) {
         for (JavaMethodCall methodCalled : item.getMethodCallsFromSelf()) {
             String calledMethodName = methodCalled.getTarget().getName();

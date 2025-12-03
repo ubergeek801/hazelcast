@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.util.Map;
 public class CacheEntry<K, V>
         implements Cache.Entry<K, V>, Map.Entry<K, V> {
     private final K key;
-    private V value;
+    private final V value;
 
     public CacheEntry(K key, V value) {
         this.key = key;

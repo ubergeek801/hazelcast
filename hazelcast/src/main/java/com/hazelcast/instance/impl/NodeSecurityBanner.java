@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ class NodeSecurityBanner {
             checkAuthnConfigured(sb, securityConfig, "client-authentication", securityConfig.getClientRealm());
         }
         // TLS here
-        sb.append(tlsSb.toString());
+        sb.append(tlsSb);
         PersistenceConfig persistenceConfig = config.getPersistenceConfig();
         if (persistenceConfig != null && persistenceConfig.isEnabled()) {
             EncryptionAtRestConfig encryptionAtRestConfig = persistenceConfig.getEncryptionAtRestConfig();
@@ -136,8 +136,11 @@ class NodeSecurityBanner {
         AuditlogConfig auditlogConfig = config.getAuditlogConfig();
         addSecurityFeatureCheck(sb, "Enable auditlog (Enterprise)", auditlogConfig != null && auditlogConfig.isEnabled());
 
-        sb.append("\nCheck the hazelcast-security-hardened.xml/yaml example config file to find why and how to configure"
-                + " these security related settings.\n");
+        sb.append("""
+
+                Check the hazelcast-security-hardened.xml/yaml example config file to find why and how to configure\
+                 these security related settings.
+                """);
         securityLogger.log(logLevel, sb.toString());
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.hazelcast.spi.impl.operationservice.WaitNotifyKey;
 
 import java.io.IOException;
 
+import static com.hazelcast.internal.namespace.NamespaceUtil.callWithNamespace;
 import static com.hazelcast.ringbuffer.OverflowPolicy.FAIL;
 import static com.hazelcast.ringbuffer.impl.RingbufferDataSerializerHook.ADD_OPERATION;
 
@@ -65,7 +66,7 @@ public class AddOperation extends AbstractRingBufferOperation implements Notifie
             }
         }
 
-        resultSequence = ringbuffer.add(item);
+        resultSequence = callWithNamespace(ringbuffer.getUserCodeNamespace(), () -> ringbuffer.add(item));
     }
 
     @Override

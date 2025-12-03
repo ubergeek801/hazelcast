@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,6 @@ public interface InternalSerializationService extends SerializationService, Disp
      * It will only be used with {@link com.hazelcast.internal.serialization.impl.GenericRecordQueryReader} for
      * query purposes
      *
-     * @param data
      * @return InternalGenericRecord if data type supports it(Portable or Compact), otherwise throws
      * IllegalArgumentException
      * @throws IOException

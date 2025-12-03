@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.hazelcast.jet.python.impl.grpc.JetToPythonGrpc;
 import com.hazelcast.jet.python.impl.grpc.JetToPythonGrpc.JetToPythonStub;
 import com.hazelcast.jet.python.impl.grpc.OutputMessage;
 import com.hazelcast.logging.ILogger;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
@@ -175,7 +174,6 @@ final class PythonService {
         }
     }
 
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     void destroy() {
         // Stopping the Python subprocess is essential, lower the interrupted flag
         boolean interrupted = Thread.interrupted();

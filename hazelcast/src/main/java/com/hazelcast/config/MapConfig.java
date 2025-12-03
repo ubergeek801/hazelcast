@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,6 +197,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig, Versi
      *
      * @return the name of the {@link IMap}
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -206,6 +207,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig, Versi
      *
      * @param name the name to set for this {@link IMap}
      */
+    @Override
     public MapConfig setName(String name) {
         this.name = checkNotNull(name, "Name must not be null");
         return this;
@@ -716,9 +718,9 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig, Versi
      * @param hotRestartConfig hot restart config
      * @return this {@code MapConfig} instance
      *
-     * @deprecated since 5.0 use {@link MapConfig#setDataPersistenceConfig(DataPersistenceConfig)}
+     * @deprecated use {@link MapConfig#setDataPersistenceConfig(DataPersistenceConfig)}
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     public MapConfig setHotRestartConfig(@Nonnull HotRestartConfig hotRestartConfig) {
         this.hotRestartConfig = checkNotNull(hotRestartConfig, "HotRestartConfig cannot be null");
 
@@ -860,6 +862,7 @@ public class MapConfig implements IdentifiedDataSerializable, NamedConfig, Versi
      * @return the updated {@link MapConfig} instance
      * @since 5.4
      */
+    @Override
     public MapConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;

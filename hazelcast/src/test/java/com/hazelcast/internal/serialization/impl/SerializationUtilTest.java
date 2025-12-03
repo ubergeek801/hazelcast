@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,20 @@ public class SerializationUtilTest {
 
     @Test
     public void testIsNullData() {
+        // non-canonical null representation
         Assert.assertTrue(SerializationUtil.isNullData(new HeapData()));
+    }
+
+    @Test
+    public void testIsNullDataEmptyArray() {
+        // non-canonical null representation
+        Assert.assertTrue(SerializationUtil.isNullData(new HeapData(new byte[0])));
+    }
+
+    @Test
+    public void testIsNullDataZeroArray() {
+        // non-canonical null representation
+        Assert.assertTrue(SerializationUtil.isNullData(new HeapData(new byte[8])));
     }
 
     @Test(expected = Error.class)

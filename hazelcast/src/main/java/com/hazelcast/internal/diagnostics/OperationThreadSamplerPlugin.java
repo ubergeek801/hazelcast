@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package com.hazelcast.internal.diagnostics;
 
-import com.hazelcast.spi.impl.operationservice.NamedOperation;
 import com.hazelcast.internal.util.concurrent.ConcurrentItemCounter;
 import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.spi.impl.operationexecutor.OperationExecutor;
 import com.hazelcast.spi.impl.operationexecutor.OperationRunner;
+import com.hazelcast.spi.impl.operationservice.NamedOperation;
 import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
-import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
 
 import java.util.concurrent.locks.LockSupport;
@@ -35,7 +34,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * operations threads and checks with operations/tasks are running. We have
  * the slow operation detector; which is very useful for very slow operations.
  * But it isn't useful for high volumes of not too slow operations.
- *
+ * <p>
  * With the operation sampler we have a lot better understanding which operations
  * are actually running.
  */
@@ -43,7 +42,7 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
 
     /**
      * The sample period in seconds.
-     *
+     * <p>
      * This is the frequency it will dump content to file. It isn't the frequency
      * that the operations are being sampled.
      *
@@ -55,7 +54,7 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
 
     /**
      * The period in milliseconds between taking samples.
-     *
+     * <p>
      * The lower the period, the higher the overhead, but also the higher the
      * precision.
      */
@@ -64,12 +63,12 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
 
     /**
      * If the name the data-structure the operation operates on should be included.
-     *
+     * <p>
      * WARNING: This feature should not be used in production because it can lead to
-     * quite a lot of litter and it can lead to uncontrolled memory growth because the
+     * quite a lot of litter, and it can lead to uncontrolled memory growth because the
      * samples of old data-structures will not be removed.
-     *
-     * Also each time the samples are taken, quite a lot of litter can be generated. So
+     * <p>
+     * Also, each time the samples are taken, quite a lot of litter can be generated. So
      * probably you do not want to have a too low SAMPLER_PERIOD_MILLIS because the lower
      * it gets, the more litter is created.
      */
@@ -77,24 +76,28 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
             = new HazelcastProperty("hazelcast.diagnostics.operationthreadsamples.includeName", false);
     public static final float HUNDRED = 100f;
 
-    protected final long samplerPeriodMillis;
     protected final ConcurrentItemCounter<String> partitionSpecificSamples = new ConcurrentItemCounter<>();
     protected final ConcurrentItemCounter<String> genericSamples = new ConcurrentItemCounter<>();
     protected final OperationExecutor executor;
     protected final NodeEngineImpl nodeEngine;
-    protected final boolean includeName;
-
-    private final long periodMillis;
+    private boolean includeName;
+    private long samplerPeriodMillis;
+    private long periodMillis;
+    private SampleThread sampleThread;
 
     public OperationThreadSamplerPlugin(NodeEngineImpl nodeEngine) {
         super(nodeEngine.getLogger(OperationThreadSamplerPlugin.class));
         this.nodeEngine = nodeEngine;
         OperationServiceImpl operationService = nodeEngine.getOperationService();
-        this.executor = ((OperationServiceImpl) operationService).getOperationExecutor();
-        HazelcastProperties props = nodeEngine.getProperties();
-        this.periodMillis = props.getMillis(PERIOD_SECONDS);
-        this.samplerPeriodMillis = props.getMillis(SAMPLER_PERIOD_MILLIS);
-        this.includeName = props.getBoolean(INCLUDE_NAME);
+        this.executor = operationService.getOperationExecutor();
+        readProperties();
+    }
+
+    @Override
+    void readProperties() {
+        this.periodMillis = nodeEngine.getProperties().getMillis(overrideProperty(PERIOD_SECONDS));
+        this.samplerPeriodMillis = nodeEngine.getProperties().getMillis(overrideProperty(SAMPLER_PERIOD_MILLIS));
+        this.includeName = nodeEngine.getProperties().getBoolean(overrideProperty(INCLUDE_NAME));
     }
 
     @Override
@@ -104,13 +107,25 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
 
     @Override
     public void onStart() {
+        super.onStart();
         logger.info("Plugin:active: period-millis:" + periodMillis + " sampler-period-millis:" + samplerPeriodMillis);
 
-        new SampleThread().start();
+        sampleThread = new SampleThread();
+        sampleThread.start();
+    }
+
+    @Override
+    public void onShutdown() {
+        sampleThread.interrupt();
+        super.onShutdown();
+        logger.info("Plugin:inactive");
     }
 
     @Override
     public void run(DiagnosticsLogWriter writer) {
+        if (!isActive()) {
+            return;
+        }
         writer.startSection("OperationThreadSamples");
         write(writer, "Partition", partitionSpecificSamples);
         write(writer, "Generic", genericSamples);
@@ -128,13 +143,21 @@ public class OperationThreadSamplerPlugin extends DiagnosticsPlugin {
         writer.endSection();
     }
 
+    boolean getIncludeName() {
+        return includeName;
+    }
+
+    long getSamplerPeriodMillis() {
+        return samplerPeriodMillis;
+    }
+
     protected class SampleThread extends Thread {
 
         @Override
         public void run() {
             long nextRunMillis = System.currentTimeMillis();
 
-            while (nodeEngine.isRunning()) {
+            while (nodeEngine.isRunning() && !Thread.currentThread().isInterrupted()) {
                 LockSupport.parkUntil(nextRunMillis);
                 nextRunMillis = samplerPeriodMillis;
                 sample(executor.getPartitionOperationRunners(), partitionSpecificSamples);

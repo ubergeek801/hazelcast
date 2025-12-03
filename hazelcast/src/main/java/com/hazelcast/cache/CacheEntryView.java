@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ public interface CacheEntryView<K, V> extends EvictableEntryView<K, V> {
      *
      * @return the key of the cache entry
      */
+    @Override
     K getKey();
 
     /**
@@ -38,6 +39,7 @@ public interface CacheEntryView<K, V> extends EvictableEntryView<K, V> {
      *
      * @return the value of the cache entry
      */
+    @Override
     V getValue();
 
     /**
@@ -52,13 +54,15 @@ public interface CacheEntryView<K, V> extends EvictableEntryView<K, V> {
      *
      * @return the last access time in milliseconds of the cache entry
      */
+    @Override
     long getLastAccessTime();
 
     /**
-     * Gets the count of how many time this cache entry has been accessed.
+     * Gets the number of times this cache entry has been accessed.
      *
-     * @return the count of how many time this cache entry has been accessed
+     * @return the number of times this cache entry has been accessed.
      */
+    @Override
     long getHits();
 
     /**

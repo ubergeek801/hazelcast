@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.spi.impl.operationservice.impl;
 
+import com.hazelcast.client.impl.operations.OperationFactoryWrapper;
 import com.hazelcast.client.impl.protocol.task.MessageTask;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.ClusterState;
@@ -273,9 +274,12 @@ public class OperationRunnerImpl extends OperationRunner implements StaticMetric
 
     protected void record(Object op, long startNanos) {
         if (opLatencyDistributions != null) {
-            Class c = op.getClass();
+            Class<?> c = op.getClass();
             if (op instanceof PartitionIteratingOperation operation) {
                 c = operation.getOperationFactory().getClass();
+                if (operation.getOperationFactory() instanceof OperationFactoryWrapper wrapper) {
+                    c = wrapper.getOperationFactory().getClass();
+                }
             }
 
             LatencyDistribution distribution = opLatencyDistributions.get(c);
@@ -292,16 +296,7 @@ public class OperationRunnerImpl extends OperationRunner implements StaticMetric
 
         switch (callStatus.ordinal()) {
             case RESPONSE_ORDINAL:
-                int backupAcks = backupHandler.sendBackups(op);
-                Object response = op.getResponse();
-                if (backupAcks > 0) {
-                    response = new NormalResponse(response, op.getCallId(), backupAcks, op.isUrgent());
-                }
-                try {
-                    op.sendResponse(response);
-                } catch (ResponseAlreadySentException e) {
-                    logOperationError(op, e);
-                }
+                sendBackupsAndResponse(op);
                 afterRun(op);
                 break;
             case VOID_ORDINAL:
@@ -319,6 +314,19 @@ public class OperationRunnerImpl extends OperationRunner implements StaticMetric
                 break;
             default:
                 throw new IllegalStateException();
+        }
+    }
+
+    public void sendBackupsAndResponse(Operation op) {
+        int backupAcks = backupHandler.sendBackups(op);
+        Object response = op.getResponse();
+        if (backupAcks > 0) {
+            response = new NormalResponse(response, op.getCallId(), backupAcks, op.isUrgent());
+        }
+        try {
+            op.sendResponse(response);
+        } catch (ResponseAlreadySentException e) {
+            logOperationError(op, e);
         }
     }
 
@@ -454,7 +462,7 @@ public class OperationRunnerImpl extends OperationRunner implements StaticMetric
         }
     }
 
-    private void logOperationError(Operation op, Throwable e) {
+    private static void logOperationError(Operation op, Throwable e) {
         if (e instanceof OutOfMemoryError error) {
             OutOfMemoryErrorDispatcher.onOutOfMemory(error);
         }

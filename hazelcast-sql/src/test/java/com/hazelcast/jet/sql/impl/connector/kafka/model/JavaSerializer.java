@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.hazelcast.jet.sql.impl.connector.kafka.model;
 
+import com.hazelcast.test.TestJavaSerializationUtils;
 import org.apache.kafka.common.serialization.Serializer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -28,15 +28,14 @@ import java.util.Map;
  */
 public class JavaSerializer implements Serializer<Object> {
     public void configure(Map map, boolean b) { }
+
+    @Override
     public void close() { }
 
+    @Override
     public byte[] serialize(String s, Object o) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(o);
-            oos.close();
-            return baos.toByteArray();
+            return TestJavaSerializationUtils.serialize((Serializable) o);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

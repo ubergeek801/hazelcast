@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,15 +69,11 @@ public interface CacheRecord<V, E> extends Expirable, Evictable<V> {
 
     /**
      * Sets the expiry policy for this record.
-     *
-     * @param expiryPolicy
      */
     void setExpiryPolicy(E expiryPolicy);
 
     /**
      * Gets the expiryPolicy associated with this record.
-     *
-     * @return
      */
     E getExpiryPolicy();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,12 @@ public final class HDGlobalPerIndexStats extends GlobalPerIndexStats {
         return new MemoryAllocatorWithStats(memoryAllocator);
     }
 
+    @Override
     public void updateMemoryCost(long delta) {
         MEMORY_COST.addAndGet(HDGlobalPerIndexStats.this, delta);
     }
 
+    @Override
     public void onDispose() {
         memoryCost = 0;
     }

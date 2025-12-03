@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ public interface MigratablePipeline {
     /**
      * Requests the MigratablePipeline to move to the new NioThread. This call will not wait for the
      * migration to complete.
-     *
+     * <p>
      * This method can be called by any thread, and will probably be called by the
      * {@link com.hazelcast.internal.networking.nio.iobalancer.IOBalancer}.
-     *
+     * <p>
      * Call is ignored when pipeline is moving to the same NioThread.
      *
      * @param newOwner the NioThread that is going to own this MigratablePipeline

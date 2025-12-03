@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.cache.BackupAwareEntryProcessor;
 import com.hazelcast.cache.impl.CacheDataSerializerHook;
 import com.hazelcast.cache.impl.CacheService;
 import com.hazelcast.cache.impl.record.CacheRecord;
-import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.namespace.impl.NodeEngineThreadLocalContext;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.nio.ObjectDataInput;
@@ -30,6 +29,8 @@ import com.hazelcast.spi.impl.operationservice.Operation;
 
 import javax.cache.processor.EntryProcessor;
 import java.io.IOException;
+
+import static com.hazelcast.internal.namespace.NamespaceUtil.callWithNamespace;
 
 /**
  * Operation of the Cache Entry Processor.
@@ -50,7 +51,8 @@ public class CacheEntryProcessorOperation
     }
 
     public CacheEntryProcessorOperation(String cacheNameWithPrefix, Data key, int completionId,
-                                        javax.cache.processor.EntryProcessor entryProcessor, Object... arguments) {
+                                        javax.cache.processor.EntryProcessor entryProcessor,
+                                        Object... arguments) {
         super(cacheNameWithPrefix, key, completionId);
         this.entryProcessor = entryProcessor;
         this.arguments = arguments;
@@ -128,7 +130,7 @@ public class CacheEntryProcessorOperation
             throws IOException {
         super.readInternal(in);
         NodeEngine engine = NodeEngineThreadLocalContext.getNodeEngineThreadLocalContext();
-        entryProcessor = NamespaceUtil.callWithNamespace(engine,
+        entryProcessor = callWithNamespace(engine,
                 CacheService.lookupNamespace(engine, name), in::readObject);
         final boolean hasArguments = in.readBoolean();
         if (hasArguments) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.core;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.Member;
@@ -173,15 +174,15 @@ public abstract class JetTestSupport extends HazelcastTestSupport {
     }
 
     /**
-     * Returns config to configure a non-smart client that connects to the
+     * Returns config to configure a SINGLE_MEMBER routing client that connects to the
      * given instance only.
      */
-    protected ClientConfig configForNonSmartClientConnectingTo(HazelcastInstance targetInstance) {
+    protected ClientConfig configForSingleMemberClientConnectingTo(HazelcastInstance targetInstance) {
         ClientConfig clientConfig = new ClientConfig();
         Member coordinator = targetInstance.getCluster().getLocalMember();
         clientConfig.getNetworkConfig()
                 .addAddress(coordinator.getAddress().getHost() + ':' + coordinator.getAddress().getPort())
-                .setSmartRouting(false);
+                .getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         return clientConfig;
     }
 
@@ -194,13 +195,6 @@ public abstract class JetTestSupport extends HazelcastTestSupport {
             instanceFactory = new TestHazelcastFactory();
         }
         return instanceFactory.newHazelcastInstance(config);
-    }
-
-    protected HazelcastInstance createHazelcastInstance(Config config, Address[] blockedAddress) {
-        if (instanceFactory == null) {
-            instanceFactory = new TestHazelcastFactory();
-        }
-        return instanceFactory.newHazelcastInstance(config, blockedAddress);
     }
 
     protected HazelcastInstance[] createHazelcastInstances(int nodeCount) {
@@ -318,7 +312,16 @@ public abstract class JetTestSupport extends HazelcastTestSupport {
         SUPPORT_LOGGER.info("First snapshot found (id=" + snapshotId[0] + ")");
     }
 
-    public void waitForNextSnapshot(JobRepository jr, long jobId, int timeoutSeconds, boolean allowEmptySnapshot) {
+    public static void waitForNextSnapshot(HazelcastInstance instance, Job job) {
+        JobRepository jobRepository = new JobRepository(instance);
+        waitForNextSnapshot(jobRepository, job);
+    }
+
+    public static void waitForNextSnapshot(JobRepository repo, Job job) {
+        waitForNextSnapshot(repo, job.getId(), 30, false);
+    }
+
+    public static void waitForNextSnapshot(JobRepository jr, long jobId, int timeoutSeconds, boolean allowEmptySnapshot) {
         long originalSnapshotId = jr.getJobExecutionRecord(jobId).snapshotId();
         // wait until there is at least one more snapshot
         long[] snapshotId = {-1};

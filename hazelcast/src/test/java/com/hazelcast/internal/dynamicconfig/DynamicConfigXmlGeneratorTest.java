@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class DynamicConfigXmlGeneratorTest extends AbstractDynamicConfigGenerato
     protected Config getNewConfigViaGenerator(Config config) {
         ConfigXmlGenerator configXmlGenerator = new ConfigXmlGenerator(true, true);
         String xml = configXmlGenerator.generate(config);
-        LOGGER.fine("\n" + xml);
+        LOGGER.fine("\n%s", xml);
         return new InMemoryXmlConfig(xml);
 
     }

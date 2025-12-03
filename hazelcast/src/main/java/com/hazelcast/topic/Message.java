@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class Message<E> extends EventObject {
 
     /**
      * Returns the member that published the message.
-     *
+     * <p>
      * It can be that the member is null if:
      * <ol>
      *     <li>the message was send by a client and not a member</li>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.json.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A JsonPattern is a structure that represents a logical path to a
@@ -27,7 +28,7 @@ import java.util.List;
  * order of that item within the object. If an item is within an array,
  * then the corresponding number is the index of that item within the
  * array.
- *
+ * <p>
  * For example;
  * A Json object is given:
  * {
@@ -38,7 +39,7 @@ import java.util.List;
  *     ]
  * }
  * The path "attr2[1]" represents "anotherText" JsonString. The logical
- * position of this value is "1.1" because "attr2" is the second attribute
+ * position of this value is "1.1" because "attr2" is the second attribute,
  * and we are looking for the second item in the corresponding array.
  */
 public class JsonPattern {
@@ -59,7 +60,6 @@ public class JsonPattern {
 
     /**
      * Creates a deep copy of a JsonPattern
-     * @param other
      */
     public JsonPattern(JsonPattern other) {
         this(new ArrayList<>(other.pattern));
@@ -118,7 +118,7 @@ public class JsonPattern {
         if (containsAny != pattern1.containsAny) {
             return false;
         }
-        return pattern != null ? pattern.equals(pattern1.pattern) : pattern1.pattern == null;
+        return Objects.equals(pattern, pattern1.pattern);
     }
 
     @Override

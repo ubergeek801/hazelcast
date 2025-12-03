@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,8 @@ public class ReplicatedMapMBeanTest extends HazelcastTestSupport {
         replicatedMap.put("secondKey", "secondValue");
         replicatedMap.remove("secondKey");
         replicatedMap.size();
+        replicatedMap.values();
+        replicatedMap.entrySet();
         String value = replicatedMap.get("firstKey");
 
         long localEntryCount = getLongAttribute("localOwnedEntryCount");
@@ -96,6 +98,8 @@ public class ReplicatedMapMBeanTest extends HazelcastTestSupport {
         long localPutOperationCount = getLongAttribute("localPutOperationCount");
         long localGetOperationCount = getLongAttribute("localGetOperationCount");
         long localRemoveOperationCount = getLongAttribute("localRemoveOperationCount");
+        long localValuesOperationCount = getLongAttribute("localValuesOperationCount");
+        long localEntrySetOperationCount = getLongAttribute("localEntrySetOperationCount");
 
         long localTotalPutLatency = getLongAttribute("localTotalPutLatency");
         long localTotalGetLatency = getLongAttribute("localTotalGetLatency");
@@ -123,11 +127,13 @@ public class ReplicatedMapMBeanTest extends HazelcastTestSupport {
         assertTrue(
                 "localLastUpdateTime <" + localLastUpdateTime + "> has to be between [" + lowerBound + " and " + upperBound + "]",
                 lowerBound < localLastUpdateTime && localLastUpdateTime < upperBound);
-        assertEquals(1, localHits);
+        assertEquals(3, localHits);
 
         assertEquals(2, localPutOperationCount);
         assertEquals(1, localGetOperationCount);
         assertEquals(1, localRemoveOperationCount);
+        assertEquals(1, localValuesOperationCount);
+        assertEquals(1, localEntrySetOperationCount);
 
         assertTrue("localTotalPutLatency should be >= 0", localTotalPutLatency >= 0);
         assertTrue("localTotalGetLatency should be >= 0", localTotalGetLatency >= 0);
@@ -182,9 +188,5 @@ public class ReplicatedMapMBeanTest extends HazelcastTestSupport {
 
     private Integer getIntegerAttribute(String name) throws Exception {
         return (Integer) holder.getMBeanAttribute(TYPE_NAME, objectName, name);
-    }
-
-    private String invokeMethod(String methodName) throws Exception {
-        return (String) holder.invokeMBeanOperation(TYPE_NAME, objectName, methodName, null, null);
     }
 }

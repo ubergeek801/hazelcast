@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,7 @@ public class ReplicaMigrationEventImpl implements ReplicaMigrationEvent, Identif
         return elapsedTime;
     }
 
+    @Override
     public void writeData(ObjectDataOutput out) throws IOException {
         out.writeObject(state);
         out.writeInt(partitionId);
@@ -105,6 +106,7 @@ public class ReplicaMigrationEventImpl implements ReplicaMigrationEvent, Identif
         out.writeLong(elapsedTime);
     }
 
+    @Override
     public void readData(ObjectDataInput in) throws IOException {
         state = in.readObject();
         partitionId = in.readInt();

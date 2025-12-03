@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,12 +51,6 @@ public final class AggregatingMap<K, V> implements Map<K, V> {
 
     /**
      * Creates new aggregating maps.
-     *
-     * @param map1
-     * @param map2
-     * @param <K>
-     * @param <V>
-     * @return
      */
     public static <K, V> Map<K, V> aggregate(Map<K, V> map1, Map<K, V> map2) {
         return new AggregatingMap<>(map1, map2);

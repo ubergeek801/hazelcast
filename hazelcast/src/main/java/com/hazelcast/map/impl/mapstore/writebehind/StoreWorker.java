@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ public class StoreWorker implements Runnable {
     }
 
     /**
-     * Process write-behind queues on backup partitions. It is a fake processing and
+     * Process write-behind queues on backup partitions. It is a fake processing, and
      * it only removes entries from queues and does not persist any of them.
      *
      * @param delayedEntries entries to be processed.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,9 @@ public final class CollectionDataStructure {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof Person)) {
+            if (!(o instanceof Person other)) {
                 return false;
             }
-            final Person other = (Person) o;
             return Objects.equals(this.limbs_list, other.limbs_list);
         }
 
@@ -59,10 +58,9 @@ public final class CollectionDataStructure {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof Limb)) {
+            if (!(o instanceof Limb other)) {
                 return false;
             }
-            final Limb other = (Limb) o;
             return Objects.equals(this.name, other.name) && Objects.equals(this.power, other.power);
         }
 

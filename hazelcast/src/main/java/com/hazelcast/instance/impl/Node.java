@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,11 +66,10 @@ import com.hazelcast.internal.dynamicconfig.DynamicConfigurationAwareConfig;
 import com.hazelcast.internal.management.ManagementCenterService;
 import com.hazelcast.internal.metrics.MetricsRegistry;
 import com.hazelcast.internal.metrics.impl.MetricsConfigHelper;
-import com.hazelcast.internal.namespace.UserCodeNamespaceService;
 import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.namespace.UserCodeNamespaceService;
 import com.hazelcast.internal.namespace.impl.NamespaceAwareClassLoader;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
-import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.partition.InternalPartitionService;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
 import com.hazelcast.internal.partition.impl.MigrationInterceptor;
@@ -83,6 +82,7 @@ import com.hazelcast.internal.services.GracefulShutdownAwareService;
 import com.hazelcast.internal.usercodedeployment.UserCodeDeploymentClassLoader;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.internal.util.FutureUtil;
+import com.hazelcast.jet.impl.util.ReflectionUtils;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.logging.LoggingService;
@@ -127,7 +127,6 @@ import static com.hazelcast.cluster.memberselector.MemberSelectors.DATA_MEMBER_S
 import static com.hazelcast.config.ConfigAccessor.getActiveMemberNetworkConfig;
 import static com.hazelcast.instance.EndpointQualifier.CLIENT;
 import static com.hazelcast.instance.EndpointQualifier.MEMBER;
-import static com.hazelcast.instance.impl.NodeShutdownHelper.shutdownNodeByFiringEvents;
 import static com.hazelcast.internal.cluster.impl.MulticastService.createMulticastService;
 import static com.hazelcast.internal.config.AliasedDiscoveryConfigUtils.allUsePublicAddress;
 import static com.hazelcast.internal.config.ConfigValidator.checkAdvancedNetworkConfig;
@@ -181,7 +180,7 @@ public class Node {
     final ClusterTopologyIntentTracker clusterTopologyIntentTracker;
 
     private final ILogger logger;
-    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private final AtomicBoolean shuttingDown = new AtomicBoolean();
     private final NodeShutdownHookThread shutdownHookThread;
     private final MemberSchemaService schemaService;
     private final InternalSerializationService serializationService;
@@ -278,8 +277,8 @@ public class Node {
             metricsRegistry.provideMetrics(nodeExtension);
             localAddressRegistry = new LocalAddressRegistry(this, addressPicker);
             server = nodeContext.createServer(this, serverSocketRegistry, localAddressRegistry);
-            healthMonitor = new HealthMonitor(this);
-            clientEngine = hasClientServerSocket() ? new ClientEngineImpl(this) : new NoOpClientEngine();
+            healthMonitor = nodeExtension.createHealthMonitor();
+            clientEngine = hasClientServerSocket() ? nodeExtension.createClientEngine() : new NoOpClientEngine();
             JoinConfig joinConfig = getActiveMemberNetworkConfig(this.config).getJoin();
             if (properties.getBoolean(ClusterProperty.PERSISTENCE_AUTO_CLUSTER_STATE)
                     && config.getPersistenceConfig().isEnabled()) {
@@ -559,9 +558,7 @@ public class Node {
     @SuppressWarnings("checkstyle:npathcomplexity")
     public void shutdown(final boolean terminate) {
         long start = Clock.currentTimeMillis();
-        if (logger.isFinestEnabled()) {
-            logger.finest("We are being asked to shutdown when state = " + state);
-        }
+        logger.finest("We are being asked to shutdown when state = %s", state);
         if (nodeExtension != null) {
             nodeExtension.beforeShutdown(terminate);
         }
@@ -613,13 +610,13 @@ public class Node {
         Collection<Future> futures = new ArrayList<>(services.size());
 
         for (final GracefulShutdownAwareService service : services) {
-            Future future = executor.submit(new Runnable() {
+            Future<?> future = executor.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         boolean success = service.onShutdown(maxWaitSeconds, TimeUnit.SECONDS);
                         if (success) {
-                            logger.fine("Graceful shutdown completed for " + service);
+                            logger.fine("Graceful shutdown completed for %s", service);
                         } else {
                             logger.warning("Graceful shutdown failed for " + service);
                         }
@@ -766,7 +763,7 @@ public class Node {
         return loggingService.getLogger(name);
     }
 
-    public ILogger getLogger(Class clazz) {
+    public ILogger getLogger(Class<?> clazz) {
         return loggingService.getLogger(clazz);
     }
 
@@ -895,7 +892,7 @@ public class Node {
         int dataMemberCount = clusterService.getSize(DATA_MEMBER_SELECTOR);
         Version clusterVersion = clusterService.getClusterVersion();
         int memberListVersion = clusterService.getMembershipManager().getMemberListVersion();
-        return new SplitBrainJoinMessage(Packet.VERSION, buildInfo.getBuildNumber(), version, address, localMember.getUuid(),
+        return  new SplitBrainJoinMessage(buildInfo.getBuildNumber(), version, address, localMember.getUuid(),
                 liteMember, createConfigCheck(), memberAddresses, dataMemberCount, clusterVersion, memberListVersion);
     }
 
@@ -909,9 +906,8 @@ public class Node {
         UUID cpMemberUUID = localCPMember != null ? localCPMember.getUuid() : null;
         OnJoinRegistrationOperation preJoinOps = nodeEngine.getEventService().getPreJoinOperation();
         OnJoinOp onJoinOp = preJoinOps != null ? new OnJoinOp(Collections.singletonList(preJoinOps)) : null;
-        return new JoinRequest(Packet.VERSION, buildInfo.getBuildNumber(), version, address,
-                localMember.getUuid(), localMember.isLiteMember(), createConfigCheck(), credentials,
-                localMember.getAttributes(), excludedMemberUuids, localMember.getAddressMap(), cpMemberUUID, onJoinOp);
+        return new JoinRequest(buildInfo.getBuildNumber(), version, address, localMember, createConfigCheck(),
+                credentials, excludedMemberUuids, cpMemberUUID, onJoinOp, nodeExtension.getSupportedVersions());
     }
 
     private CPMember getLocalCPMember() {
@@ -930,7 +926,7 @@ public class Node {
     public void join() {
         if (clusterService.isJoined()) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Calling join on already joined node. ", new Exception("stacktrace"));
+                logger.finest("Calling join on already joined node. ", ReflectionUtils.getStackTrace(Thread.currentThread()));
             } else {
                 logger.warning("Calling join on already joined node. ");
             }
@@ -952,7 +948,7 @@ public class Node {
 
         if (!clusterService.isJoined()) {
             logger.severe("Could not join cluster. Shutting down now!");
-            shutdownNodeByFiringEvents(Node.this, true);
+            hazelcastInstance.getLifecycleService().terminate();
         }
     }
 

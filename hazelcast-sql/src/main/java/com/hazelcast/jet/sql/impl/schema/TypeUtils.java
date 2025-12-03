@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public final class TypeUtils {
             }
             return classDef.getFieldNames().stream().map(name -> {
                 FieldDefinition field = classDef.getField(name);
-                if (field.getType().equals(FieldType.PORTABLE)) {
+                if (field.getType() == FieldType.PORTABLE) {
                     throw QueryException.error("Column list is required to create nested fields");
                 }
                 return new TypeField(name, PORTABLE_TO_SQL.getOrDefault(field.getType()));

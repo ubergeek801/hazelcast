@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ public class KinesisSourceP<T> extends AbstractProcessor implements DynamicMetri
         id = context.globalProcessorIndex();
 
         if (logger.isFineEnabled()) {
-            logger.fine("Processor " + id + " handles " + processorHashRange);
+            logger.fine("Processor %s handles %s", id, processorHashRange);
         }
     }
 
@@ -165,7 +165,7 @@ public class KinesisSourceP<T> extends AbstractProcessor implements DynamicMetri
                 nextReader = incrementCircular(currentReader, shardReaders.size());
 
                 ShardReader.Result result = reader.probe(currentTime);
-                if (ShardReader.Result.HAS_DATA.equals(result)) {
+                if (ShardReader.Result.HAS_DATA == result) {
                     Shard shard = reader.getShard();
                     traverser = reader.clearData()
                             .flatMap(record -> {
@@ -180,7 +180,7 @@ public class KinesisSourceP<T> extends AbstractProcessor implements DynamicMetri
                     shardStates.update(shard, reader.getLastSeenSeqNo(), watermark);
                     emitFromTraverser(traverser);
                     return;
-                } else if (ShardReader.Result.CLOSED.equals(result)) {
+                } else if (ShardReader.Result.CLOSED == result) {
                     Shard shard = reader.getShard();
                     logger.info("Shard " + shard.getShardId() + " of stream " + stream + " closed");
                     shardStates.close(shard);

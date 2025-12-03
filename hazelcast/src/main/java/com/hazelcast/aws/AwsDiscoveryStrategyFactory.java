@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class AwsDiscoveryStrategyFactory
     /**
      * Checks if Hazelcast is running on an AWS EC2 instance.
      * <p>
-     * Note that this method returns {@code false} for any ECS environment, since currently there is no way to auto-configure
+     * Note that this method returns {@code false} for any ECS environment, since currently there is no way to autoconfigure
      * Hazelcast network interfaces (required for ECS).
      * <p>
      * To check if Hazelcast is running on EC2, we first check that the machine uuid starts with "ec2" or "EC2". There is
@@ -72,7 +72,7 @@ public class AwsDiscoveryStrategyFactory
      * check if an IAM Role is attached to the EC2 instance, because without any IAM Role the Hazelcast AWS discovery won't work.
      *
      * @return true if running on EC2 Instance which has an IAM Role attached
-     * @see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html" />
+     * @see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html">AWS Docs</a>
      */
     @Override
     public boolean isAutoDetectionApplicable() {

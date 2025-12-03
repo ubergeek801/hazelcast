@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import static com.hazelcast.ringbuffer.impl.RingbufferDataSerializerHook.GENERIC
 
 /**
  * Ring buffer operations which don't need to send any parameters and which can be determined by only sending the operation
- * type which is a byte of information. Typically these are read operations and/or getters.
+ * type which is a byte of information. Typically, these are read operations and/or getters.
  */
 public class GenericOperation extends AbstractRingBufferOperation implements ReadonlyOperation {
 

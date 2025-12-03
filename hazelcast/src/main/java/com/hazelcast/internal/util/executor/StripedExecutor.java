@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public final class StripedExecutor implements Executor {
         this.workers = new Worker[threadCount];
 
         // `queueCapacity` is the given max capacity for this executor. Each worker in this executor should consume
-        // only a portion of that capacity. Otherwise we will have `threadCount * queueCapacity` instead of
+        // only a portion of that capacity. Otherwise, we will have `threadCount * queueCapacity` instead of
         // `queueCapacity`.
         int perThreadMaxQueueCapacity = (int) ceil(1D * queueCapacity / threadCount);
         for (int i = 0; i < threadCount; i++) {
@@ -110,7 +110,7 @@ public final class StripedExecutor implements Executor {
     public long processedCount() {
         long size = 0;
         for (Worker worker : workers) {
-            size += worker.processed.inc();
+            size += worker.processed.get();
         }
         return size;
     }

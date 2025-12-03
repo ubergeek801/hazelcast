@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,10 @@ public class MapWanContext {
             );
         }
         SplitBrainMergePolicyProvider mergePolicyProvider = nodeEngine.getSplitBrainMergePolicyProvider();
-        wanMergePolicy = mergePolicyProvider.getMergePolicy(wanReplicationRef.getMergePolicyClassName());
+        wanMergePolicy = mergePolicyProvider.getMergePolicy(
+                wanReplicationRef.getMergePolicyClassName(),
+                mapConfig.getUserCodeNamespace()
+        );
         checkMapMergePolicy(mapConfig, wanReplicationRef.getMergePolicyClassName(), mergePolicyProvider);
 
         WanReplicationConfig wanReplicationConfig = config.getWanReplicationConfig(wanReplicationRefName);
@@ -124,7 +127,7 @@ public class MapWanContext {
                 .stream()
                 .anyMatch(c -> {
                     WanSyncConfig syncConfig = c.getSyncConfig();
-                    return syncConfig != null && MERKLE_TREES.equals(syncConfig.getConsistencyCheckStrategy());
+                    return syncConfig != null && MERKLE_TREES == syncConfig.getConsistencyCheckStrategy();
                 });
     }
 

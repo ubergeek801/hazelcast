@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.hazelcast.query.impl.AndResultSet;
 import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.QueryContext;
 import com.hazelcast.query.impl.QueryableEntry;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -206,7 +205,6 @@ public final class AndPredicate
      * the returned array.
      */
     @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public <K, V> Predicate<K, V>[] getPredicates() {
         return predicates;
     }
@@ -219,7 +217,6 @@ public final class AndPredicate
      *                   this array after it has been set.
      */
     @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public <K, V> void setPredicates(Predicate<K, V>[] predicates) {
         if (this.predicates == null) {
             this.predicates = predicates;

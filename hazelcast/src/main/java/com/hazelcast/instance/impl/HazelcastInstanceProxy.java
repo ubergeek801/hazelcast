@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.hazelcast.core.IExecutorService;
 import com.hazelcast.core.LifecycleService;
 import com.hazelcast.cp.CPSubsystem;
 import com.hazelcast.crdt.pncounter.PNCounter;
+import com.hazelcast.dataconnection.DataConnectionService;
 import com.hazelcast.durableexecutor.DurableExecutorService;
 import com.hazelcast.flakeidgen.FlakeIdGenerator;
 import com.hazelcast.internal.serialization.InternalSerializationService;
@@ -302,6 +303,12 @@ public final class HazelcastInstanceProxy implements HazelcastInstance, Serializ
 
     @Nonnull
     @Override
+    public DataConnectionService getDataConnectionService() {
+        return getOriginal().getDataConnectionService();
+    }
+
+    @Nonnull
+    @Override
     public JetService getJet() {
         return getOriginal().getJet();
     }
@@ -343,11 +350,10 @@ public final class HazelcastInstanceProxy implements HazelcastInstance, Serializ
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof HazelcastInstance)) {
+        if (!(o instanceof HazelcastInstance that)) {
             return false;
         }
 
-        HazelcastInstance that = (HazelcastInstance) o;
         return !(name != null ? !name.equals(that.getName()) : that.getName() != null);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,8 @@ public class SqlCreateJob extends SqlCreate {
                 case "suspendOnFailure":
                     jobConfig.setSuspendOnFailure(Boolean.parseBoolean(value));
                     break;
+                case "userCodeNamespace":
+                    throw validator.newValidationError(option.key(), RESOURCE.notSupported(key, "CREATE JOB"));
                 default:
                     throw validator.newValidationError(option.key(), RESOURCE.unknownJobOption(key));
             }

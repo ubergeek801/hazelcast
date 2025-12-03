@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.hazelcast.config.ConfigPatternMatcher;
 import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.DataConnectionConfigValidator;
 import com.hazelcast.config.DeviceConfig;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
 import com.hazelcast.config.DurableExecutorConfig;
 import com.hazelcast.config.DynamicConfigurationConfig;
 import com.hazelcast.config.ExecutorConfig;
@@ -85,6 +86,7 @@ import com.hazelcast.internal.config.TopicConfigReadOnly;
 import com.hazelcast.internal.dynamicconfig.search.ConfigSearch;
 import com.hazelcast.internal.dynamicconfig.search.ConfigSupplier;
 import com.hazelcast.internal.dynamicconfig.search.Searcher;
+import com.hazelcast.internal.util.Preconditions;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.security.SecurityService;
 import com.hazelcast.spi.impl.NodeEngineImpl;
@@ -1369,4 +1371,17 @@ public class DynamicConfigurationAwareConfig extends Config {
     public Config setRestConfig(@Nonnull RestConfig restConfig) {
         return staticConfig.setRestConfig(restConfig);
     }
+
+    @Nonnull
+    public Config setDiagnosticsConfig(@Nonnull DiagnosticsConfig diagnosticsConfig) {
+        Preconditions.isNotNull(diagnosticsConfig, "DiagnosticsConfig");
+        configurationService.broadcastConfig(diagnosticsConfig);
+        return this;
+    }
+
+    @Nonnull
+    public DiagnosticsConfig getDiagnosticsConfig() {
+        return configurationService.getDiagnosticsConfig();
+    }
+
 }

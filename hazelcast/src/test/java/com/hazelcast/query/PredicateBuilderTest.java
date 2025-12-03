@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,6 @@ public class PredicateBuilderTest extends HazelcastTestSupport {
             this.id = id;
         }
 
-        private String getId() {
-            return id;
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -145,10 +141,6 @@ public class PredicateBuilderTest extends HazelcastTestSupport {
 
         private Value(String name) {
             this.name = name;
-        }
-
-        private String getName() {
-            return name;
         }
 
         @Override

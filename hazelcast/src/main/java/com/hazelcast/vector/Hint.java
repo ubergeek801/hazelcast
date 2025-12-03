@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,5 +32,12 @@ import java.util.function.Function;
 public record Hint<T>(String name, Function<String, T> parser) {
     public T get(SearchOptions options) {
         return parser.apply(options.getHints().get(name));
+    }
+
+    /**
+     * @since 5.6
+     */
+    public boolean isPresent(SearchOptions options) {
+        return options.getHints().containsKey(name);
     }
 }

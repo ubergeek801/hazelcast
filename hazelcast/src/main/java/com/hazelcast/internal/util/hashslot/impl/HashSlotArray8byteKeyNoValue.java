@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static com.hazelcast.internal.util.hashslot.impl.CapacityUtil.DEFAULT_LOA
 /**
  * Specialization of {@link HashSlotArray8byteKeyImpl} to the case of zero-length value. Suitable for a {@code long} set
  * implementation. Unassigned sentinel is kept at the start of the slot, i.e., in the key part.
- * Therefore the sentinel value cannot be used as a key.
+ * Therefore, the sentinel value cannot be used as a key.
  */
 public class HashSlotArray8byteKeyNoValue extends HashSlotArray8byteKeyImpl {
 

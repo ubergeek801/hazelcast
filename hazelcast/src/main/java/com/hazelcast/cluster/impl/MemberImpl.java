@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public final class MemberImpl
         this(newHashMap(MEMBER, address), address, version, localMember, uuid, null, false, NA_MEMBER_LIST_JOIN_VERSION, null);
     }
 
-    private MemberImpl(Map<EndpointQualifier, Address> addresses, MemberVersion version, boolean localMember,
+    protected MemberImpl(Map<EndpointQualifier, Address> addresses, MemberVersion version, boolean localMember,
                        UUID uuid, Map<String, String> attributes, boolean liteMember, int memberListJoinVersion,
                        HazelcastInstanceImpl instance) {
         this(addresses, addresses.get(MEMBER), version, localMember, uuid, attributes, liteMember, memberListJoinVersion,
@@ -134,6 +134,7 @@ public final class MemberImpl
         attributes.put(key, value);
     }
 
+    @Override
     public int getFactoryId() {
         return ClusterDataSerializerHook.F_ID;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ public abstract class TextDecoder extends InboundHandler<ByteBuffer, Void> {
 
         int capacity = commandLineBuffer.capacity() << 1;
         if (logger.isFineEnabled()) {
-            logger.fine("Expanding buffer capacity to " + capacity);
+            logger.fine("Expanding buffer capacity to %s", capacity);
         }
 
         ByteBuffer newBuffer = ByteBuffer.allocate(capacity);

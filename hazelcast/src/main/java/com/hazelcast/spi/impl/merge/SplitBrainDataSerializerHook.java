@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.SPLIT_BR
  *
  * @since 3.10
  */
-@SuppressWarnings("checkstyle:javadocvariable")
+@SuppressWarnings({"checkstyle:javadocvariable", "ClassDataAbstractionCoupling"})
 public final class SplitBrainDataSerializerHook implements DataSerializerHook {
 
     public static final int F_ID = FactoryIdHelper.getFactoryId(SPLIT_BRAIN_DS_FACTORY, SPLIT_BRAIN_DS_FACTORY_ID);

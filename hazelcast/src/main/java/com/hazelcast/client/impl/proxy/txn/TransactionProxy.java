@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ final class TransactionProxy {
             txnId = TransactionCreateCodec.decodeResponse(response);
             state = ACTIVE;
         } catch (Exception e) {
-            TRANSACTION_EXISTS.set(null);
+            TRANSACTION_EXISTS.remove();
             throw rethrow(e);
         }
     }
@@ -110,7 +110,7 @@ final class TransactionProxy {
             state = COMMIT_FAILED;
             throw rethrow(e);
         } finally {
-            TRANSACTION_EXISTS.set(null);
+            TRANSACTION_EXISTS.remove();
         }
     }
 
@@ -129,7 +129,7 @@ final class TransactionProxy {
             }
             state = ROLLED_BACK;
         } finally {
-            TRANSACTION_EXISTS.set(null);
+            TRANSACTION_EXISTS.remove();
         }
     }
 

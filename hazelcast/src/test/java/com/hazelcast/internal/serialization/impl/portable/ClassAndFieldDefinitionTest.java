@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class ClassAndFieldDefinitionTest {
     private static String[] fieldNames = new String[]{"f1", "f2", "f3"};
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         ClassDefinitionBuilder builder = new ClassDefinitionBuilder(1, 2, 3);
         for (String fieldName : fieldNames) {
             builder.addByteField(fieldName);

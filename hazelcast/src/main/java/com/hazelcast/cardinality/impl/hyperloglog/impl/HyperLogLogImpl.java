@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class HyperLogLogImpl
     }
 
     private void convertToDenseIfNeeded() {
-        boolean shouldConvertToDense = SPARSE.equals(encoder.getEncodingType()) && encoder.getMemoryFootprint() >= m;
+        boolean shouldConvertToDense = SPARSE == encoder.getEncodingType() && encoder.getMemoryFootprint() >= m;
         if (shouldConvertToDense) {
             encoder = ((SparseHyperLogLogEncoder) encoder).asDense();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,7 @@ public class SqlAlterJob extends SqlAlter {
                 case "suspendOnFailure":
                     deltaConfig.setSuspendOnFailure(Boolean.parseBoolean(value));
                     break;
+                case "userCodeNamespace":
                 case "processingGuarantee":
                 case "initialSnapshotName":
                     throw validator.newValidationError(option.key(), RESOURCE.notSupported(key, "ALTER JOB"));

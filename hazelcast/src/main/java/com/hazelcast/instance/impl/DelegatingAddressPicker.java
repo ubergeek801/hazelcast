@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,22 +131,22 @@ final class DelegatingAddressPicker
         InetSocketAddress publicAddress;
         ServerSocketChannel serverSocketChannel;
 
-        for (EndpointConfig config : config.getAdvancedNetworkConfig().getEndpointConfigs().values()) {
-            if (!(config instanceof ServerSocketEndpointConfig endpointConfig)) {
+        for (EndpointConfig endpointConfig : config.getAdvancedNetworkConfig().getEndpointConfigs().values()) {
+            if (!(endpointConfig instanceof ServerSocketEndpointConfig serverSocketEndpointConfig)) {
                 continue;
             }
-            EndpointQualifier qualifier = endpointConfig.getQualifier();
+            EndpointQualifier qualifier = serverSocketEndpointConfig.getQualifier();
 
             bindAddress = memberAddressProvider.getBindAddress(qualifier);
             publicAddress = memberAddressProvider.getPublicAddress(qualifier);
             validatePublicAddress(publicAddress);
 
-            if (!bindAddresses.values().contains(bindAddress)) {
+            if (!bindAddresses.containsValue(bindAddress)) {
                 // bind new server socket
-                serverSocketChannel = createServerSocketChannel(logger, config, bindAddress.getAddress(),
-                        bindAddress.getPort() == 0 ? endpointConfig.getPort() : bindAddress.getPort(),
-                        endpointConfig.getPortCount(), endpointConfig.isPortAutoIncrement(),
-                        endpointConfig.isReuseAddress(), false);
+                serverSocketChannel = createServerSocketChannel(logger, endpointConfig, bindAddress.getAddress(),
+                        bindAddress.getPort() == 0 ? serverSocketEndpointConfig.getPort() : bindAddress.getPort(),
+                        serverSocketEndpointConfig.getPortCount(), serverSocketEndpointConfig.isPortAutoIncrement(),
+                        serverSocketEndpointConfig.isReuseAddress(), false);
 
                 serverSocketChannels.put(qualifier, serverSocketChannel);
 

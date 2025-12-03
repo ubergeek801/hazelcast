@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * This reduces the amount of IO and the number of operations being executed, and can result in a significant performance improvement.
  */
 @SuppressWarnings("unused")
-@Generated("bfb949b41970c24981b1014f92db5ca1")
+@Generated("216acc6d827579c5773409c650e6b362")
 public final class RingbufferReadManyCodec {
     //hex: 0x170900
     public static final int REQUEST_MESSAGE_TYPE = 1509632;
@@ -60,7 +60,6 @@ public final class RingbufferReadManyCodec {
     private RingbufferReadManyCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -102,7 +101,7 @@ public final class RingbufferReadManyCodec {
         encodeInt(initialFrame.content, REQUEST_MAX_COUNT_FIELD_OFFSET, maxCount);
         clientMessage.add(initialFrame);
         StringCodec.encode(clientMessage, name);
-        CodecUtil.encodeNullable(clientMessage, filter, DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, filter);
         return clientMessage;
     }
 
@@ -114,11 +113,10 @@ public final class RingbufferReadManyCodec {
         request.minCount = decodeInt(initialFrame.content, REQUEST_MIN_COUNT_FIELD_OFFSET);
         request.maxCount = decodeInt(initialFrame.content, REQUEST_MAX_COUNT_FIELD_OFFSET);
         request.name = StringCodec.decode(iterator);
-        request.filter = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+        request.filter = DataCodec.decodeNullable(iterator);
         return request;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class ResponseParameters {
 
         /**

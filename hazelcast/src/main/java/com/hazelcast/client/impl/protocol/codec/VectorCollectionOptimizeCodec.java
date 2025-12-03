@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,19 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Optimize index.
  */
 @SuppressWarnings("unused")
-@Generated("24fc1d90f2e257b643332a31dd674adf")
+@Generated("044d5985ec9df5d4851c28fa28719624")
 public final class VectorCollectionOptimizeCodec {
     //hex: 0x240900
     public static final int REQUEST_MESSAGE_TYPE = 2361600;
     //hex: 0x240901
     public static final int RESPONSE_MESSAGE_TYPE = 2361601;
-    private static final int REQUEST_INITIAL_FRAME_SIZE = PARTITION_ID_FIELD_OFFSET + INT_SIZE_IN_BYTES;
+    private static final int REQUEST_UUID_FIELD_OFFSET = PARTITION_ID_FIELD_OFFSET + INT_SIZE_IN_BYTES;
+    private static final int REQUEST_INITIAL_FRAME_SIZE = REQUEST_UUID_FIELD_OFFSET + UUID_SIZE_IN_BYTES;
     private static final int RESPONSE_INITIAL_FRAME_SIZE = RESPONSE_BACKUP_ACKS_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
 
     private VectorCollectionOptimizeCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -62,15 +62,27 @@ public final class VectorCollectionOptimizeCodec {
          * A null value triggers the optimization of the only index within the collection.
          */
         public @Nullable java.lang.String indexName;
+
+        /**
+         * UUID of this optimization request.
+         */
+        public @Nullable java.util.UUID uuid;
+
+        /**
+         * True if the uuid is received from the client, false otherwise.
+         * If this is false, uuid has the default value for its type.
+         */
+        public boolean isUuidExists;
     }
 
-    public static ClientMessage encodeRequest(java.lang.String name, @Nullable java.lang.String indexName) {
+    public static ClientMessage encodeRequest(java.lang.String name, @Nullable java.lang.String indexName, @Nullable java.util.UUID uuid) {
         ClientMessage clientMessage = ClientMessage.createForEncode();
         clientMessage.setRetryable(true);
         clientMessage.setOperationName("VectorCollection.Optimize");
         ClientMessage.Frame initialFrame = new ClientMessage.Frame(new byte[REQUEST_INITIAL_FRAME_SIZE], UNFRAGMENTED_MESSAGE);
         encodeInt(initialFrame.content, TYPE_FIELD_OFFSET, REQUEST_MESSAGE_TYPE);
         encodeInt(initialFrame.content, PARTITION_ID_FIELD_OFFSET, -1);
+        encodeUUID(initialFrame.content, REQUEST_UUID_FIELD_OFFSET, uuid);
         clientMessage.add(initialFrame);
         StringCodec.encode(clientMessage, name);
         CodecUtil.encodeNullable(clientMessage, indexName, StringCodec::encode);
@@ -80,8 +92,13 @@ public final class VectorCollectionOptimizeCodec {
     public static VectorCollectionOptimizeCodec.RequestParameters decodeRequest(ClientMessage clientMessage) {
         ClientMessage.ForwardFrameIterator iterator = clientMessage.frameIterator();
         RequestParameters request = new RequestParameters();
-        //empty initial frame
-        iterator.next();
+        ClientMessage.Frame initialFrame = iterator.next();
+        if (initialFrame.content.length >= REQUEST_UUID_FIELD_OFFSET + UUID_SIZE_IN_BYTES) {
+            request.uuid = decodeUUID(initialFrame.content, REQUEST_UUID_FIELD_OFFSET);
+            request.isUuidExists = true;
+        } else {
+            request.isUuidExists = false;
+        }
         request.name = StringCodec.decode(iterator);
         request.indexName = CodecUtil.decodeNullable(iterator, StringCodec::decode);
         return request;

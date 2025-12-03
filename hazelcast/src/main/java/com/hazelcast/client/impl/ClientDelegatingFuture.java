@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,23 @@ import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.spi.impl.ClientInvocationFuture;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.spi.impl.DelegatingCompletableFuture;
 
 import javax.annotation.Nonnull;
+
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.hazelcast.internal.util.ConcurrencyUtil.CALLER_RUNS;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static java.util.Objects.requireNonNull;
 
@@ -51,8 +52,7 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings("checkstyle:methodcount")
 public class ClientDelegatingFuture<V> extends DelegatingCompletableFuture<V> {
 
-    private static final AtomicReferenceFieldUpdater<ClientDelegatingFuture, Object> DECODED_RESPONSE =
-            AtomicReferenceFieldUpdater.newUpdater(ClientDelegatingFuture.class, Object.class, "decodedResponse");
+    private static final VarHandle DECODED_RESPONSE = ReflectionUtil.findVarHandle("decodedResponse", Object.class);
 
     final boolean deserializeResponse;
     private final ClientMessageDecoder clientMessageDecoder;
@@ -65,7 +65,7 @@ public class ClientDelegatingFuture<V> extends DelegatingCompletableFuture<V> {
         this.decodedResponse = VOID;
         this.clientMessageDecoder = clientMessageDecoder;
         this.deserializeResponse = deserializeResponse;
-        this.future.whenCompleteAsync((v, t) -> completeSuper(v, (Throwable) t), CALLER_RUNS);
+        this.future.whenCompleteAsync((v, t) -> completeSuper(v, (Throwable) t), defaultExecutor());
     }
 
     public ClientDelegatingFuture(ClientInvocationFuture clientInvocationFuture,

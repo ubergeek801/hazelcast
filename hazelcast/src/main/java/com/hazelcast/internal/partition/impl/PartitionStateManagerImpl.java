@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import static com.hazelcast.internal.partition.PartitionStampUtil.calculateStamp
 /**
  * Maintains the partition table state.
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public class PartitionStateManagerImpl implements PartitionStateManager {
 
     private final Node node;
@@ -364,7 +364,7 @@ public class PartitionStateManagerImpl implements PartitionStateManager {
 
         if (newState == null) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Partition rearrangement failed. Number of member groups: " + memberGroups.size());
+                logger.finest("Partition rearrangement failed. Number of member groups: %s", memberGroups.size());
             }
         }
 
@@ -374,7 +374,7 @@ public class PartitionStateManagerImpl implements PartitionStateManager {
     @Override
     public boolean trySetMigratingFlag(int partitionId) {
         if (logger.isFinestEnabled()) {
-            logger.finest("Setting partition-migrating flag. partitionId=" + partitionId);
+            logger.finest("Setting partition-migrating flag. partitionId=%s", partitionId);
         }
         return partitions[partitionId].setMigrating();
     }
@@ -382,7 +382,7 @@ public class PartitionStateManagerImpl implements PartitionStateManager {
     @Override
     public void clearMigratingFlag(int partitionId) {
         if (logger.isFinestEnabled()) {
-            logger.finest("Clearing partition-migrating flag. partitionId=" + partitionId);
+            logger.finest("Clearing partition-migrating flag. partitionId=%s", partitionId);
         }
         if (!isMigrating(partitionId)) {
             // If this warning is generated it means that trySetMigratingFlag and clearMigratingFlag calls
@@ -403,7 +403,7 @@ public class PartitionStateManagerImpl implements PartitionStateManager {
     public void updateStamp() {
         stateStamp = calculateStamp(partitions, () -> stampCalculationBuffer);
         if (logger.isFinestEnabled()) {
-            logger.finest("New calculated partition state stamp is: " + stateStamp);
+            logger.finest("New calculated partition state stamp is: %s", stateStamp);
         }
         replicaUpdateInterceptor.onPartitionStampUpdate();
     }

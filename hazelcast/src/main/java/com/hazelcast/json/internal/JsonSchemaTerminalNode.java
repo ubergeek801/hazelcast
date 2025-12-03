@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,6 @@ public class JsonSchemaTerminalNode extends JsonSchemaNode {
      * Points to the location where this object starts in underlying
      * input. The returned value is offset from the start of the
      * object. The unit of the offset depends on the context.
-     *
-     * @return
      */
     public int getValueStartLocation() {
         return valueStartLocation;
@@ -52,8 +50,6 @@ public class JsonSchemaTerminalNode extends JsonSchemaNode {
 
     /**
      * Sets the location of the value in the underlying input.
-     *
-     * @param valueStartLocation
      */
     public void setValueStartLocation(int valueStartLocation) {
         this.valueStartLocation = valueStartLocation;

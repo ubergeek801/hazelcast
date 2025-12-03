@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package com.hazelcast.config.security;
-
-import static com.hazelcast.internal.util.StringUtil.trim;
 
 import javax.naming.directory.SearchControls;
 
@@ -60,13 +58,13 @@ public enum LdapSearchScope {
     }
 
     public static LdapSearchScope getSearchScope(String label) {
-        label = trim(label);
-        if (label == null) {
-            return DEFAULT;
-        }
-        for (LdapSearchScope scope : LdapSearchScope.values()) {
-            if (scope.toString().equals(label)) {
-                return scope;
+        if (label != null) {
+            label = label.strip();
+            for (LdapSearchScope scope : LdapSearchScope.values()) {
+                if (scope.toString()
+                        .equals(label)) {
+                    return scope;
+                }
             }
         }
         return DEFAULT;

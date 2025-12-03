@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class MapContainerCreationUponDestroyStressTest extends HazelcastTestSupp
     public void testNewRecordStores_sharesSameMapContainerInstance_afterMapDestroy() throws Exception {
         String mapName = "map";
         final IMap<Long, Long> map = getIMap(mapName);
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
 
         Thread putThread = new Thread(() -> {
             while (!stop.get()) {

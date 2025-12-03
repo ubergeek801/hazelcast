@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -63,7 +64,7 @@ public class WriteBehindUponMigrationTest extends HazelcastTestSupport {
         HazelcastInstance node2 = factory.newHazelcastInstance(config);
         waitClusterForSafeState(node1);
 
-        factory.terminate(node1);
+        terminateInstance(node1);
 
         map = node2.getMap(mapName);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.config.AbstractFactoryWithPropertiesConfig;
 import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.config.CompactSerializationConfigAccessor;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
 import com.hazelcast.config.GlobalSerializerConfig;
 import com.hazelcast.config.InstanceTrackingConfig;
 import com.hazelcast.config.InvalidConfigurationException;
@@ -37,12 +38,16 @@ import com.hazelcast.config.SocketInterceptorConfig;
 import com.hazelcast.config.UserCodeNamespacesConfig;
 import com.hazelcast.config.security.JaasAuthenticationConfig;
 import com.hazelcast.config.security.RealmConfig;
+import com.hazelcast.internal.diagnostics.DiagnosticsOutputType;
 import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.memory.Capacity;
 import com.hazelcast.memory.MemoryUnit;
 import org.w3c.dom.Node;
 
+import javax.annotation.Nonnull;
+
 import java.nio.ByteOrder;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -54,6 +59,8 @@ import static com.hazelcast.internal.config.DomConfigHelper.getBooleanValue;
 import static com.hazelcast.internal.config.DomConfigHelper.getIntegerValue;
 import static com.hazelcast.internal.util.StringUtil.isNullOrEmptyAfterTrim;
 import static com.hazelcast.internal.util.StringUtil.upperCaseInternal;
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
 
 /**
  * Base class of the config processors working from W3C DOM objects
@@ -87,6 +94,7 @@ public abstract class AbstractDomConfigProcessor implements DomConfigProcessor {
         this.strict = strict;
     }
 
+    @Nonnull
     protected String getTextContent(Node node) {
         return DomConfigHelper.getTextContent(node, domLevel3).trim();
     }
@@ -144,7 +152,7 @@ public abstract class AbstractDomConfigProcessor implements DomConfigProcessor {
         return socketInterceptorConfig;
     }
 
-    @SuppressWarnings({"checkstyle:cyclomaticcomplexity"})
+    @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     protected SerializationConfig parseSerialization(final Node node) {
         SerializationConfig serializationConfig = new SerializationConfig();
         for (Node child : childElements(node)) {
@@ -187,6 +195,37 @@ public abstract class AbstractDomConfigProcessor implements DomConfigProcessor {
             }
         }
         return serializationConfig;
+    }
+
+    protected void handleDiagnostics(Node node, DiagnosticsConfig diagnosticsConfig) {
+
+        diagnosticsConfig.setEnabled(getBooleanValue(getAttribute(node, "enabled")));
+
+        for (Node n : childElements(node)) {
+            String name = cleanNodeName(n);
+            if (matches("max-rolled-file-size-in-mb", name)) {
+                diagnosticsConfig.setMaxRolledFileSizeInMB(Float.parseFloat(n.getTextContent()));
+            } else if (matches("max-rolled-file-count", name)) {
+                diagnosticsConfig.setMaxRolledFileCount(parseInt(n.getTextContent()));
+            } else if (matches("include-epoch-time", name)) {
+                diagnosticsConfig.setIncludeEpochTime(parseBoolean(n.getTextContent()));
+            } else if (matches("log-directory", name)) {
+                diagnosticsConfig.setLogDirectory(n.getTextContent());
+            } else if (matches("file-name-prefix", name)) {
+                diagnosticsConfig.setFileNamePrefix(n.getTextContent());
+            } else if (matches("output-type", name)) {
+                diagnosticsConfig.setOutputType(DiagnosticsOutputType.valueOf(n.getTextContent()));
+            } else if (matches("auto-off-timer-in-minutes", name)) {
+                diagnosticsConfig.setAutoOffDurationInMinutes(parseInt(n.getTextContent()));
+            } else if (matches("plugin-properties", name)) {
+                Map<String, Comparable> rawProperties = new HashMap<>();
+                fillProperties(n, rawProperties);
+                rawProperties
+                        .entrySet()
+                        .forEach(entry -> diagnosticsConfig.getPluginProperties()
+                                .put(entry.getKey(), (String) entry.getValue()));
+            }
+        }
     }
 
     protected void handleCompactSerialization(Node node, SerializationConfig serializationConfig) {

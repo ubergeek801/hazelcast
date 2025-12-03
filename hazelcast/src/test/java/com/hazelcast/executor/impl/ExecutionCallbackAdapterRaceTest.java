@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@ import static org.mockito.Mockito.mock;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class ExecutionCallbackAdapterRaceTest extends HazelcastTestSupport {
 
-    private ILogger logger = Logger.getLogger(ExecutionCallbackAdapterFactory.class);
+    private final ILogger logger = Logger.getLogger(ExecutionCallbackAdapterFactory.class);
 
-    private Member member1 = mock(Member.class);
-    private Member member2 = mock(Member.class);
+    private final Member member1 = mock(Member.class);
+    private final Member member2 = mock(Member.class);
 
     private volatile boolean completed;
     private volatile boolean raceDetected;
@@ -58,8 +58,8 @@ public class ExecutionCallbackAdapterRaceTest extends HazelcastTestSupport {
                 callback);
 
         // first we spawn the response for the member1
-        // this thread is going wait for 2 seconds in the onResponse to trigger the out of order behavior
-        Future future = spawn((Runnable) () -> factory.callbackFor(member1).onResponse("1"));
+        // this thread is going wait for 2 seconds in the onResponse to trigger the out-of-order behavior
+        Future<?> future = spawn((Runnable) () -> factory.callbackFor(member1).onResponse("1"));
 
         factory.callbackFor(member2).onResponse("2");
 

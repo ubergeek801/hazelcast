@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -441,7 +441,7 @@ public interface IScheduledExecutorService
     /**
      * Fetches and returns all scheduled (not disposed yet) futures from all
      * members in the cluster. If a member has no running tasks for this
-     * scheduler, it wont be included in the returned {@link Map}.
+     * scheduler, it won't be included in the returned {@link Map}.
      *
      * @param <V>     the result type of the returned ScheduledFuture
      * @return A {@link Map} with {@link Member} keys and a List of {@link IScheduledFuture}

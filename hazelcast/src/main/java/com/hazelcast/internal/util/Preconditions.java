@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.internal.util;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -110,6 +111,15 @@ public final class Preconditions {
         return value;
     }
 
+    public static Duration checkNotNegative(Duration duration, String errorMessage) {
+        isNotNull(duration, "duration");
+
+        if (duration.isNegative()) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        return duration;
+    }
+
     /**
      * Tests if the {@code value} is &gt;= 0.
      *
@@ -173,7 +183,22 @@ public final class Preconditions {
     /**
      * Tests if a {@code value} is positive, that is strictly larger than 0 (value &gt; 0).
      *
-     * @param paramName the the name of the checked parameter that will be in exception message
+     * @param value        the value tested to see if it is positive.
+     * @param errorMessage the message
+     * @return the value
+     * @throws java.lang.IllegalArgumentException if the value is not positive.
+     */
+    public static float checkPositive(float value, String errorMessage) {
+        if (value <= 0) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        return value;
+    }
+
+    /**
+     * Tests if a {@code value} is positive, that is strictly larger than 0 (value &gt; 0).
+     *
+     * @param paramName the name of the checked parameter that will be in exception message
      * @param value     the value tested to see if it is positive.
      * @return the value
      * @throws java.lang.IllegalArgumentException if the value is not positive.
@@ -329,8 +354,6 @@ public final class Preconditions {
     /**
      * Check if iterator has next element. If not throw NoSuchElementException
      *
-     * @param iterator
-     * @param message
      * @return the iterator itself
      * @throws java.util.NoSuchElementException if iterator.hasNext returns false
      */
@@ -344,9 +367,7 @@ public final class Preconditions {
     /**
      * Check the state of a condition
      *
-     * @param condition
-     * @param message
-     * @throws IllegalStateException if condition if false
+     * @throws IllegalStateException if condition is false
      */
     public static void checkState(boolean condition, String message) throws IllegalStateException {
         if (!condition) {

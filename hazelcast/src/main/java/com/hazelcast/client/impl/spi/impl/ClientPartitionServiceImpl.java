@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public final class ClientPartitionServiceImpl implements ClientPartitionService 
     private final ILogger logger;
     private final AtomicReference<PartitionTable> partitionTable =
             new AtomicReference<>(new PartitionTable(null, -1, new Int2ObjectHashMap<>()));
-    private final AtomicInteger partitionCount = new AtomicInteger(0);
+    private final AtomicInteger partitionCount = new AtomicInteger();
 
     public ClientPartitionServiceImpl(HazelcastClientInstanceImpl client) {
         this.client = client;
@@ -69,7 +69,7 @@ public final class ClientPartitionServiceImpl implements ClientPartitionService 
     public void handlePartitionsViewEvent(Connection connection, Collection<Map.Entry<UUID, List<Integer>>> partitions,
                                           int partitionStateVersion) {
         if (logger.isFinestEnabled()) {
-            logger.finest("Handling new partition table with  partitionStateVersion: " + partitionStateVersion);
+            logger.finest("Handling new partition table with  partitionStateVersion: %s", partitionStateVersion);
         }
         while (true) {
             PartitionTable current = this.partitionTable.get();
@@ -80,7 +80,7 @@ public final class ClientPartitionServiceImpl implements ClientPartitionService 
             PartitionTable newMetaData = new PartitionTable(connection, partitionStateVersion, newPartitions);
             if (this.partitionTable.compareAndSet(current, newMetaData)) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Applied partition table with partitionStateVersion : " + partitionStateVersion);
+                    logger.fine("Applied partition table with partitionStateVersion : %s", partitionStateVersion);
                 }
                 return;
             }
@@ -99,8 +99,8 @@ public final class ClientPartitionServiceImpl implements ClientPartitionService 
         }
         if (!connection.equals(current.connection)) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Event coming from a new connection. Old connection: " + current.connection
-                        + ", new connection " + connection);
+                logger.finest("Event coming from a new connection. Old connection: %s, new connection %s", current.connection,
+                        connection);
             }
             return true;
         }
@@ -176,7 +176,6 @@ public final class ClientPartitionServiceImpl implements ClientPartitionService 
     }
 
     /**
-     * @param newPartitionCount
      * @return true if partition count can be set for the first time, or it is equal to one that is already available,
      * returns false otherwise
      */

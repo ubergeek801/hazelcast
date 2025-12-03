@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,7 +189,7 @@ public final class AggregateOperations {
      * <em>Implementation note:</em> this aggregate operation does not
      * implement the {@link AggregateOperation1#deductFn() deduct} primitive.
      * This has performance implications for <a
-     * href="https://jet-start.sh/docs/architecture/sliding-window">sliding
+     * href="https://docs.hazelcast.com/hazelcast/latest/architecture/sliding-window">sliding
      * window aggregation</a>.
      *
      * @param comparator comparator to compare the items. It must be stateless
@@ -226,7 +226,7 @@ public final class AggregateOperations {
      * <em>Implementation note:</em> this aggregate operation does not
      * implement the {@link AggregateOperation1#deductFn() deduct} primitive.
      * This has performance implications for <a
-     * href="https://jet-start.sh/docs/architecture/sliding-window">sliding
+     * href="https://docs.hazelcast.com/hazelcast/latest/architecture/sliding-window">sliding
      * window aggregation</a>.
      *
      * @param comparator comparator to compare the items. It must be stateless
@@ -267,7 +267,7 @@ public final class AggregateOperations {
      * <em>Implementation note:</em> this aggregate operation does not
      * implement the {@link AggregateOperation1#deductFn() deduct} primitive.
      * This has performance implications for <a
-     * href="https://jet-start.sh/docs/architecture/sliding-window">sliding
+     * href="https://docs.hazelcast.com/hazelcast/latest/architecture/sliding-window">sliding
      * window aggregation</a>.
      *
      * @param n number of top items to find
@@ -321,7 +321,7 @@ public final class AggregateOperations {
      * <em>Implementation note:</em> this aggregate operation does not
      * implement the {@link AggregateOperation1#deductFn() deduct} primitive.
      * This has performance implications for <a
-     * href="https://jet-start.sh/docs/architecture/sliding-window">sliding
+     * href="https://docs.hazelcast.com/hazelcast/latest/architecture/sliding-window">sliding
      * window aggregation</a>.
      *
      * @param n number of bottom items to find

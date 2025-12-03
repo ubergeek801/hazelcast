@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import javax.cache.expiry.EternalExpiryPolicy;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -280,9 +279,9 @@ public abstract class AbstractCacheConfig<K, V> implements CacheConfiguration<K,
      * @param hotRestartConfig hot restart config
      * @return this {@code CacheConfiguration} instance
      *
-     * @deprecated since 5.0 use {@link AbstractCacheConfig#setDataPersistenceConfig(DataPersistenceConfig)}
+     * @deprecated use {@link AbstractCacheConfig#setDataPersistenceConfig(DataPersistenceConfig)}
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     public CacheConfiguration<K, V> setHotRestartConfig(@Nonnull HotRestartConfig hotRestartConfig) {
         this.hotRestartConfig = checkNotNull(hotRestartConfig, "HotRestartConfig can't be null");
 
@@ -463,7 +462,7 @@ public abstract class AbstractCacheConfig<K, V> implements CacheConfiguration<K,
     }
 
     protected Set<DeferredValue<CacheEntryListenerConfiguration<K, V>>> createConcurrentSet() {
-        return Collections.newSetFromMap(new ConcurrentHashMap<DeferredValue<CacheEntryListenerConfiguration<K, V>>, Boolean>());
+        return ConcurrentHashMap.newKeySet();
     }
 
     public CacheConfiguration<K, V> setKeyType(Class<K> keyType) {
@@ -501,7 +500,7 @@ public abstract class AbstractCacheConfig<K, V> implements CacheConfiguration<K,
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:npathcomplexity"})
+    @SuppressWarnings("checkstyle:npathcomplexity")
     public int hashCode() {
         int result = cacheLoaderFactory != null ? cacheLoaderFactory.hashCode() : 0;
         result = 31 * result + listenerConfigurations.hashCode();

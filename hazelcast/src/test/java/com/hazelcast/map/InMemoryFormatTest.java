@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@ public class InMemoryFormatTest extends HazelcastTestSupport {
     }
 
     @Test(expected = InvalidConfigurationException.class)
-    public void testNativeIMap_throwsException() throws Exception {
+    public void testNativeIMap_throwsException() {
         Config config = getConfig();
         config.getMapConfig("default").setInMemoryFormat(InMemoryFormat.NATIVE);
 
@@ -217,7 +217,7 @@ public class InMemoryFormatTest extends HazelcastTestSupport {
     }
 
     @Test(expected = InvalidConfigurationException.class)
-    public void testNativeNearCache_throwsException() throws Exception {
+    public void testNativeNearCache_throwsException() {
         NearCacheConfig nearCacheConfig = new NearCacheConfig();
         nearCacheConfig.setInMemoryFormat(InMemoryFormat.NATIVE);
 

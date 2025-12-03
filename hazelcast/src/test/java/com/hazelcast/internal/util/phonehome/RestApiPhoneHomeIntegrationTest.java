@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -71,7 +72,7 @@ public class RestApiPhoneHomeIntegrationTest extends HazelcastTestSupport {
         HazelcastInstance instance = factory.newHazelcastInstance(config);
         http = new HTTPCommunicator(instance);
         phoneHome = new PhoneHome(getNode(instance), "http://localhost:" + wireMockRule.port() + "/ping");
-        stubFor(post(urlPathEqualTo("/ping")).willReturn(aResponse().withStatus(200)));
+        stubFor(post(urlPathEqualTo("/ping")).willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK)));
     }
 
     @After

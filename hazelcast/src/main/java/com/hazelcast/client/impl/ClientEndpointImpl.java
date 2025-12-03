@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client.impl;
 
 import com.hazelcast.client.Client;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.statistics.ClientStatistics;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.internal.metrics.MetricConsumer;
@@ -78,6 +78,7 @@ public final class ClientEndpointImpl implements ClientEndpoint {
     private volatile boolean destroyed;
     private volatile TpcToken tpcToken;
     private RoutingMode routingMode;
+    private boolean cpDirectToLeaderRouting;
 
     public ClientEndpointImpl(ClientEngine clientEngine, NodeEngine nodeEngine, ServerConnection connection) {
         this.clientEngine = clientEngine;
@@ -122,7 +123,8 @@ public final class ClientEndpointImpl implements ClientEndpoint {
 
     @Override
     public void authenticated(UUID clientUuid, Credentials credentials, String clientVersion,
-                              long authCorrelationId, String clientName, Set<String> labels, RoutingMode routingMode) {
+                              long authCorrelationId, String clientName, Set<String> labels, RoutingMode routingMode,
+                              boolean cpDirectToLeaderRouting) {
         this.clientUuid = clientUuid;
         this.credentials = credentials;
         this.authenticated = true;
@@ -130,6 +132,7 @@ public final class ClientEndpointImpl implements ClientEndpoint {
         this.routingMode = routingMode;
         this.clientName = clientName;
         this.labels = labels;
+        this.cpDirectToLeaderRouting = cpDirectToLeaderRouting;
         clientEngine.onEndpointAuthenticated(this);
     }
 
@@ -378,5 +381,10 @@ public final class ClientEndpointImpl implements ClientEndpoint {
     @Override
     public TpcToken getTpcToken() {
         return tpcToken;
+    }
+
+    @Override
+    public boolean isCpDirectToLeaderEnabled() {
+        return cpDirectToLeaderRouting;
     }
 }

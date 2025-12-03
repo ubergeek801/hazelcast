@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@
 package com.hazelcast.spring.cache;
 
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.spring.CustomSpringJUnit4ClassRunner;
-import com.hazelcast.test.annotation.QuickTest;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
+import com.hazelcast.spring.CustomSpringExtension;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,43 +38,44 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.test.HazelcastTestSupport.sleepMillis;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 /**
  * Tests for {@link HazelcastCache}.
  *
  * @author Stephane Nicoll
  */
-@RunWith(CustomSpringJUnit4ClassRunner.class)
+@ExtendWith({SpringExtension.class, CustomSpringExtension.class})
 @ContextConfiguration(locations = {"simple-config.xml"})
-@Category(QuickTest.class)
-public class HazelcastCacheTest {
+class HazelcastCacheTest {
 
     @Autowired
     public CacheManager cacheManager;
 
     private Cache cache;
 
-    @BeforeClass
-    @AfterClass
+    @BeforeAll
+    @AfterAll
     public static void start() {
         Hazelcast.shutdownAll();
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.cache = cacheManager.getCache("test");
     }
 
     @Test
-    public void testCacheGetCallable() {
+    void testCacheGetCallable() {
         doTestCacheGetCallable("test");
     }
 
     @Test
-    public void testCacheGetCallableWithNull() {
+    void testCacheGetCallableWithNull() {
         doTestCacheGetCallable(null);
     }
 
@@ -89,12 +90,12 @@ public class HazelcastCacheTest {
     }
 
     @Test
-    public void testCacheGetCallableNotInvokedWithHit() {
+    void testCacheGetCallableNotInvokedWithHit() {
         doTestCacheGetCallableNotInvokedWithHit("existing");
     }
 
     @Test
-    public void testCacheGetCallableNotInvokedWithHitNull() {
+    void testCacheGetCallableNotInvokedWithHitNull() {
         doTestCacheGetCallableNotInvokedWithHit(null);
     }
 
@@ -109,7 +110,7 @@ public class HazelcastCacheTest {
     }
 
     @Test
-    public void testCacheGetCallableFail() {
+    void testCacheGetCallableFail() {
         String key = createRandomKey();
         assertNull(cache.get(key));
 
@@ -127,7 +128,7 @@ public class HazelcastCacheTest {
      * Tests that a call to get with a Callable concurrently properly synchronize the invocations.
      */
     @Test
-    public void testCacheGetSynchronized() throws Exception {
+    void testCacheGetSynchronized() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
         final List<Object> results = new CopyOnWriteArrayList<>();
         final CountDownLatch latch = new CountDownLatch(10);
@@ -156,6 +157,30 @@ public class HazelcastCacheTest {
         for (Object result : results) {
             assertThat((Integer) result).isEqualTo(1);
         }
+    }
+
+    @Test
+    void testCacheRetrieveWithNull() {
+        assertThrows(NullPointerException.class, () -> cache.get(null).get());
+    }
+
+    @Test
+    void testCacheRetrieveWithRandomKey() {
+        String key = createRandomKey();
+        Cache.ValueWrapper valueWrapper = cache.get(key);
+
+        assertNull(valueWrapper);
+    }
+
+    @Test
+    void testCacheRetrieveWithExistingKey() {
+        String key = createRandomKey();
+        cache.put(key, "test");
+
+        Cache.ValueWrapper valueWrapper = cache.get(key);
+
+        assertNotNull(valueWrapper);
+        assertThat(valueWrapper.get()).isEqualTo("test");
     }
 
     private String createRandomKey() {

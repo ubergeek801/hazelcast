@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import com.hazelcast.test.TestEnvironment;
 import com.hazelcast.test.compatibility.SamplingNodeExtension;
 
 import java.lang.reflect.Constructor;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
@@ -45,27 +43,18 @@ public class MockNodeContext implements NodeContext {
     private final TestNodeRegistry registry;
     private final Address thisAddress;
     private final Set<Address> initiallyBlockedAddresses;
-    private final List<String> nodeExtensionPriorityList;
 
-    public MockNodeContext(TestNodeRegistry registry, Address thisAddress) {
-        this(registry, thisAddress, Collections.emptySet(), DefaultNodeContext.EXTENSION_PRIORITY_LIST);
-    }
-
-    protected MockNodeContext(
-            TestNodeRegistry registry, Address thisAddress, Set<Address> initiallyBlockedAddresses,
-            List<String> nodeExtensionPriorityList
-    ) {
+    MockNodeContext(TestNodeRegistry registry, Address thisAddress, Set<Address> initiallyBlockedAddresses) {
         this.registry = registry;
         this.thisAddress = thisAddress;
         this.initiallyBlockedAddresses = initiallyBlockedAddresses;
-        this.nodeExtensionPriorityList = nodeExtensionPriorityList;
     }
 
     @Override
     public NodeExtension createNodeExtension(Node node) {
         return TestEnvironment.isRecordingSerializedClassNames()
                 ? constructSamplingNodeExtension(node)
-                : NodeExtensionFactory.create(node, nodeExtensionPriorityList);
+                : NodeExtensionFactory.create(node, DefaultNodeContext.EXTENSION_PRIORITY_LIST);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class LazyIteratorTest extends HazelcastTestSupport {
         TEST_DATA_SIMPLE = new InternalReplicatedMapStorage<>();
         for (int i = 0; i < 100; i++) {
             String key = "key-" + i;
-            TEST_DATA_SIMPLE.put(key, new ReplicatedRecord<String, Integer>(key, i, -1));
+            TEST_DATA_SIMPLE.put(key, new ReplicatedRecord<>(key, i, -1));
             TEST_DATA_SIMPLE.incrementVersion();
         }
     }

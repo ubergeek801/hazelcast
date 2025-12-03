@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,6 +196,9 @@ public final class FailoverClientConfigSupport {
         if (notEqual(mainConfig.getTpcConfig(), alternativeConfig.getTpcConfig())) {
             throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "tpcConfig");
         }
+        if (notEqual(mainConfig.isCPDirectToLeaderRoutingEnabled(), alternativeConfig.isCPDirectToLeaderRoutingEnabled())) {
+            throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "isCPDirectToLeaderRoutingEnabled");
+        }
     }
 
     @SuppressWarnings({"checkstyle:cyclomaticcomplexity", "checkstyle:npathcomplexity", "checkstyle:methodlength"})
@@ -214,8 +217,9 @@ public final class FailoverClientConfigSupport {
             throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "network");
         }
 
-        if (mainNetworkConfig.isSmartRouting() != alternativeNetworkConfig.isSmartRouting()) {
-            throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "network:smartRouting");
+        if (mainNetworkConfig.getClusterRoutingConfig().getRoutingMode()
+                != alternativeNetworkConfig.getClusterRoutingConfig().getRoutingMode()) {
+            throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "network:clusterRouting:mode");
         }
         if (mainNetworkConfig.isRedoOperation() != alternativeNetworkConfig.isRedoOperation()) {
             throwInvalidConfigurationException(mainClusterName, alternativeClusterName, "network:redoOperation");

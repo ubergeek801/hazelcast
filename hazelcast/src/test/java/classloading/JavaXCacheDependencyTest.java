@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,17 @@ import org.junit.runner.RunWith;
 @Category(NightlyTest.class)
 public class JavaXCacheDependencyTest extends AbstractJavaXCacheDependencyTest {
 
+    @Override
     protected String getConfigClass() {
         return "com.hazelcast.config.Config";
     }
 
+    @Override
     protected String getHazelcastClass() {
         return "com.hazelcast.core.Hazelcast";
     }
 
+    @Override
     protected String getNewInstanceMethod() {
         return "newHazelcastInstance";
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class AutoBatcherTest {
 
     private static final int VALIDITY = 10000;
 
-    private AutoBatcher batcher = new AutoBatcher(3, VALIDITY, new AutoBatcher.IdBatchSupplier() {
+    private final AutoBatcher batcher = new AutoBatcher(3, VALIDITY, new AutoBatcher.IdBatchSupplier() {
 
         int base;
 
@@ -67,7 +67,7 @@ public class AutoBatcherTest {
 
     @Test
     public void concurrencySmokeTest() throws Exception {
-        Set<Long> ids = FlakeIdConcurrencyTestUtil.concurrentlyGenerateIds(() -> batcher.newId());
+        Set<Long> ids = FlakeIdConcurrencyTestUtil.concurrentlyGenerateIds(batcher::newId);
         for (int i = 0; i < NUM_THREADS * IDS_IN_THREAD; i++) {
             assertTrue("Missing ID: " + i, ids.contains((long) i));
         }

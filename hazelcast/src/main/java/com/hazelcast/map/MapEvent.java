@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.map;
 
 import com.hazelcast.cluster.Member;
 
+import java.io.Serial;
+
 /**
  * Used for map-wide events like {@link com.hazelcast.core.EntryEventType#EVICT_ALL}
  * and {@link  com.hazelcast.core.EntryEventType#CLEAR_ALL}.
@@ -27,6 +29,7 @@ import com.hazelcast.cluster.Member;
  */
 public class MapEvent extends AbstractIMapEvent {
 
+    @Serial
     private static final long serialVersionUID = -4948640313865667023L;
 
     /**

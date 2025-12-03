@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationService;
 import com.hazelcast.spi.impl.operationservice.impl.InvocationFuture;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.UUID;
 import java.util.concurrent.Delayed;
@@ -49,16 +48,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 
-@SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public final class ScheduledFutureProxy<V>
         implements IScheduledFuture<V>, HazelcastInstanceAware {
 
     private transient HazelcastInstance instance;
 
-    private final transient AtomicBoolean partitionLost = new AtomicBoolean(false);
+    private final transient AtomicBoolean partitionLost = new AtomicBoolean();
 
-    private final transient AtomicBoolean memberLost = new AtomicBoolean(false);
+    private final transient AtomicBoolean memberLost = new AtomicBoolean();
 
     // Single writer, many readers (see partition & member listener)
     private volatile ScheduledTaskHandler handler;
@@ -109,7 +107,7 @@ public final class ScheduledFutureProxy<V>
         if (mayInterruptIfRunning) {
             // DelegateAndSkipOnConcurrentExecutionDecorator doesn't expose the Executor's future
             // therefore we don't have access to the runner thread to interrupt. We could access through Thread.currentThread()
-            // inside the TaskRunner but it adds extra complexity.
+            // inside the TaskRunner, but it adds extra complexity.
             throw new UnsupportedOperationException("mayInterruptIfRunning flag is not supported.");
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public interface ServerConnection extends Connection {
 
     /**
      * Returns the connection type.
-     *
+     * <p>
      * See  {@link com.hazelcast.internal.nio.ConnectionType} for in-house candidates. Note that a type could be
      * provided by a custom client, and it can be a string outside of {@link com.hazelcast.internal.nio.ConnectionType}
      *

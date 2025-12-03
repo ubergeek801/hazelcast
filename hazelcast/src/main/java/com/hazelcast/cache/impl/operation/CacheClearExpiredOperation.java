@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.cache.impl.operation;
 import com.hazelcast.cache.impl.CachePartitionSegment;
 import com.hazelcast.cache.impl.CacheService;
 import com.hazelcast.cache.impl.ICacheRecordStore;
+import com.hazelcast.cache.impl.ICacheService;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.cluster.Address;
@@ -34,7 +35,7 @@ import java.util.logging.Level;
 public class CacheClearExpiredOperation extends AbstractLocalOperation
         implements PartitionAwareOperation, MutatingOperation {
 
-    private int expirationPercentage;
+    private final int expirationPercentage;
 
     public CacheClearExpiredOperation(int expirationPercentage) {
         this.expirationPercentage = expirationPercentage;
@@ -42,7 +43,7 @@ public class CacheClearExpiredOperation extends AbstractLocalOperation
 
     @Override
     public String getServiceName() {
-        return CacheService.SERVICE_NAME;
+        return ICacheService.SERVICE_NAME;
     }
 
     @Override
@@ -98,6 +99,7 @@ public class CacheClearExpiredOperation extends AbstractLocalOperation
     @Override
     public void afterRun() throws Exception {
         prepareForNextCleanup();
+        super.afterRun();
     }
 
     protected void prepareForNextCleanup() {

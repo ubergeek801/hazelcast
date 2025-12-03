@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.replicatedmap.impl.ReplicatedMapService;
 import com.hazelcast.spi.impl.NodeEngine;
 
+import static com.hazelcast.internal.namespace.NamespaceUtil.callWithNamespace;
+
 /**
  * This is a {@link Data} based {@link ReplicatedRecordStore}
  * implementation
@@ -35,11 +37,14 @@ public class DataReplicatedRecordStore extends AbstractReplicatedRecordStore<Dat
 
     @Override
     public Object unmarshall(Object object) {
-        return object == null ? null : nodeEngine.toObject(object);
+        String userCodeNamespace = replicatedMapConfig.getUserCodeNamespace();
+        return object == null ? null
+                : callWithNamespace(nodeEngine, userCodeNamespace,  () -> nodeEngine.toObject(object));
     }
 
     @Override
     public Object marshall(Object object) {
-        return nodeEngine.toData(object);
+        String userCodeNamespace = replicatedMapConfig.getUserCodeNamespace();
+        return callWithNamespace(nodeEngine, userCodeNamespace,  () -> nodeEngine.toData(object));
     }
 }

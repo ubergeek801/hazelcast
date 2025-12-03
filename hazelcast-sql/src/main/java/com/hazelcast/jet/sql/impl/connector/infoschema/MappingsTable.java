@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,11 +89,18 @@ public class MappingsTable extends InfoSchemaTable {
         List<Object[]> rows = new ArrayList<>(mappings.size());
         for (Mapping mapping : mappings) {
             Map<String, String> options;
+
+            final String type = Optional.ofNullable(mapping.dataConnection())
+                .map(dataConnectionTypeResolver)
+                .or(() -> Optional.ofNullable(mapping.connectorType()))
+                .orElseThrow(() ->
+                    new IllegalStateException("Could not resolve mapping type for mapping " + mapping.name()));
+
             if (!securityEnabled) {
                 options = mapping.options();
             } else {
                 options = new TreeMap<>();
-                final SqlConnector sqlConnector = sqlConnectorCache.forType(mapping.connectorType());
+                final SqlConnector sqlConnector = sqlConnectorCache.forType(type);
                 final Set<String> secureConnectorOptions = sqlConnector.nonSensitiveConnectorOptions();
                 for (Entry<String, String> e : mapping.options().entrySet()) {
                     if (secureConnectorOptions.contains(e.getKey())) {
@@ -106,9 +113,7 @@ public class MappingsTable extends InfoSchemaTable {
                     mappingsSchema,
                     mapping.name(),
                     quoteCompoundIdentifier(mapping.externalName()),
-                    Optional.ofNullable(mapping.dataConnection())
-                            .map(dataConnectionTypeResolver)
-                            .orElse(mapping.connectorType()),
+                    type,
                     uncheckCall(() -> JsonUtil.toJson(options))
             };
             rows.add(row);

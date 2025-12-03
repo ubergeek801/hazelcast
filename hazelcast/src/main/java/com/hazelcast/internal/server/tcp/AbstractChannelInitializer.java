@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,8 @@ import com.hazelcast.internal.server.ServerContext;
 public abstract class AbstractChannelInitializer implements ChannelInitializer {
 
     protected final ServerContext serverContext;
-    private final EndpointConfig config;
 
     protected AbstractChannelInitializer(ServerContext serverContext, EndpointConfig config) {
-        this.config = config;
         this.serverContext = serverContext;
     }
 }

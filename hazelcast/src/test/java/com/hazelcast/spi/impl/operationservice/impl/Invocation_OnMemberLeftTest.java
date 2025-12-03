@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import com.hazelcast.cluster.impl.MemberImpl;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MemberLeftException;
-import com.hazelcast.instance.StaticMemberNodeContext;
 import com.hazelcast.internal.cluster.ClusterService;
 import com.hazelcast.spi.impl.operationservice.ExceptionAction;
 import com.hazelcast.spi.impl.operationservice.Operation;
+import com.hazelcast.spi.impl.operationservice.SelfResponseOperation;
 import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.test.Accessors;
 import com.hazelcast.test.HazelcastParallelClassRunner;
@@ -43,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.hazelcast.instance.impl.HazelcastInstanceFactory.newHazelcastInstance;
 import static com.hazelcast.test.Accessors.getOperationService;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -151,10 +150,12 @@ public class Invocation_OnMemberLeftTest extends HazelcastTestSupport {
 
     @Test
     public void whenMemberRestarts_withSameIdentity() throws Exception {
-        whenMemberRestarts(() -> {
-            StaticMemberNodeContext nodeContext = new StaticMemberNodeContext(instanceFactory, remoteMember);
-            remote = newHazelcastInstance(new Config(), remoteMember.toString(), nodeContext);
-        });
+        whenMemberRestarts(() ->
+            remote = instanceFactory.builder()
+                    .withAddress(remoteMember.getAddress())
+                    .withUuid(remoteMember.getUuid())
+                    .construct()
+        );
     }
 
     private void whenMemberRestarts(Runnable restartAction) throws Exception {
@@ -215,7 +216,8 @@ public class Invocation_OnMemberLeftTest extends HazelcastTestSupport {
         assertTrueEventually(() -> assertNotNull(nonMaster.getUserContext().get(UnresponsiveMasterOperation.COMPLETION_FLAG)));
     }
 
-    private static class UnresponsiveMasterOperation extends Operation {
+    // Implements SelfResponseOperation marker to allow invoking without returning a response
+    private static class UnresponsiveMasterOperation extends Operation implements SelfResponseOperation {
         static final String COMPLETION_FLAG = UnresponsiveMasterOperation.class.getName();
 
         @Override
@@ -237,7 +239,8 @@ public class Invocation_OnMemberLeftTest extends HazelcastTestSupport {
         }
     }
 
-    private static class UnresponsiveTargetOperation extends Operation {
+    // Implements SelfResponseOperation marker to allow invoking without returning a response
+    private static class UnresponsiveTargetOperation extends Operation implements SelfResponseOperation {
         static final String COMPLETION_FLAG = UnresponsiveTargetOperation.class.getName();
 
         @Override

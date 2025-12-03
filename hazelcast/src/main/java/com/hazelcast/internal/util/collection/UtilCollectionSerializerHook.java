@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class UtilCollectionSerializerHook implements DataSerializerHook {
         return F_ID;
     }
 
+    @Override
     public DataSerializableFactory createFactory() {
         return typeId -> switch (typeId) {
             case PARTITION_ID_SET -> new PartitionIdSet();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,9 @@ public interface Job {
      * status from the job coordinator. For light jobs it returns only {@link
      * JobStatus#RUNNING RUNNING}, {@link JobStatus#COMPLETED COMPLETED} or
      * {@link JobStatus#FAILED FAILED}.
+     * {@link JobStatus#RUNNING RUNNING} for light jobs may indicate either
+     * that the job is running or that it is still in the process of starting.
+     *
      */
     @Nonnull
     JobStatus getStatus();

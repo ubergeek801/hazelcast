@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,9 +83,6 @@ public abstract class AbstractMapDataStore<K, V> implements MapDataStore<K, V> {
      * Returns expiration time offset in terms of JVM clock. HZ view vs
      * JVM view of expiration time may differ in case of a custom clock
      * implementation.
-     *
-     * @param hzExpirationTime
-     * @return
      */
     protected static long getUserExpirationTime(long hzExpirationTime) {
         if (hzExpirationTime == Long.MAX_VALUE) {

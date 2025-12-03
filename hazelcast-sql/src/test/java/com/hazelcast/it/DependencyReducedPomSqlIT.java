@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 public class DependencyReducedPomSqlIT  extends DependencyReducedPomIT {
 
     // The com.hazelcast:hazelcast dependency is expected.
+    @Override
     protected int expectedDependencies() {
         return 1;
     }

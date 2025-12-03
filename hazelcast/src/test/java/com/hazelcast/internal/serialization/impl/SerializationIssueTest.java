@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,25 +38,21 @@ import com.hazelcast.nio.serialization.StreamSerializer;
 import com.hazelcast.partition.PartitioningStrategy;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
+import com.hazelcast.test.TestJavaSerializationUtils;
 import com.hazelcast.test.annotation.QuickTest;
 import com.hazelcast.version.MemberVersion;
 import com.hazelcast.version.Version;
-
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
@@ -79,6 +75,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastSerialClassRunner.class)
@@ -286,7 +283,7 @@ public class SerializationIssueTest extends HazelcastTestSupport {
         Data data = ss.toData(new Foo());
         Foo foo = ss.toObject(data);
 
-        assertTrue("Objects are not identical!", foo == foo.getBar().getFoo());
+        assertSame("Objects are not identical!", foo, foo.getBar().getFoo());
     }
 
     @Test
@@ -312,12 +309,7 @@ public class SerializationIssueTest extends HazelcastTestSupport {
 
     @Test
     public void testPartitionHash() {
-        PartitioningStrategy partitionStrategy = new PartitioningStrategy() {
-            @Override
-            public Object getPartitionKey(Object key) {
-                return key.hashCode();
-            }
-        };
+        PartitioningStrategy partitionStrategy = Object::hashCode;
 
         SerializationService ss = new DefaultSerializationServiceBuilder().build();
 
@@ -341,7 +333,7 @@ public class SerializationIssueTest extends HazelcastTestSupport {
         Data data = ss.toData(new Foo());
         Foo foo = ss.toObject(data);
 
-        Assert.assertFalse("Objects should not be identical!", foo == foo.getBar().getFoo());
+        Assert.assertNotSame("Objects should not be identical!", foo, foo.getBar().getFoo());
     }
 
     private static class Foo implements Serializable {
@@ -472,13 +464,7 @@ public class SerializationIssueTest extends HazelcastTestSupport {
 
         MemberLeftException exception = new MemberLeftException(member);
 
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bout);
-        out.writeObject(exception);
-
-        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
-        ObjectInputStream in = new ObjectInputStream(bin);
-        MemberLeftException exception2 = (MemberLeftException) in.readObject();
+        MemberLeftException exception2 = TestJavaSerializationUtils.serializeAndDeserialize(exception);
         MemberImpl member2 = (MemberImpl) exception2.getMember();
 
         assertEquals(uuid, member2.getUuid());
@@ -501,10 +487,7 @@ public class SerializationIssueTest extends HazelcastTestSupport {
     static class TheClassThatExtendArrayList<E> extends ArrayList<E> implements DataSerializable {
         @Override
         public void writeData(ObjectDataOutput out) throws IOException {
-            out.writeInt(size());
-            for (Object item : this) {
-                out.writeObject(item);
-            }
+            SerializationUtil.writeCollection(this, out);
         }
 
         @Override
@@ -603,8 +586,8 @@ public class SerializationIssueTest extends HazelcastTestSupport {
 
     private static final class DynamicProxyTestClassLoader extends ClassLoader {
 
-        private static final Set<String> WELL_KNOWN_TEST_CLASSES = new HashSet<>(asList(IObjectA.class.getName(),
-                IPrivateObjectB.class.getName(), IPrivateObjectC.class.getName()));
+        private static final Set<String> WELL_KNOWN_TEST_CLASSES = Set.of(IObjectA.class.getName(),
+                IPrivateObjectB.class.getName(), IPrivateObjectC.class.getName());
 
         private final Set<String> wellKnownClasses = new HashSet<>();
 

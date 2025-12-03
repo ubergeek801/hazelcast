@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class InvocationFuture_CancelTest extends HazelcastTestSupport {
     @Test
     public void whenCallCancel_thenCancelled() {
         // Given
-        InternalCompletableFuture future = invoke();
+        InternalCompletableFuture<Object> future = invoke();
 
         // When
         boolean result = future.cancel(true);
@@ -66,7 +66,7 @@ public class InvocationFuture_CancelTest extends HazelcastTestSupport {
     @Test
     public void whenCancelled_thenCantCancelAgain() {
         // Given
-        InternalCompletableFuture future = invoke();
+        InternalCompletableFuture<Object> future = invoke();
 
         // When
         future.cancel(true);
@@ -78,7 +78,7 @@ public class InvocationFuture_CancelTest extends HazelcastTestSupport {
     @Test
     public void whenCancelled_thenGetThrowsCancelled() {
         // Given
-        InternalCompletableFuture future = invoke();
+        InternalCompletableFuture<Object> future = invoke();
 
         // When
         future.cancel(true);
@@ -87,7 +87,7 @@ public class InvocationFuture_CancelTest extends HazelcastTestSupport {
         assertThrows(CancellationException.class, future::get);
     }
 
-    private InternalCompletableFuture invoke() {
+    private InternalCompletableFuture<Object> invoke() {
         Operation op = new Operation() {
             @Override
             public void run() {

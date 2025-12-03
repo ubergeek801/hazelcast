@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.internal.nio.IOUtil.closeResource;
-import static com.hazelcast.jet.TestedVersions.MONGO_VERSION;
+import static com.hazelcast.jet.TestedVersions.MONGO_IMAGE;
 import static com.hazelcast.jet.mongodb.impl.Mappers.defaultCodecRegistry;
 import static com.hazelcast.test.DockerTestUtil.assumeDockerEnabled;
 import static java.util.Arrays.asList;
@@ -55,7 +55,7 @@ import static org.junit.Assert.assertEquals;
 
 public abstract class AbstractMongoTest extends SimpleTestInClusterSupport {
 
-    public static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:" + MONGO_VERSION);
+    public static MongoDBContainer mongoContainer = new MongoDBContainer(MONGO_IMAGE);
 
     static MongoClient mongo;
     static BsonTimestamp startAtOperationTime;

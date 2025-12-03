@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client.impl;
 
 import com.hazelcast.client.Client;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.statistics.ClientStatistics;
 import com.hazelcast.internal.metrics.DynamicMetricsProvider;
 import com.hazelcast.internal.server.ServerConnection;
@@ -88,7 +88,8 @@ public interface ClientEndpoint extends Client, DynamicMetricsProvider {
     void setLoginContext(LoginContext lc);
 
     void authenticated(UUID clientUuid, Credentials credentials, String clientVersion,
-                       long authCorrelationId, String clientName, Set<String> labels, RoutingMode routingMode);
+                       long authCorrelationId, String clientName, Set<String> labels, RoutingMode routingMode,
+                       boolean cpDirectToLeaderRouting);
 
     /**
      * @return true if endpoint is authenticated with valid security credentials, returns false otherwise
@@ -165,4 +166,11 @@ public interface ClientEndpoint extends Client, DynamicMetricsProvider {
      */
     RoutingMode getRoutingMode();
 
+    /**
+     * Returns whether this client has the `cp-direct-to-leader-routing`
+     * option enabled or not.
+     *
+     * @return {@code true} if it is enabled, else {@code false}
+     */
+    boolean isCpDirectToLeaderEnabled();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,7 @@ public class ScheduledExecutorConfig implements IdentifiedDataSerializable, Name
      *
      * @return the name of the executor task
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -132,6 +133,7 @@ public class ScheduledExecutorConfig implements IdentifiedDataSerializable, Name
      * @param name the name of the executor task
      * @return this executor config instance
      */
+    @Override
     public ScheduledExecutorConfig setName(String name) {
         this.name = name;
         return this;
@@ -218,8 +220,6 @@ public class ScheduledExecutorConfig implements IdentifiedDataSerializable, Name
      * <p>
      * To prevent any undesirable data-loss, capacity is ignored during partition migrations,
      * the count is updated accordingly, however the rejection is not enforced.
-     *
-     * @param capacityPolicy
      */
     public ScheduledExecutorConfig setCapacityPolicy(@Nonnull CapacityPolicy capacityPolicy) {
         checkNotNull(capacityPolicy);
@@ -306,6 +306,7 @@ public class ScheduledExecutorConfig implements IdentifiedDataSerializable, Name
      * @return the updated {@link ScheduledExecutorConfig} instance
      * @since 5.4
      */
+    @Override
     public ScheduledExecutorConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;
@@ -370,7 +371,7 @@ public class ScheduledExecutorConfig implements IdentifiedDataSerializable, Name
         }
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity"})
+    @SuppressWarnings("checkstyle:npathcomplexity")
     @Override
     public final boolean equals(Object o) {
         if (this == o) {

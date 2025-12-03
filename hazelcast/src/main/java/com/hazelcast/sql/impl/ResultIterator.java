@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public interface ResultIterator<T> extends Iterator<T> {
 
         /**
          * Another item is not available immediately, but might be available later.
-         * The caller should check again later. Also there might not be a next
+         * The caller should check again later. Also, there might not be a next
          * item at all.
          */
         TIMEOUT,

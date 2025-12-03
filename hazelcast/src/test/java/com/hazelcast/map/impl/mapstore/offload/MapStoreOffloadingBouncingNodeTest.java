@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class MapStoreOffloadingBouncingNodeTest extends HazelcastTestSupport {
 
         IMap<String, String> map = node1.getMap(mapName);
 
-        AtomicBoolean stop = new AtomicBoolean(false);
+        AtomicBoolean stop = new AtomicBoolean();
         int availableProcessors = Math.min(6, RuntimeAvailableProcessors.get());
         ExecutorService executorService = Executors.newFixedThreadPool(availableProcessors);
 

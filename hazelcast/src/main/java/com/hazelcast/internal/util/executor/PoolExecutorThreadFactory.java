@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,16 +28,31 @@ import static com.hazelcast.internal.util.EmptyStatement.ignore;
 public class PoolExecutorThreadFactory extends AbstractExecutorThreadFactory {
 
     private final String threadNamePrefix;
-    private final AtomicInteger idGen = new AtomicInteger(0);
+    private final AtomicInteger idGen = new AtomicInteger();
     // to reuse previous thread IDs
     private final Queue<Integer> idQ = new LinkedBlockingQueue<>(1000);
 
     private final NodeEngine nodeEngine;
 
+    /**
+     * Creates a new instance of {@link PoolExecutorThreadFactory} without {@link NodeEngine} context.
+     * This constructor is typically only used for Client-side implementations.
+     *
+     * @param threadNamePrefix the thread name prefix for this factory
+     * @param classLoader      the parent {@link ClassLoader} for this factory
+     */
     public PoolExecutorThreadFactory(String threadNamePrefix, ClassLoader classLoader) {
         this(threadNamePrefix, classLoader, null);
     }
 
+    /**
+     * Creates a new instance of {@link PoolExecutorThreadFactory} with {@link NodeEngine} context.
+     * This constructor is typically used for all Member-side implementations.
+     *
+     * @param threadNamePrefix the thread name prefix for this factory
+     * @param classLoader      the parent {@link ClassLoader} for this factory
+     * @param nodeEngine       the {@link NodeEngine} context for the relevant member
+     */
     public PoolExecutorThreadFactory(String threadNamePrefix, ClassLoader classLoader, NodeEngine nodeEngine) {
         super(classLoader);
         this.threadNamePrefix = threadNamePrefix;

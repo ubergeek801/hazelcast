@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,16 +60,21 @@ public class InstanceTrackingInfoTest extends HazelcastTestSupport {
 
     @Test
     public void testCustomFormat() throws IOException {
-        String format = "mode: $HZ_INSTANCE_TRACKING{mode}\n"
-                + "product: $HZ_INSTANCE_TRACKING{product}\n"
-                + "licensed: $HZ_INSTANCE_TRACKING{licensed}\n"
-                + "missing:$HZ_INSTANCE_TRACKING{missing}\n"
-                + "broken: $HZ_INSTANCE_TRACKING{broken ";
-        String expected = "mode: embedded\n"
-                + "product: Hazelcast\n"
-                + "licensed: 0\n"
-                + "missing:$HZ_INSTANCE_TRACKING{missing}\n"
-                + "broken: $HZ_INSTANCE_TRACKING{broken ";
+        String format = """
+                mode: $HZ_INSTANCE_TRACKING{mode}
+                product: $HZ_INSTANCE_TRACKING{product}
+                licensed: $HZ_INSTANCE_TRACKING{licensed}
+                missing:$HZ_INSTANCE_TRACKING{missing}
+                broken: $HZ_INSTANCE_TRACKING{broken
+                """;
+
+        String expected = """
+                mode: embedded
+                product: Hazelcast
+                licensed: 0
+                missing:$HZ_INSTANCE_TRACKING{missing}
+                broken: $HZ_INSTANCE_TRACKING{broken
+                """;
         assertTrackingFileContents(format, content -> assertEquals(expected, content));
     }
 

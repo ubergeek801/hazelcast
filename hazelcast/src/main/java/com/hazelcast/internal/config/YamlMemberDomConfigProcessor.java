@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.config.CompactSerializationConfigAccessor;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.DiscoveryConfig;
 import com.hazelcast.config.DurableExecutorConfig;
 import com.hazelcast.config.EndpointConfig;
 import com.hazelcast.config.EntryListenerConfig;
 import com.hazelcast.config.ExecutorConfig;
-import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.FlakeIdGeneratorConfig;
 import com.hazelcast.config.GlobalSerializerConfig;
 import com.hazelcast.config.IndexConfig;
@@ -45,7 +45,6 @@ import com.hazelcast.config.MapPartitionLostListenerConfig;
 import com.hazelcast.config.MemberGroupConfig;
 import com.hazelcast.config.MergePolicyConfig;
 import com.hazelcast.config.MultiMapConfig;
-import com.hazelcast.config.UserCodeNamespaceConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.OnJoinPermissionOperationName;
 import com.hazelcast.config.PNCounterConfig;
@@ -72,6 +71,7 @@ import com.hazelcast.config.SplitBrainProtectionListenerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.config.TopicConfig;
 import com.hazelcast.config.TrustedInterfacesConfigurable;
+import com.hazelcast.config.UserCodeNamespaceConfig;
 import com.hazelcast.config.WanBatchPublisherConfig;
 import com.hazelcast.config.WanCustomPublisherConfig;
 import com.hazelcast.config.WanReplicationConfig;
@@ -109,9 +109,10 @@ import java.util.function.Function;
 
 import static com.hazelcast.internal.config.DomConfigHelper.childElements;
 import static com.hazelcast.internal.config.DomConfigHelper.cleanNodeName;
-import static com.hazelcast.internal.config.DomConfigHelper.firstChildElement;
 import static com.hazelcast.internal.config.DomConfigHelper.getBooleanValue;
 import static com.hazelcast.internal.config.DomConfigHelper.getIntegerValue;
+import static com.hazelcast.internal.config.YamlMemberDomConfigProcessor.NamespaceDefinitionStyle.NEW_STYLE;
+import static com.hazelcast.internal.config.YamlMemberDomConfigProcessor.NamespaceDefinitionStyle.OLD_STYLE;
 import static com.hazelcast.internal.config.yaml.W3cDomUtil.getWrappedYamlSequence;
 import static com.hazelcast.internal.util.StringUtil.lowerCaseInternal;
 import static com.hazelcast.internal.util.StringUtil.upperCaseInternal;
@@ -140,6 +141,7 @@ public class YamlMemberDomConfigProcessor extends MemberDomConfigProcessor {
         cfg.addSecurityInterceptorConfig(new SecurityInterceptorConfig(className));
     }
 
+    @Override
     @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:methodlength"})
     protected void handleSecurityPermissions(Node node) {
         String onJoinOp = getAttribute(node, "on-join-operation");
@@ -317,49 +319,84 @@ public class YamlMemberDomConfigProcessor extends MemberDomConfigProcessor {
         }
     }
 
+    /**
+     * Backward-compatible implementation of YAML version of UserCodeNamespacesConfig handling.
+     * The implementation includes two styles of configuration:
+     * <pre>
+     * 1. Released in 5.4 - namespace configurations are a part of the 'user-code-namespaces' array.
+     * 2. Released in 5.5 and backported to 5.4.1 namespace configurations are inside the 'name-spaces' object.
+     * </pre>
+     */
     @Override
     protected void handleNamespacesNode(Node node) {
+        NamespaceDefinitionStyle styleInUse = null;
         for (Node n : childElements(node)) {
             String nodeName = cleanNodeName(n);
+            boolean matchesNamespace = matches("name-spaces", nodeName);
             if (matches(nodeName, "class-filter")) {
                 fillJavaSerializationFilter(n, config.getNamespacesConfig());
-            } else if (!matches("enabled", nodeName)) {
-                UserCodeNamespaceConfig ns = new UserCodeNamespaceConfig(n.getNodeName());
-                //get list of resources
-                for (Node subChild : childElements(n)) {
-                    String resourceId = null;
-                    String resourceTypeName = null;
-                    String resourceUrl = null;
-                    for (Node resourceChild : childElements(subChild)) {
-                        if (resourceChild.getNodeName().equals("resource-type")) {
-                            resourceTypeName = resourceChild.getNodeValue();
-                        } else if (resourceChild.getNodeName().equals("url")) {
-                            resourceUrl = resourceChild.getNodeValue();
-                        } else if (resourceChild.getNodeName().equals("id")) {
-                            resourceId = resourceChild.getNodeValue();
-                        }
-                    }
-                    if (resourceTypeName == null || resourceUrl == null || resourceId == null) {
-                        throw new IllegalArgumentException("For each namespace, resource elements \"id\","
-                                + " \"resource-type\" and \"url\" must be defined.");
-                    }
-                    try {
-                        if ("jar".equalsIgnoreCase(resourceTypeName)) {
-                            ns.addJar(new URI(resourceUrl).toURL(), resourceId);
-                        } else if ("jars_in_zip".equalsIgnoreCase(resourceTypeName)) {
-                            ns.addJarsInZip(new URI(resourceUrl).toURL(), resourceId);
-                        } else if ("class".equalsIgnoreCase(resourceTypeName)) {
-                            ns.addClass(new URI(resourceUrl).toURL(), resourceId);
-                        }
-                    } catch (MalformedURLException | URISyntaxException e) {
-                        throw new IllegalArgumentException(
-                                String.format("Namespace resource %s was configured with invalid URL %s",
-                                        resourceId, resourceUrl), e);
-                    }
+            } else if (matchesNamespace) {
+                if (styleInUse == OLD_STYLE) {
+                    throw new InvalidConfigurationException(
+                            "Namespace definitions are allowed to be enumerated or only under 'name-spaces' tag, "
+                                    + "or be enumerated as array members. Still, we strongly recommend to define "
+                                    + "namespace resources only under 'name-spaces' tag");
                 }
-                config.getNamespacesConfig().addNamespaceConfig(ns);
+                // 'new' style
+                styleInUse = NEW_STYLE;
+                for (Node child : childElements(n)) {
+                    extractUserCodeNamespaceConfigs(config, child);
+                }
+            } else if (!matches("enabled", nodeName)) {
+                if (styleInUse == NEW_STYLE) {
+                    throw new InvalidConfigurationException(
+                            "Namespace configurations are not allowed outside of 'name-spaces'");
+                }
+                styleInUse = OLD_STYLE;
+                // RU_COMPAT 'old' style
+                extractUserCodeNamespaceConfigs(config, n);
             }
         }
+    }
+
+    @SuppressWarnings("checkstyle:InnerAssignment")
+    private static void extractUserCodeNamespaceConfigs(Config config, Node n) {
+        UserCodeNamespaceConfig ns = new UserCodeNamespaceConfig(n.getNodeName());
+        //get list of resources
+        for (Node subChild : childElements(n)) {
+            String resourceId = null;
+            String resourceTypeName = null;
+            String resourceUrl = null;
+            for (Node resourceChild : childElements(subChild)) {
+                switch (resourceChild.getNodeName()) {
+                    case "resource-type" -> resourceTypeName = resourceChild.getNodeValue();
+                    case "url" -> resourceUrl = resourceChild.getNodeValue();
+                    case "id" -> resourceId = resourceChild.getNodeValue();
+                    default -> throw new InvalidConfigurationException(
+                            String.format("Namespace resource %s was configured with invalid element %s",
+                                    subChild.getNodeName(), resourceChild.getNodeName()));
+                }
+            }
+            if (resourceTypeName == null || resourceUrl == null || resourceId == null) {
+                throw new InvalidConfigurationException("For each namespace, resource elements \"id\","
+                        + " \"resource-type\" and \"url\" must be defined.");
+            }
+            try {
+                switch (resourceTypeName.toLowerCase()) {
+                    case "jar" -> ns.addJar(new URI(resourceUrl).toURL(), resourceId);
+                    case "jars_in_zip" -> ns.addJarsInZip(new URI(resourceUrl).toURL(), resourceId);
+                    case "class" -> ns.addClass(new URI(resourceUrl).toURL(), resourceId);
+                    default -> throw new InvalidConfigurationException(
+                            String.format("Namespace resource %s was configured with invalid resource type %s",
+                                    resourceId, resourceTypeName));
+                }
+            } catch (MalformedURLException | URISyntaxException e) {
+                throw new InvalidConfigurationException(
+                        String.format("Namespace resource %s was configured with invalid URL %s",
+                                resourceId, resourceUrl), e);
+            }
+        }
+        config.getNamespacesConfig().addNamespaceConfig(ns);
     }
 
     @Override
@@ -1052,18 +1089,8 @@ public class YamlMemberDomConfigProcessor extends MemberDomConfigProcessor {
     }
 
     @Override
-    protected void handleVectorNode(Node node, VectorCollectionConfig collectionConfig) {
-        var indexesNode = firstChildElement(node);
-        if (indexesNode == null) {
-            return;
-        }
-        handleVectorIndex(indexesNode, collectionConfig);
-        config.addVectorCollectionConfig(collectionConfig);
-    }
-
-    @Override
-    protected void handleVectorIndex(Node node, VectorCollectionConfig collectionConfig) {
-        for (Node indexNode : childElements(node)) {
+    protected void handleVectorIndexesNode(Node indexesNode, VectorCollectionConfig collectionConfig) {
+        for (Node indexNode : childElements(indexesNode)) {
             VectorIndexConfig indexConfig = new VectorIndexConfig();
             handleVectorIndexNode(indexNode, indexConfig);
             collectionConfig.addVectorIndexConfig(indexConfig);
@@ -1073,5 +1100,10 @@ public class YamlMemberDomConfigProcessor extends MemberDomConfigProcessor {
     @Override
     protected void handlePartitioningAttributeConfig(Node node, PartitioningAttributeConfig config) {
         config.setAttributeName(getAttribute(node, "name"));
+    }
+
+    enum NamespaceDefinitionStyle {
+        OLD_STYLE,
+        NEW_STYLE
     }
 }

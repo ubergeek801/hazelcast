@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class CacheReplicationOperationTest extends HazelcastTestSupport {
 
             // serialize & deserialize operation
             Data data = nodeEngineImpl.toData(operation);
-            CacheReplicationOperation cacheReplicationOperation = (CacheReplicationOperation) nodeEngineImpl.toObject(data);
+            CacheReplicationOperation cacheReplicationOperation = nodeEngineImpl.toObject(data);
 
             // new operation instance should have previously added config.
             assertContains(cacheReplicationOperation.getConfigs(), config);

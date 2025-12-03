@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class EntrySetResponse implements IdentifiedDataSerializable {
             Data key = entry.getKey();
             Collection<Data> coll = entry.getValue();
             for (Data data : coll) {
-                entrySet.add(new AbstractMap.SimpleEntry<Data, Data>(key, data));
+                entrySet.add(new AbstractMap.SimpleEntry<>(key, data));
             }
         }
         return entrySet;
@@ -73,7 +73,7 @@ public class EntrySetResponse implements IdentifiedDataSerializable {
             Collection<Data> coll = entry.getValue();
             for (Data data : coll) {
                 V val = nodeEngine.toObject(data);
-                entrySet.add(new AbstractMap.SimpleEntry<K, V>(key, val));
+                entrySet.add(new AbstractMap.SimpleEntry<>(key, val));
             }
         }
         return entrySet;

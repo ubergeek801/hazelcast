@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ import static com.hazelcast.jet.impl.util.Util.toLocalTime;
  * This class cannot be changed without breaking compatibility with existing
  * clients, in particular Management Center.
  *
- * @deprecated Since 5.3, to be removed in 6.0. Use {@link JobAndSqlSummary} instead
+ * @deprecated to be removed in 6.0. Use {@link JobAndSqlSummary} instead
  */
-@Deprecated
+@Deprecated(since = "5.3", forRemoval = true)
 public class JobSummary implements IdentifiedDataSerializable {
     private boolean isLightJob;
     private long jobId;

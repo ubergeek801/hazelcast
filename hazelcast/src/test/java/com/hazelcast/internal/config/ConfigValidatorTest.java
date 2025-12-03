@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.internal.config;
 
-import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.CacheSimpleConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.EvictionConfig;
@@ -44,7 +43,6 @@ import static com.hazelcast.config.InMemoryFormat.NATIVE;
 import static com.hazelcast.config.InMemoryFormat.OBJECT;
 import static com.hazelcast.internal.config.ConfigValidator.checkCPSubsystemConfig;
 import static com.hazelcast.internal.config.ConfigValidator.checkCacheConfig;
-import static com.hazelcast.internal.config.ConfigValidator.checkClientNetworkConfig;
 import static com.hazelcast.internal.config.ConfigValidator.checkMapConfig;
 import static com.hazelcast.internal.config.ConfigValidator.checkNearCacheNativeMemoryConfig;
 import static org.mockito.Mockito.when;
@@ -61,7 +59,7 @@ public class ConfigValidatorTest extends HazelcastTestSupport {
         NodeEngine nodeEngine = Mockito.mock(NodeEngine.class);
         when(nodeEngine.getConfigClassLoader()).thenReturn(config.getClassLoader());
 
-        splitBrainMergePolicyProvider = new SplitBrainMergePolicyProvider(config.getClassLoader());
+        splitBrainMergePolicyProvider = new SplitBrainMergePolicyProvider(nodeEngine.getConfigClassLoader());
         when(nodeEngine.getSplitBrainMergePolicyProvider()).thenReturn(splitBrainMergePolicyProvider);
     }
 
@@ -200,32 +198,5 @@ public class ConfigValidatorTest extends HazelcastTestSupport {
         config.setSessionTimeToLiveSeconds(10);
 
         checkCPSubsystemConfig(config);
-    }
-
-    @Test(expected = InvalidConfigurationException.class)
-    public void testValidationFails_whenSubsetRoutingEnabledAndSmartRoutingEnabled() {
-        ClientConfig config = new ClientConfig();
-        config.getNetworkConfig().getSubsetRoutingConfig().setEnabled(true);
-        config.getNetworkConfig().setSmartRouting(true);
-
-        checkClientNetworkConfig(config.getNetworkConfig());
-    }
-
-    @Test
-    public void testValidationPass_whenSubsetRoutingEnabledAndSmartRoutingDisabled() {
-        ClientConfig config = new ClientConfig();
-        config.getNetworkConfig().getSubsetRoutingConfig().setEnabled(true);
-        config.getNetworkConfig().setSmartRouting(false);
-
-        checkClientNetworkConfig(config.getNetworkConfig());
-    }
-
-    @Test
-    public void testValidationPass_whenSubsetRoutingDisabledAndSmartRoutingEnabled() {
-        ClientConfig config = new ClientConfig();
-        config.getNetworkConfig().getSubsetRoutingConfig().setEnabled(false);
-        config.getNetworkConfig().setSmartRouting(true);
-
-        checkClientNetworkConfig(config.getNetworkConfig());
     }
 }

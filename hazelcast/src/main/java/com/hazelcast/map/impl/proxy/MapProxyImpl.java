@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -576,7 +576,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
         checkNotNull(listener, NULL_LISTENER_IS_NOT_ALLOWED);
         handleHazelcastInstanceAwareParams(listener);
 
-        return addLocalEntryListenerInternal(listener);
+        return addLocalEntryListenerInternal(listener, true);
     }
 
     @Override
@@ -759,6 +759,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
     @Nonnull
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
+        incrementEntrySetCallCount();
         return entrySet(Predicates.alwaysTrue());
     }
 
@@ -788,6 +789,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
     @Nonnull
     @Override
     public Collection<V> values() {
+        incrementValuesCallCount();
         return values(Predicates.alwaysTrue());
     }
 
@@ -821,7 +823,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
         return transformToSetWithNamespace(result, predicate, iterationType, uniqueResult, false);
     }
 
-    private <T> Set<T>  transformToSetWithNamespace(QueryResult result, Predicate predicate,
+    private <T> Set<T> transformToSetWithNamespace(QueryResult result, Predicate predicate,
                                             IterationType iterationType, boolean unique, boolean binary) {
         return NamespaceUtil.callWithNamespace(getNodeEngine(), mapConfig.getUserCodeNamespace(),
                 () -> transformToSet(serializationService, result, predicate, iterationType, unique, binary));
@@ -1357,6 +1359,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
         }
     }
 
+    @Override
     public V compute(@Nonnull K key, @Nonnull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         checkNotNull(key, NULL_KEY_IS_NOT_ALLOWED);
         checkNotNull(remappingFunction, NULL_BIFUNCTION_IS_NOT_ALLOWED);
@@ -1399,6 +1402,7 @@ public class MapProxyImpl<K, V> extends MapProxySupport<K, V> implements EventJo
         }
     }
 
+    @Override
     public V merge(@Nonnull K key, @Nonnull V value,
                    @Nonnull BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         checkNotNull(key, NULL_KEY_IS_NOT_ALLOWED);

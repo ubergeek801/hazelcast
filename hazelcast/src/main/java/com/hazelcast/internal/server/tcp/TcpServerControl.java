@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.hazelcast.internal.nio.ConnectionType;
 import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.server.ServerContext;
 import com.hazelcast.logging.ILogger;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.hazelcast.nio.serialization.HazelcastSerializationException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,11 +61,20 @@ public final class TcpServerControl {
     }
 
     public void process(Packet packet) {
-        MemberHandshake handshake = serverContext.getSerializationService().toObject(packet);
         TcpServerConnection connection = (TcpServerConnection) packet.getConn();
+        MemberHandshake handshake;
+        try {
+            handshake = serverContext.getSerializationService().toObject(packet);
+        } catch (Exception e) {
+            boolean is40Packet = (packet.getFlags() & Packet.FLAG_4_0) != 0;
+            String message = String.format("Failed to deserialize member handshake packet received from %s version",
+                is40Packet ? "compatible" : "incompatible");
+            connection.close("The connection handshake couldn't be deserialized", e);
+            throw new HazelcastSerializationException(message, e);
+        }
         if (!connection.setHandshake()) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Connection " + connection + " handshake is already completed, ignoring incoming " + handshake);
+                logger.finest("Connection %s handshake is already completed, ignoring incoming %s", connection, handshake);
             }
             return;
         }
@@ -85,7 +94,7 @@ public final class TcpServerControl {
     @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     private synchronized void process(TcpServerConnection connection, MemberHandshake handshake) {
         if (logger.isFinestEnabled()) {
-            logger.finest("Handshake " + connection + ", complete message is " + handshake);
+            logger.finest("Handshake %s, complete message is %s", connection, handshake);
         }
 
         Map<ProtocolType, Collection<Address>> remoteAddressesPerProtocolType = handshake.getLocalAddresses();
@@ -116,8 +125,8 @@ public final class TcpServerControl {
             }
         }
         // member connections must be registered with their public address in connectionsMap
-        // eg member 192.168.1.1:5701 initiates a connection to 192.168.1.2:5701; the connection
-        // is created from an outbound port (eg 192.168.1.1:54003 --> 192.168.1.2:5701), but
+        // e.g. member 192.168.1.1:5701 initiates a connection to 192.168.1.2:5701; the connection
+        // is created from an outbound port (e.g. 192.168.1.1:54003 --> 192.168.1.2:5701), but
         // in 192.168.1.2:5701's connectionsMap the connection must be registered with
         // key 192.168.1.1:5701.
         assert (connectionManager.getEndpointQualifier() != EndpointQualifier.MEMBER
@@ -158,7 +167,6 @@ public final class TcpServerControl {
      *                             will be registered. These are the public addresses configured on the remote.
      */
     @SuppressWarnings({"checkstyle:cyclomaticcomplexity", "checkstyle:npathcomplexity"})
-    @SuppressFBWarnings("RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
     private synchronized void process0(TcpServerConnection connection,
                                        Address remoteEndpointAddress,
                                        Collection<Address> remoteAddressAliases,

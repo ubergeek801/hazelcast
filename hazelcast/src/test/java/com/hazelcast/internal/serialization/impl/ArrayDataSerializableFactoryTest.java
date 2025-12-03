@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class ArrayDataSerializableFactoryTest {
     public void testCreate() {
         Supplier<IdentifiedDataSerializable>[] constructorFunctions = new Supplier[1];
 
-        constructorFunctions[0] = () -> new SampleIdentifiedDataSerializable();
+        constructorFunctions[0] = SampleIdentifiedDataSerializable::new;
 
         ArrayDataSerializableFactory factory = new ArrayDataSerializableFactory(constructorFunctions);
 

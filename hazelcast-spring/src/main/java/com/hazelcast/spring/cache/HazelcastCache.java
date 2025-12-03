@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -68,6 +69,7 @@ public class HazelcastCache implements Cache {
         return value != null ? new SimpleValueWrapper(fromStoreValue(value)) : null;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Object key, Class<T> type) {
         Object value = fromStoreValue(lookup(key));
@@ -77,6 +79,7 @@ public class HazelcastCache implements Cache {
         return (T) value;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Object key, Callable<T> valueLoader) {
         Object value = lookup(key);
@@ -95,6 +98,11 @@ public class HazelcastCache implements Cache {
                 this.map.unlock(key);
             }
         }
+    }
+
+    @Override
+    public CompletableFuture<?> retrieve(Object key) {
+        return this.map.getAsync(key).toCompletableFuture();
     }
 
     private <T> T loadValue(Object key, Callable<T> valueLoader) {
@@ -141,6 +149,7 @@ public class HazelcastCache implements Cache {
         map.clear();
     }
 
+    @Override
     public ValueWrapper putIfAbsent(Object key, Object value) {
         Object result = map.putIfAbsent(key, toStoreValue(value));
         return result != null ? new SimpleValueWrapper(fromStoreValue(result)) : null;
@@ -149,7 +158,7 @@ public class HazelcastCache implements Cache {
     private Object lookup(Object key) {
         if (readTimeout > 0) {
             try {
-                return this.map.getAsync(key).toCompletableFuture().get(readTimeout, TimeUnit.MILLISECONDS);
+                return retrieve(key).get(readTimeout, TimeUnit.MILLISECONDS);
             } catch (TimeoutException te) {
                 throw new OperationTimeoutException(te.getMessage());
             } catch (InterruptedException e) {

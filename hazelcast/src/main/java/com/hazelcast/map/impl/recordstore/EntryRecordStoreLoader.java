@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ class EntryRecordStoreLoader extends BasicRecordStoreLoader {
      * @param entries the map to be transformed
      * @return the list of serialised alternating key-value pairs
      */
+    @Override
     protected List<Data> getLoadingSequence(Map<?, ?> entries) {
         List<Data> keyValueSequence = new ArrayList<>(entries.size() * 2);
         for (Map.Entry<?, ?> entry : entries.entrySet()) {
@@ -54,6 +55,7 @@ class EntryRecordStoreLoader extends BasicRecordStoreLoader {
         return keyValueSequence;
     }
 
+    @Override
     protected Operation createOperation(List<Data> loadingSequence) {
         MapOperationProvider operationProvider = mapServiceContext.getMapOperationProvider(name);
         return operationProvider.createPutFromLoadAllOperation(name, loadingSequence, true);

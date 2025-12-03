@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static com.hazelcast.jet.TestedVersions.MONGO_VERSION;
+import static com.hazelcast.jet.TestedVersions.MONGO_IMAGE;
 import static com.hazelcast.sql.impl.type.QueryDataType.INT;
 import static com.hazelcast.sql.impl.type.QueryDataType.OBJECT;
 import static com.hazelcast.sql.impl.type.QueryDataType.VARCHAR;
@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(HazelcastSerialClassRunner.class)
 @Category({QuickTest.class})
 public class FieldResolverTest {
-    private static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:" + MONGO_VERSION);
+    private static final MongoDBContainer mongoContainer = new MongoDBContainer(MONGO_IMAGE);
 
     @BeforeClass
     public static void setUp() {

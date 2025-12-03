@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class ClientHeartbeatMonitor implements Runnable {
                 //therefore connection.close could not remove the endpoint.
                 //we will remove the endpoint here when detected.
                 if (logger.isFineEnabled()) {
-                    logger.fine("Cleaning up endpoints with dead connection " + endpoint);
+                    logger.fine("Cleaning up endpoints with dead connection %s", endpoint);
                 }
                 clientEndpointManager.removeEndpoint(endpoint);
             }

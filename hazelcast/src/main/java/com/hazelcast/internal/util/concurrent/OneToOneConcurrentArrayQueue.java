@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class OneToOneConcurrentArrayQueue<E> extends AbstractConcurrentArrayQueu
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public E poll() {
         final AtomicReferenceArray<E> buffer = this.buffer;
         final long currentHead = head;
@@ -71,7 +70,6 @@ public class OneToOneConcurrentArrayQueue<E> extends AbstractConcurrentArrayQueu
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public int drain(Predicate<? super E> itemHandler) {
         final AtomicReferenceArray<E> buffer = this.buffer;
         final long mask = this.capacity - 1;
@@ -96,7 +94,6 @@ public class OneToOneConcurrentArrayQueue<E> extends AbstractConcurrentArrayQueu
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public int drainTo(final Collection<? super E> target, final int limit) {
         if (limit <= 0) {
             return 0;

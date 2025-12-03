@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.config;
 
 import com.hazelcast.internal.config.ConfigDataSerializerHook;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -106,6 +107,7 @@ public class MultiMapConfig implements IdentifiedDataSerializable, NamedConfig, 
      *
      * @return the name of this MultiMap
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -116,6 +118,7 @@ public class MultiMapConfig implements IdentifiedDataSerializable, NamedConfig, 
      * @param name the name to set for this MultiMap
      * @return this updated MultiMap configuration
      */
+    @Override
     public MultiMapConfig setName(String name) {
         this.name = name;
         return this;
@@ -339,11 +342,13 @@ public class MultiMapConfig implements IdentifiedDataSerializable, NamedConfig, 
      * @return the updated {@link MultiMapConfig} instance
      * @since 5.4
      */
+    @Override
     public MultiMapConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;
     }
 
+    @Override
     public String toString() {
         return "MultiMapConfig{"
                 + "name='" + name + '\''
@@ -376,10 +381,7 @@ public class MultiMapConfig implements IdentifiedDataSerializable, NamedConfig, 
             out.writeBoolean(false);
         } else {
             out.writeBoolean(true);
-            out.writeInt(listenerConfigs.size());
-            for (ListenerConfig listenerConfig : listenerConfigs) {
-                out.writeObject(listenerConfig);
-            }
+            SerializationUtil.writeList(listenerConfigs, out);
         }
         out.writeBoolean(binary);
         out.writeInt(backupCount);
@@ -400,12 +402,7 @@ public class MultiMapConfig implements IdentifiedDataSerializable, NamedConfig, 
         valueCollectionType = in.readString();
         boolean hasListenerConfig = in.readBoolean();
         if (hasListenerConfig) {
-            int configSize = in.readInt();
-            listenerConfigs = new ArrayList<>(configSize);
-            for (int i = 0; i < configSize; i++) {
-                EntryListenerConfig listenerConfig = in.readObject();
-                listenerConfigs.add(listenerConfig);
-            }
+            listenerConfigs = SerializationUtil.readList(in);
         }
         binary = in.readBoolean();
         backupCount = in.readInt();

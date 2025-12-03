@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.hazelcast.internal.util.counters;
 
 /**
  * A Counter keeps track of a long value.
- *
+ * <p>
  * It depends on the counter if increments are thread-safe.
- *
+ * <p>
  * The get is thread-safe in the sense that it will see a recently published value. It doesn't mean that it
  * will see the most recently published value.
  */
@@ -56,7 +56,7 @@ public interface Counter {
 
     /**
      * Increments (or decrements) the counter by the given amount.
-     *
+     * <p>
      * If the amount is negative, the counter is decremented.
      *
      * @param amount the amount to increase or decrease the counter with.

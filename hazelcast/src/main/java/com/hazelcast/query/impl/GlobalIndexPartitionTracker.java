@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,15 +103,15 @@ public class GlobalIndexPartitionTracker {
         }
     }
 
-    public void partitionIndexed(int partition) {
-        complete(partition, true);
+    public boolean partitionIndexed(int partition) {
+        return complete(partition, true);
     }
 
-    public void partitionUnindexed(int partition) {
-        complete(partition, false);
+    public boolean partitionUnindexed(int partition) {
+        return complete(partition, false);
     }
 
-    private void complete(int partition, boolean indexed) {
+    private boolean complete(int partition, boolean indexed) {
         lock.lock();
 
         try {
@@ -121,10 +121,11 @@ public class GlobalIndexPartitionTracker {
 
             PartitionIdSet newIndexedPartitions = oldState.indexedPartitions.copy();
 
+            boolean changed;
             if (indexed) {
-                newIndexedPartitions.add(partition);
+                changed = newIndexedPartitions.add(partition);
             } else {
-                newIndexedPartitions.remove(partition);
+                changed = newIndexedPartitions.remove(partition);
             }
 
             State newState = new State(
@@ -134,6 +135,7 @@ public class GlobalIndexPartitionTracker {
             );
 
             state.set(newState);
+            return changed;
         } finally {
             lock.unlock();
         }

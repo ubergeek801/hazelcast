@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,10 +124,10 @@ public interface Pipeline extends Serializable {
     /**
      * Transforms the pipeline into a Jet DAG, which can be submitted for
      * execution to a Jet instance.
-     * @deprecated since Jet 4.3, Jet performs this transformation on the server-side.
+     * @deprecated Jet performs this transformation on the server-side.
      */
     @Nonnull
-    @Deprecated
+    @Deprecated(since = "4.3")
     DAG toDag();
 
     /**

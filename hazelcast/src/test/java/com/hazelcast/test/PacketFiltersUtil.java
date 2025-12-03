@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import static com.hazelcast.test.Accessors.getAddress;
 import static com.hazelcast.test.Accessors.getNode;
@@ -129,6 +130,16 @@ public final class PacketFiltersUtil {
         cm.setPacketFilter(packetFilter);
     }
 
+    public static void wrapCustomerFilter(HazelcastInstance from, UnaryOperator<PacketFilter> packetFilterWrapper) {
+        Node node = getNode(from);
+        FirewallingServerConnectionManager cm = (FirewallingServerConnectionManager)
+                node.getServer().getConnectionManager(EndpointQualifier.MEMBER);
+        PacketFilter original = cm.getPacketFilter();
+        assert original != null;
+        var wrapped = packetFilterWrapper.apply(original);
+        cm.setPacketFilter(wrapped);
+    }
+
     private static class EndpointAgnosticPacketFilter extends OperationPacketFilter {
 
         final int factory;
@@ -141,7 +152,7 @@ public final class PacketFiltersUtil {
                 List<Integer> typeIds, Action action) {
             super(serializationService);
             this.action = Preconditions.checkNotNull(action);
-            assert typeIds.size() > 0 : "At least one operation type must be defined!";
+            assert !typeIds.isEmpty() : "At least one operation type must be defined!";
             this.factory = factory;
             types.addAll(typeIds);
         }

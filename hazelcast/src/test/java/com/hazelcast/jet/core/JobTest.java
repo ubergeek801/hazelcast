@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1212,8 +1212,8 @@ public class JobTest extends SimpleTestInClusterSupport {
     }
 
     @Test
-    public void test_smartClientConnectedToNonCoordinator() {
-        HazelcastInstance clientConnectedToI1 = factory().newHazelcastClient(configForNonSmartClientConnectingTo(instances()[1]));
+    public void test_allMembersClientConnectedToNonCoordinator() {
+        HazelcastInstance clientConnectedToI1 = factory().newHazelcastClient(configForSingleMemberClientConnectingTo(instances()[1]));
 
         Job job1 = instances()[0].getJet().newLightJob(streamingDag());
         assertTrueEventually(() -> assertThat(job1).isExecutingOn(instances()[0]));
@@ -1228,8 +1228,8 @@ public class JobTest extends SimpleTestInClusterSupport {
     }
 
     @Test
-    public void test_nonSmartClient() {
-        HazelcastInstance client = factory().newHazelcastClient(configForNonSmartClientConnectingTo(instance()));
+    public void test_singleMemberRoutingClient() {
+        HazelcastInstance client = factory().newHazelcastClient(configForSingleMemberClientConnectingTo(instance()));
 
         // try multiple times - we test the case when the client randomly picks a member it's not connected to.
         // It should not pick such a member.

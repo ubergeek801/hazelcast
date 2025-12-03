@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,11 +104,11 @@ public class XAResourceProxy extends ClientProxy implements HazelcastXAResource 
         TransactionContext threadContext = threadContextMap.remove(threadId);
         ILogger logger = getContext().getLoggingService().getLogger(this.getClass());
         if (threadContext == null && logger.isFinestEnabled()) {
-            logger.finest("There is no TransactionContext for the current thread: " + threadId);
+            logger.finest("There is no TransactionContext for the current thread: %s", threadId);
         }
         List<TransactionContext> contexts = xidContextMap.get(xid);
         if (contexts == null && logger.isFinestEnabled()) {
-            logger.finest("There is no TransactionContexts for the given xid: " + xid);
+            logger.finest("There is no TransactionContexts for the given xid: %s", xid);
         }
     }
 

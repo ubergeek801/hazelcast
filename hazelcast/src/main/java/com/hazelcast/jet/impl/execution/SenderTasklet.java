@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ public class SenderTasklet implements Tasklet {
         this.inboundEdgeStream = inboundEdgeStream;
         this.destinationAddressString = destinationAddress.toString();
         this.sourceVertexName = sourceVertexName;
-        this.sourceOrdinalString = "" + sourceOrdinal;
+        this.sourceOrdinalString = String.valueOf(sourceOrdinal);
         this.packetSizeLimit = packetSizeLimit;
         // we use Connection directly because we rely on packets not being transparently skipped or reordered
         this.connection = connection;

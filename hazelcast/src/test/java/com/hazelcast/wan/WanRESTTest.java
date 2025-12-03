@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class WanRESTTest extends HazelcastTestSupport {
     @Before
     public void setupFactoryAndMock() {
         wanServiceMock = mock(WanReplicationService.class);
-        factory = new CustomNodeExtensionTestInstanceFactory(
+        factory = new TestHazelcastInstanceFactory().withNodeExtensionCustomizer(
                 node -> new WanServiceMockingDefaultNodeExtension(node, wanServiceMock));
     }
 
@@ -196,7 +196,9 @@ public class WanRESTTest extends HazelcastTestSupport {
 
     @Override
     protected Config getConfig() {
-        Config config = smallInstanceConfig();
+        Config config = smallInstanceConfigWithoutJetAndMetrics();
+        config.getNetworkConfig().getJoin().getTcpIpConfig().clear();
+        config.getNetworkConfig().getJoin().getAutoDetectionConfig().setEnabled(false);
         RestApiConfig restApiConfig = config.getNetworkConfig().getRestApiConfig();
         restApiConfig.setEnabled(true);
         restApiConfig.enableGroups(RestEndpointGroup.WAN);

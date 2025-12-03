@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ import static org.junit.Assert.assertTrue;
 @Category(QuickTest.class)
 public class EntryListenerConfigTest extends HazelcastTestSupport {
 
-    private String mapName = randomMapName();
-    private EntryListenerConfig listenerConfig = new EntryListenerConfig();
+    private final String mapName = randomMapName();
+    private final EntryListenerConfig listenerConfig = new EntryListenerConfig();
     private HazelcastInstance instance;
 
     @Before
@@ -64,7 +64,7 @@ public class EntryListenerConfigTest extends HazelcastTestSupport {
         listenerConfig.setClassName(TestMapListener.class.getCanonicalName());
         createInstanceAndInitializeListeners();
 
-        assertListenerRegisteration();
+        assertListenerRegistration();
     }
 
     @Test
@@ -72,7 +72,7 @@ public class EntryListenerConfigTest extends HazelcastTestSupport {
         listenerConfig.setImplementation(new TestMapListener());
         createInstanceAndInitializeListeners();
 
-        assertListenerRegisteration();
+        assertListenerRegistration();
     }
 
     @Test
@@ -96,7 +96,7 @@ public class EntryListenerConfigTest extends HazelcastTestSupport {
         listenerConfig.setClassName(TestEntryListener.class.getCanonicalName());
         createInstanceAndInitializeListeners();
 
-        assertListenerRegisteration();
+        assertListenerRegistration();
     }
 
     @Test
@@ -104,7 +104,7 @@ public class EntryListenerConfigTest extends HazelcastTestSupport {
         listenerConfig.setImplementation(new TestEntryListener());
         createInstanceAndInitializeListeners();
 
-        assertListenerRegisteration();
+        assertListenerRegistration();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -138,7 +138,7 @@ public class EntryListenerConfigTest extends HazelcastTestSupport {
         instance.getMap(mapName);
     }
 
-    private void assertListenerRegisteration() {
+    private void assertListenerRegistration() {
         boolean hasEventRegistration = getEventService().hasEventRegistration(SERVICE_NAME, mapName);
         assertTrue("Listener should be registered", hasEventRegistration);
     }

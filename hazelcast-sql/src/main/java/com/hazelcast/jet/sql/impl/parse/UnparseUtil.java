@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public final class UnparseUtil {
     }
 
     public static void unparseOptions(SqlWriter writer, String prefix, SqlNodeList options) {
-        if (options != null && options.size() > 0) {
+        if (options != null && !options.isEmpty()) {
             writer.newlineAndIndent();
             writer.keyword(prefix);
             SqlWriter.Frame withFrame = writer.startList("(", ")");

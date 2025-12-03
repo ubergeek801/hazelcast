@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.cache.impl.CacheService;
 import com.hazelcast.cache.impl.journal.CacheEventJournal;
 import com.hazelcast.config.EventJournalConfig;
 import com.hazelcast.config.RingbufferConfig;
+import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.map.impl.MapService;
 import com.hazelcast.map.impl.journal.MapEventJournal;
 import com.hazelcast.nio.ObjectDataInput;
@@ -135,7 +136,7 @@ public class MergeOperation extends Operation
      * Sets the ringbuffer data given by the {@code fromMergeData} to the
      * {@code toContainer}.
      *
-     * @param fromMergeData the data which needs to be set into the containter
+     * @param fromMergeData the data which needs to be set into the container
      * @param toContainer   the target ringbuffer container
      */
     private void setRingbufferData(
@@ -252,7 +253,12 @@ public class MergeOperation extends Operation
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
         namespace = in.readObject();
-        mergePolicy = in.readObject();
+
+        mergePolicy = NamespaceUtil.callWithNamespace(
+                in::readObject,
+                namespace.getObjectName(),
+                (e, n) -> RingbufferService.lookupUserCodeNamespace(e, namespace.getObjectName(), getPartitionId())
+        );
 
         final long tailSequence = in.readLong();
         final long headSequence = in.readLong();

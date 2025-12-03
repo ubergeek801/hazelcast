@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.security;
 
 import com.hazelcast.config.PermissionConfig;
 import com.hazelcast.internal.nio.Connection;
+import com.hazelcast.spi.annotation.PrivateApi;
 import com.hazelcast.sql.impl.security.SqlSecurityContext;
 
 import javax.annotation.Nonnull;
@@ -76,7 +77,6 @@ public interface SecurityContext {
      *
      * @param configuration JAAS configuration object
      * @param clusterName cluster name
-     * @param credentials credentials
      * @param remoteAddress address of the HTTP client
      * @return {@link LoginContext}
      * @throws LoginException in case of any exceptional case
@@ -100,15 +100,18 @@ public interface SecurityContext {
      */
     void checkPermission(Subject subject, Permission permission) throws AccessControlException;
 
+    /**
+     * Checks whether all {@link Subject}s have been granted specified permission or not.
+     *
+     * @param permission the specified permission for the subject
+     * @throws AccessControlException if the specified permission has not been granted to the subject
+     */
+    @PrivateApi
+    void checkGlobalPermission(Permission permission) throws AccessControlException;
 
     /**
      * intercepts a request before process if any {@link SecurityInterceptor} configured
      *
-     * @param credentials
-     * @param serviceName
-     * @param objectName
-     * @param methodName
-     * @param parameters
      * @throws AccessControlException if access is denied
      */
     void interceptBefore(Credentials credentials, String serviceName, String objectName,
@@ -117,11 +120,6 @@ public interface SecurityContext {
     /**
      * intercepts a request after process if any {@link SecurityInterceptor} configured
      * Any exception thrown during interception will be ignored
-     *
-     * @param credentials
-     * @param serviceName
-     * @param objectName
-     * @param methodName
      */
     void interceptAfter(Credentials credentials, String serviceName, String objectName, String methodName);
 
@@ -129,8 +127,6 @@ public interface SecurityContext {
      * Creates secure callable that runs in a sandbox.
      *
      * @param <V>      return type of callable
-     * @param subject
-     * @param callable
      * @return result of callable
      */
     <V> SecureCallable<V> createSecureCallable(Subject subject, Callable<V> callable);
@@ -139,8 +135,6 @@ public interface SecurityContext {
      * Creates secure callable that runs in a sandbox.
      *
      * @param <V>      return type of callable
-     * @param subject
-     * @param runnable
      * @return Will always return null after {@link Runnable} finishes running.
      */
     <V> SecureCallable<?> createSecureCallable(Subject subject, Runnable runnable);

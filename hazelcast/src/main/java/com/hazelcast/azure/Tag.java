@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.hazelcast.azure;
 import com.hazelcast.config.InvalidConfigurationException;
 
 /**
- * Represents a Azure Tag (key and value).
+ * Represents an Azure Tag (key and value).
  */
 final class Tag {
     private final String key;

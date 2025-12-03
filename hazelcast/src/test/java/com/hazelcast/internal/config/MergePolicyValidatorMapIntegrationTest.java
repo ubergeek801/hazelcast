@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class MergePolicyValidatorMapIntegrationTest extends AbstractMergePolicyV
     private boolean perEntryStatsEnabled = true;
 
     @Override
-    void addConfig(Config config, String name, MergePolicyConfig mergePolicyConfig) {
+    protected void addConfig(Config config, String name, MergePolicyConfig mergePolicyConfig) {
         MapConfig mapConfig = new MapConfig(name)
                 .setPerEntryStatsEnabled(perEntryStatsEnabled)
                 .setMergePolicyConfig(mergePolicyConfig);

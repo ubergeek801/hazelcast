@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import static com.hazelcast.client.config.ClientSqlResubmissionMode.RETRY_SELECT
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -88,7 +89,7 @@ public abstract class AbstractClientConfigBuilderTest extends HazelcastTestSuppo
         assertTrue(allowedPorts.contains("34600"));
         assertTrue(allowedPorts.contains("34700-34710"));
 
-        assertTrue(networkConfig.isSmartRouting());
+        assertEquals(RoutingMode.ALL_MEMBERS, networkConfig.getClusterRoutingConfig().getRoutingMode());
         assertTrue(networkConfig.isRedoOperation());
 
         final SocketInterceptorConfig socketInterceptorConfig = networkConfig.getSocketInterceptorConfig();
@@ -235,7 +236,7 @@ public abstract class AbstractClientConfigBuilderTest extends HazelcastTestSuppo
     }
 
     @Test
-    public void testQueryCacheFullConfig() throws Exception {
+    public void testQueryCacheFullConfig() {
         QueryCacheConfig queryCacheClassPredicateConfig = fullClientConfig.getQueryCacheConfigs().get("map-name")
                 .get("query-cache-class-name-predicate");
         QueryCacheConfig queryCacheSqlPredicateConfig = fullClientConfig.getQueryCacheConfigs().get("map-name")
@@ -261,7 +262,7 @@ public abstract class AbstractClientConfigBuilderTest extends HazelcastTestSuppo
         assertFalse(queryCacheClassPredicateConfig.isSerializeKeys());
         for (IndexConfig indexConfig : queryCacheClassPredicateConfig.getIndexConfigs()) {
             assertEquals("name", indexConfig.getAttributes().get(0));
-            assertFalse(indexConfig.getType() == IndexType.SORTED);
+            assertNotSame(indexConfig.getType(), IndexType.SORTED);
         }
 
         assertEquals("com.hazelcast.examples.ExamplePredicate",
@@ -557,7 +558,7 @@ public abstract class AbstractClientConfigBuilderTest extends HazelcastTestSuppo
     public abstract void testCompactSerialization_withInvalidCompactSerializableClass();
 
     @Test
-    public abstract void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToSubsetRoutingConfig();
+    public abstract void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToMultiMemberRoutingConfig();
 
     @Test
     public void testTpc() {

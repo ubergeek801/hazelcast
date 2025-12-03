@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static com.hazelcast.client.impl.protocol.ClientMessage.*;
 import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCodec.*;
 
 @SuppressWarnings("unused")
-@Generated("c6f218cdfc04abf4dada8dd1e3d5fa8e")
+@Generated("7a55b2b6b8e93d98a42c28afaa469fe5")
 public final class QueryCacheEventDataCodec {
     private static final int SEQUENCE_FIELD_OFFSET = 0;
     private static final int EVENT_TYPE_FIELD_OFFSET = SEQUENCE_FIELD_OFFSET + LONG_SIZE_IN_BYTES;
@@ -44,8 +44,8 @@ public final class QueryCacheEventDataCodec {
         encodeInt(initialFrame.content, PARTITION_ID_FIELD_OFFSET, queryCacheEventData.getPartitionId());
         clientMessage.add(initialFrame);
 
-        CodecUtil.encodeNullable(clientMessage, queryCacheEventData.getDataKey(), DataCodec::encode);
-        CodecUtil.encodeNullable(clientMessage, queryCacheEventData.getDataNewValue(), DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, queryCacheEventData.getDataKey());
+        DataCodec.encodeNullable(clientMessage, queryCacheEventData.getDataNewValue());
         StringCodec.encode(clientMessage, queryCacheEventData.getMapName());
 
         clientMessage.add(END_FRAME.copy());
@@ -60,8 +60,8 @@ public final class QueryCacheEventDataCodec {
         int eventType = decodeInt(initialFrame.content, EVENT_TYPE_FIELD_OFFSET);
         int partitionId = decodeInt(initialFrame.content, PARTITION_ID_FIELD_OFFSET);
 
-        com.hazelcast.internal.serialization.Data dataKey = CodecUtil.decodeNullable(iterator, DataCodec::decode);
-        com.hazelcast.internal.serialization.Data dataNewValue = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+        com.hazelcast.internal.serialization.Data dataKey = DataCodec.decodeNullable(iterator);
+        com.hazelcast.internal.serialization.Data dataNewValue = DataCodec.decodeNullable(iterator);
         boolean isMapNameExists = false;
         java.lang.String mapName = null;
         if (!iterator.peekNext().isEndFrame()) {

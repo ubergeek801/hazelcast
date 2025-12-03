@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 public class CachePutAllOperation extends CacheOperation
@@ -46,7 +47,7 @@ public class CachePutAllOperation extends CacheOperation
     public CachePutAllOperation() {
     }
 
-    public CachePutAllOperation(String cacheNameWithPrefix, List<Map.Entry<Data, Data>> entries, ExpiryPolicy expiryPolicy,
+    public CachePutAllOperation(String cacheNameWithPrefix, List<Entry<Data, Data>> entries, ExpiryPolicy expiryPolicy,
                                 int completionId) {
         super(cacheNameWithPrefix);
         this.entries = entries;
@@ -75,7 +76,7 @@ public class CachePutAllOperation extends CacheOperation
 
             CacheRecord backupRecord = recordStore.put(key, value, expiryPolicy, callerUuid, completionId);
 
-            // backupRecord may be null (eg expired on put)
+            // backupRecord may be null (e.g. expired on put)
             if (backupRecord != null) {
                 publishWanUpdate(key, backupRecord);
 
@@ -122,7 +123,7 @@ public class CachePutAllOperation extends CacheOperation
         for (int i = 0; i < size; i++) {
             Data key = IOUtil.readData(in);
             Data value = IOUtil.readData(in);
-            entries.add(new AbstractMap.SimpleImmutableEntry<Data, Data>(key, value));
+            entries.add(new AbstractMap.SimpleImmutableEntry<>(key, value));
         }
     }
 

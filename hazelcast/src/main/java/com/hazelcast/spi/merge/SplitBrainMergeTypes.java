@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.scheduledexecutor.impl.ScheduledTaskDescriptor;
+import com.hazelcast.vector.VectorDocument;
 
 import java.util.Collection;
 
@@ -145,5 +146,14 @@ public class SplitBrainMergeTypes {
      * @since 3.10
      */
     public interface CardinalityEstimatorMergeTypes extends MergingEntry<String, HyperLogLog> {
+    }
+
+    /**
+     * Merge type of {@code VectorCollection}.
+     * @param <K>   type of {@code VectorCollection} key
+     * @param <V>   type of {@link VectorDocument}, stored in the {@code VectorCollection}
+     * @since 5.6
+     */
+    public interface VectorCollectionMergeTypes<K, V extends VectorDocument<?>> extends MergingEntry<K, V> {
     }
 }

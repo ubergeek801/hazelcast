@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -56,7 +58,7 @@ public class DiagnosticsTest extends HazelcastTestSupport {
         HazelcastProperties hzProperties = new HazelcastProperties(config);
 
         Diagnostics diagnostics = new Diagnostics("diagnostics", mockLoggingService(), "hz", hzProperties);
-        assertEquals("foobar-diagnostics", diagnostics.baseFileName);
+        assertStartsWith("foobar-diagnostics", diagnostics.getFileName());
     }
 
     @Test
@@ -65,7 +67,7 @@ public class DiagnosticsTest extends HazelcastTestSupport {
         HazelcastProperties hzProperties = new HazelcastProperties(config);
 
         Diagnostics diagnostics = new Diagnostics("diagnostics", mockLoggingService(), "hz", hzProperties);
-        assertEquals("diagnostics", diagnostics.baseFileName);
+        assertStartsWith("diagnostics", diagnostics.getFileName());
     }
 
     @Test(expected = NullPointerException.class)
@@ -112,7 +114,7 @@ public class DiagnosticsTest extends HazelcastTestSupport {
     @Test
     public void register_whenMonitorEnabled_andPluginStatic() throws Exception {
         DiagnosticsPlugin plugin = mock(DiagnosticsPlugin.class);
-        when(plugin.getPeriodMillis()).thenReturn(DiagnosticsPlugin.STATIC);
+        when(plugin.getPeriodMillis()).thenReturn(DiagnosticsPlugin.RUN_ONCE_PERIOD_MS);
 
         Diagnostics diagnostics = newDiagnostics(new Config().setProperty(Diagnostics.ENABLED.getName(), "true"));
         diagnostics.start();
@@ -135,6 +137,119 @@ public class DiagnosticsTest extends HazelcastTestSupport {
         diagnostics.start();
 
         assertNotNull("DiagnosticsLogFile should not be null", diagnostics.diagnosticsLog);
+    }
+
+    @Test
+    public void test_DiagnosticsOutputType() throws Exception {
+        assertEquals(DiagnosticsOutputType.FILE, DiagnosticsOutputType.valueOf("FILE"));
+        assertEquals(DiagnosticsOutputType.STDOUT, DiagnosticsOutputType.valueOf("STDOUT"));
+        assertEquals(DiagnosticsOutputType.LOGGER, DiagnosticsOutputType.valueOf("LOGGER"));
+
+        Config config = new Config();
+        DiagnosticsConfig diagnosticsConfig = new DiagnosticsConfig()
+                .setEnabled(true)
+                .setOutputType(DiagnosticsOutputType.FILE);
+        Diagnostics diagnostics = newDiagnostics(config);
+        diagnostics.setConfig(diagnosticsConfig);
+        assertEquals(DiagnosticsLogFile.class, diagnostics.newLog(diagnostics).getClass());
+        diagnosticsConfig = new DiagnosticsConfig()
+                .setOutputType(DiagnosticsOutputType.STDOUT);
+        diagnostics = newDiagnostics(config);
+        diagnostics.setConfig(diagnosticsConfig);
+        assertEquals(DiagnosticsStdout.class, diagnostics.newLog(diagnostics).getClass());
+        diagnosticsConfig.setOutputType(DiagnosticsOutputType.LOGGER);
+        diagnostics = newDiagnostics(config);
+        diagnostics.setConfig(diagnosticsConfig);
+        assertEquals(DiagnosticsLogger.class, diagnostics.newLog(diagnostics).getClass());
+    }
+
+    @Test
+    public void test_enabledAfterStart() throws Exception {
+
+        Config config = new Config();
+        DiagnosticsConfig diagnosticsConfig = new DiagnosticsConfig();
+        Diagnostics diagnostics = newDiagnostics(config);
+
+        diagnostics.start();
+        registerSomePlugins(diagnostics);
+
+        // plugins registered but not scheduled since diagnostics is not enabled
+        assertPluginsWhenDiagnosticsDisabled(diagnostics);
+        assertGreaterOrEquals("Static plugin registered", diagnostics.staticTasks.get().length, 0);
+
+        // enable diagnostics at runtime
+        diagnosticsConfig.setEnabled(true);
+        diagnostics.setConfig(diagnosticsConfig);
+
+        assertPluginsWhenDiagnosticsEnabled(diagnostics);
+    }
+
+
+    @Test
+    public void test_disabledAfterStart() throws Exception {
+        Config config = new Config();
+        Diagnostics diagnostics = newDiagnostics(config);
+        diagnostics.start();
+        diagnostics.setConfig(new DiagnosticsConfig().setEnabled(true));
+        registerSomePlugins(diagnostics);
+
+        verify(diagnostics.getPluginInstance(BuildInfoPlugin.class), times(1)).onStart();
+        verify(diagnostics.getPluginInstance(BuildInfoPlugin.class), times(0)).onShutdown();
+        verify(diagnostics.getPluginInstance(InvocationSamplePlugin.class), times(0)).onShutdown();
+        verify(diagnostics.getPluginInstance(InvocationSamplePlugin.class), times(1)).onStart();
+
+        diagnostics.setConfig(new DiagnosticsConfig().setEnabled(false));
+
+        verify(diagnostics.getPluginInstance(BuildInfoPlugin.class), times(1)).onStart();
+        // static plugins runs once hence no future
+        verify(diagnostics.getPluginInstance(BuildInfoPlugin.class), times(1)).onShutdown();
+        verify(diagnostics.getPluginInstance(InvocationSamplePlugin.class), times(1)).onShutdown();
+        verify(diagnostics.getPluginInstance(InvocationSamplePlugin.class), times(1)).onStart();
+
+        assertPluginsWhenDiagnosticsDisabled(diagnostics);
+    }
+
+    private static void assertPluginsWhenDiagnosticsEnabled(Diagnostics diagnostics) {
+        assertNotNull(diagnostics.getPluginInstance(BuildInfoPlugin.class));
+        assertNotNull(diagnostics.getPluginInstance(InvocationSamplePlugin.class));
+        // static plugins runs once hence no future
+        assertGreaterOrEquals("Static plugin not registered", diagnostics.staticTasks.get().length, 1);
+        assertNull(diagnostics.getFutureOf(BuildInfoPlugin.class));
+        // dynamic plugin runs periodically, future is not null
+        assertNotNull(diagnostics.getFutureOf(InvocationSamplePlugin.class));
+    }
+
+    private static void assertPluginsWhenDiagnosticsDisabled(Diagnostics diagnostics) {
+        assertNotNull(diagnostics.getPluginInstance(BuildInfoPlugin.class));
+        assertNotNull(diagnostics.getPluginInstance(InvocationSamplePlugin.class));
+        assertNull(diagnostics.getFutureOf(BuildInfoPlugin.class));
+        assertNull(diagnostics.getFutureOf(InvocationSamplePlugin.class));
+        assertFalse(diagnostics.isEnabled());
+    }
+
+    private void registerSomePlugins(Diagnostics diagnostics) {
+        DiagnosticsPlugin pluginStatic = mock(BuildInfoPlugin.class);
+        when(pluginStatic.canBeEnabledDynamically()).thenReturn(true);
+        when(pluginStatic.getPeriodMillis()).thenReturn(DiagnosticsPlugin.RUN_ONCE_PERIOD_MS);
+        diagnostics.register(pluginStatic);
+
+        DiagnosticsPlugin pluginDynamic = mock(InvocationSamplePlugin.class);
+        when(pluginDynamic.canBeEnabledDynamically()).thenReturn(true);
+        when(pluginDynamic.getPeriodMillis()).thenReturn(100_000L);
+        diagnostics.register(pluginDynamic);
+    }
+
+    @Test
+    public void test_DiagnosticsFileOutput() throws Exception {
+        Diagnostics diagnostics = newDiagnostics(new Config()
+                .setProperty(Diagnostics.ENABLED.getName(), "false")
+                .setProperty(Diagnostics.MAX_ROLLED_FILE_COUNT.getName(), "3")
+                .setProperty(Diagnostics.MAX_ROLLED_FILE_SIZE_MB.getName(), "1"));
+
+        DiagnosticsLog log = Diagnostics.newLog(diagnostics);
+
+        assertEquals(3, ((DiagnosticsLogFile) log).getMaxRollingFileCount());
+        assertEquals(1024 * 1024, ((DiagnosticsLogFile) log).getMaxRollingFileSizeBytes());
     }
 
     private Diagnostics newDiagnostics(Config config) throws Exception {

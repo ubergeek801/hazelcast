@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class HazelcastClientTest extends HazelcastTestSupport {
 
         int clientCount = 10;
         List<HazelcastInstance> clients = Collections.synchronizedList(new ArrayList<>(clientCount));
-        List<Future> futures = new ArrayList<>(clientCount);
+        List<Future<?>> futures = new ArrayList<>(clientCount);
         for (int i = 0; i < clientCount; i++) {
             futures.add(spawn(() -> {
                 clients.add(HazelcastClient.getOrCreateHazelcastClient(config));

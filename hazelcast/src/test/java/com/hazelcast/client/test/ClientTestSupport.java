@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,10 +124,10 @@ public class ClientTestSupport extends HazelcastTestSupport {
         @Override
         public void stateChanged(LifecycleEvent event) {
             LifecycleEvent.LifecycleState state = event.getState();
-            if (state.equals(LifecycleEvent.LifecycleState.CLIENT_DISCONNECTED)) {
+            if (state == LifecycleEvent.LifecycleState.CLIENT_DISCONNECTED) {
                 disconnected.set(true);
                 disconnectedLatch.countDown();
-            } else if (state.equals(LifecycleEvent.LifecycleState.CLIENT_CONNECTED)) {
+            } else if (state == LifecycleEvent.LifecycleState.CLIENT_CONNECTED) {
                 if (disconnected.get()) {
                     reconnectedLatch.countDown();
                 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
     @Test
     public void sync_whenHeartbeatTimeout() {
         int callTimeout = 5000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -116,7 +116,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
     @Test
     public void async_whenHeartbeatTimeout() {
         int callTimeout = 5000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -152,7 +152,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
     @Test
     public void sync_whenOperationTimeout() {
         int callTimeout = 5000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -188,7 +188,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
     @Test
     public void async_whenOperationTimeout() {
         int callTimeout = 5000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -259,7 +259,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         assertEquals(Boolean.TRUE, result);
     }
 
-    private void assertFailsEventuallyWithOperationTimeoutException(final BiConsumer callback) {
+    private void assertFailsEventuallyWithOperationTimeoutException(final BiConsumer<Object, Throwable> callback) {
         assertTrueEventually(() -> {
             ArgumentCaptor<Throwable> argument = ArgumentCaptor.forClass(Throwable.class);
             verify(callback).accept(isNull(), argument.capture());
@@ -270,12 +270,12 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
 
     /**
      * Tests if the future on a blocking operation can be shared by multiple threads. This tests fails in 3.6 because
-     * only 1 thread will be able to swap out CONTINUE_WAIT and all other threads will fail with an OperationTimeoutExcepyion
+     * only 1 thread will be able to swap out CONTINUE_WAIT and all other threads will fail with an OperationTimeoutException
      */
     @Test
     public void sync_whenManyGettersAndLotsOfWaiting() throws Exception {
         int callTimeout = 10000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -303,13 +303,13 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         final InternalCompletableFuture<Object> future = opService.createInvocationBuilder(null, thisOp, partitionId)
                 .setCallTimeout(callTimeout)
                 .invoke();
-        // now we are going to do a get on the future by a whole bunch of threads
+        // now we are going to do a get on the future by a bunch of threads
         final List<Future> futures = new LinkedList<>();
         for (int k = 0; k < 10; k++) {
-            futures.add(spawn((Callable) () -> future.join()));
+            futures.add(spawn((Callable) future::join));
         }
 
-        // lets do a very long wait so that the heartbeat/retrying mechanism have kicked in.
+        // let's do a very long wait so that the heartbeat/retrying mechanism have kicked in.
         // the lock remains locked; so the threads calling future.get remain blocked
         sleepMillis(callTimeout * 5);
 
@@ -328,12 +328,12 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
 
     /**
      * Tests if the future on a blocking operation can be shared by multiple threads. This tests fails in 3.6 because
-     * only 1 thread will be able to swap out CONTINUE_WAIT and all other threads will fail with an OperationTimeoutExcepyion
+     * only 1 thread will be able to swap out CONTINUE_WAIT and all other threads will fail with an OperationTimeoutException
      */
     @Test
     public void async_whenMultipleAndThenOnSameFuture() {
         int callTimeout = 5000;
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + callTimeout);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(callTimeout));
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(2);
         HazelcastInstance local = factory.newHazelcastInstance(config);
@@ -400,7 +400,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         final IQueue<Object> q = hz.getQueue("queue");
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicBoolean interruptedFlag = new AtomicBoolean(false);
+        final AtomicBoolean interruptedFlag = new AtomicBoolean();
 
         OpThread thread = new OpThread("Queue Thread", latch, interruptedFlag) {
             protected void doOp() throws InterruptedException {
@@ -436,7 +436,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         warmUpPartitions(instances);
 
         final String name = randomName();
-        IQueue queue = instances[0].getQueue(name);
+        IQueue<Object> queue = instances[0].getQueue(name);
 
         final CountDownLatch latch = new CountDownLatch(1);
         new Thread(() -> {
@@ -482,7 +482,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         final IQueue queue = hz.getQueue(randomName());
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicBoolean interruptedFlag = new AtomicBoolean(false);
+        final AtomicBoolean interruptedFlag = new AtomicBoolean();
 
         final OpThread thread = new OpThread("Queue-Poll-Thread", latch, interruptedFlag) {
             protected void doOp() throws InterruptedException {
@@ -506,15 +506,14 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static BiConsumer<Object, Throwable> getExecutionCallbackMock() {
-        return mock(BiConsumer.class);
+        return mock();
     }
 
     private abstract static class OpThread extends Thread {
 
         final CountDownLatch latch;
-        final AtomicBoolean interruptionCaught = new AtomicBoolean(false);
+        final AtomicBoolean interruptionCaught = new AtomicBoolean();
         final AtomicBoolean interruptedFlag;
 
         OpThread(String name, CountDownLatch latch, AtomicBoolean interruptedFlag) {
@@ -523,6 +522,7 @@ public class Invocation_BlockingTest extends HazelcastTestSupport {
             this.interruptedFlag = interruptedFlag;
         }
 
+        @Override
         public void run() {
             try {
                 doOp();

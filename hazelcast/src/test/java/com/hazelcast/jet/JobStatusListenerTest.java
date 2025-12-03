@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,7 +188,7 @@ public class JobStatusListenerTest extends SimpleTestInClusterSupport {
                 .config(new JobConfig().setSuspendOnFailure(true))
                 .when((job, listener) -> {
                     assertThat(job).eventuallySuspended();
-                    String failure = job.getSuspensionCause().errorCause().split("\n", 3)[1];
+                    String failure = job.getSuspensionCause().errorCause().lines().toList().get(1);
                     cancelAndJoin(job);
                     assertTailEqualsEventually(listener.log,
                             "Jet: NOT_RUNNING -> STARTING",

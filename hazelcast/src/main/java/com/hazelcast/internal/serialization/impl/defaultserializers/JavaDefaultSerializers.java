@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.hazelcast.nio.serialization.ByteArraySerializer;
 import com.hazelcast.nio.serialization.ClassNameFilter;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.nio.serialization.StreamSerializer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -90,6 +89,7 @@ public final class JavaDefaultSerializers {
 
         private Object read(InputStream in, ClassLoader classLoader) throws IOException {
             try {
+                @SuppressWarnings("squid:S2095")
                 ObjectInputStream objectInputStream = newObjectInputStream(classLoader, classFilter, in);
                 if (shared) {
                     return objectInputStream.readObject();
@@ -100,6 +100,7 @@ public final class JavaDefaultSerializers {
             }
         }
 
+        @SuppressWarnings("squid:S2093")
         private Object readGzipped(InputStream in, ClassLoader classLoader) throws IOException {
             ExtendedGZipInputStream gzip = new ExtendedGZipInputStream(in);
             try {
@@ -111,7 +112,6 @@ public final class JavaDefaultSerializers {
             }
         }
 
-        @SuppressFBWarnings("OS_OPEN_STREAM")
         @Override
         public void write(final ObjectDataOutput out, final Object obj) throws IOException {
             if (gzipEnabled) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.hazelcast.map.LocalMapStats;
 /**
  * Management bean for {@link IMap}
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 @ManagedDescription("IMap")
 public class MapMBean extends HazelcastMBean<IMap> {
 
@@ -125,6 +125,18 @@ public class MapMBean extends HazelcastMBean<IMap> {
     @ManagedDescription("number of remove operations on this member")
     public long getLocalRemoveOperationCount() {
         return localMapStatsDelegate.getLocalStats().getRemoveOperationCount();
+    }
+
+    @ManagedAnnotation("localValuesOperationCount")
+    @ManagedDescription("number of values() calls on this member")
+    public long getLocalValuesOperationCount() {
+        return localMapStatsDelegate.getLocalStats().getValuesCallCount();
+    }
+
+    @ManagedAnnotation("localEntrySetOperationCount")
+    @ManagedDescription("number of entrySet() calls on this member")
+    public long getLocalEntrySetOperationCount() {
+        return localMapStatsDelegate.getLocalStats().getEntrySetCallCount();
     }
 
     @ManagedAnnotation("localTotalPutLatency")

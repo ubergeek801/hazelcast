@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class MapNearCacheStalenessTest extends HazelcastTestSupport {
     private static final int NEAR_CACHE_PUTTER_THREAD_COUNT = 10;
     private static final int NEAR_CACHE_REMOVER_THREAD_COUNT = 3;
 
-    private final AtomicBoolean stop = new AtomicBoolean(false);
+    private final AtomicBoolean stop = new AtomicBoolean();
 
     private IMap<Integer, Integer> map1;
     private IMap<Integer, Integer> map2;

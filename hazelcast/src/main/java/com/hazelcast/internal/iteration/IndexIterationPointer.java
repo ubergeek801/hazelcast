@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import com.hazelcast.query.impl.OrderedIndexStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -240,8 +239,6 @@ public class IndexIterationPointer implements IdentifiedDataSerializable {
     /**
      * Checks if two pointers overlap or are adjacent which means that they can be combined into a single pointer.
      * Requires that {@code left <= right} regardless of descending flags - leads to simpler checks
-     * @param left
-     * @param right
      * @param comparator from/to value comparator, must be able to handle special values (NULL, null).
      * @return if the pointers overlap or are adjacent
      */
@@ -268,7 +265,7 @@ public class IndexIterationPointer implements IdentifiedDataSerializable {
         // Check non-inf values, do not need to check the other way around because pointers are ordered
         // Thanks to order we do not have to check `right.to`, we only need to check
         // if `right.from` belongs to `left` pointer range.
-        // we must take into account inclusiveness so we do not merge < X and > X ranges
+        // we must take into account inclusiveness, so we do not merge < X and > X ranges
         int rfCmpLt = comparator.compare(right.from, left.to);
         return eqOverlaps ? rfCmpLt <= 0 : rfCmpLt < 0;
     }
@@ -278,10 +275,7 @@ public class IndexIterationPointer implements IdentifiedDataSerializable {
      * overlapping it will contain also everything between them. Pointers can
      * be passed in any order.
      *
-     * @param left
-     * @param right
      * @param comparator from/to value comparator, must be able to handle special values (NULL, null).
-     * @return
      * @see #overlapsOrdered
      */
     public static IndexIterationPointer union(IndexIterationPointer left, IndexIterationPointer right, Comparator comparator) {
@@ -344,7 +338,6 @@ public class IndexIterationPointer implements IdentifiedDataSerializable {
      * Converts list of {@link IndexIterationPointer}s to ordered list of non-overlapping pointers.
      *
      * @param result List to be normalized. It may be modified in place
-     * @param descending
      * @return Normalized list. It may be the same object as passed as argument or different.
      */
     @Nonnull
@@ -359,7 +352,7 @@ public class IndexIterationPointer implements IdentifiedDataSerializable {
                 : "All iteration pointers must have the same direction";
 
         // order of ranges is critical for preserving ordering of the results
-        Collections.sort(result, descending ? POINTER_COMPARATOR_REVERSED : POINTER_COMPARATOR);
+        result.sort(descending ? POINTER_COMPARATOR_REVERSED : POINTER_COMPARATOR);
 
         // loop until we processed the last remaining pair
         //

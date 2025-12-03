@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * add/remove/update/evict events for the specified key only.
  */
 @SuppressWarnings("unused")
-@Generated("304d3f1c07e999369fbeeedd828ded83")
+@Generated("c91d53d5b09fa417957576be51a6d31c")
 public final class MultiMapAddEntryListenerToKeyCodec {
     //hex: 0x020D00
     public static final int REQUEST_MESSAGE_TYPE = 134400;
@@ -60,7 +60,6 @@ public final class MultiMapAddEntryListenerToKeyCodec {
     private MultiMapAddEntryListenerToKeyCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -141,10 +140,10 @@ public final class MultiMapAddEntryListenerToKeyCodec {
         encodeInt(initialFrame.content, EVENT_ENTRY_NUMBER_OF_AFFECTED_ENTRIES_FIELD_OFFSET, numberOfAffectedEntries);
         clientMessage.add(initialFrame);
 
-        CodecUtil.encodeNullable(clientMessage, key, DataCodec::encode);
-        CodecUtil.encodeNullable(clientMessage, value, DataCodec::encode);
-        CodecUtil.encodeNullable(clientMessage, oldValue, DataCodec::encode);
-        CodecUtil.encodeNullable(clientMessage, mergingValue, DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, key);
+        DataCodec.encodeNullable(clientMessage, value);
+        DataCodec.encodeNullable(clientMessage, oldValue);
+        DataCodec.encodeNullable(clientMessage, mergingValue);
         return clientMessage;
     }
 
@@ -158,10 +157,10 @@ public final class MultiMapAddEntryListenerToKeyCodec {
                 int eventType = decodeInt(initialFrame.content, EVENT_ENTRY_EVENT_TYPE_FIELD_OFFSET);
                 java.util.UUID uuid = decodeUUID(initialFrame.content, EVENT_ENTRY_UUID_FIELD_OFFSET);
                 int numberOfAffectedEntries = decodeInt(initialFrame.content, EVENT_ENTRY_NUMBER_OF_AFFECTED_ENTRIES_FIELD_OFFSET);
-                com.hazelcast.internal.serialization.Data key = CodecUtil.decodeNullable(iterator, DataCodec::decode);
-                com.hazelcast.internal.serialization.Data value = CodecUtil.decodeNullable(iterator, DataCodec::decode);
-                com.hazelcast.internal.serialization.Data oldValue = CodecUtil.decodeNullable(iterator, DataCodec::decode);
-                com.hazelcast.internal.serialization.Data mergingValue = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+                com.hazelcast.internal.serialization.Data key = DataCodec.decodeNullable(iterator);
+                com.hazelcast.internal.serialization.Data value = DataCodec.decodeNullable(iterator);
+                com.hazelcast.internal.serialization.Data oldValue = DataCodec.decodeNullable(iterator);
+                com.hazelcast.internal.serialization.Data mergingValue = DataCodec.decodeNullable(iterator);
                 handleEntryEvent(key, value, oldValue, mergingValue, eventType, uuid, numberOfAffectedEntries);
                 return;
             }

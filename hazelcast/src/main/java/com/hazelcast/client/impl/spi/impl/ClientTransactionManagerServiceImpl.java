@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientConnectionStrategyConfig;
 import com.hazelcast.client.impl.clientside.HazelcastClientInstanceImpl;
 import com.hazelcast.client.impl.connection.ClientConnection;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.proxy.txn.TransactionContextProxy;
 import com.hazelcast.client.impl.proxy.txn.xa.XATransactionContextProxy;
 import com.hazelcast.client.impl.spi.ClientClusterService;
@@ -85,8 +85,8 @@ public class ClientTransactionManagerServiceImpl implements ClientTransactionMan
             if (e instanceof TransactionException exception) {
                 throw exception;
             }
-            if (e.getCause() instanceof TransactionException) {
-                throw (TransactionException) e.getCause();
+            if (e.getCause() instanceof TransactionException transactionException) {
+                throw transactionException;
             }
             if (e instanceof RuntimeException exception) {
                 throw exception;
@@ -148,7 +148,7 @@ public class ClientTransactionManagerServiceImpl implements ClientTransactionMan
         ClientConfig clientConfig = client.getClientConfig();
         ClientConnectionStrategyConfig connectionStrategyConfig = clientConfig.getConnectionStrategyConfig();
         ClientConnectionStrategyConfig.ReconnectMode reconnectMode = connectionStrategyConfig.getReconnectMode();
-        if (reconnectMode.equals(ClientConnectionStrategyConfig.ReconnectMode.ASYNC)) {
+        if (reconnectMode == ClientConnectionStrategyConfig.ReconnectMode.ASYNC) {
             throw new HazelcastClientOfflineException();
         }
         String msg = getExceptionMsgByRoutingMode();
@@ -158,14 +158,14 @@ public class ClientTransactionManagerServiceImpl implements ClientTransactionMan
     private String getExceptionMsgByRoutingMode() {
         RoutingMode routingMode = client.getConnectionManager().getRoutingMode();
         return switch (routingMode) {
-            case SMART -> toSmartModeExceptionMsg();
-            case UNISOCKET -> "No active connection is found";
-            case SUBSET -> toSubsetModeExceptionMsg();
+            case ALL_MEMBERS -> toAllMembersModeExceptionMsg();
+            case SINGLE_MEMBER -> "No active connection is found";
+            case MULTI_MEMBER -> toMultiMemberModeExceptionMsg();
             default -> throw new IllegalStateException("Unsupported RoutingMode: " + routingMode);
         };
     }
 
-    private String toSmartModeExceptionMsg() {
+    private String toAllMembersModeExceptionMsg() {
         Collection<Member> members = client.getClientClusterService().getEffectiveMemberList();
         if (members.isEmpty()) {
             return "No address was returned by the LoadBalancer since there are no members in the cluster";
@@ -175,23 +175,23 @@ public class ClientTransactionManagerServiceImpl implements ClientTransactionMan
         }
     }
 
-    private String toSubsetModeExceptionMsg() {
+    private String toMultiMemberModeExceptionMsg() {
         ClientClusterService clientClusterService = client.getClientClusterService();
-        Collection<Member> subsetMembers = clientClusterService.getEffectiveMemberList();
+        Collection<Member> effectiveMembers = clientClusterService.getEffectiveMemberList();
         Collection<Member> allMembers = clientClusterService.getMemberList();
 
-        if (subsetMembers.isEmpty() && allMembers.isEmpty()) {
+        if (effectiveMembers.isEmpty() && allMembers.isEmpty()) {
             return "No address was returned by the LoadBalancer since there is no member "
                     + "in subset and in the cluster as well";
         }
 
-        if (subsetMembers.isEmpty()) {
+        if (effectiveMembers.isEmpty()) {
             return "No address was returned by the LoadBalancer since there is no member "
                     + "in subset but the cluster has these members:" + allMembers;
         }
 
         return "No address was returned by the LoadBalancer. "
-                + "But the subset contains the following members:" + subsetMembers
-                + "and the cluster has these members:" + allMembers;
+                + "But the effective members list contains the following:" + effectiveMembers
+                + ", while the cluster has these members:" + allMembers;
     }
 }

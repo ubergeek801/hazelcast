@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package com.hazelcast.topic;
 import com.hazelcast.core.HazelcastException;
 
 /**
- * A {@link HazelcastException} thrown when a publisher wants to write to a topic, but there is not sufficient storage
+ * A {@link HazelcastException} thrown when a publisher wants to write to a topic, but there is insufficient storage
  * to deal with the event.
- *
+ * <p>
  * This exception is only thrown in combination with the reliable topic.
  */
 public class TopicOverloadException extends HazelcastException {

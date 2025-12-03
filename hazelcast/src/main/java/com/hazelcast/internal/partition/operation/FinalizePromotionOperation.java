@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,26 @@
 
 package com.hazelcast.internal.partition.operation;
 
+import com.hazelcast.internal.partition.IPartitionLostEvent;
+import com.hazelcast.internal.partition.MigrationAwareService;
 import com.hazelcast.internal.partition.MigrationInfo;
 import com.hazelcast.internal.partition.MigrationInfo.MigrationStatus;
+import com.hazelcast.internal.partition.PartitionMigrationEvent;
 import com.hazelcast.internal.partition.PartitionReplicaVersionManager;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
 import com.hazelcast.internal.partition.impl.PartitionEventManager;
 import com.hazelcast.internal.partition.impl.PartitionStateManager;
 import com.hazelcast.internal.partition.operation.PromotionCommitOperation.PromotionOperationCallback;
-import com.hazelcast.logging.ILogger;
 import com.hazelcast.internal.services.ServiceNamespace;
+import com.hazelcast.logging.ILogger;
 import com.hazelcast.partition.ReplicaMigrationEvent;
-import com.hazelcast.internal.partition.IPartitionLostEvent;
-import com.hazelcast.internal.partition.MigrationAwareService;
-import com.hazelcast.internal.partition.PartitionMigrationEvent;
+import com.hazelcast.spi.impl.NodeEngineImpl;
 
 import java.util.Arrays;
 
 /**
  * Runs locally when the node becomes owner of a partition.
- * Finds the replica indices that are on the sync-waiting state. Those indices represents the lost backups of the partition.
+ * Finds the replica indices that are on the sync-waiting state. Those indices represent the lost backups of the partition.
  * Therefore, it publishes {@link IPartitionLostEvent} to listeners and updates the version for the lost replicas to the
  * first available version value after the lost backups, or {@code 0} if N/A.
  * In the end it sends a {@link PartitionMigrationEvent} to notify {@link MigrationAwareService}s
@@ -69,13 +70,15 @@ final class FinalizePromotionOperation extends AbstractPromotionOperation {
     @Override
     public void run() {
         if (logger.isFinestEnabled()) {
-            logger.finest("Running finalize promotion for " + getPartitionMigrationEvent() + ", result: " + success);
+            logger.finest("Running finalize promotion for %s, result: %s", getPartitionMigrationEvent(), success);
         }
 
         if (success) {
             migrationInfo.setStatus(MigrationStatus.SUCCESS);
             shiftUpReplicaVersions();
             commitServices();
+
+            ((NodeEngineImpl) getNodeEngine()).onPartitionMigrate(getPartitionMigrationEvent());
         } else {
             rollbackServices();
         }

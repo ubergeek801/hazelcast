@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,7 +210,7 @@ public class WriteBehindMapStoreWithEvictionsTest extends HazelcastTestSupport {
 
     @Test
     public void testWriteBehind_shouldNotMakeDuplicateStoreOperationForAKey_uponEviction() {
-        final AtomicInteger storeCount = new AtomicInteger(0);
+        final AtomicInteger storeCount = new AtomicInteger();
         MapStore<Integer, Integer> store = createSlowMapStore(storeCount);
 
         IMap<Integer, Integer> map = TestMapUsingMapStoreBuilder.<Integer, Integer>create()

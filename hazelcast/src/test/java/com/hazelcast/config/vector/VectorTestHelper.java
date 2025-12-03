@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,30 @@ public final class VectorTestHelper {
             Integer efConstruction,
             boolean useDeduplication
     ) {
+        return buildVectorCollectionConfig(collectionName, indexName, indexDim, indexMetric,
+                maxDegree, efConstruction, useDeduplication, null, null);
+    }
+
+    @SuppressWarnings("checkstyle:parameternumber")
+    public static VectorCollectionConfig buildVectorCollectionConfig(
+            String collectionName,
+            String indexName,
+            int indexDim,
+            Metric indexMetric,
+            Integer maxDegree,
+            Integer efConstruction,
+            boolean useDeduplication,
+            Integer backupCount,
+            Integer asyncBackupCount
+    ) {
         Config config = new Config();
         VectorCollectionConfig vectorCollectionConfig = new VectorCollectionConfig(collectionName);
+        if (backupCount != null) {
+            vectorCollectionConfig.setBackupCount(backupCount);
+        }
+        if (asyncBackupCount != null) {
+            vectorCollectionConfig.setAsyncBackupCount(asyncBackupCount);
+        }
         VectorIndexConfig indexConfig = new VectorIndexConfig()
                 .setName(indexName)
                 .setDimension(indexDim)

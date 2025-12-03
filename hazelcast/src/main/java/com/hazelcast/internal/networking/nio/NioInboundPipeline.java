@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.internal.util.counters.SwCounter;
 import com.hazelcast.logging.ILogger;
 
 import java.io.EOFException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.util.Arrays;
@@ -261,24 +260,24 @@ public final class NioInboundPipeline extends NioPipeline implements InboundPipe
     }
 
     // useful for debugging
-    private String pipelineToString() {
-        StringBuilder sb = new StringBuilder("in-pipeline[");
-        InboundHandler[] handlers = this.handlers;
-        for (int k = 0; k < handlers.length; k++) {
-            if (k > 0) {
-                sb.append("->-");
-            }
-            sb.append(handlers[k].getClass().getSimpleName());
-        }
-        sb.append(']');
-        return sb.toString();
-    }
+//    private String pipelineToString() {
+//        StringBuilder sb = new StringBuilder("in-pipeline[");
+//        InboundHandler[] handlers = this.handlers;
+//        for (int k = 0; k < handlers.length; k++) {
+//            if (k > 0) {
+//                sb.append("->-");
+//            }
+//            sb.append(handlers[k].getClass().getSimpleName());
+//        }
+//        sb.append(']');
+//        return sb.toString();
+//    }
 
     @Override
     public NioInboundPipeline wakeup() {
         ownerAddTaskAndWakeup(new NioPipelineTask(this) {
             @Override
-            protected void run0() throws IOException {
+            protected void run0() {
                 registerOp(OP_READ);
                 NioInboundPipeline.this.run();
             }

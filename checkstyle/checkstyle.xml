@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -116,9 +116,10 @@
       
         <module name="JavadocType">
             <property name="scope" value="public"/>
+            <property name="allowUnknownTags" value="true" />
         </module>
         <module name="JavadocVariable">
-            <property name="scope" value="public"/>
+            <property name="accessModifiers" value="public"/>
         </module>
         <module name="JavadocStyle">
             <property name="checkFirstSentence" value="false"/>
@@ -283,7 +284,9 @@
         https://github.com/hazelcast/hazelcast-enterprise/pull/6368/#issuecomment-1689625486
         <module name="FinalClass"/>
         -->
-        <module name="HideUtilityClassConstructor"/>
+        <module name="HideUtilityClassConstructor">
+            <property name="ignoreAnnotatedBy" value="Configuration, SpringBootApplication" />
+        </module>
         <module name="InterfaceIsType"/>
         <module name="VisibilityModifier">
             <property name="packageAllowed" value="true"/>

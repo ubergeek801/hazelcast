@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import static com.hazelcast.test.HazelcastTestSupport.assertClusterSizeEventuall
 import static com.hazelcast.test.HazelcastTestSupport.closeConnectionBetween;
 import static com.hazelcast.test.HazelcastTestSupport.randomString;
 import static com.hazelcast.test.OverridePropertyRule.clear;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastSerialClassRunner.class)
@@ -194,7 +195,7 @@ public class LiteMemberJoinTest {
     private void assertLiteMemberExcluding(final Set<Member> members, final HazelcastInstance... membersToExclude) {
         final Set<Member> membersCopy = new HashSet<>(members);
 
-        assertTrue((members.size() - 1) == membersToExclude.length);
+        assertEquals((members.size() - 1), membersToExclude.length);
 
         for (HazelcastInstance memberToExclude : membersToExclude) {
             assertTrue(membersCopy.remove(memberToExclude.getCluster().getLocalMember()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,12 @@ package com.hazelcast.spi.impl;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.SerializationService;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.nio.serialization.HazelcastSerializationException;
 
 import javax.annotation.Nonnull;
+
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -30,13 +33,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.hazelcast.internal.util.ConcurrencyUtil.CALLER_RUNS;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static java.util.Objects.requireNonNull;
 
@@ -71,9 +72,7 @@ public class DelegatingCompletableFuture<V> extends InternalCompletableFuture<V>
         }
     };
 
-    private static final AtomicReferenceFieldUpdater<DelegatingCompletableFuture, Object> DESERIALIZED_VALUE
-            = AtomicReferenceFieldUpdater.newUpdater(DelegatingCompletableFuture.class,
-            Object.class, "deserializedValue");
+    private static final VarHandle DESERIALIZED_VALUE = ReflectionUtil.findVarHandle("deserializedValue", Object.class);
 
     protected final CompletableFuture future;
     protected final InternalSerializationService serializationService;
@@ -100,7 +99,7 @@ public class DelegatingCompletableFuture<V> extends InternalCompletableFuture<V>
         this.serializationService = (InternalSerializationService) serializationService;
         this.result = result;
         if (listenFutureCompletion) {
-            this.future.whenCompleteAsync((v, t) -> completeSuper(v, (Throwable) t), CALLER_RUNS);
+            this.future.whenCompleteAsync((v, t) -> completeSuper(v, (Throwable) t), defaultExecutor());
         }
     }
 

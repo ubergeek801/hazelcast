@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Checks whether the mock network is compatible with the real network behavior.
  * @implNote This test cannot be ParallelJVMTest because it uses the real network.
  */
-public class MockServerEquivalenceTest {
+class MockServerEquivalenceTest {
 
     private TestHazelcastInstanceFactory factory;
 

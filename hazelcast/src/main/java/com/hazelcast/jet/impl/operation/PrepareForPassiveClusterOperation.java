@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
  * Sent from the member that initiates a cluster state change to the master.
  * When the operation completes, all jobs have been terminated.
  */
-public class PrepareForPassiveClusterOperation extends AsyncOperation implements UrgentSystemOperation {
+public class PrepareForPassiveClusterOperation extends AsyncMasterAwareOperation implements UrgentSystemOperation {
 
     public PrepareForPassiveClusterOperation() {
     }
@@ -38,5 +38,10 @@ public class PrepareForPassiveClusterOperation extends AsyncOperation implements
     @Override
     public int getClassId() {
         return JetInitDataSerializerHook.PREPARE_FOR_PASSIVE_CLUSTER_OP;
+    }
+
+    @Override
+    public boolean isRequireMasterExecution() {
+        return true;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public abstract class AbstractBaseReplicatedRecordStore<K, V> implements Replica
     protected final SerializationService serializationService;
     protected final ReplicatedMapService replicatedMapService;
     protected final AtomicReference<InternalReplicatedMapStorage<K, V>> storageRef;
-    protected final AtomicBoolean isLoaded = new AtomicBoolean(false);
+    protected final AtomicBoolean isLoaded = new AtomicBoolean();
 
     private final EntryTaskScheduler<Object, Object> ttlEvictionScheduler;
 
@@ -73,6 +73,7 @@ public abstract class AbstractBaseReplicatedRecordStore<K, V> implements Replica
                         new ReplicatedMapEvictionProcessor(this, nodeEngine, partitionId), ScheduleType.POSTPONE);
     }
 
+    @Override
     public InternalReplicatedMapStorage<K, V> getStorage() {
         return storageRef.get();
     }

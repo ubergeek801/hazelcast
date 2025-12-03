@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,11 @@ public abstract class PlanCacheTestSupport extends SqlTestSupport {
 
         @Override
         public boolean producesRows() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsTimeout() {
             return true;
         }
 

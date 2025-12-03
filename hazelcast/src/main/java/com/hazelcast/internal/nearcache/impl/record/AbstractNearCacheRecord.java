@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package com.hazelcast.internal.nearcache.impl.record;
 
 import com.hazelcast.internal.nearcache.NearCacheRecord;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 
+import java.lang.invoke.VarHandle;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import static com.hazelcast.internal.util.TimeStripUtil.recomputeWithBaseTime;
 import static com.hazelcast.internal.util.TimeStripUtil.stripBaseTime;
@@ -43,8 +44,7 @@ public abstract class AbstractNearCacheRecord<V> implements NearCacheRecord<V> {
 
     private static final AtomicIntegerFieldUpdater<AbstractNearCacheRecord> HITS =
             AtomicIntegerFieldUpdater.newUpdater(AbstractNearCacheRecord.class, "hits");
-    private static final AtomicLongFieldUpdater<AbstractNearCacheRecord> RECORD_STATE =
-            AtomicLongFieldUpdater.newUpdater(AbstractNearCacheRecord.class, "reservationId");
+    private static final VarHandle RECORD_STATE = ReflectionUtil.findVarHandle("reservationId", long.class);
 
     protected int creationTime;
 
@@ -126,7 +126,7 @@ public abstract class AbstractNearCacheRecord<V> implements NearCacheRecord<V> {
 
     @Override
     public void incrementHits() {
-        HITS.addAndGet(this, 1);
+        HITS.incrementAndGet(this);
     }
 
     @Override

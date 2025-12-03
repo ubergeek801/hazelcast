@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@ public final class TcpServer implements Server {
 
         TcpServerConnectionManager connectionManager = connectionManagers.get(qualifier);
         if (connectionManager == null) {
-            logger.finest("An connection manager for qualifier " + qualifier + " was never registered.");
+            logger.finest("An connection manager for qualifier %s was never registered.", qualifier);
         }
         return connectionManager;
     }
@@ -290,7 +290,7 @@ public final class TcpServer implements Server {
 
     private void closeServerSockets() {
         if (logger.isFinestEnabled()) {
-            logger.finest("Closing server socket channel: " + registry);
+            logger.finest("Closing server socket channel: %s", registry);
         }
         registry.destroy();
     }

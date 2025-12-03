@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public final class EnumerationUtil {
     public static <T> Stream<T> stream(Enumeration<T> e) {
         return StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(
-                        new Iterator<T>() {
+                        new Iterator<>() {
                             public T next() {
                                 return e.nextElement();
                             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,9 @@ import javax.sql.CommonDataSource;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+import static com.hazelcast.jet.TestedVersions.TEST_POSTGRES_IMAGE;
+
 public class PostgresDatabaseProvider extends JdbcDatabaseProvider<PostgreSQLContainer<?>> {
-
-    public static final String TEST_POSTGRES_VERSION = System.getProperty("test.postgres.version", "11.19-bullseye");
-
     private String command;
 
     public PostgresDatabaseProvider withCommand(String command) {
@@ -77,7 +76,7 @@ public class PostgresDatabaseProvider extends JdbcDatabaseProvider<PostgreSQLCon
     @SuppressWarnings("resource")
     @Override
     PostgreSQLContainer<?> createContainer(String dbName) {
-        PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:" + TEST_POSTGRES_VERSION)
+        PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(TEST_POSTGRES_IMAGE)
                 .withDatabaseName(dbName)
                 // On MacOS there seems to be some delay before the port is available for connections (maybe only with colima?).
                 // As a result, container is reported started based only on logs earlier that it can be connected to.

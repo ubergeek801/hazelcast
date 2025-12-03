@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.Objects;
  * members. This simplifies deployment as you do not have to deploy your domain classes into the classpath of all
  * cluster members.
  *
- * @deprecated since 5.4, "User Code Deployment" is replaced by the "User Code Namespaces" feature
+ * @deprecated "User Code Deployment" is replaced by the "User Code Namespaces" feature
  * @see UserCodeNamespacesConfig
  */
 @Deprecated(since = "5.4", forRemoval = true)

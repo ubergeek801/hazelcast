@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,26 @@
 package com.hazelcast.spring.jet;
 
 import com.hazelcast.config.Config;
-import com.hazelcast.spring.CustomSpringJUnit4ClassRunner;
+import com.hazelcast.spring.CustomSpringExtension;
 import com.hazelcast.test.HazelcastTestSupport;
-import com.hazelcast.test.annotation.QuickTest;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-@RunWith(CustomSpringJUnit4ClassRunner.class)
+@ExtendWith({SpringExtension.class, CustomSpringExtension.class})
 @ContextConfiguration(locations = {"instance-config-ignored-hazelcast.xml"})
-@Category(QuickTest.class)
-public class InstanceConfigIgnoredTest extends HazelcastTestSupport {
+class InstanceConfigIgnoredTest extends HazelcastTestSupport {
 
     @Autowired
     Config config;
 
     @Test
-    public void test() {
-        Assert.assertEquals(4, config.getJetConfig().getBackupCount());
-        Assert.assertEquals(4, config.getJetConfig().getInstanceConfig().getBackupCount());
+    void test() {
+        assertEquals(4, config.getJetConfig().getBackupCount());
     }
 }

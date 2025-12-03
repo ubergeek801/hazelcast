@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client.map;
 
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.proxy.ClientMapProxy;
 import com.hazelcast.client.map.helpers.GenericEvent;
 import com.hazelcast.client.test.TestHazelcastFactory;
@@ -82,8 +82,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SMART;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.UNISOCKET;
+import static com.hazelcast.client.config.RoutingMode.ALL_MEMBERS;
+import static com.hazelcast.client.config.RoutingMode.SINGLE_MEMBER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,7 +105,7 @@ public class ClientMapTest extends HazelcastTestSupport {
 
     @Parameterized.Parameters(name = "{index}: routingMode={0}")
     public static Iterable<?> parameters() {
-        return Arrays.asList(UNISOCKET, SMART);
+        return Arrays.asList(SINGLE_MEMBER, ALL_MEMBERS);
     }
 
     private final TestHazelcastFactory hazelcastFactory = new TestHazelcastFactory();
@@ -413,7 +413,7 @@ public class ClientMapTest extends HazelcastTestSupport {
         Map<String, String> tmpMap = new HashMap<>();
         fillMap(tmpMap);
         InternalCompletableFuture<Void> future = ((ClientMapProxy<String, String>) map).putAllAsync(tmpMap);
-        assertEqualsEventually(() -> future.isDone(), true);
+        assertEqualsEventually(future::isDone, true);
         assertEquals(map.size(), tmpMap.size());
         assertEquals(tmpMap, new HashMap<>(map));
     }
@@ -440,7 +440,7 @@ public class ClientMapTest extends HazelcastTestSupport {
                 .withMaxIdle(60_000);
 
         CompletableFuture<Void> future = mapProxy.putAllWithMetadataAsync(newArrayList(entryView));
-        assertEqualsEventually(() -> future.isDone(), true);
+        assertEqualsEventually(future::isDone, true);
         EntryView<String, String> actual = map.getEntryView("key");
 
         SoftAssertions sa = new SoftAssertions();
@@ -470,7 +470,7 @@ public class ClientMapTest extends HazelcastTestSupport {
         }
 
         CompletableFuture<Void> future = mapProxy.putAllWithMetadataAsync(entries);
-        assertEqualsEventually(() -> future.isDone(), true);
+        assertEqualsEventually(future::isDone, true);
 
         assertThat((Map<String, String>) map).hasSize(1000);
         for (int i = 0; i < 1000; i++) {
@@ -486,7 +486,7 @@ public class ClientMapTest extends HazelcastTestSupport {
         ClientMapProxy<String, String> mapProxy = (ClientMapProxy<String, String>) map;
 
         CompletableFuture<Void> future = mapProxy.putAllWithMetadataAsync(emptyList());
-        assertEqualsEventually(() -> future.isDone(), true);
+        assertEqualsEventually(future::isDone, true);
 
         assertThat((Map<String, String>) map).isEmpty();
     }
@@ -771,7 +771,7 @@ public class ClientMapTest extends HazelcastTestSupport {
     public void testPredicateListenerWithPortableKey() throws Exception {
         IMap<Portable, Integer> tradeMap = createMap();
 
-        final AtomicInteger atomicInteger = new AtomicInteger(0);
+        final AtomicInteger atomicInteger = new AtomicInteger();
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         EntryListener listener = new EntryAdapter() {
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -488,7 +488,7 @@ public final class Util {
      * if only one thread is updating the value.
      */
     public static void lazyAdd(AtomicLongArray counters, int index, long addend) {
-        counters.lazySet(index, counters.get(index) + addend);
+        counters.lazySet(index, counters.getPlain(index) + addend);
     }
 
     /**
@@ -709,7 +709,7 @@ public final class Util {
     @SuppressWarnings("checkstyle:MagicNumber") // number of hours per day isn't magic :)
     public static String formatJobDuration(long durationMs) {
         if (durationMs == Long.MIN_VALUE) {
-            return "" + Long.MIN_VALUE;
+            return String.valueOf(Long.MIN_VALUE);
         }
         String sign = "";
         if (durationMs < 0) {

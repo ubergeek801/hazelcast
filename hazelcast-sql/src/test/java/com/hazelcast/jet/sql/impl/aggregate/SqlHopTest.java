@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -1698,7 +1698,7 @@ public class SqlHopTest extends SqlTestSupport {
                         "TABLE(HOP(" +
                         "   time_col => DESCRIPTOR(ts)" +
                         "   , window_size => INTERVAL '0.004' SECOND" +
-                        "   , slide_size =>  INTERVAL '0.002' SECOND" +
+                        "   , slide_size => INTERVAL '0.002' SECOND" +
                         "   , input => (SELECT * FROM TABLE(IMPOSE_ORDER(TABLE " + name + ", DESCRIPTOR(ts), INTERVAL '0.002' SECOND)))" +
                         ")) " +
                         "GROUP BY window_start/*, window_end*/",

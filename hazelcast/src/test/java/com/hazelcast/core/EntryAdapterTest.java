@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,13 @@ public class EntryAdapterTest extends HazelcastTestSupport {
         TestHazelcastInstanceFactory instanceFactory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = instanceFactory.newHazelcastInstance(cfg);
 
-        IMap map = instance.getMap(mapName);
+        IMap<Integer, Integer> map = instance.getMap(mapName);
         map.put(1, 1);
         map.put(2, 2);
 
         final CountDownLatch evictionLatch = new CountDownLatch(1);
-        map.addEntryListener(new EntryAdapter() {
+        map.addEntryListener(new EntryAdapter<Integer, Integer>() {
+            @Override
             public void mapEvicted(final MapEvent event) {
                 evictionLatch.countDown();
             }
@@ -64,13 +65,13 @@ public class EntryAdapterTest extends HazelcastTestSupport {
         TestHazelcastInstanceFactory instanceFactory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = instanceFactory.newHazelcastInstance(cfg);
 
-        IMap map = instance.getMap(mapName);
+        IMap<Integer, Integer> map = instance.getMap(mapName);
         map.put(1, 1);
         map.put(2, 2);
 
         final CountDownLatch clearLatch = new CountDownLatch(1);
 
-        map.addEntryListener(new EntryAdapter() {
+        map.addEntryListener(new EntryAdapter<Integer, Integer>() {
             @Override
             public void mapCleared(MapEvent event) {
                 clearLatch.countDown();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,9 @@ import com.hazelcast.internal.cluster.MemberInfo;
 import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.security.UsernamePasswordCredentials;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -50,8 +49,9 @@ public class AuthenticationMessageTask extends AuthenticationBaseMessageTask<Cli
         clientSerializationVersion = parameters.serializationVersion;
         clientVersion = parameters.clientHazelcastVersion;
         clientName = parameters.clientName;
-        labels = Collections.unmodifiableSet(new HashSet<>(parameters.labels));
+        labels = Set.copyOf(parameters.labels);
         routingMode = parameters.isRoutingModeExists ? parameters.routingMode : -1;
+        cpDirectToLeaderRouting = parameters.isCpDirectToLeaderRoutingExists && parameters.cpDirectToLeaderRouting;
         return parameters;
     }
 

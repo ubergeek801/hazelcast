@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ package com.hazelcast.cache.impl.operation;
 
 import com.hazelcast.cache.impl.CacheDataSerializerHook;
 import com.hazelcast.cache.impl.CacheMergeResponse;
+import com.hazelcast.cache.impl.CacheService;
+import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.spi.impl.operationservice.BackupAwareOperation;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.merge.SplitBrainMergePolicy;
@@ -124,13 +127,9 @@ public class CacheMergeOperation extends CacheOperation implements BackupAwareOp
     @Override
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
-        int size = in.readInt();
-        mergingEntries = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            CacheMergeTypes<Object, Object> mergingEntry = in.readObject();
-            mergingEntries.add(mergingEntry);
-        }
-        mergePolicy = in.readObject();
+
+        mergingEntries = SerializationUtil.readList(in);
+        mergePolicy = NamespaceUtil.callWithNamespace(in::readObject, name, CacheService::lookupNamespace);
     }
 
     @Override

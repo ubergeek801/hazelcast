@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,7 @@ public class SqlCreateIndex extends SqlCreate {
 
         mapName.unparse(writer, leftPrec, rightPrec);
 
-        if (columns.size() > 0) {
+        if (!columns.isEmpty()) {
             SqlWriter.Frame frame = writer.startList("(", ")");
             for (SqlNode column : columns) {
                 printIndent(writer);
@@ -170,7 +170,7 @@ public class SqlCreateIndex extends SqlCreate {
         }
 
         IndexType indexType = getIndexType();
-        if (!indexType.equals(IndexType.BITMAP) && !options.getList().isEmpty()) {
+        if (indexType != IndexType.BITMAP && !options.getList().isEmpty()) {
             throw validator.newValidationError(options, RESOURCE.unsupportedIndexType(indexType.name(),
                     options().keySet().iterator().next()));
         }

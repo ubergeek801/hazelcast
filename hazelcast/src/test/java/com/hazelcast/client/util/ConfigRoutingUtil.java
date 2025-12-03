@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.client.util;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 
 /**
  * Utility for creating and modifying {@link ClientConfig} instances
@@ -36,16 +36,7 @@ public class ConfigRoutingUtil {
     public static ClientConfig newClientConfig(RoutingMode routingMode) {
         ClientConfig clientConfig = new ClientConfig();
         ClientNetworkConfig networkConfig = clientConfig.getNetworkConfig();
-        switch (routingMode) {
-            case UNISOCKET ->
-                    networkConfig.setSmartRouting(false).getSubsetRoutingConfig().setEnabled(false);
-            case SMART ->
-                    networkConfig.setSmartRouting(true).getSubsetRoutingConfig().setEnabled(false);
-            case SUBSET ->
-                    networkConfig.setSmartRouting(false).getSubsetRoutingConfig().setEnabled(true);
-            default ->
-                    throw new IllegalArgumentException(routingMode.name());
-        }
+        networkConfig.getClusterRoutingConfig().setRoutingMode(routingMode);
         return clientConfig;
     }
 }

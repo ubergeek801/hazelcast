@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,9 @@ public class LazySetTest {
     private LazySet<Object, Object, Object> set;
 
     @Before
-    @SuppressWarnings("unchecked")
     public void setUp() {
-        KeySetIteratorFactory<Object, Object> keySetIteratorFactory = mock(KeySetIteratorFactory.class);
-        InternalReplicatedMapStorage<Object, Object> storage = mock(InternalReplicatedMapStorage.class);
+        KeySetIteratorFactory<Object, Object> keySetIteratorFactory = mock();
+        InternalReplicatedMapStorage<Object, Object> storage = mock();
         set = new LazySet<>(keySetIteratorFactory, storage);
     }
 

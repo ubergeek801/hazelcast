@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package com.hazelcast.client.impl.spi.impl.listener;
 import com.hazelcast.client.impl.spi.ProxyManager;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.DistributedObjectEvent;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.io.Serial;
 import java.util.UUID;
 
-@SuppressFBWarnings("SE_BAD_FIELD")
 public final class LazyDistributedObjectEvent extends DistributedObjectEvent {
+    @Serial
     private static final long serialVersionUID = 6564764769334087775L;
     private ProxyManager proxyManager;
 

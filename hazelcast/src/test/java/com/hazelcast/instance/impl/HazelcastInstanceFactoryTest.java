@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class HazelcastInstanceFactoryTest extends HazelcastTestSupport {
             public NodeExtension createNodeExtension(Node node) {
                 NodeExtension nodeExtension = super.createNodeExtension(node);
                 doAnswer(new Answer() {
-                    final AtomicBoolean throwException = new AtomicBoolean(false);
+                    final AtomicBoolean throwException = new AtomicBoolean();
 
                     @Override
                     public Object answer(InvocationOnMock invocation) throws Throwable {

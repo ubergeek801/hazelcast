@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,7 +270,7 @@ public class MapTransactionTest extends HazelcastTestSupport {
         final HazelcastInstance h2 = factory.newHazelcastInstance(config);
         final HazelcastInstance h3 = factory.newHazelcastInstance(config);
         final int size = 50;
-        final AtomicBoolean result = new AtomicBoolean(false);
+        final AtomicBoolean result = new AtomicBoolean();
 
         Runnable runnable = () -> {
             try {
@@ -283,8 +283,7 @@ public class MapTransactionTest extends HazelcastTestSupport {
                     return true;
                 });
                 result.set(b);
-            } catch (HazelcastInstanceNotActiveException ignored) {
-            } catch (TransactionException ignored) {
+            } catch (HazelcastInstanceNotActiveException | TransactionException ignored) {
             }
         };
 

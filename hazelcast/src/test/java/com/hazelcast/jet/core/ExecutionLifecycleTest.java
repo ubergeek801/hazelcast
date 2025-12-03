@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import com.hazelcast.jet.impl.execution.ExecutionContext;
 import com.hazelcast.jet.impl.execution.init.ExecutionPlan;
 import com.hazelcast.jet.impl.execution.init.ExecutionPlanBuilder;
 import com.hazelcast.jet.impl.execution.init.JetInitDataSerializerHook;
-import com.hazelcast.jet.impl.processor.ExpectNothingP;
 import com.hazelcast.map.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -81,8 +80,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static com.hazelcast.internal.util.RootCauseMatcher.getRootCause;
@@ -206,7 +203,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     @Test
     public void when_pmsInitThrowsNonSerializable_then_jobFails() {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT);
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier).setInitError(NON_SERIALIZABLE_EXCEPTION)));
 
@@ -222,7 +219,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     public void when_pmsNonCooperativeInitThrowsNonSerializable_then_jobFails()
             throws InterruptedException, ExecutionException {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT);
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier)
                         .initBlocks()
@@ -244,7 +241,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     @Test
     public void when_pmsCloseThrowsNonSerializable_then_jobSucceeds() {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT);
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier)
                         .setCloseError(NON_SERIALIZABLE_EXCEPTION)));
@@ -257,7 +254,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     public void when_pmsNonCooperativeCloseThrowsNonSerializable_then_jobSucceeds()
             throws InterruptedException, ExecutionException {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT);
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier)
                         .closeBlocks()
@@ -336,7 +333,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     @Test
     public void when_psInitThrowsNonSerializable_then_jobFails() {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT)
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT)
                 .setInitError(NON_SERIALIZABLE_EXCEPTION);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier)));
@@ -354,7 +351,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     public void when_psNonCooperativeInitThrowsNonSerializable_then_jobFails() throws ExecutionException,
             InterruptedException {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT)
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT)
                 .initBlocks()
                 .setInitError(NON_SERIALIZABLE_EXCEPTION);
         DAG dag = new DAG().vertex(new Vertex("test",
@@ -376,7 +373,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     @Test
     public void when_psCloseThrowsNonSerializable_then_jobSucceeds() throws Exception {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT)
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT)
                 .setCloseError(NON_SERIALIZABLE_EXCEPTION);
         DAG dag = new DAG().vertex(new Vertex("test",
                 new MockPMS(supplier)));
@@ -396,7 +393,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     @Test
     public void when_psNonCooperativeCloseThrowsNonSerializable_then_jobSucceeds() throws Exception {
         // Given
-        SupplierEx<ProcessorSupplier> supplier = () ->  new MockPS(MockP::new, MEMBER_COUNT)
+        SupplierEx<ProcessorSupplier> supplier = () -> new MockPS(MockP::new, MEMBER_COUNT)
                 .closeBlocks()
                 .setCloseError(NON_SERIALIZABLE_EXCEPTION);
         DAG dag = new DAG().vertex(new Vertex("test",
@@ -729,8 +726,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         DAG dag = new DAG();
         // this is designed to fail when member deserializes the execution plan while executing
         // the InitOperation
-        dag.newVertex("faulty", (ProcessorMetaSupplier) addresses ->
-                address -> new NotDeserializableProcessorSupplier().original());
+        dag.newVertex("faulty", (ProcessorMetaSupplier) addresses -> address -> new NotDeserializableProcessorSupplier());
 
         // Then
         // we can't assert the exception class. Sometimes the HazelcastSerializationException is wrapped
@@ -773,7 +769,7 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
         assertThatThrownBy(job::join)
                 .hasMessageContaining(useLightJob
                         // `checkSerializable` isn't used for light jobs
-                        ? "Failed to serialize 'com.hazelcast.jet.impl.operation.InitExecutionOperation'"
+                        ? "Failed to serialize 'com.hazelcast.jet.impl.execution.init.ExecutionPlan'"
                         : "ProcessorSupplier in vertex 'v'\" must be serializable");
     }
 
@@ -1279,20 +1275,9 @@ public class ExecutionLifecycleTest extends SimpleTestInClusterSupport {
     }
 
     private static class NotDeserializableProcessorSupplier implements ProcessorSupplier {
-        private transient boolean original = false;
-
-        NotDeserializableProcessorSupplier original() {
-            original = true;
-            return this;
-        }
-
         @Nonnull
         @Override
         public Collection<? extends Processor> get(int count) {
-            if (original) {
-                // do not fail if we are on serialization-free path (local execution of light job)
-                return IntStream.range(0, count).mapToObj(i -> new ExpectNothingP()).collect(Collectors.toList());
-            }
             throw new UnsupportedOperationException("should not get here");
         }
 

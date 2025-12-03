@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.hazelcast.config.CacheSimpleEntryListenerConfig;
 import com.hazelcast.config.CardinalityEstimatorConfig;
 import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.DataPersistenceConfig;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
 import com.hazelcast.config.DiscoveryConfig;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.config.DiskTierConfig;
@@ -100,7 +101,7 @@ import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.CONFIG_D
 /**
  * DataSerializerHook for com.hazelcast.config classes
  */
-@SuppressWarnings({"checkstyle:javadocvariable", "deprecation"})
+@SuppressWarnings({"JavadocVariable", "deprecation", "ClassFanOutComplexity", "ClassDataAbstractionCoupling"})
 public final class ConfigDataSerializerHook implements DataSerializerHook {
 
     public static final int F_ID = FactoryIdHelper.getFactoryId(CONFIG_DS_FACTORY, CONFIG_DS_FACTORY_ID);
@@ -179,8 +180,11 @@ public final class ConfigDataSerializerHook implements DataSerializerHook {
     public static final int RESOURCE_DEFINITION = 71;
     public static final short VECTOR_COLLECTION_CONFIG = 72;
     public static final short VECTOR_INDEX_CONFIG = 73;
+    public static final int DIAGNOSTICS_CONFIG = 74;
 
-    private static final int LEN = VECTOR_INDEX_CONFIG + 1;
+    private static final int LEN = DIAGNOSTICS_CONFIG + 1;
+
+
 
     @Override
     public int getFactoryId() {
@@ -265,6 +269,7 @@ public final class ConfigDataSerializerHook implements DataSerializerHook {
         constructors[RESOURCE_DEFINITION] = ResourceDefinitionImpl::new;
         constructors[VECTOR_COLLECTION_CONFIG] = VectorCollectionConfig::new;
         constructors[VECTOR_INDEX_CONFIG] = VectorIndexConfig::new;
+        constructors[DIAGNOSTICS_CONFIG] = DiagnosticsConfig::new;
 
         return new ArrayDataSerializableFactory(constructors);
     }

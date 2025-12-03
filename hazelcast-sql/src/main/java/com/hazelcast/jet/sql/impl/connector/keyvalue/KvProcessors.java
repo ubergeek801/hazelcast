@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.hazelcast.sql.impl.expression.ExpressionEvalContext;
 import com.hazelcast.sql.impl.extract.QueryPath;
 import com.hazelcast.sql.impl.row.JetSqlRow;
 import com.hazelcast.sql.impl.type.QueryDataType;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -62,10 +61,10 @@ public final class KvProcessors {
         ));
     }
 
-    @SuppressFBWarnings(
-            value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
-            justification = "the class is never java-serialized"
-    )
+//    @SuppressFBWarnings(
+//            value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
+//            justification = "the class is never java-serialized"
+//    )
     private static final class EntryProjectorProcessorSupplier implements ProcessorSupplier, DataSerializable {
 
         private KvProjector.Supplier projectorSupplier;

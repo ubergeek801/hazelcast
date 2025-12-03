@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import javax.security.auth.Subject;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
-public class SubmitJobOperation extends AsyncJobOperation {
+public class SubmitJobOperation extends AsyncMasterAwareJobOperation {
     private transient Object deserializedJobDefinition;
     private transient JobConfig deserializedJobConfig;
 
@@ -38,6 +38,7 @@ public class SubmitJobOperation extends AsyncJobOperation {
     private Subject subject;
 
     public SubmitJobOperation() {
+        super();
     }
 
     public SubmitJobOperation(
@@ -99,5 +100,10 @@ public class SubmitJobOperation extends AsyncJobOperation {
         serializedJobConfig = IOUtil.readData(in);
         isLightJob = in.readBoolean();
         subject = in.readObject();
+    }
+
+    @Override
+    public boolean isRequireMasterExecution() {
+        return !isLightJob;
     }
 }

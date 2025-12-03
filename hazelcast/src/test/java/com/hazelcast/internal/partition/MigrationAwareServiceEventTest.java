@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public class MigrationAwareServiceEventTest extends HazelcastTestSupport {
         return config;
     }
 
-    private static class FailingOperationResponseHandler implements OperationResponseHandler {
+    private static class FailingOperationResponseHandler implements OperationResponseHandler<Operation> {
         private final Queue<String> failures = new ConcurrentLinkedQueue<>();
 
         @Override

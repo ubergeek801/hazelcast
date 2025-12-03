@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  * Messages are ordered, meaning that listeners(subscribers) will process the
  * messages in the order they are actually published. If cluster member M
  * publishes messages m1, m2, m3...mn to a topic T, then Hazelcast makes sure
- * that all of the subscribers of topic T will receive and process m1, m2,
+ * that all the subscribers of topic T will receive and process m1, m2,
  * m3...mn in order.
  * <p>
  * Since Hazelcast 3.5 it is possible to have reliable topics. Normally all
@@ -55,6 +55,7 @@ public interface ITopic<E> extends DistributedObject {
      *
      * @return name of this ITopic instance
      */
+    @Override
     String getName();
 
     /**

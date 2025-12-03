@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import static com.hazelcast.config.MaxSizePolicy.PER_NODE;
+import static com.hazelcast.internal.namespace.NamespaceUtil.runWithNamespace;
 import static com.hazelcast.internal.util.CollectionUtil.isNotEmpty;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
 import static com.hazelcast.internal.util.UUIDSerializationUtil.readUUID;
@@ -76,7 +77,7 @@ import static com.hazelcast.map.impl.mapstore.writebehind.entry.DelayedEntries.n
  *
  * @see #writeChunk
  */
-@SuppressWarnings("checkstyle:MethodCount")
+@SuppressWarnings({"checkstyle:MethodCount", "rawtypes", "unchecked"})
 public class MapChunk extends Operation
         implements IdentifiedDataSerializable, Versioned {
 
@@ -112,14 +113,17 @@ public class MapChunk extends Operation
         this.logger = context.getLogger(getClass().getName());
 
         if (logger.isFinestEnabled()) {
-            logger.finest(String.format("mapName:%s, chunkNumber:%d, partitionId:%d",
-                    context.getMapName(), chunkNumber, context.getPartitionId()));
+            logger.finest("mapName:%s, chunkNumber:%d, partitionId:%d",
+                    context.getMapName(), chunkNumber, context.getPartitionId());
         }
     }
 
     @Override
     public final void run() throws Exception {
         RecordStore recordStore = getRecordStore(mapName);
+        MapService mapService = getService();
+        final String userCodeNamespace = mapService.getMapServiceContext().getMapContainer(mapName)
+                                                   .getMapConfig().getUserCodeNamespace();
 
         if (firstChunk) {
             addIndexes(recordStore, mapIndexInfo.getIndexConfigs());
@@ -134,7 +138,7 @@ public class MapChunk extends Operation
         }
 
         if (isNotEmpty(keyRecordExpiry)) {
-            putInto(recordStore);
+            runWithNamespace(getNodeEngine(), userCodeNamespace, () -> putInto(recordStore));
             logProgress(recordStore);
         }
 
@@ -179,9 +183,9 @@ public class MapChunk extends Operation
         ILogger logger = recordStore.getMapContainer().getMapServiceContext()
                 .getNodeEngine().getLogger(getClass().getName());
         if (logger.isFinestEnabled()) {
-            logger.finest(String.format("mapName:%s, partitionId:%d,"
+            logger.finest("mapName:%s, partitionId:%d,"
                             + " numberOfEntriesMigrated:%d", mapName,
-                    getPartitionId(), (keyRecordExpiry.size() / 3)));
+                    getPartitionId(), (keyRecordExpiry.size() / 3));
         }
     }
 
@@ -594,6 +598,7 @@ public class MapChunk extends Operation
 
     private void readChunk(ObjectDataInput in) throws IOException {
         this.mapName = in.readString();
+
         LinkedList keyRecordExpiry = new LinkedList<>();
         do {
             Data dataKey = IOUtil.readData(in);

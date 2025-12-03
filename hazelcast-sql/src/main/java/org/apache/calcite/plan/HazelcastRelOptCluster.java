@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public final class HazelcastRelOptCluster extends RelOptCluster {
                 planner,
                 rexBuilder.getTypeFactory(),
                 rexBuilder,
-                new AtomicInteger(0),
+                new AtomicInteger(),
                 new HashMap<>(),
                 ssc
         );

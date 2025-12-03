@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,11 @@ import org.junit.runner.RunWith;
 import javax.cache.expiry.ExpiryPolicy;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,7 +57,7 @@ public class IMapDataStructureAdapterTest extends HazelcastTestSupport {
     @ClassRule
     public static ChangeLoggingRule changeLoggingRule = new ChangeLoggingRule("log4j2-debug-map.xml");
 
-    private DataStructureLoader mapStore = new IMapMapStore();
+    private final DataStructureLoader mapStore = new IMapMapStore();
 
     private IMap<Integer, String> map;
     private IMap<Integer, String> mapWithLoader;
@@ -323,7 +321,7 @@ public class IMapDataStructureAdapterTest extends HazelcastTestSupport {
         map.put(42, "value-42");
         map.put(65, "value-65");
 
-        Set<Integer> keys = new HashSet<>(asList(23, 65, 88));
+        Set<Integer> keys = Set.of(23, 65, 88);
         Map<Integer, Object> resultMap = adapter.executeOnKeys(keys, new IMapReplaceEntryProcessor("value", "newValue"));
         assertEquals(2, resultMap.size());
         assertEquals("newValue-23", resultMap.get(23));
@@ -350,7 +348,6 @@ public class IMapDataStructureAdapterTest extends HazelcastTestSupport {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testExecuteOnEntriesWithPredicate() {
         map.put(23, "value-23");
         map.put(42, "value-42");
@@ -396,7 +393,7 @@ public class IMapDataStructureAdapterTest extends HazelcastTestSupport {
 
     @Test(expected = MethodNotAvailableException.class)
     public void testLoadAllWithListener() {
-        adapter.loadAll(Collections.<Integer>emptySet(), true, null);
+        adapter.loadAll(Collections.emptySet(), true, null);
     }
 
     @Test
@@ -457,7 +454,7 @@ public class IMapDataStructureAdapterTest extends HazelcastTestSupport {
 
     @Test(expected = MethodNotAvailableException.class)
     public void testInvokeAll() {
-        Set<Integer> keys = new HashSet<>(asList(23, 65, 88));
+        Set<Integer> keys = Set.of(23, 65, 88);
         adapter.invokeAll(keys, new ICacheReplaceEntryProcessor(), "value", "newValue");
     }
 

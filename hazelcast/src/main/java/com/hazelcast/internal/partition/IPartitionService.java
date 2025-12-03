@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ public interface IPartitionService extends CoreService {
      *
      * @param partitionId the partitionId
      * @return owner of partition
-     * @throws InterruptedException if interrupted while waiting
      * @throws NoDataMemberInClusterException if all nodes are lite members and partitions can't be assigned
      */
     Address getPartitionOwnerOrWait(int partitionId);

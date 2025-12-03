@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import static com.hazelcast.instance.EndpointQualifier.MEMBER;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.internal.util.Preconditions.checkPositive;
 import static com.hazelcast.internal.util.Preconditions.checkState;
-import static java.util.Collections.newSetFromMap;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -57,7 +56,7 @@ public class FirewallingServer
     public final Server delegate;
     private final ScheduledExecutorService scheduledExecutor
             = newSingleThreadScheduledExecutor(new ThreadFactoryImpl("FirewallingConnectionManager"));
-    private final Set<Address> blockedAddresses = newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<Address> blockedAddresses = ConcurrentHashMap.newKeySet();
 
     private final Consumer<Packet> packetConsumer;
     private final AtomicReference<ServerConnectionManager> connectionManagerRef = new AtomicReference<>(null);
@@ -210,6 +209,10 @@ public class FirewallingServer
             if (connection instanceof DroppingServerConnection) {
                 connection.close(null, null);
             }
+        }
+
+        public PacketFilter getPacketFilter() {
+            return packetFilter;
         }
 
         public void setPacketFilter(PacketFilter packetFilter) {

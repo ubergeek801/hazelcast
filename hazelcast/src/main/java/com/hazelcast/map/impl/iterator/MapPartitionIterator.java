@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public class MapPartitionIterator<K, V> extends AbstractMapPartitionIterator<K, 
         advance();
     }
 
+    @Override
     protected List fetch() {
         String name = mapProxy.getName();
         MapOperationProvider operationProvider = mapProxy.getOperationProvider();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,6 +113,7 @@ public class MapSetTtlBackupTest extends HazelcastTestSupport {
         }
     }
 
+    @Override
     protected Config getConfig() {
         return smallInstanceConfig();
     }
@@ -141,7 +142,7 @@ public class MapSetTtlBackupTest extends HazelcastTestSupport {
     @SuppressWarnings("SameParameterValue")
     private static void assertKeysNotPresent(HazelcastInstance[] instances, String mapName, int from, int to) {
         for (int replicaIndex = 1; replicaIndex < CLUSTER_SIZE; replicaIndex++) {
-            BackupAccessor backupAccessor = newMapAccessor(instances, mapName, replicaIndex);
+            BackupAccessor<Integer, Integer> backupAccessor = newMapAccessor(instances, mapName, replicaIndex);
             for (int i = from; i < to; i++) {
                 assertBackupEntryNullEventually(i, backupAccessor);
             }
@@ -151,7 +152,7 @@ public class MapSetTtlBackupTest extends HazelcastTestSupport {
     @SuppressWarnings("SameParameterValue")
     private static void assertKeys(HazelcastInstance[] instances, String mapName, int from, int to) {
         for (int replicaIndex = 1; replicaIndex < CLUSTER_SIZE; replicaIndex++) {
-            BackupAccessor backupAccessor = newMapAccessor(instances, mapName, replicaIndex);
+            BackupAccessor<Integer, Integer> backupAccessor = newMapAccessor(instances, mapName, replicaIndex);
             for (int i = from; i < to; i++) {
                 assertBackupEntryEqualsEventually(i, i, backupAccessor);
             }

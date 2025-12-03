@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.internal.namespace;
 import com.hazelcast.config.ConfigAccessor;
 import com.hazelcast.config.UserCodeNamespaceConfig;
 import com.hazelcast.config.UserCodeNamespacesConfig;
+import com.hazelcast.function.ThrowingRunnable;
 import com.hazelcast.internal.metrics.DynamicMetricsProvider;
 import com.hazelcast.internal.monitor.impl.LocalUserCodeNamespaceStats;
 import com.hazelcast.internal.services.StatisticsAwareService;
@@ -137,7 +138,7 @@ public interface UserCodeNamespaceService extends StatisticsAwareService<LocalUs
      * @param namespace the {@code Namespace} name to use for finding the appropriate {@code Namespace}.
      * @param runnable  the {@link Runnable} to execute with Namespace awareness
      */
-    void runWithNamespace(@Nullable String namespace, Runnable runnable);
+    void runWithNamespace(@Nullable String namespace, ThrowingRunnable runnable);
 
     /**
      * Runs the provided {@link Callable} with the {@code Namespace} context of the {@code Namespace}
@@ -197,4 +198,12 @@ public interface UserCodeNamespaceService extends StatisticsAwareService<LocalUs
         ConfigAccessor.addNamespaceConfigLocally(namespacesConfig, namespaceConfig);
         addNamespace(namespaceConfig.getName(), ConfigAccessor.getResourceDefinitions(namespaceConfig));
     }
+
+    /**
+     * Method to transform a null namespace into the default namespace if available
+     *
+     * @param namespace the namespace to transform.
+     * @return the original namespace if non-{@code null}, the default namespace if it exists, otherwise {@code null}
+     */
+    String transformNamespace(@Nullable String namespace);
 }

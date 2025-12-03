@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,10 +165,12 @@ public class TcpServerConnection implements ServerConnection {
     }
 
 
+    @Override
     public long getStartTime() {
         return startTime;
     }
 
+    @Override
     public TcpServerConnectionManager getConnectionManager() {
         return connectionManager;
     }
@@ -242,7 +244,7 @@ public class TcpServerConnection implements ServerConnection {
         }
 
         if (logger.isFinestEnabled()) {
-            logger.finest("Connection is closed, won't write packet -> " + frame);
+            logger.finest("Connection is closed, won't write packet -> %s", frame);
         }
         return false;
     }

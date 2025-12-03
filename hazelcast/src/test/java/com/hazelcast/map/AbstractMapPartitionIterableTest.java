@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,12 @@ public abstract class AbstractMapPartitionIterableTest extends AbstractMapPartit
         return getIterable(map, 1);
     }
 
+    @Override
     protected <K, V> Iterator<Map.Entry<K, V>> getIterator(IMap<K, V> map, int partitionId) {
         return getIterable(map, partitionId).iterator();
     }
 
+    @Override
     protected <K, V> Iterator<Map.Entry<K, V>> getIterator(IMap<K, V> map) {
         return getIterator(map, 1);
     }

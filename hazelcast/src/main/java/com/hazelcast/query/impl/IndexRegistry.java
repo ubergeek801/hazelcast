@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import com.hazelcast.map.impl.operation.steps.engine.Step;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.impl.getters.Extractors;
 import com.hazelcast.query.impl.predicates.IndexAwarePredicate;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -254,7 +253,6 @@ public class IndexRegistry {
     /**
      * Returns all the composite indexes known to this indexes instance.
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public InternalIndex[] getCompositeIndexes() {
         return compositeIndexes;
     }
@@ -443,7 +441,6 @@ public class IndexRegistry {
     /**
      * Returns all the indexes known to this indexes instance.
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public InternalIndex[] getIndexes() {
         return indexes;
     }
@@ -461,7 +458,10 @@ public class IndexRegistry {
     public Iterable<QueryableEntry> query(Predicate predicate, int ownedPartitionCount) {
         stats.incrementQueryCount();
 
-        if (!canQueryOverIndex(predicate)) {
+        if (!(predicate instanceof IndexAwarePredicate)) {
+            stats.incrementIndexesSkippedQueryCount();
+            return null;
+        } else if (!haveAtLeastOneIndex()) {
             return null;
         }
 
@@ -484,10 +484,6 @@ public class IndexRegistry {
         }
     }
 
-    public boolean canQueryOverIndex(Predicate predicate) {
-        return haveAtLeastOneIndex() && predicate instanceof IndexAwarePredicate;
-    }
-
     /**
      * Matches an index for the given pattern and match hint.
      *
@@ -508,7 +504,13 @@ public class IndexRegistry {
             index = attributeIndexRegistry.match(pattern, matchHint);
         }
 
-        if (index == null || !index.allPartitionsIndexed(ownedPartitionCount)) {
+        if (index == null) {
+            stats.incrementNoMatchingIndexQueryCount();
+            return null;
+        }
+
+        if (!index.allPartitionsIndexed(ownedPartitionCount)) {
+            index.getPerIndexStats().incrementIndexNotReadyQueryCount();
             return null;
         }
 
@@ -589,7 +591,7 @@ public class IndexRegistry {
                                             boolean statisticsEnabled) {
         if (statisticsEnabled) {
             if (global) {
-                return inMemoryFormat.equals(NATIVE) ? new HDGlobalIndexesStats() : new GlobalIndexesStats();
+                return inMemoryFormat == NATIVE ? new HDGlobalIndexesStats() : new GlobalIndexesStats();
             } else {
                 return new PartitionIndexesStats();
             }

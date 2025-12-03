@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,11 @@ public class MapStoreWithCounter<K, V> implements MapStore<K, V> {
 
     protected final Map<K, V> store = new ConcurrentHashMap<>();
 
-    protected AtomicInteger countStore = new AtomicInteger(0);
-    protected AtomicInteger countDelete = new AtomicInteger(0);
-    protected AtomicInteger countLoad = new AtomicInteger(0);
-    protected AtomicInteger batchCounter = new AtomicInteger(0);
+    protected AtomicInteger countStore = new AtomicInteger();
+    protected AtomicInteger countDelete = new AtomicInteger();
+    protected AtomicInteger countLoad = new AtomicInteger();
+    protected AtomicInteger batchCounter = new AtomicInteger();
     protected Map<Integer, Integer> batchOpCountMap = new ConcurrentHashMap<>();
-
-    public MapStoreWithCounter() {
-    }
 
     @Override
     public void store(K key, V value) {
@@ -49,9 +46,7 @@ public class MapStoreWithCounter<K, V> implements MapStore<K, V> {
         batchOpCountMap.put(batchCounter.incrementAndGet(), map.size());
 
         countStore.addAndGet(map.size());
-        for (Map.Entry<K, V> kvp : map.entrySet()) {
-            store.put(kvp.getKey(), kvp.getValue());
-        }
+        store.putAll(map);
     }
 
     @Override

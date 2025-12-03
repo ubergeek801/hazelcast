@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,9 +85,9 @@ public class CacheListenerTest extends HazelcastTestSupport {
         final int threadCount = 10;
         final int shutdownWaitTimeInSeconds = threadCount;
         final int putCount = 1000;
-        final AtomicInteger actualPutCount = new AtomicInteger(0);
+        final AtomicInteger actualPutCount = new AtomicInteger();
         final CountDownLatch latch = new CountDownLatch(threadCount);
-        final AtomicBoolean shutdown = new AtomicBoolean(false);
+        final AtomicBoolean shutdown = new AtomicBoolean();
         for (int i = 0; i < threadCount; i++) {
             new Thread(() -> {
                 Random rand = new Random();

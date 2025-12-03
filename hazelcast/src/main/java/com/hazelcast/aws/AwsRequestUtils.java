@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -65,15 +64,7 @@ final class AwsRequestUtils {
     }
 
     private static String canonicalQueryString(List<String> list) {
-        Iterator<String> it = list.iterator();
-        StringBuilder result = new StringBuilder();
-        if (it.hasNext()) {
-            result.append(it.next());
-        }
-        while (it.hasNext()) {
-            result.append('&').append(it.next());
-        }
-        return result.toString();
+        return String.join("&", list);
     }
 
     private static void addComponents(List<String> components, Map<String, String> attributes, String key) {

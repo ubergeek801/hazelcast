@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,7 +289,7 @@ public class SlidingWindowP<K, A, R, OUT> extends AbstractProcessor {
     @SuppressWarnings("unchecked")
     protected void restoreFromSnapshot(@Nonnull Object key, @Nonnull Object value) {
         if (key instanceof BroadcastKey bcastKey) {
-            if (!Keys.NEXT_WIN_TO_EMIT.equals(bcastKey.key())) {
+            if (Keys.NEXT_WIN_TO_EMIT != bcastKey.key()) {
                 throw new JetException("Unexpected broadcast key: " + bcastKey.key());
             }
             long newNextWinToEmit = (long) value;

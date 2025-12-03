@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -150,7 +147,7 @@ public class DeferredValue<V> {
     }
 
     public static <V> Set<DeferredValue<V>> concurrentSetOfValues(Set<V> values) {
-        Set<DeferredValue<V>> result = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        Set<DeferredValue<V>> result = ConcurrentHashMap.newKeySet();
         for (V value : values) {
             result.add(DeferredValue.withValue(value));
         }
@@ -202,14 +199,6 @@ public class DeferredValue<V> {
         @Override
         public void clear() {
             delegate.clear();
-        }
-
-        private Collection<DeferredValue<?>> asDeferredValues(Collection<?> collection) {
-            Collection<DeferredValue<?>> deferredValues = new ArrayList<>();
-            for (Object object : collection) {
-                deferredValues.add(DeferredValue.withValue(object));
-            }
-            return deferredValues;
         }
     }
 

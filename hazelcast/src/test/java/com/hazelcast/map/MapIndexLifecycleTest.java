@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import static com.hazelcast.test.Accessors.getOperationService;
 import static java.util.Arrays.copyOfRange;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -90,7 +91,7 @@ public class MapIndexLifecycleTest extends HazelcastTestSupport {
         HazelcastInstance instance1 = createNode(instanceFactory);
 
         // THEN - initialized
-        IMap bookMap = instance1.getMap(mapName);
+        IMap<Integer, Book> bookMap = instance1.getMap(mapName);
         fillMap(bookMap);
         assertEquals(BOOK_COUNT, bookMap.size());
         assertAllPartitionContainersAreInitialized(instance1);
@@ -178,13 +179,13 @@ public class MapIndexLifecycleTest extends HazelcastTestSupport {
                 mapContainer.getGlobalIndexRegistry().getIndex("year"));
         final String authorOwned = findAuthorOwnedBy(instance);
         final Integer yearOwned = findYearOwnedBy(instance);
-        assertTrueEventually(() -> assertTrue("Author index should contain records.",
+        assertTrueEventually(() -> assertFalse("Author index should contain records.",
                 mapContainer.getGlobalIndexRegistry()
                         .getIndex("author")
-                        .getRecords(authorOwned).size() > 0));
+                        .getRecords(authorOwned).isEmpty()));
 
-        assertTrueEventually(() -> assertTrue("Year index should contain records",
-                mapContainer.getGlobalIndexRegistry().getIndex("year").getRecords(yearOwned).size() > 0));
+        assertTrueEventually(() -> assertFalse("Year index should contain records",
+                mapContainer.getGlobalIndexRegistry().getIndex("year").getRecords(yearOwned).isEmpty()));
     }
 
     private int numberOfPartitionQueryResults(HazelcastInstance instance, int partitionId, String attribute, Comparable value) {
@@ -338,7 +339,7 @@ public class MapIndexLifecycleTest extends HazelcastTestSupport {
     }
 
     // A CoreService with a slow post-join op. Its post-join operation will be executed before map's
-    // post-join operation so we can ensure indexes are created via MapReplicationOperation,
+    // post-join operation, so we can ensure indexes are created via MapReplicationOperation,
     // even though PostJoinMapOperation has not yet been executed.
     public static class SlowPostJoinAwareService implements CoreService, PostJoinAwareService {
         @Override

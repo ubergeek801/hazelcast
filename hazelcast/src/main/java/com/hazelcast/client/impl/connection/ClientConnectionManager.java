@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client.impl.connection;
 
 import com.hazelcast.client.HazelcastClientOfflineException;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.management.ClientConnectionProcessListener;
 import com.hazelcast.internal.nio.ConnectionListenable;
 
@@ -67,8 +67,9 @@ public interface ClientConnectionManager extends ConnectionListenable<ClientConn
     UUID getClientUuid();
 
     /**
-     * For a smart client a random ClientConnection is chosen via LoadBalancer.
-     * For a unisocket client the only ClientConnection will be returned.
+     * For an {@link RoutingMode#ALL_MEMBERS} or {@link RoutingMode#MULTI_MEMBER} routing client, a random
+     * ClientConnection is chosen via LoadBalancer.
+     * For a {@link RoutingMode#SINGLE_MEMBER} routing client the only ClientConnection will be returned.
      *
      * @return random ClientConnection if available, null otherwise
      */
@@ -91,9 +92,9 @@ public interface ClientConnectionManager extends ConnectionListenable<ClientConn
 
     /**
      * <lu>
-     * <li>UNISOCKET: if the smart routing and the TPC config is disabled.</li>
-     * <li>SMART: routing can be done to all members by knowing where data is</li>
-     * <li>SUBSET: routing can be done based on rules by default rule is to stick one of partition groups</li>
+     * <li>SINGLE_MEMBER: routing can only be done to the single connected member</li>
+     * <li>ALL_MEMBERS: routing can be done to all members by knowing where data is</li>
+     * <li>MULTI_MEMBER: routing can be done based on a defined grouping strategy</li>
      * </lu>
      */
     RoutingMode getRoutingMode();

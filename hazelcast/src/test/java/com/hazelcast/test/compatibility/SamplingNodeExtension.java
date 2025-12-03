@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.test.compatibility;
 
 import com.hazelcast.auditlog.AuditlogService;
 import com.hazelcast.auditlog.impl.NoOpAuditlogService;
+import com.hazelcast.client.impl.ClientEngine;
 import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.SSLConfig;
 import com.hazelcast.cp.CPSubsystem;
@@ -29,6 +30,7 @@ import com.hazelcast.instance.impl.NodeExtension;
 import com.hazelcast.internal.ascii.TextCommandService;
 import com.hazelcast.internal.cluster.impl.JoinMessage;
 import com.hazelcast.internal.diagnostics.Diagnostics;
+import com.hazelcast.internal.diagnostics.HealthMonitor;
 import com.hazelcast.internal.hotrestart.InternalHotRestartService;
 import com.hazelcast.internal.jmx.ManagementService;
 import com.hazelcast.internal.management.TimedMemberStateFactory;
@@ -57,6 +59,7 @@ import com.hazelcast.version.Version;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -200,10 +203,16 @@ public class SamplingNodeExtension implements NodeExtension {
     }
 
     @Override
+    public Set<Version> getSupportedVersions() {
+        return nodeExtension.getSupportedVersions();
+    }
+
+    @Override
     public void beforeClusterStateChange(ClusterState currState, ClusterState requestedState, boolean isTransient) {
         nodeExtension.beforeClusterStateChange(currState, requestedState, isTransient);
     }
 
+    @Override
     public void onInitialClusterState(ClusterState initialState) {
         nodeExtension.onInitialClusterState(initialState);
     }
@@ -302,6 +311,7 @@ public class SamplingNodeExtension implements NodeExtension {
         return NoOpAuditlogService.INSTANCE;
     }
 
+    @Override
     public CPPersistenceService getCPPersistenceService() {
         return nodeExtension.getCPPersistenceService();
     }
@@ -335,5 +345,21 @@ public class SamplingNodeExtension implements NodeExtension {
     @Override
     public TpcServerBootstrap createTpcServerBootstrap() {
         return new TpcServerBootstrapImpl(null);
+    }
+
+    @Override
+    public ClientEngine createClientEngine() {
+        return nodeExtension.createClientEngine();
+    }
+
+    @Nullable
+    @Override
+    public Object getLicense() {
+        return nodeExtension.getLicense();
+    }
+
+    @Override
+    public HealthMonitor createHealthMonitor() {
+        return nodeExtension.createHealthMonitor();
     }
 }

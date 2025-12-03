@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.hazelcast.internal.partition.operation;
 
-import com.hazelcast.internal.partition.InternalPartitionService;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.MigrationCycleOperation;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
 import com.hazelcast.internal.partition.impl.PartitionDataSerializerHook;
@@ -55,8 +55,7 @@ public final class PartitionStateCheckOperation extends AbstractPartitionOperati
         if (currentStamp != stamp) {
             stale = true;
             if (logger.isFineEnabled()) {
-                logger.fine("Partition table is stale! Current stamp: " + currentStamp
-                        + ", master stamp: " + stamp);
+                logger.fine("Partition table is stale! Current stamp: %s, master stamp: %s", currentStamp, stamp);
             }
         }
     }
@@ -68,7 +67,7 @@ public final class PartitionStateCheckOperation extends AbstractPartitionOperati
 
     @Override
     public String getServiceName() {
-        return InternalPartitionService.SERVICE_NAME;
+        return IPartitionService.SERVICE_NAME;
     }
 
     @Override

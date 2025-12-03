@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.hazelcast.cluster;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.io.Serial;
 import java.util.EventObject;
 import java.util.Set;
 
@@ -30,9 +30,9 @@ import java.util.Set;
  * @see MembershipListener
  * @see MembershipEvent
  */
-@SuppressFBWarnings("SE_BAD_FIELD")
 public class InitialMembershipEvent extends EventObject {
 
+    @Serial
     private static final long serialVersionUID = -2010865371829087371L;
 
     private final Set<Member> members;

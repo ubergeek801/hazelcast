@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -231,7 +230,7 @@ public class ClientQueueTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void testRemove() throws IOException {
+    public void testRemove()  {
         IQueue<Integer> q = client.getQueue(randomString());
 
         q.offer(1);
@@ -542,7 +541,7 @@ public class ClientQueueTest extends HazelcastTestSupport {
 
         final IQueue<Integer> queue = client.getQueue(randomString());
 
-        UUID id = queue.addItemListener(new ItemListener<Integer>() {
+        UUID id = queue.addItemListener(new ItemListener<>() {
 
             public void itemAdded(ItemEvent<Integer> itemEvent) {
                 itemAddedLatch.countDown();

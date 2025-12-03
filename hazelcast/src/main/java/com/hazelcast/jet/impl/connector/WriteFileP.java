@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.impl.connector;
 
 import com.hazelcast.function.FunctionEx;
+import com.hazelcast.jet.core.ProcessorSupplier;
 import com.hazelcast.security.impl.function.SecuredFunctions;
 import com.hazelcast.jet.RestartableException;
 import com.hazelcast.jet.config.ProcessingGuarantee;
@@ -33,12 +34,10 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.security.permission.ConnectorPermission;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -49,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -81,7 +81,7 @@ public final class WriteFileP<T> implements Processor {
      * A pattern to parse processor index from a file name. File name has the form:
      * [<date>-]<global processor index>[-<sequence>][".tmp"]
      * This regexp assumes the sequence is present and searches from the right
-     * because the structure of the date is user-supplied and can by anything.
+     * because the structure of the date is user-supplied and can be anything.
      */
     private static final Pattern FILE_INDEX_WITH_SEQ = Pattern.compile("(\\d+)-\\d+(\\.tmp)?$");
 
@@ -293,7 +293,7 @@ public final class WriteFileP<T> implements Processor {
     private Writer createWriter(Path file) {
         try {
             context.logger().fine("creating %s", file);
-            FileOutputStream fos = new FileOutputStream(file.toFile(), true);
+            OutputStream fos = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             sizeTrackingStream = new SizeTrackingStream(bos);
             return new OutputStreamWriter(sizeTrackingStream, charset);
@@ -328,8 +328,8 @@ public final class WriteFileP<T> implements Processor {
             @Nonnull LongSupplier clock
     ) {
         return ProcessorMetaSupplier.preferLocalParallelismOne(ConnectorPermission.file(directoryName, ACTION_WRITE),
-                SecuredFunctions.writeFileProcessorFn(directoryName, toStringFn, charset, datePattern,
-                        maxFileSize, exactlyOnce, clock));
+                ProcessorSupplier.of(SecuredFunctions.writeFileProcessorFn(directoryName, toStringFn, charset, datePattern,
+                        maxFileSize, exactlyOnce, clock)));
     }
 
     private abstract class FileResource implements TransactionalResource<FileId> {
@@ -338,8 +338,8 @@ public final class WriteFileP<T> implements Processor {
         final Path targetFile;
         Writer writer;
 
-        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
-                justification = "targetFile always has fileName")
+//        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+//                justification = "targetFile always has fileName")
         FileResource(FileId fileId) {
             this.fileId = fileId;
             this.targetFile = directory.resolve(fileId.fileName);

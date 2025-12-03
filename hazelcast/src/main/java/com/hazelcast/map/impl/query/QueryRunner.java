@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ public class QueryRunner {
     }
 
     private Result createResult(Query query, Collection<Integer> partitions) {
-        return query.createResult(serializationService, queryResultSizeLimiter.getNodeResultLimit(partitions.size()));
+        return query.createResult(serializationService, queryResultSizeLimiter, partitions.size());
     }
 
     protected Result populateEmptyResult(Query query, Collection<Integer> initialPartitions) {

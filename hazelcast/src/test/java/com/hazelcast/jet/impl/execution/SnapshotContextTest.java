@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.runners.Parameterized.UseParametersRunnerFactory;
 import static org.mockito.Mockito.mock;
 
@@ -104,8 +103,7 @@ public class SnapshotContextTest {
         }
 
         assertNotNull("future == null", future);
-        assertTrue("future.isDone() == " + future.isDone(),
-                future.isDone() == (taskletCount == 1));
+        assertEquals("future.isDone() == " + future.isDone(), future.isDone(), (taskletCount == 1));
         assertEquals("numRemainingTasklets", taskletCount - 1, ssContext.getNumRemainingTasklets().get());
         assertEquals("activeSnapshotId at the end",
                 taskletDone == TaskletDone.NOT_DONE && numHigherPriority > 0

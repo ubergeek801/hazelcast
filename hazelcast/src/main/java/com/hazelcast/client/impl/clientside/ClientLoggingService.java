@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,14 @@ public class ClientLoggingService implements LoggingService {
     }
 
     @Nonnull
+    @Override
     public ILogger getLogger(@Nonnull String name) {
         checkNotNull(name, "name must not be null");
         return getOrPutIfAbsent(mapLoggers, name, loggerConstructor);
     }
 
     @Nonnull
+    @Override
     public ILogger getLogger(@Nonnull Class<?> clazz) {
         checkNotNull(clazz, "class must not be null");
         return getOrPutIfAbsent(mapLoggers, clazz.getName(), loggerConstructor);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public enum CacheEventType {
     private static final int MAX_TYPE_ID = PARTITION_LOST.type;
     private static final CacheEventType[] CACHED_VALUES = values();
 
-    private int type;
+    private final int type;
 
     CacheEventType(final int type) {
         this.type = type;

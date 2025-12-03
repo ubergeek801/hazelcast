@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -305,9 +305,9 @@ public class NetworkConfig {
      * be used.
      *
      * @return the SymmetricEncryptionConfig
-     * @deprecated since 4.2
+     * @deprecated
      */
-    @Deprecated
+    @Deprecated(since = "4.2")
     public SymmetricEncryptionConfig getSymmetricEncryptionConfig() {
         return symmetricEncryptionConfig;
     }
@@ -318,9 +318,9 @@ public class NetworkConfig {
      * @param symmetricEncryptionConfig the SymmetricEncryptionConfig to set
      * @return the updated NetworkConfig
      * @see #getSymmetricEncryptionConfig()
-     * @deprecated since 4.2
+     * @deprecated
      */
-    @Deprecated
+    @Deprecated(since = "4.2")
     public NetworkConfig setSymmetricEncryptionConfig(final SymmetricEncryptionConfig symmetricEncryptionConfig) {
         this.symmetricEncryptionConfig = symmetricEncryptionConfig;
         return this;
@@ -395,7 +395,7 @@ public class NetworkConfig {
     /**
      *
      * @return The REST API configuration for the legacy REST server.
-     * @deprecated since 5.5, use Config.getRestConfig() instead. Will be removed at 6.0.
+     * @deprecated use Config.getRestConfig() instead. Will be removed at 6.0.
      * @see RestConfig
      */
     @Deprecated(since = "5.5", forRemoval = true)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public final class RepairingTask implements Runnable {
     private final InvalidationMetaDataFetcher invalidationMetaDataFetcher;
     private final SerializationService serializationService;
     private final MinimalPartitionService partitionService;
-    private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean();
     private final ConcurrentMap<String, RepairingHandler> handlers = new ConcurrentHashMap<>();
     private final ContextMutexFactory contextMutexFactory = new ContextMutexFactory();
 
@@ -282,8 +282,8 @@ public final class RepairingTask implements Runnable {
 
             if (totalMissCount > maxToleratedMissCount) {
                 if (logger.isFinestEnabled()) {
-                    logger.finest(format("Above tolerated miss count:[map=%s,missCount=%d,maxToleratedMissCount=%d]",
-                            handler.getName(), totalMissCount, maxToleratedMissCount));
+                    logger.finest("Above tolerated miss count:[map=%s,missCount=%d,maxToleratedMissCount=%d]",
+                            handler.getName(), totalMissCount, maxToleratedMissCount);
                 }
                 return true;
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package com.hazelcast.cache.impl.journal;
 import com.hazelcast.cache.CacheEventType;
 import com.hazelcast.cache.EventJournalCacheEvent;
 import com.hazelcast.internal.journal.DeserializingEntry;
+import com.hazelcast.internal.journal.DeserializingJournalEntry;
 import com.hazelcast.internal.serialization.SerializableByConvention;
+import com.hazelcast.jet.pipeline.JournalSourceEntry;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -35,11 +38,15 @@ public final class CacheEventJournalFunctions {
     private CacheEventJournalFunctions() { }
 
     public static <K, V> Predicate<EventJournalCacheEvent<K, V>> cachePutEvents() {
-        return new CachePutEventsPredicate<K, V>();
+        return new CachePutEventsPredicate<>();
     }
 
     public static <K, V> Function<EventJournalCacheEvent<K, V>, Entry<K, V>> cacheEventToEntry() {
-        return new CacheEventToEntryProjection<K, V>();
+        return new CacheEventToEntryProjection<>();
+    }
+
+    public static <K, V> Function<EventJournalCacheEvent<K, V>, JournalSourceEntry<K, V>> cacheEventToJournalEntry() {
+        return new CacheEventToJournalEntryProjection<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -49,6 +56,7 @@ public final class CacheEventJournalFunctions {
 
     @SerializableByConvention
     private static class CachePutEventsPredicate<K, V> implements Predicate<EventJournalCacheEvent<K, V>>, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -60,6 +68,7 @@ public final class CacheEventJournalFunctions {
     @SerializableByConvention
     private static class CacheEventToEntryProjection<K, V>
             implements Function<EventJournalCacheEvent<K, V>, Entry<K, V>>, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -70,7 +79,21 @@ public final class CacheEventJournalFunctions {
     }
 
     @SerializableByConvention
+    private static class CacheEventToJournalEntryProjection<K, V>
+            implements Function<EventJournalCacheEvent<K, V>, JournalSourceEntry<K, V>>, Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public JournalSourceEntry<K, V> apply(EventJournalCacheEvent<K, V> e) {
+            DeserializingEventJournalCacheEvent<K, V> casted = (DeserializingEventJournalCacheEvent<K, V>) e;
+            return new DeserializingJournalEntry<>(casted.getDataKey(), casted.getDataNewValue(), casted.isAfterLostEvents());
+        }
+    }
+
+    @SerializableByConvention
     private static class CacheEventNewValueProjection implements Function, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override

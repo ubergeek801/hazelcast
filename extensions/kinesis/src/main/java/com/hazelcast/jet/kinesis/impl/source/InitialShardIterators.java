@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import static com.amazonaws.services.kinesis.model.ShardIteratorType.AT_SEQUENCE
 import static com.amazonaws.services.kinesis.model.ShardIteratorType.AT_TIMESTAMP;
 
 public class InitialShardIterators implements IdentifiedDataSerializable, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private List<Specification> specifications = new ArrayList<>();
 

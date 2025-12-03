@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class SystemPropertiesPluginTest extends AbstractDiagnosticsPluginTest {
     @Before
     public void setup() {
         HazelcastInstance hz = createHazelcastInstance();
-        plugin = new SystemPropertiesPlugin(getNodeEngineImpl(hz));
+        plugin = new SystemPropertiesPlugin(getNodeEngineImpl(hz).getLogger(SystemPropertiesPlugin.class));
         plugin.onStart();
         System.setProperty(FAKE_PROPERTY, "foobar");
     }
@@ -54,7 +54,7 @@ public class SystemPropertiesPluginTest extends AbstractDiagnosticsPluginTest {
 
     @Test
     public void testGetPeriodMillis() {
-        assertEquals(DiagnosticsPlugin.STATIC, plugin.getPeriodMillis());
+        assertEquals(DiagnosticsPlugin.RUN_ONCE_PERIOD_MS, plugin.getPeriodMillis());
     }
 
     @Test

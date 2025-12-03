@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public class MySqlCdcIntegrationTest extends AbstractMySqlCdcIntegrationTest {
         Pipeline pipeline = Pipeline.create();
         pipeline.readFrom(source("customers"))
                 .withNativeTimestamps(0)
-                .<ChangeRecord>customTransform("filter_timestamps", filterTimestampsProcessorSupplier())
                 .groupingKey(record -> (Integer) record.key().toMap().get("id"))
                 .mapStateful(
                         LongAccumulator::new,
@@ -174,7 +173,6 @@ public class MySqlCdcIntegrationTest extends AbstractMySqlCdcIntegrationTest {
         Pipeline pipeline = Pipeline.create();
         pipeline.readFrom(source("customers"))
                 .withNativeTimestamps(0)
-                .<ChangeRecord>customTransform("filter_timestamps", filterTimestampsProcessorSupplier())
                 .groupingKey(record -> (Integer) requireNonNull(record.key()).toMap().get("id"))
                 .mapStateful(
                         LongAccumulator::new,

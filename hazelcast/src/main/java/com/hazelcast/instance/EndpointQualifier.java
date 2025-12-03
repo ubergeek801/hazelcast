@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,8 +98,8 @@ public final class EndpointQualifier
     }
 
     public String toMetricsPrefixString() {
-        String identifier = this.identifier != null ? this.identifier : "";
-        return type.name() + (!isSingleType(type) ? ("-" + identifier.replaceAll("\\s", "_")) : "");
+        String str = this.identifier != null ? this.identifier : "";
+        return type.name() + (!isSingleType(type) ? ("-" + str.replaceAll("\\s", "_")) : "");
     }
 
     private static boolean isSingleType(ProtocolType type) {
@@ -140,7 +140,7 @@ public final class EndpointQualifier
      * @return resolved endpoint qualifier when it is passed from the user via configuration
      */
     public static EndpointQualifier resolveForConfig(ProtocolType protocolType, String identifier) {
-        if (ProtocolType.CLIENT.equals(protocolType)) {
+        if (ProtocolType.CLIENT == protocolType) {
             return CLIENT;
         }
         return resolve(protocolType, identifier);

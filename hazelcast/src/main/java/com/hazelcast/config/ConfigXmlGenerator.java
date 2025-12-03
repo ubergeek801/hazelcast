@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,6 +205,7 @@ public class ConfigXmlGenerator {
         namespacesConfiguration(gen, config);
         restServerConfiguration(gen, config);
         vectorCollectionXmlGenerator(gen, config);
+        memberAttributesXmlGenerator(gen, config);
         xml.append("</hazelcast>");
 
         String xmlString = xml.toString();
@@ -472,7 +473,7 @@ public class ConfigXmlGenerator {
         gen.close();
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity"})
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private static void serializationXmlGenerator(XmlGenerator gen, Config config) {
         SerializationConfig c = config.getSerializationConfig();
         if (c == null) {
@@ -541,7 +542,7 @@ public class ConfigXmlGenerator {
         gen.close();
     }
 
-    private static String classNameOrClass(String className, Class clazz) {
+    private static String classNameOrClass(String className, Class<?> clazz) {
         return !isNullOrEmpty(className) ? className
                 : clazz != null ? clazz.getName()
                 : null;
@@ -612,9 +613,6 @@ public class ConfigXmlGenerator {
 
     private void advancedNetworkConfigXmlGenerator(XmlGenerator gen, Config config) {
         AdvancedNetworkConfig netCfg = config.getAdvancedNetworkConfig();
-        if (!netCfg.isEnabled()) {
-            return;
-        }
 
         gen.open("advanced-network", "enabled", netCfg.isEnabled());
 
@@ -801,24 +799,25 @@ public class ConfigXmlGenerator {
 
     protected void factoryWithPropertiesXmlGenerator(XmlGenerator gen, String elementName,
                                                      AbstractBaseFactoryWithPropertiesConfig<?> factoryWithProps) {
-        if (factoryWithProps instanceof AbstractFactoryWithPropertiesConfig cfgWithEnabled) {
-            gen.open(elementName, "enabled", cfgWithEnabled.isEnabled());
-        } else {
-            gen.open(elementName);
-        }
         if (factoryWithProps != null) {
+            if (factoryWithProps instanceof AbstractFactoryWithPropertiesConfig cfgWithEnabled) {
+                gen.open(elementName, "enabled", cfgWithEnabled.isEnabled());
+            } else {
+                gen.open(elementName);
+            }
             gen.node("factory-class-name", factoryWithProps.getFactoryClassName())
                     .appendProperties(factoryWithProps.getProperties());
+            gen.close();
         }
-        gen.close();
     }
 
     private static void socketInterceptorConfigXmlGenerator(XmlGenerator gen, SocketInterceptorConfig socket) {
-        gen.open("socket-interceptor", "enabled", socket != null && socket.isEnabled());
-        if (socket != null) {
-            gen.node("class-name", classNameOrImplClass(socket.getClassName(), socket.getImplementation()))
-                    .appendProperties(socket.getProperties());
+        if (socket == null) {
+            return;
         }
+        gen.open("socket-interceptor", "enabled", socket.isEnabled());
+        gen.node("class-name", classNameOrImplClass(socket.getClassName(), socket.getImplementation()))
+                .appendProperties(socket.getProperties());
         gen.close();
     }
 
@@ -1207,7 +1206,7 @@ public class ConfigXmlGenerator {
         if (MapUtil.isNullOrEmpty(factoryMap)) {
             return;
         }
-        for (Map.Entry factory : factoryMap.entrySet()) {
+        for (Map.Entry<Integer, ?> factory : factoryMap.entrySet()) {
             Object value = factory.getValue();
             String className = value instanceof String s ? s : value.getClass().getName();
             gen.node(elementName, className, "factory-id", factory.getKey().toString());
@@ -1285,7 +1284,10 @@ public class ConfigXmlGenerator {
         gen.open("rest", "enabled", restConfig.isEnabled())
                 .node("port", restConfig.getPort())
                 .node("security-realm", restConfig.getSecurityRealm())
-                .node("token-validity-seconds", restConfig.getTokenValidityDuration().toSeconds());
+                .node("token-validity-seconds", restConfig.getTokenValidityDuration().toSeconds())
+                .node("request-timeout-seconds", restConfig.getRequestTimeoutDuration().toSeconds())
+                .node("max-login-attempts", restConfig.getMaxLoginAttempts())
+                .node("lockout-duration-seconds", restConfig.getLockoutDuration().toSeconds());
         restServerSslConfiguration(gen, restConfig.getSsl());
         gen.close();
     }
@@ -1313,6 +1315,17 @@ public class ConfigXmlGenerator {
                 .close();
     }
 
+    private void memberAttributesXmlGenerator(XmlGenerator gen, Config config) {
+        MemberAttributeConfig memberAttributeConfig = config.getMemberAttributeConfig();
+        if (!memberAttributeConfig.getAttributes().isEmpty()) {
+            gen.open("member-attributes");
+            for (Map.Entry<String, String> attribute : memberAttributeConfig.getAttributes().entrySet()) {
+                gen.node("attribute", attribute.getValue(), "name", attribute.getKey());
+            }
+            gen.close();
+        }
+    }
+
     public static void namespaceConfigurations(XmlGenerator gen, Config config) {
         Map<String, UserCodeNamespaceConfig> namespaces = config.getNamespacesConfig().getNamespaceConfigs();
         for (Map.Entry<String, UserCodeNamespaceConfig> entry : namespaces.entrySet()) {
@@ -1330,11 +1343,11 @@ public class ConfigXmlGenerator {
     }
 
     private static String translateResourceType(ResourceType type) {
-        if (ResourceType.JAR.equals(type)) {
+        if (ResourceType.JAR == type) {
             return "jar";
-        } else if (ResourceType.JARS_IN_ZIP.equals(type)) {
+        } else if (ResourceType.JARS_IN_ZIP == type) {
             return "jars-in-zip";
-        } else if (ResourceType.CLASS.equals(type)) {
+        } else if (ResourceType.CLASS == type) {
             return "class";
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + type);
@@ -1401,10 +1414,16 @@ public class ConfigXmlGenerator {
             return this;
         }
 
+        /**
+         * Appends the properties as &lt;property name="key"&gt;value&lt;/property&gt; elements inside a &lt;properties&gt;
+         * It uses the default tag name as "properties"
+         * @param props Properties to be added
+         * @return The xml generator
+         */
         public XmlGenerator appendProperties(Map<String, ? extends Comparable> props) {
             if (!MapUtil.isNullOrEmpty(props)) {
                 open("properties");
-                for (Map.Entry entry : props.entrySet()) {
+                for (Map.Entry<String, ?> entry : props.entrySet()) {
                     node("property", entry.getValue(), "name", entry.getKey());
                 }
                 close();

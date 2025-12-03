@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.InvalidConfigurationException;
 import com.hazelcast.internal.cluster.impl.ClusterServiceImpl;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
+import com.hazelcast.internal.partition.operation.SafeStateCheckOperation;
 import com.hazelcast.internal.util.BiTuple;
 import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.logging.ILogger;
@@ -326,7 +327,8 @@ public class KubernetesTopologyIntentTracker implements ClusterTopologyIntentTra
         }
         try {
             getNodeExtension().getInternalHotRestartService()
-                    .waitPartitionReplicaSyncOnCluster(remainingNanosForShutdown, TimeUnit.NANOSECONDS);
+                    .waitPartitionReplicaSyncOnCluster(remainingNanosForShutdown, TimeUnit.NANOSECONDS,
+                            () -> new SafeStateCheckOperation(true));
         } catch (IllegalStateException e) {
             logger.severe("Failure while waiting for partition replica sync before shutdown", e);
         }
@@ -349,7 +351,8 @@ public class KubernetesTopologyIntentTracker implements ClusterTopologyIntentTra
         try {
             // wait for replica sync
             getNodeExtension().getInternalHotRestartService()
-                    .waitPartitionReplicaSyncOnCluster(timeoutNanos, TimeUnit.NANOSECONDS);
+                    .waitPartitionReplicaSyncOnCluster(timeoutNanos, TimeUnit.NANOSECONDS,
+                            () -> new SafeStateCheckOperation(true));
             logger.info("cluster-wide-shutdown, Completed partition replica sync, Took(ms): "
                                 + Duration.between(partitionSyncStart, Instant.now()).toMillis());
         } catch (IllegalStateException e) {
@@ -361,7 +364,7 @@ public class KubernetesTopologyIntentTracker implements ClusterTopologyIntentTra
 
     /**
      * Wait for cluster size (as observed by Hazelcast's ClusterService) to become equal to the
-     * last known cluster size as specified in Kubernetes {@code StatefulsetSpec.size), before cluster-wide shutdown
+     * last known cluster size as specified in Kubernetes {@code StatefulsetSpec.size}, before cluster-wide shutdown
      * was requested.
      * @return nanos remaining until cluster shutdown timeout
      */
@@ -411,7 +414,7 @@ public class KubernetesTopologyIntentTracker implements ClusterTopologyIntentTra
 
     /**
      *
-     * @param callable  {@link Callable<Boolean>} that returns {@code true} when its condition is completed and
+     * @param callable  {@link Callable} that returns {@code true} when its condition is completed and
      *                  control should return to caller.
      * @return {@code true} if completed because callable completed normally or {@code false} if timeout passed or
      *         thread was interrupted.
@@ -444,8 +447,6 @@ public class KubernetesTopologyIntentTracker implements ClusterTopologyIntentTra
      * Change cluster state, if current state is not already the desired one.
      * Retries up to 3 times. The cluster state change is transient, so if persistence
      * is enabled, the new cluster state is not persisted to disk.
-     *
-     * @param newClusterState
      */
     private void changeClusterState(ClusterState newClusterState) {
         RetryUtils.retry(

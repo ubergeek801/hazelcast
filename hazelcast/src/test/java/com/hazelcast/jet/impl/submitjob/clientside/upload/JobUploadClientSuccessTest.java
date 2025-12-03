@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.jet.impl.submitjob.clientside.upload;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.properties.ClientProperty;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.config.Config;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
 import static com.hazelcast.jet.impl.submitjob.clientside.upload.JobUploadClientFailureTest.assertJobIsRunning;
 import static com.hazelcast.jet.impl.submitjob.clientside.upload.JobUploadClientFailureTest.containsName;
 import static com.hazelcast.jet.impl.submitjob.clientside.upload.JobUploadClientFailureTest.getJarPath;
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -112,19 +113,19 @@ public class JobUploadClientSuccessTest extends JetTestSupport {
     }
 
     @Test
-    public void test_jarUploadByNonSmartClient_whenResourceUploadIsEnabled() throws IOException {
+    public void test_jarUploadBySingleMemberClient_whenResourceUploadIsEnabled() throws IOException {
         HazelcastInstance[] hazelcastInstances = createMultiNodeCluster();
 
         // Get address of the member that is not Job Coordinator
         HazelcastInstance targetInstance = hazelcastInstances[1];
         Address targetAddress = targetInstance.getCluster().getLocalMember().getAddress();
 
-        // Create a non-smart client
+        // Create a SINGLE_MEMBER routing client
         ClientConfig clientConfig = new ClientConfig();
         ClientNetworkConfig clientNetworkConfig = clientConfig.getNetworkConfig();
-        clientNetworkConfig.setSmartRouting(false);
+        clientNetworkConfig.getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
 
-        // Set the target address for non-smart client
+        // Set the target address for SINGLE_MEMBER routing client
         List<String> addresses = clientNetworkConfig.getAddresses();
         addresses.add(targetAddress.getHost() + ":" + targetAddress.getPort());
 

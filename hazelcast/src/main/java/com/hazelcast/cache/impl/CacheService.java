@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import static com.hazelcast.internal.partition.MigrationEndpoint.SOURCE;
  * <p><b>Distributed Cache Name</b> is used for providing a unique name to a cache object to overcome cache manager
  * scoping which depends on URI and class loader parameters. It's a simple concatenation of CacheNamePrefix and
  * cache name where CacheNamePrefix is calculated by each cache manager
- * using {@link AbstractHazelcastCacheManager#getCacheNamePrefix()}.
+ * using {@code AbstractHazelcastCacheManager#getCacheNamePrefix()}.
  * </p>
  */
 public class CacheService extends AbstractCacheService {
@@ -170,7 +170,6 @@ public class CacheService extends AbstractCacheService {
      * Checks if the given namespace is referenced by a hot restart enabled
      * cache configuration.
      *
-     * @param engine the node engine.
      * @param namespace  the namespace.
      * @return {@code true} if the namespace is referenced by a hot restart
      * enabled data structure, {@code false} otherwise.
@@ -205,7 +204,8 @@ public class CacheService extends AbstractCacheService {
     public static String lookupNamespace(NodeEngine engine, String cacheName) {
         if (engine.getNamespaceService().isEnabled()) {
             // No regular containers available, fallback to config
-            CacheSimpleConfig config = engine.getConfig().getCacheConfig(cacheName);
+            CacheService service = engine.getService(CacheService.SERVICE_NAME);
+            var config = service.getCacheConfig(cacheName);
             if (config != null) {
                 return config.getUserCodeNamespace();
             }

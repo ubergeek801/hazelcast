@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.internal.util;
 
 import com.hazelcast.internal.tpcengine.util.JVM;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -86,7 +85,6 @@ public final class JVMUtil {
      * It attempts to correct atomicity issues (i.e. when totalMemory expands) and reported usedMemory
      * results in negative values
      *
-     * @param runtime
      * @return an approximation to the total amount of memory currently
      * used, measured in bytes.
      */
@@ -104,7 +102,6 @@ public final class JVMUtil {
     }
 
     // not private for testing
-    @SuppressFBWarnings("NP_BOOLEAN_RETURN_NULL")
     static Boolean isHotSpotCompressedOopsOrNull() {
         try {
             MBeanServer server = ManagementFactory.getPlatformMBeanServer();
@@ -123,7 +120,6 @@ public final class JVMUtil {
     /**
      * Fallback when checking CompressedOopsEnabled.
      */
-    @SuppressFBWarnings("NP_BOOLEAN_RETURN_NULL")
     static Boolean isObjectLayoutCompressedOopsOrNull() {
         if (!UNSAFE_AVAILABLE) {
             return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.hazelcast.logging.ILogger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import static com.hazelcast.internal.cluster.impl.MemberHandshake.OPTION_PLANE_COUNT;
@@ -65,7 +65,7 @@ public class SendMemberHandshakeTask implements Runnable {
         serverContext.onSuccessfulConnection(remoteAddress);
         //make sure memberHandshake packet is the first packet sent to the end point.
         if (logger.isFinestEnabled()) {
-            logger.finest("Sending memberHandshake packet to " + remoteAddress);
+            logger.finest("Sending memberHandshake packet to %s", remoteAddress);
         }
         MemberHandshake memberHandshake = new MemberHandshake(
                 SCHEMA_VERSION_2,
@@ -83,9 +83,9 @@ public class SendMemberHandshakeTask implements Runnable {
 
     Map<ProtocolType, Collection<Address>> getConfiguredLocalAddresses() {
         EndpointQualifier qualifier = connection.getConnectionManager().getEndpointQualifier();
-        boolean isWanHandshake = qualifier != null && qualifier.getType().equals(ProtocolType.WAN);
+        boolean isWanHandshake = qualifier != null && qualifier.getType() == ProtocolType.WAN;
 
-        Map<ProtocolType, Collection<Address>> addressMap = new HashMap<>();
+        Map<ProtocolType, Collection<Address>> addressMap = new EnumMap<>(ProtocolType.class);
         populateAddressMap(addressMap, isWanHandshake);
 
         // If this is a WAN handshake and no WAN-specific interfaces are available, fallback to the standard address map
@@ -98,7 +98,7 @@ public class SendMemberHandshakeTask implements Runnable {
     private void populateAddressMap(Map<ProtocolType, Collection<Address>> addressMap, boolean isWanHandshake) {
         Map<EndpointQualifier, Address> addressesPerEndpointQualifier = serverContext.getThisAddresses();
         for (Map.Entry<EndpointQualifier, Address> addressEntry : addressesPerEndpointQualifier.entrySet()) {
-            if (isWanHandshake && !addressEntry.getKey().getType().equals(ProtocolType.WAN)) {
+            if (isWanHandshake && addressEntry.getKey().getType() != ProtocolType.WAN) {
                 // When conducting a WAN handshake we should only share WAN address aliases; there is no
                 //  purpose for other aliases when WAN communicating, and sharing non-WAN aliases can lead
                 //  to an address clash between the clusters, creating chaos. See SUP-432.

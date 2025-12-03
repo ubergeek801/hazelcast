@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.map;
 
 /**
  * Implement this interface if you modify the value in MapStore.store(K key, V value) method.
- * Otherwise already serialized form will be used to put into hazelcast map and
+ * Otherwise, already serialized form will be used to put into hazelcast map and
  * modifications made inside store() method will be discarded. Applying changes done in store()
  * is only possible with write-through configured map store.
  */

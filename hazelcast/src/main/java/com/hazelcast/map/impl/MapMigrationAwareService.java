@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -358,7 +358,7 @@ class MapMigrationAwareService
         }
 
         if (logger.isFinestEnabled()) {
-            logger.finest(String.format("Populated indexes at step `%s`:[%s]", stepName, event));
+            logger.finest("Populated indexes at step `%s`:[%s]", stepName, event);
         }
     }
 
@@ -391,7 +391,7 @@ class MapMigrationAwareService
                     Object value = Records.getValueOrCachedValue(record, serializationService);
                     entry.init(key, value);
                     indexRegistry.removeEntry(entry, Index.OperationSource.SYSTEM);
-                }, false);
+                }, false, true);
             } finally {
                 recordStore.afterOperation();
             }
@@ -400,7 +400,7 @@ class MapMigrationAwareService
         }
 
         if (logger.isFinestEnabled()) {
-            logger.finest(String.format("Depopulated indexes at step `%s`:[%s]", stepName, event));
+            logger.finest("Depopulated indexes at step `%s`:[%s]", stepName, event);
         }
     }
 

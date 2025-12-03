@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ public final class HazelcastComparisonPredicateUtils {
             if (!highHZType.getObjectTypeName().equals(lowHZType.getObjectTypeName())) {
                 valid = false;
             }
-            assert highHZType.getObjectTypeKind().equals(lowHZType.getObjectTypeKind());
+            assert highHZType.getObjectTypeKind() == lowHZType.getObjectTypeKind();
         }
 
         // Types cannot be converted to each other.

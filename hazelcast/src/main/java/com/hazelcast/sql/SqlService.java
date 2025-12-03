@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,8 @@ public interface SqlService {
      * @see #execute(SqlStatement)
      * @see #execute(String, Object...)
      *
-     * @return The number of updated(/inserted/deleted) rows.
+     * @return The number of updated(/inserted/deleted) rows. Currently, always returns {@code 0}
+     * for DML statements as this method returns the result of the deprecated {@link SqlResult#updateCount}.
      *
      * @since 5.3
      */

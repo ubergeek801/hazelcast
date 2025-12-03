@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public interface PartitioningStrategy<K> extends Serializable {
      * Returns the key object that will be used by Hazelcast to specify the partition.
      *
      * @param key actual key object used by Hazelcast to specify the partition
-     * @return the partition key object, or null to fallback to the default partition calculation
+     * @return the partition key object, or null to fall back to the default partition calculation
      */
     Object getPartitionKey(K key);
 }

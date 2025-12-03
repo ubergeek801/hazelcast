@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class TcpIpJoiner extends AbstractJoiner {
                 throw new IllegalArgumentException("Invalid target address: NULL");
             }
             if (logger.isFineEnabled()) {
-                logger.fine("Joining over target member " + targetAddress);
+                logger.fine("Joining over target member %s", targetAddress);
             }
             if (targetAddress.equals(node.getThisAddress()) || isLocalAddress(targetAddress)) {
                 clusterJoinManager.setThisMemberAsMaster();
@@ -135,9 +135,7 @@ public class TcpIpJoiner extends AbstractJoiner {
                     connectionManager.blockOnConnect(targetAddress, JOIN_RETRY_WAIT_TIME, 0);
                     continue;
                 }
-                if (logger.isFineEnabled()) {
-                    logger.fine("Sending joinRequest " + targetAddress);
-                }
+                logger.fine("Sending joinRequest %s", targetAddress);
                 clusterJoinManager.sendJoinRequest(targetAddress);
 
                 if (!clusterService.isJoined()) {
@@ -188,13 +186,13 @@ public class TcpIpJoiner extends AbstractJoiner {
                 if (logger.isFineEnabled()) {
                     Set<Address> votingEndpoints = new HashSet<>(addresses);
                     votingEndpoints.removeAll(blacklistedAddresses.keySet());
-                    logger.fine("Setting myself as master after consensus! Voting endpoints: " + votingEndpoints);
+                    logger.fine("Setting myself as master after consensus! Voting endpoints: %s", votingEndpoints);
                 }
                 clusterJoinManager.setThisMemberAsMaster();
             } else if (logger.isFineEnabled()) {
                 Set<Address> votingEndpoints = new HashSet<>(addresses);
                 votingEndpoints.removeAll(blacklistedAddresses.keySet());
-                logger.fine("My claim to be master is rejected! Voting endpoints: " + votingEndpoints);
+                logger.fine("My claim to be master is rejected! Voting endpoints: %s", votingEndpoints);
             }
         } else if (logger.isFineEnabled()) {
             logger.fine("Cannot claim myself as master! Will try to connect a possible master...");
@@ -211,7 +209,7 @@ public class TcpIpJoiner extends AbstractJoiner {
         if (logger.isFineEnabled()) {
             Set<Address> votingEndpoints = new HashSet<>(possibleAddresses);
             votingEndpoints.removeAll(blacklistedAddresses.keySet());
-            logger.fine("Claiming myself as master node! Asking to endpoints: " + votingEndpoints);
+            logger.fine("Claiming myself as master node! Asking to endpoints: %s", votingEndpoints);
         }
         claimingMastership = true;
         OperationServiceImpl operationService = node.getNodeEngine().getOperationService();
@@ -282,7 +280,7 @@ public class TcpIpJoiner extends AbstractJoiner {
 
             if (masterAddress != null) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Sending join request to " + masterAddress);
+                    logger.fine("Sending join request to %s", masterAddress);
                 }
                 clusterJoinManager.sendJoinRequest(masterAddress);
             } else {
@@ -313,14 +311,14 @@ public class TcpIpJoiner extends AbstractJoiner {
 
     private void sendMasterQuestion(Collection<Address> addresses) {
         if (logger.isFineEnabled()) {
-            logger.fine("NOT sending master question to blacklisted endpoints: " + blacklistedAddresses);
+            logger.fine("NOT sending master question to blacklisted endpoints: %s", blacklistedAddresses);
         }
         for (Address address : addresses) {
             if (isBlacklisted(address)) {
                 continue;
             }
             if (logger.isFineEnabled()) {
-                logger.fine("Sending master question to " + address);
+                logger.fine("Sending master question to %s", address);
             }
             clusterJoinManager.sendMasterQuestion(address);
         }
@@ -369,8 +367,8 @@ public class TcpIpJoiner extends AbstractJoiner {
                 AddressMatcher addressMatcher = null;
                 try {
                     addressMatcher = AddressUtil.getAddressMatcher(addressHolder.getAddress());
-                } catch (InvalidAddressException ignore) {
-                    ignore(ignore);
+                } catch (InvalidAddressException e) {
+                    ignore(e);
                 }
                 if (addressMatcher != null) {
                     final Collection<String> matchedAddresses;

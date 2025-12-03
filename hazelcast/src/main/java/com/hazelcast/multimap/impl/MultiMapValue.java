@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The MultiMapValue is the value in a multimap and it contains either a set or a list as collection.
+ * The MultiMapValue is the value in a multimap, and it contains either a set or a list as collection.
  */
 public class MultiMapValue {
 
@@ -64,8 +64,8 @@ public class MultiMapValue {
     }
 
     public boolean containsRecordId(long recordId) {
-        for (MultiMapRecord record : collection) {
-            if (record.getRecordId() == recordId) {
+        for (MultiMapRecord multiMapRecord : collection) {
+            if (multiMapRecord.getRecordId() == recordId) {
                 return true;
             }
         }

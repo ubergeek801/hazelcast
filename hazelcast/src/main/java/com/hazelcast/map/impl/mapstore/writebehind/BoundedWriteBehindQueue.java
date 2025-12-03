@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ class BoundedWriteBehindQueue<E extends DelayedEntry> implements WriteBehindQueu
     }
 
     /**
-     * Removes all of the elements in this  {@link WriteBehindQueue}
+     * Removes all the elements in this  {@link WriteBehindQueue}
      * Queue will be empty after this method returns.
      */
     @Override

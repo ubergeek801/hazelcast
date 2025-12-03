@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
 
 /**
  * Checks whether a task is done.
- * @see {@link java.util.concurrent.Future#cancel(boolean)}
+ * @see java.util.concurrent.Future#cancel(boolean)
  */
 @SuppressWarnings("unused")
-@Generated("148d3a552766587df1d4a6e05fc64165")
+@Generated("c537da45b644f499c347efadba8ef07e")
 public final class ScheduledExecutorIsDoneFromMemberCodec {
     //hex: 0x1A0E00
     public static final int REQUEST_MESSAGE_TYPE = 1707520;
@@ -52,7 +52,6 @@ public final class ScheduledExecutorIsDoneFromMemberCodec {
     private ScheduledExecutorIsDoneFromMemberCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

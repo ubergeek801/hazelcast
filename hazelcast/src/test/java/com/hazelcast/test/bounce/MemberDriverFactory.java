@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,6 @@ public class MemberDriverFactory implements DriverFactory {
      * <p>
      * When you return <code>null</code> then drivers will use the same
      * configuration as other (non-driver) members.
-     *
-     * @return
      */
     protected Config getConfig() {
         return null;

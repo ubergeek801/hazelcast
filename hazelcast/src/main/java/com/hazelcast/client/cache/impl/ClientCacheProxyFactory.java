@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.hazelcast.client.impl.spi.ClientProxy;
 import com.hazelcast.client.impl.spi.ClientProxyFactory;
 import com.hazelcast.config.CacheConfig;
 import com.hazelcast.config.NearCacheConfig;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +59,6 @@ public class ClientCacheProxyFactory implements ClientProxyFactory {
         }
     }
 
-    @SuppressFBWarnings("RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
     void addCacheConfig(String cacheName, CacheConfig cacheConfig) {
         configs.putIfAbsent(cacheName, cacheConfig);
     }
@@ -77,7 +75,6 @@ public class ClientCacheProxyFactory implements ClientProxyFactory {
         return configs.entrySet();
     }
 
-    @SuppressFBWarnings("RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
     private CacheConfig findCacheConfig(String cacheName) {
         CacheConfig cacheConfig = configs.get(cacheName);
         if (cacheConfig != null) {

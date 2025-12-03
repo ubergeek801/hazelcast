@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class HazelcastRowOperator extends HazelcastSpecialOperator {
                     // {e1type, e2type}.  According to the standard, field names are
                     // implementation-defined.
                     return opBinding.getTypeFactory().createStructType(
-                            new AbstractList<Entry<String, RelDataType>>() {
+                            new AbstractList<>() {
                                 public Map.Entry<String, RelDataType> get(int index) {
                                     return Pair.of(
                                             SqlUtil.deriveAliasFromOrdinal(index),

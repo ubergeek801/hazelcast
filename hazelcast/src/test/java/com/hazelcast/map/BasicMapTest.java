@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class BasicMapTest extends HazelcastTestSupport {
     @Before
     public void init() {
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(INSTANCE_COUNT);
-        instances = factory.newInstances(() -> getConfig(), INSTANCE_COUNT);
+        instances = factory.newInstances(this::getConfig, INSTANCE_COUNT);
         assertClusterSizeEventually(INSTANCE_COUNT, instances);
     }
 
@@ -165,7 +165,7 @@ public class BasicMapTest extends HazelcastTestSupport {
     }
 
     @Test
-    @SuppressWarnings({"UnnecessaryBoxing"})
+    @SuppressWarnings("UnnecessaryBoxing")
     public void testBoxedPrimitives() {
         IMap<String, Object> map = getInstance().getMap("testPrimitives");
 
@@ -737,7 +737,7 @@ public class BasicMapTest extends HazelcastTestSupport {
         assertThrows(UnsupportedOperationException.class, () -> map.merge(key, value, (v1, v2) -> value));
         assertThrows(UnsupportedOperationException.class, () -> map.remove(key));
         assertThrows(UnsupportedOperationException.class, () -> map.remove(key, value));
-        assertThrows(UnsupportedOperationException.class, () -> map.clear());
+        assertThrows(UnsupportedOperationException.class, map::clear);
         assertThrows(UnsupportedOperationException.class, () -> map.replace(key, value));
         assertThrows(UnsupportedOperationException.class, () -> map.replace(key, value, value));
         assertThrows(UnsupportedOperationException.class, () -> map.replaceAll((k, v) -> value));
@@ -757,12 +757,12 @@ public class BasicMapTest extends HazelcastTestSupport {
         assertThrows(UnsupportedOperationException.class, () -> c.add(c.isEmpty() ? null : c.iterator().next()));
         assertThrows(UnsupportedOperationException.class, () -> c.addAll(c));
         assertThrows(UnsupportedOperationException.class, () -> c.retainAll(Collections.emptyList()));
-        assertThrows(UnsupportedOperationException.class, () -> c.clear());
+        assertThrows(UnsupportedOperationException.class, c::clear);
 
         if (!c.isEmpty()) {
             Iterator<T> iterator = c.iterator();
             iterator.next();
-            assertThrows(UnsupportedOperationException.class, () -> iterator.remove());
+            assertThrows(UnsupportedOperationException.class, iterator::remove);
         }
     }
 
@@ -1895,7 +1895,7 @@ public class BasicMapTest extends HazelcastTestSupport {
         final IMap<String, Integer> sourceMap = getSourceMapFor_ForEach_Test();
         final IMap<String, Integer> targetMap = getTargetMapFor_ForEach_Test();
 
-        sourceMap.forEach((k, v) -> targetMap.put(k, v));
+        sourceMap.forEach(targetMap::put);
 
         assertEntriesEqual(sourceMap, targetMap);
     }

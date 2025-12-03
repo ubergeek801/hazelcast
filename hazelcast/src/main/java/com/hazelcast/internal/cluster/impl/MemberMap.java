@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ public final class MemberMap {
     /**
      * Creates a new {@code MemberMap} including given members.
      *
-     * @param members members
      * @return a new {@code MemberMap}
      */
     static MemberMap createNew(MemberImpl... members) {
@@ -88,8 +87,6 @@ public final class MemberMap {
     /**
      * Creates a new {@code MemberMap} including given members.
      *
-     * @param version version
-     * @param members members
      * @return a new {@code MemberMap}
      */
     static MemberMap createNew(int version, MemberImpl... members) {

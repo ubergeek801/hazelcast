@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,15 +91,10 @@ class SubscriberAccumulatorHandler implements AccumulatorHandler<QueryCacheEvent
         }
 
         switch (entryEventType) {
-            case ADDED:
-            case UPDATED:
-            case MERGED:
-            case LOADED:
+            case ADDED, UPDATED, MERGED, LOADED:
                 queryCache.set(keyData, valueData, entryEventType);
                 break;
-            case REMOVED:
-            case EVICTED:
-            case EXPIRED:
+            case REMOVED, EVICTED, EXPIRED:
                 queryCache.delete(keyData, entryEventType);
                 break;
             case CLEAR_ALL:

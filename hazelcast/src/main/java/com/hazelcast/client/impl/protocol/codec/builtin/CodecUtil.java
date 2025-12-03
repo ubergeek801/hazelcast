@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client.impl.protocol.codec.builtin;
 
 import com.hazelcast.client.impl.protocol.ClientMessage;
+import com.hazelcast.internal.serialization.Data;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -44,6 +45,8 @@ public final class CodecUtil {
     }
 
     public static <T> void encodeNullable(ClientMessage clientMessage, T value, BiConsumer<ClientMessage, T> encode) {
+        assert !(value instanceof Data) : "For serializing nullable Data specialized codec must be used";
+
         if (value == null) {
             clientMessage.add(NULL_FRAME.copy());
         } else {
@@ -52,7 +55,9 @@ public final class CodecUtil {
     }
 
     public static <T> T decodeNullable(ClientMessage.ForwardFrameIterator iterator, Function<ClientMessage.ForwardFrameIterator, T> decode) {
-        return nextFrameIsNullEndFrame(iterator) ? null : decode.apply(iterator);
+        T result = nextFrameIsNullEndFrame(iterator) ? null : decode.apply(iterator);
+        assert !(result instanceof Data) : "For deserializing nullable Data specialized codec must be used";
+        return result;
     }
 
     public static boolean nextFrameIsDataStructureEndFrame(ClientMessage.ForwardFrameIterator iterator) {

@@ -13,9 +13,11 @@ on:
          - unassigned
 jobs:
    synchronize-pr-assignees:
-      runs-on: ubuntu-latest
+      runs-on: ubicloud-standard-2
       steps:
-         - uses: actions/checkout@v4
+         - uses: actions/checkout@v6
+           with:
+              sparse-checkout: .github
          - name: Copy assignees to other PR
            run: |
               SOURCE_REPO="${{ github.repository }}"
@@ -31,7 +33,7 @@ jobs:
               done <<< "$CONTENT"
            env:
               GH_TOKEN: ${{ secrets.DEVOPSHAZELCAST_PAT_FOR_MONOREPO }}
-         - uses: 8398a7/action-slack@v3
+         - uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3.19.0
            if: failure()
            with:
               fields: repo,message,author,action,eventName,workflow,job,pullRequest

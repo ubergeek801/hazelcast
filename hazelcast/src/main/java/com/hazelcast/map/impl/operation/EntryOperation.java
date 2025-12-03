@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.hazelcast.core.ReadOnly;
 import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
+import com.hazelcast.internal.serialization.impl.HeapData;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.internal.util.ThreadUtil;
 import com.hazelcast.internal.util.UuidUtil;
@@ -48,12 +49,11 @@ import com.hazelcast.spi.impl.operationservice.Offload;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationAccessor;
 import com.hazelcast.spi.impl.operationservice.OperationResponseHandler;
+import com.hazelcast.spi.impl.operationservice.SelfResponseOperation;
 import com.hazelcast.spi.impl.operationservice.impl.responses.CallTimeoutResponse;
 import com.hazelcast.wan.impl.CallerProvenance;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.RejectedExecutionException;
@@ -150,7 +150,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @SuppressWarnings("checkstyle:methodcount")
 public class EntryOperation extends LockAwareOperation
-        implements BackupAwareOperation, BlockingOperation, MutatingOperation {
+        implements BackupAwareOperation, BlockingOperation, MutatingOperation, SelfResponseOperation {
 
     private static final int SET_UNLOCK_FAST_RETRY_LIMIT = 10;
 
@@ -342,9 +342,9 @@ public class EntryOperation extends LockAwareOperation
     }
 
     @Override
-    @SuppressFBWarnings(
-            value = {"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"},
-            justification = "backupProcessor can indeed be null so check is not redundant")
+//    @SuppressFBWarnings(
+//            value = {"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"},
+//            justification = "backupProcessor can indeed be null so check is not redundant")
     public Operation getBackupOperation() {
         if (offload && !steppedOperationOffloadEnabled()) {
             return null;
@@ -391,18 +391,23 @@ public class EntryOperation extends LockAwareOperation
     }
 
     @Nullable
-    public Data convertOldValueToHeapData(Object oldValue) {
+    public Object copyOldValueToHeapWhenNeeded(Object oldValue) {
         assert ThreadUtil.isRunningOnPartitionThread();
+
+        if (oldValue instanceof HeapData) {
+            return oldValue;
+        }
 
         InMemoryFormat inMemoryFormat = mapContainer.getMapConfig().getInMemoryFormat();
         switch (inMemoryFormat) {
             case NATIVE:
-                return toHeapData((Data) oldValue);
+                return oldValue instanceof Data d
+                        ? toHeapData(d) : oldValue;
             case OBJECT:
                 return getNodeEngine().getSerializationService()
                         .toData(oldValue);
             case BINARY:
-                return (Data) oldValue;
+                return oldValue;
             default:
                 throw new IllegalArgumentException("Unknown in memory format: " + inMemoryFormat);
         }
@@ -413,7 +418,7 @@ public class EntryOperation extends LockAwareOperation
 
         public EntryOperationOffload(Object oldValue) {
             super(EntryOperation.this);
-            this.oldValue = convertOldValueToHeapData(oldValue);
+            this.oldValue = copyOldValueToHeapWhenNeeded(oldValue);
         }
 
         @Override

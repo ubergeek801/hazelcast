@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.hazelcast.security.permission;
 
-import com.hazelcast.cache.impl.CacheService;
+import com.hazelcast.cache.impl.ICacheService;
 import com.hazelcast.cardinality.impl.CardinalityEstimatorService;
 import com.hazelcast.collection.impl.list.ListService;
 import com.hazelcast.collection.impl.queue.QueueService;
@@ -49,7 +49,7 @@ import java.security.Permission;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings({"checkstyle:executablestatementcount"})
+@SuppressWarnings({"checkstyle:executablestatementcount", "ClassDataAbstractionCoupling"})
 public final class ActionConstants {
 
     public static final String ACTION_ALL = "all";
@@ -112,7 +112,7 @@ public final class ActionConstants {
         PERMISSION_FACTORY_MAP.put(FlakeIdGeneratorService.SERVICE_NAME, FlakeIdGeneratorPermission::new);
         PERMISSION_FACTORY_MAP.put(ReplicatedMapService.SERVICE_NAME, ReplicatedMapPermission::new);
         PERMISSION_FACTORY_MAP.put(AtomicRefServiceUtil.SERVICE_NAME, AtomicReferencePermission::new);
-        PERMISSION_FACTORY_MAP.put(CacheService.SERVICE_NAME, CachePermission::new);
+        PERMISSION_FACTORY_MAP.put(ICacheService.SERVICE_NAME, CachePermission::new);
         PERMISSION_FACTORY_MAP.put(RingbufferService.SERVICE_NAME, RingBufferPermission::new);
         PERMISSION_FACTORY_MAP.put(DistributedDurableExecutorService.SERVICE_NAME, DurableExecutorServicePermission::new);
         PERMISSION_FACTORY_MAP.put(CardinalityEstimatorService.SERVICE_NAME, CardinalityEstimatorPermission::new);

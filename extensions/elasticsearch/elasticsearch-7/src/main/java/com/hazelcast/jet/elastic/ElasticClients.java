@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public final class ElasticClients {
     /**
      * Convenience method to create {@link RestClientBuilder} with given string, it must contain host, and optionally
      * the scheme and a port.
-     *
+     * <p>
      * Valid examples:
      * <pre>{@code elastic-host
      * elastic-host:9200

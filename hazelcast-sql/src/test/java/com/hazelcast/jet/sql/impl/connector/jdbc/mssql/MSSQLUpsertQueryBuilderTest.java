@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class MSSQLUpsertQueryBuilderTest {
     SqlDialect dialect = MssqlSqlDialect.DEFAULT;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(jdbcTable.getExternalNameList()).thenReturn(singletonList("table1"));
         when(jdbcTable.dbFieldNames()).thenReturn(Arrays.asList("field1", "field2"));
         when(jdbcTable.getPrimaryKeyList()).thenReturn(Arrays.asList("pk1", "pk2"));

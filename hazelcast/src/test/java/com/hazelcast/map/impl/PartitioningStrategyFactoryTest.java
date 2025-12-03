@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,6 @@ public class PartitioningStrategyFactoryTest extends HazelcastTestSupport {
     public void whenRemoveInvoked_entryIsRemovedFromCache() {
         PartitioningStrategyConfig cfg = new PartitioningStrategyConfig();
         cfg.setPartitioningStrategyClass("com.hazelcast.partition.strategy.StringPartitioningStrategy");
-        PartitioningStrategy partitioningStrategy = partitioningStrategyFactory.getPartitioningStrategy(mapName, cfg, null);
         partitioningStrategyFactory.removePartitioningStrategyFromCache(mapName);
         assertFalse(partitioningStrategyFactory.cache.containsKey(mapName));
     }

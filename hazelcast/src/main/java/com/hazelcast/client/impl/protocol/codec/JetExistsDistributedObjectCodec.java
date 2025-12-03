@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
 /**
  */
 @SuppressWarnings("unused")
-@Generated("7a5771d68b4ed4fa65af1055f9ecdbe7")
+@Generated("38aace665ea56077401977a94b427d38")
 public final class JetExistsDistributedObjectCodec {
     //hex: 0xFE0C00
     public static final int REQUEST_MESSAGE_TYPE = 16649216;
@@ -49,7 +49,6 @@ public final class JetExistsDistributedObjectCodec {
     private JetExistsDistributedObjectCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

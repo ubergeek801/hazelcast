@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.client.impl.spi.impl;
 
-import static com.hazelcast.internal.nio.IOUtil.closeResource;
 import static com.hazelcast.internal.util.EmptyStatement.ignore;
 
 import com.hazelcast.client.config.ClientUserCodeDeploymentConfig;
@@ -45,7 +44,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 /**
- * @deprecated since 5.4, "User Code Deployment" is replaced by the "User Code Namespaces" feature
+ * @deprecated "User Code Deployment" is replaced by the "User Code Namespaces" feature
  * @see UserCodeNamespaceService
  */
 @Deprecated(since = "5.4", forRemoval = true)
@@ -85,20 +84,15 @@ public class ClientUserCodeDeploymentService {
     }
 
     private void loadClassesFromJars() throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             for (String jarPath : clientUserCodeDeploymentConfig.getJarPaths()) {
                 loadClassesFromJar(os, jarPath);
             }
-        } finally {
-            closeResource(os);
         }
     }
 
     private void loadClassesFromJar(ByteArrayOutputStream os, String jarPath) throws IOException {
-        JarInputStream inputStream = null;
-        try {
-            inputStream = getJarInputStream(jarPath);
+        try (JarInputStream inputStream = getJarInputStream(jarPath)) {
             JarEntry entry;
             do {
                 entry = inputStream.getNextJarEntry();
@@ -114,8 +108,6 @@ public class ClientUserCodeDeploymentService {
                 inputStream.closeEntry();
                 classDefinitionList.add(new AbstractMap.SimpleEntry<>(className, classDefinition));
             } while (true);
-        } finally {
-            closeResource(inputStream);
         }
     }
 

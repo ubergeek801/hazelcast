@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ import java.util.UUID;
 /**
  * A concurrent, queryable data structure which is used to cache results of
  * a continuous query executed on an {@code IMap}. It can be also thought
- * of as an always up to date view or snapshot of the {@code IMap}.
- *
+ * of as an always up-to-date view or snapshot of the {@code IMap}.
+ * <p>
  * Typically, {@code QueryCache} is used for performance reasons.
- *
+ * <p>
  * This {@code QueryCache} can be configured via {@link
  * com.hazelcast.config.QueryCacheConfig QueryCacheConfig}.
- *
+ * <p>
  * It can be reached like this:
  * <pre>
  * <code>

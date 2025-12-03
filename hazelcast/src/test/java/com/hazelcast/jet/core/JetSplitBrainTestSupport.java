@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,10 @@ package com.hazelcast.jet.core;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
-import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.instance.impl.HazelcastInstanceImpl;
 import com.hazelcast.instance.impl.HazelcastInstanceProxy;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.instance.impl.NodeState;
-import com.hazelcast.internal.server.FirewallingServer.FirewallingServerConnectionManager;
-import com.hazelcast.internal.server.ServerConnectionManager;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.spi.properties.ClusterProperty;
@@ -59,7 +56,7 @@ public abstract class JetSplitBrainTestSupport extends JetTestSupport {
 
     /**
      * If new nodes have been created during split brain via
-     * {@link #createHazelcastInstanceInBrain(HazelcastInstance[], HazelcastInstance[], boolean)}, then their joiners
+     * {@link SplitBrainTestSupport#createHazelcastInstanceInBrain(int)}, then their joiners
      * are initialized with the other brain's addresses being blacklisted.
      */
     private boolean unblacklistHint;
@@ -172,11 +169,6 @@ public abstract class JetSplitBrainTestSupport extends JetTestSupport {
             assertClusterSizeEventually(instances.length, instance);
         }
         waitAllForSafeState(instances);
-    }
-
-    private static FirewallingServerConnectionManager getFireWalledEndpointManager(HazelcastInstance hz) {
-        ServerConnectionManager cm = Accessors.getNode(hz).getServer().getConnectionManager(EndpointQualifier.MEMBER);
-        return (FirewallingServerConnectionManager) cm;
     }
 
     private Brains getBrains(HazelcastInstance[] instances, int firstSubClusterSize, int secondSubClusterSize) {

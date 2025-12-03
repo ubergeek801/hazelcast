@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class TopicService implements ManagedService, RemoteService, EventPublish
     private final ConstructorFunction<String, LocalTopicStatsImpl> localTopicStatsConstructorFunction =
             mapName -> new LocalTopicStatsImpl();
     private EventService eventService;
-    private final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger counter = new AtomicInteger();
     private Address localAddress;
 
     @Override

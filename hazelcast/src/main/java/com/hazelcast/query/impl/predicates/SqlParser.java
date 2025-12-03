@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,7 @@ class SqlParser {
             final int indexOpen = paramIn.indexOf('(', indexIn);
             final int indexClose = paramIn.indexOf(')', indexOpen);
             String sub = paramIn.substring(indexOpen, indexClose + 1);
-            sub = sub.replaceAll(" ", "");
+            sub = sub.replace(" ", "");
             sql = paramIn.substring(0, indexOpen) + sub
                     + alignINClause(paramIn.substring(indexClose + 1));
 

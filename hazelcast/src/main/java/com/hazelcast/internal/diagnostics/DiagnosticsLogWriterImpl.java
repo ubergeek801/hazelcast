@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,10 +67,10 @@ public class DiagnosticsLogWriterImpl implements DiagnosticsLogWriter {
     private final Date date = new Date();
 
     // used for encoding primitives
-    private char[] chars = new char[CHARS_LENGTH];
+    private final char[] chars = new char[CHARS_LENGTH];
 
     // used to write primitives without causing litter
-    private StringBuilder stringBuilder = new StringBuilder();
+    private final StringBuilder stringBuilder = new StringBuilder();
 
     public DiagnosticsLogWriterImpl() {
         this(false, null);

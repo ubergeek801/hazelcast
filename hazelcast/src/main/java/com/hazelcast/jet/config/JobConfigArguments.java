@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.hazelcast.jet.config;
+
+import com.hazelcast.spi.annotation.PrivateApi;
 
 /**
  * Some constants for the {@link JobConfig#getArgument(String)} method.
@@ -51,6 +53,22 @@ public final class JobConfigArguments {
      * By default, any normal Jet job is suspendable.
      */
     public static final String KEY_JOB_IS_SUSPENDABLE = "__jet.jobIsSuspendable";
+
+    /**
+     * The key under which the associated User Code Namespace for this job is stored.
+     * <p>
+     * <b>NOTE:</b> The User Code Namespace defined by this key should only be used if there
+     * is no {@link ClassLoader} factory defined at {@link JobConfig#getClassLoaderFactory()}.
+     * If {@link JobConfig#getClassLoaderFactory()} is defined in addition to a User Code
+     * Namespace being provided, an {@link com.hazelcast.config.InvalidConfigurationException}
+     * will be thrown at Job creation.
+     * <p>
+     * This argument should be set by calling {@link JobConfig#setUserCodeNamespace(String)}.
+     * <p>
+     * By default, this key will not exist and a User Code Namespace will not be used.
+     */
+    @PrivateApi
+    public static final String KEY_USER_CODE_NAMESPACE = "__jet.userCodeNamespace";
 
     private JobConfigArguments() {
     }

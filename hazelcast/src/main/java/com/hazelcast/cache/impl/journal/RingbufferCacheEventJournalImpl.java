@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,6 +212,7 @@ public class RingbufferCacheEventJournalImpl implements CacheEventJournal {
         if (eventContainer == null) {
             return;
         }
+        eventContainer.maybeCleanup();
         InternalEventJournalCacheEvent event
                 = new InternalEventJournalCacheEvent(toData(key), toData(newValue), toData(oldValue), eventType.getType());
         eventContainer.add(event);
@@ -257,7 +258,7 @@ public class RingbufferCacheEventJournalImpl implements CacheEventJournal {
     }
 
     /**
-     * Gets or creates a ringbuffer for an event journal or returns {@link null} if no
+     * Gets or creates a ringbuffer for an event journal or returns {@code null} if no
      * event journal is configured, it is disabled or not available.
      *
      * @param journalConfig the event journal configuration for this specific cache

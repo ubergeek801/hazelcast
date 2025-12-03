@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import com.hazelcast.spi.impl.operationservice.UrgentSystemOperation;
 import com.hazelcast.spi.impl.operationservice.impl.operations.Backup;
 import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -278,13 +277,11 @@ public final class OperationExecutorImpl implements OperationExecutor, StaticMet
         registry.provideMetrics((Object[]) partitionOperationRunners);
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     @Override
     public OperationRunner[] getPartitionOperationRunners() {
         return partitionOperationRunners;
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     @Override
     public OperationRunner[] getGenericOperationRunners() {
         return genericOperationRunners;
@@ -365,6 +362,7 @@ public final class OperationExecutorImpl implements OperationExecutor, StaticMet
         return genericQueue.prioritySize();
     }
 
+    @Override
     @Probe(name = OPERATION_METRIC_EXECUTOR_COMPLETED_COUNT, level = MANDATORY)
     public long getExecutedOperationCount() {
         long result = adHocOperationRunner.executedOperationsCount();
@@ -560,6 +558,7 @@ public final class OperationExecutorImpl implements OperationExecutor, StaticMet
     }
 
     // public for testing purposes
+    @Override
     public int toPartitionThreadIndex(int partitionId) {
         return partitionId % partitionThreads.length;
     }
@@ -595,7 +594,6 @@ public final class OperationExecutorImpl implements OperationExecutor, StaticMet
             awaitTermination(partitionThreads);
         }
         awaitTermination(genericThreads);
-        NodeEngineThreadLocalContext.destroyNodeEngineReference();
     }
 
     private static void shutdownAll(OperationThread[] operationThreads) {

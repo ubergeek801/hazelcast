@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.client;
 
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.cluster.Cluster;
 import com.hazelcast.cluster.Member;
 
@@ -25,9 +24,9 @@ import com.hazelcast.cluster.Member;
  * {@link LoadBalancer} allows you to send operations to one of a number of endpoints (members).
  * It is up to the implementation to use different load balancing policies.
  * <p>
- * If the client is configured with {@link ClientNetworkConfig#isSmartRouting()},
+ * If the client is not configured with {@link com.hazelcast.client.config.RoutingMode#SINGLE_MEMBER},
  * operations that are not key-based will be routed to the endpoint returned by the LoadBalancer. For
- * non-smart clients, the {@link LoadBalancer} is not used.
+ * SINGLE_MEMBER routing clients, the {@link LoadBalancer} is not used.
  * <p>
  * For configuration see  {@link ClientConfig#setLoadBalancer(LoadBalancer)}.
  */
@@ -53,9 +52,9 @@ public interface LoadBalancer {
      *
      * @throws UnsupportedOperationException if the operation is not supported by this instance
      * @since 4.2
-     * @deprecated Since 5.0, the method is unused
+     * @deprecated the method is unused
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     default Member nextDataMember() {
         throw new UnsupportedOperationException();
     }
@@ -65,9 +64,9 @@ public interface LoadBalancer {
      *
      * @see #nextDataMember()
      * @since 4.2
-     * @deprecated Since 5.0, the method is unused
+     * @deprecated the method is unused
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     default boolean canGetNextDataMember() {
         return false;
     }

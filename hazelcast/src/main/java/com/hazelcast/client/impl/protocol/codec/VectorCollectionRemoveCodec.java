@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Removes the mapping for a key from this VectorCollection.
  */
 @SuppressWarnings("unused")
-@Generated("6e707cf61c65815208227f4e24cc4629")
+@Generated("00736dba56718a4bedd2d0cfd187c93d")
 public final class VectorCollectionRemoveCodec {
     //hex: 0x240500
     public static final int REQUEST_MESSAGE_TYPE = 2360576;
@@ -49,7 +49,6 @@ public final class VectorCollectionRemoveCodec {
     private VectorCollectionRemoveCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

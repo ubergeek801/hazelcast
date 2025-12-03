@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public final class JsonSchemaHelper {
     /**
      * Creates a {@link JsonPattern} for given query path. If the path
      * matches a terminal value in the schema, then the schema is
-     * returned. Otherwise this method returns null. If given path
+     * returned. Otherwise, this method returns null. If given path
      * has "any", pattern is created only upto that part. The rest is
      * omitted.
      *
@@ -51,7 +51,6 @@ public final class JsonSchemaHelper {
      * @param path          query path
      * @return              a pattern object matching the path or null
      *                      when path does not match a terminal value
-     * @throws IOException
      */
     @SuppressWarnings("checkstyle:npathcomplexity")
     public static JsonPattern createPattern(NavigableJsonInputAdapter input, JsonSchemaNode schemaNode, JsonPathCursor path) {
@@ -157,8 +156,6 @@ public final class JsonSchemaHelper {
      * Creates a description out of a JsonValue. The parser must be
      * pointing to the start of the input.
      *
-     * @param parser
-     * @return
      * @throws IOException
      */
     public static JsonSchemaNode createSchema(JsonParser parser) throws IOException {

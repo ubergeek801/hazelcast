@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class FilteringAndDelegatingResourceLoadingClassLoader extends FilteringC
         this.delegate = delegate;
     }
 
+    @Override
     public URL getResource(String name) {
         URL resource = this.delegate.getResource(name);
         if (resource == null) {
@@ -40,6 +41,7 @@ public class FilteringAndDelegatingResourceLoadingClassLoader extends FilteringC
         return resource;
     }
 
+    @Override
     public InputStream getResourceAsStream(String name) {
         InputStream stream = this.delegate.getResourceAsStream(name);
         if (stream == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -346,7 +346,7 @@ public class ClientExceptionFactory {
         register(LOCK_OWNERSHIP_LOST_EXCEPTION, LockOwnershipLostException.class,
                 (message, cause) -> new LockOwnershipLostException(message));
         register(CP_GROUP_DESTROYED_EXCEPTION, CPGroupDestroyedException.class,
-                (message, cause) -> new CPGroupDestroyedException());
+                (message, cause) -> new CPGroupDestroyedException(message));
         register(CANNOT_REPLICATE_EXCEPTION, CannotReplicateException.class,
                 (message, cause) -> new CannotReplicateException(null));
         register(LEADER_DEMOTED_EXCEPTION, LeaderDemotedException.class,
@@ -393,17 +393,6 @@ public class ClientExceptionFactory {
         }
         throwable.setStackTrace(errorHolder.getStackTraceElements().toArray(new StackTraceElement[0]));
         return throwable;
-    }
-
-    /**
-     * hazelcast and jdk exceptions should always be defined
-     * in {@link com.hazelcast.client.impl.protocol.ClientProtocolErrorCodes} and
-     * in {@link ClientExceptionFactory}
-     * so that a well defined error code could be delivered to non-java clients.
-     * So we don't try to load them via ClassLoader to be able to catch the missing exceptions
-     */
-    private boolean checkClassNameForValidity(String exceptionClassName) {
-        return !exceptionClassName.startsWith("com.hazelcast") && !exceptionClassName.startsWith("java");
     }
 
     // method is used by Jet

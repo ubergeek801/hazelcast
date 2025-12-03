@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.ringbuffer.impl.operations;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.RingbufferConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.internal.namespace.impl.NodeEngineThreadLocalContext;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.ringbuffer.OverflowPolicy;
@@ -65,6 +66,7 @@ public class AddAllOperationTest extends HazelcastTestSupport {
 
     @Test
     public void whenFailOverflowPolicy_andNoRemainingCapacity() throws Exception {
+        NodeEngineThreadLocalContext.declareNodeEngineReference(nodeEngine);
         for (int k = 0; k < ringbuffer.capacity(); k++) {
             ringbuffer.add("item");
         }
@@ -81,6 +83,7 @@ public class AddAllOperationTest extends HazelcastTestSupport {
 
     @Test
     public void whenFailOverflowPolicy_andRemainingCapacity() throws Exception {
+        NodeEngineThreadLocalContext.declareNodeEngineReference(nodeEngine);
         for (int k = 0; k < ringbuffer.capacity() - 1; k++) {
             ringbuffer.add("item");
         }
@@ -97,6 +100,7 @@ public class AddAllOperationTest extends HazelcastTestSupport {
 
     @Test
     public void whenOverwritePolicy_andNoRemainingCapacity() throws Exception {
+        NodeEngineThreadLocalContext.declareNodeEngineReference(nodeEngine);
         for (int k = 0; k < ringbuffer.capacity(); k++) {
             ringbuffer.add("item");
         }
@@ -113,6 +117,7 @@ public class AddAllOperationTest extends HazelcastTestSupport {
 
     @Test
     public void whenOverwritePolicy_andRemainingCapacity() throws Exception {
+        NodeEngineThreadLocalContext.declareNodeEngineReference(nodeEngine);
         for (int k = 0; k < ringbuffer.capacity() - 1; k++) {
             ringbuffer.add("item");
         }

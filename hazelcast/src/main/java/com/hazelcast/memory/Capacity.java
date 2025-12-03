@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,27 +72,27 @@ public class Capacity {
     }
 
     /**
-     * Returns value of the capacity in kilo-bytes.
+     * Returns value of the capacity in kilobytes.
      *
-     * @return capacity in kilo-bytes
+     * @return capacity in kilobytes
      */
     public long kiloBytes() {
         return unit.toKiloBytes(value);
     }
 
     /**
-     * Returns value of the capacity in mega-bytes.
+     * Returns value of the capacity in megabytes.
      *
-     * @return capacity in mega-bytes
+     * @return capacity in megabytes
      */
     public long megaBytes() {
         return unit.toMegaBytes(value);
     }
 
     /**
-     * Returns value of the capacity in giga-bytes.
+     * Returns value of the capacity in gigabytes.
      *
-     * @return capacity in giga-bytes
+     * @return capacity in gigabytes
      */
     public long gigaBytes() {
         return unit.toGigaBytes(value);
@@ -201,8 +201,6 @@ public class Capacity {
     /**
      * Utility method to create a pretty format representation of given capacity with a specified unit.
      *
-     * @param capacity capacity
-     * @param unit unit
      * @return pretty format representation of given capacity
      */
     public static String toPrettyString(long capacity, MemoryUnit unit) {
@@ -226,11 +224,9 @@ public class Capacity {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Capacity)) {
+        if (!(o instanceof Capacity that)) {
             return false;
         }
-
-        Capacity that = (Capacity) o;
 
         if (value != that.value) {
             return false;

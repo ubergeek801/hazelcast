@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,14 +216,14 @@ public abstract class OptimizerTestSupport extends SqlTestSupport {
         int expectedRowCount = expected.getRowCount();
         int actualRowCount = actual.getRowCount();
         assertThat(actualRowCount)
-                .as("Plan are different" + "\n\n>>> EXPECTED PLAN:\n%s\n>>> ACTUAL PLAN:\n%s", expected, actual)
+                .as("Plan are different%n%n>>> EXPECTED PLAN:%n%s%n>>> ACTUAL PLAN:%n%s", expected, actual)
                 .isEqualTo(expectedRowCount);
 
         for (int i = 0; i < expectedRowCount; i++) {
             PlanRow expectedRow = expected.getRow(i);
             PlanRow actualRow = actual.getRow(i);
             assertThat(actualRow)
-                    .as("Plan rows are different at %s" + "\n\n>>> EXPECTED PLAN:\n%s\n>>> ACTUAL PLAN:\n%s", i + 1, expected, actual)
+                    .as("Plan rows are different at %s%n%n>>> EXPECTED PLAN:%n%s%n>>> ACTUAL PLAN:%n%s", i + 1, expected, actual)
                     .isEqualTo(expectedRow);
         }
     }

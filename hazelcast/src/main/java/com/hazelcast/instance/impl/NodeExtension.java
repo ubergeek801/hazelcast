@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.instance.impl;
 
 import com.hazelcast.auditlog.AuditlogService;
+import com.hazelcast.client.impl.ClientEngine;
 import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.SSLConfig;
 import com.hazelcast.cp.CPSubsystem;
@@ -27,6 +28,7 @@ import com.hazelcast.internal.ascii.TextCommandService;
 import com.hazelcast.internal.cluster.impl.JoinMessage;
 import com.hazelcast.internal.cluster.impl.JoinRequest;
 import com.hazelcast.internal.diagnostics.Diagnostics;
+import com.hazelcast.internal.diagnostics.HealthMonitor;
 import com.hazelcast.internal.hotrestart.InternalHotRestartService;
 import com.hazelcast.internal.jmx.ManagementService;
 import com.hazelcast.internal.management.TimedMemberStateFactory;
@@ -53,6 +55,7 @@ import com.hazelcast.version.Version;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -60,7 +63,7 @@ import java.util.function.Function;
  * NodeExtension is a <tt>Node</tt> extension mechanism to be able to plug different implementations of
  * some modules, like; <tt>SerializationService</tt>, <tt>ChannelFactory</tt> etc.
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public interface NodeExtension {
 
     /**
@@ -243,7 +246,7 @@ public interface NodeExtension {
     /**
      * Creates additional extension services, which will be registered by
      * service manager during start-up.
-     *
+     * <p>
      * By default, returned map will be empty.
      *
      * @return extension services
@@ -264,7 +267,7 @@ public interface NodeExtension {
 
     /**
      * Creates a <tt>InboundHandler</tt> for given <tt>Connection</tt> instance.
-     *
+     * <p>
      * For TLS and other enterprise features, instead of returning the regular protocol decoder, a TLS decoder
      * can be returned. This is the first item in the chain.
      *
@@ -285,9 +288,6 @@ public interface NodeExtension {
 
     /**
      * Creates the channel initializer function.
-     *
-     * @param serverContext
-     * @return
      */
     Function<EndpointQualifier, ChannelInitializer> createChannelInitializerFn(ServerContext serverContext);
 
@@ -305,6 +305,12 @@ public interface NodeExtension {
       * with a message explaining rejection reason.
       */
     void validateJoinRequest(JoinMessage joinMessage);
+
+    /**
+     * Returns {@link Version}s supported by this Node, meaning all the versions that can communicate with this Node.
+     * @return a Set of supported cluster versions
+     */
+    Set<Version> getSupportedVersions();
 
     /**
      * Called before starting a cluster state change transaction. Called only
@@ -428,10 +434,24 @@ public interface NodeExtension {
     TpcServerBootstrap createTpcServerBootstrap();
 
     /**
+     * Creates an implementation of the {@link ClientEngine} depending on Hazelcast edition.
+     *
+     * @return a new {@link ClientEngine} instance for this member
+     */
+    ClientEngine createClientEngine();
+
+    /**
      * @return the license object, if a Hazelcast Enterprise license is configured, otherwise {@code null}
      */
     @Nullable
     default Object getLicense() {
         return null;
     }
+
+    /**
+     * Creates and implementation of the {@link HealthMonitor} depending on Hazelcast edition.
+     *
+     * @return a new {@link HealthMonitor} instance for this member
+     */
+    HealthMonitor createHealthMonitor();
 }

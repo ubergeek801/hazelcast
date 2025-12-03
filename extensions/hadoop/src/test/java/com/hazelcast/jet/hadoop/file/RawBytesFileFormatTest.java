@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class RawBytesFileFormatTest extends BaseFileFormatTest {
     }
 
     @Test
-    public void shouldReadEmptyFile() throws Exception {
+    public void shouldReadEmptyFile() {
         FileSourceBuilder<byte[]> source = FileSources.files(currentDir + "/src/test/resources")
                                                       .glob("file-empty.txt")
                                                       .format(FileFormat.bytes());

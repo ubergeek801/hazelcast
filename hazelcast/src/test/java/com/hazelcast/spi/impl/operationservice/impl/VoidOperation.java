@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.PartitionAwareOperation;
+import com.hazelcast.spi.impl.operationservice.SelfResponseOperation;
 
 import java.io.IOException;
 
@@ -28,8 +29,12 @@ import java.io.IOException;
  * <p>
  * This is practical for testing heartbeats and timeouts
  * when the caller is going to wait for a response.
+ * <p>
+ * The {@link SelfResponseOperation} marker is provided
+ * to allow this operation to be invoked, despite not
+ * returning a response.
  */
-class VoidOperation extends Operation implements PartitionAwareOperation {
+class VoidOperation extends Operation implements PartitionAwareOperation, SelfResponseOperation {
 
     private long durationMs;
 

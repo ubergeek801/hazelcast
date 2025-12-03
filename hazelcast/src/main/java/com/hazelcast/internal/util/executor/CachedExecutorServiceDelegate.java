@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package com.hazelcast.internal.util.executor;
 
-import com.hazelcast.spi.impl.NodeEngine;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -51,13 +49,12 @@ public final class CachedExecutorServiceDelegate implements ExecutorService, Man
     private final int maxPoolSize;
     private final ExecutorService cachedExecutor;
     private final BlockingQueue<Runnable> taskQ;
-    private final NodeEngine nodeEngine;
     private final Lock lock = new ReentrantLock();
-    private final AtomicBoolean shutdown = new AtomicBoolean(false);
+    private final AtomicBoolean shutdown = new AtomicBoolean();
     private volatile int size;
 
     public CachedExecutorServiceDelegate(String name, ExecutorService cachedExecutor,
-                                         int maxPoolSize, int queueCapacity, NodeEngine nodeEngine) {
+                                         int maxPoolSize, int queueCapacity) {
         if (maxPoolSize <= 0) {
             throw new IllegalArgumentException("Max pool size must be positive!");
         }
@@ -68,7 +65,6 @@ public final class CachedExecutorServiceDelegate implements ExecutorService, Man
         this.maxPoolSize = maxPoolSize;
         this.cachedExecutor = cachedExecutor;
         this.taskQ = new LinkedBlockingQueue<>(queueCapacity);
-        this.nodeEngine = nodeEngine;
     }
 
     @Override
@@ -132,7 +128,6 @@ public final class CachedExecutorServiceDelegate implements ExecutorService, Man
         return submit(task, null);
     }
 
-    @SuppressFBWarnings("VO_VOLATILE_INCREMENT")
     private void addNewWorkerIfRequired() {
         if (size < maxPoolSize) {
             try {

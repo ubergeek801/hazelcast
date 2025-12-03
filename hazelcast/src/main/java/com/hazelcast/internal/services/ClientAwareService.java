@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package com.hazelcast.internal.services;
 import java.util.UUID;
 
 /**
- * A interface that can be implemented by a SPI Service so that it can be notified about client disconnects.
+ * An interface that can be implemented by an SPI Service so that it can be notified about client disconnects.
  * <p>
- * This is useful if a service needs to cleanup resources when a client leaves, e.g. release locks.
+ * This is useful if a service needs to clean up resources when a client leaves, e.g. release locks.
  */
 public interface ClientAwareService {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.internal.partition.operation;
 
 import com.hazelcast.cluster.Address;
 import com.hazelcast.core.MemberLeftException;
-import com.hazelcast.internal.partition.InternalPartitionService;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.MigrationCycleOperation;
 import com.hazelcast.internal.partition.PartitionRuntimeState;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
@@ -35,7 +35,6 @@ import java.io.IOException;
  * Sent from the master to publish or sync the partition table state to all cluster members.
  *
  * @see InternalPartitionServiceImpl#publishPartitionRuntimeState
- * @see InternalPartitionServiceImpl#syncPartitionRuntimeState
  */
 public final class PartitionStateOperation extends AbstractPartitionOperation implements MigrationCycleOperation {
 
@@ -78,7 +77,7 @@ public final class PartitionStateOperation extends AbstractPartitionOperation im
 
     @Override
     public String getServiceName() {
-        return InternalPartitionService.SERVICE_NAME;
+        return IPartitionService.SERVICE_NAME;
     }
 
     @Override

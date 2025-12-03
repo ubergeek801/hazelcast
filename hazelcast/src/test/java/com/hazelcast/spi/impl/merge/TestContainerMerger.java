@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class TestContainerMerger extends AbstractContainerMerger<Object, Object, Mergin
     @Override
     protected void runInternal() {
         MergePolicyConfig mergePolicyConfig = new MergePolicyConfig();
-        SplitBrainMergePolicy mergePolicy = getMergePolicy(mergePolicyConfig);
+        SplitBrainMergePolicy mergePolicy = getMergePolicy(mergePolicyConfig, null);
         assertNotNull("Expected to retrieve a merge policy, but was null", mergePolicy);
 
         if (mergeOperation != null) {

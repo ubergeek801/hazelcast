@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.internal.server.ServerConnectionManager;
 import com.hazelcast.internal.tpcengine.util.OS;
 import com.hazelcast.internal.util.UuidUtil;
+import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.function.RunnableEx;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
@@ -55,11 +56,12 @@ import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.test.jitter.JitterRule;
 import com.hazelcast.test.metrics.MetricsRule;
 import junit.framework.AssertionFailedError;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.AssumptionViolatedException;
 import org.junit.ClassRule;
-import org.junit.ComparisonFailure;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 import org.junit.function.ThrowingRunnable;
@@ -101,6 +103,7 @@ import java.util.function.Supplier;
 import static com.hazelcast.internal.partition.TestPartitionUtils.getPartitionServiceState;
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
+import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.test.TestEnvironment.isRunningCompatibilityTest;
 import static java.lang.Integer.getInteger;
 import static java.lang.String.format;
@@ -108,13 +111,13 @@ import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
@@ -158,13 +161,13 @@ public abstract class HazelcastTestSupport {
     static {
         ASSERT_TRUE_EVENTUALLY_TIMEOUT = getInteger("hazelcast.assertTrueEventually.timeout", 120);
         ASSERT_TRUE_EVENTUALLY_TIMEOUT_DURATION = Duration.ofSeconds(ASSERT_TRUE_EVENTUALLY_TIMEOUT);
-        LOGGER.fine("ASSERT_TRUE_EVENTUALLY_TIMEOUT = " + ASSERT_TRUE_EVENTUALLY_TIMEOUT);
+        LOGGER.fine("ASSERT_TRUE_EVENTUALLY_TIMEOUT = %s", ASSERT_TRUE_EVENTUALLY_TIMEOUT);
         ASSERT_COMPLETES_STALL_TOLERANCE = getInteger("hazelcast.assertCompletes.stallTolerance", 20);
-        LOGGER.fine("ASSERT_COMPLETES_STALL_TOLERANCE = " + ASSERT_COMPLETES_STALL_TOLERANCE);
+        LOGGER.fine("ASSERT_COMPLETES_STALL_TOLERANCE = %s", ASSERT_COMPLETES_STALL_TOLERANCE);
         String pmemDirectories = System.getProperty("hazelcast.persistent.memory");
         PERSISTENT_MEMORY_DIRECTORIES = pmemDirectories != null ? pmemDirectories : "/tmp/pmem0,/tmp/pmem1";
-        ClusterProperty.METRICS_COLLECTION_FREQUENCY.setSystemProperty("1");
         ClusterProperty.METRICS_DEBUG.setSystemProperty("true");
+        Assertions.setMaxStackTraceElementsDisplayed(100);
     }
 
     @AfterEach
@@ -216,12 +219,14 @@ public abstract class HazelcastTestSupport {
     public static Config shrinkInstanceConfig(Config config) {
         smallInstanceConfigWithoutJetAndMetrics(config);
         config.getMetricsConfig().setEnabled(true);
+        config.getMetricsConfig().setCollectionFrequencySeconds(1);
         config.getJetConfig().setEnabled(true).setCooperativeThreadCount(2);
         return config;
     }
 
     public static Config regularInstanceConfig() {
         Config config = new Config();
+        config.getMetricsConfig().setCollectionFrequencySeconds(1);
         config.getJetConfig().setEnabled(true);
         return config;
     }
@@ -378,7 +383,14 @@ public abstract class HazelcastTestSupport {
      * Returns the cartesian product of the specified lists.
      */
     public static List<Object[]> cartesianProduct(List<?>... lists) {
-        return Lists.cartesianProduct(lists).stream().map(List::toArray).collect(toList());
+        return Lists.cartesianProduct(lists).stream().map(List::toArray).toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T, U> List<Tuple2<T, U>> cartesianProductTuple(List<T> t, List<U> u) {
+        return Lists.cartesianProduct(List.of(t, u)).stream()
+                .map(pair -> tuple2((T) pair.get(0), (U) pair.get(1)))
+                .toList();
     }
 
     // ###########################
@@ -780,7 +792,7 @@ public abstract class HazelcastTestSupport {
             }
         }
 
-        assertTrue("Instances not in safe state! " + nonSafeStates, nonSafeStates.isEmpty());
+        assertThat(nonSafeStates).as("Instances not in safe state!").isEmpty();
     }
 
     public static void assertNoRunningInstances() {
@@ -829,18 +841,30 @@ public abstract class HazelcastTestSupport {
         }
     }
 
+    /**
+     * alternative implementation of {@link org.assertj.core.api.AbstractIterableAssert#contains(Object...)} that does not rely
+     * on an implementation of {@link Collection#iterator()}
+     */
     public static <E> void assertContains(Collection<E> collection, E expected) {
         if (!collection.contains(expected)) {
             fail(format("Collection %s (%d) didn't contain expected '%s'", collection, collection.size(), expected));
         }
     }
 
+    /**
+     * alternative implementation of {@link org.assertj.core.api.AbstractIterableAssert#doesNotContain(Object...)} that does not
+     * rely on an implementation of {@link Collection#iterator()}
+     */
     public static <E> void assertNotContains(Collection<E> actual, E notExpected) {
         if (actual.contains(notExpected)) {
             fail(format("Collection %s (%d) contained unexpected '%s'", actual, actual.size(), notExpected));
         }
     }
 
+    /**
+     * alternative implementation of {@link org.assertj.core.api.AbstractIterableAssert#containsAll(Iterable)} that does not
+     * rely on an implementation of {@link Collection#iterator()}
+     */
     public static <E> void assertContainsAll(Collection<E> actual, Collection<E> expected) {
         if (!actual.containsAll(expected)) {
             fail(format("Collection %s (%d) didn't contain expected %s (%d)",
@@ -850,40 +874,34 @@ public abstract class HazelcastTestSupport {
 
     public static <E> void assertNotContainsAll(Collection<E> actual, Collection<E> notExpected) {
         if (actual.containsAll(notExpected)) {
-            fail(format("Collection %s (%d) contained unexpected %s (%d)",
-                    actual, actual.size(), notExpected, notExpected.size()));
+            fail("Collection %s (%d) contained unexpected %s (%d)", actual, actual.size(), notExpected, notExpected.size());
         }
     }
 
+    /** @see org.assertj.core.api.AbstractCharSequenceAssert#contains(CharSequence...) */
     public static void assertContains(String actual, String expected) {
-        if (actual == null || !actual.contains(expected)) {
-            fail(format("'%s' didn't contain expected '%s'", actual, expected));
-        }
+        assertThat(actual).contains(expected);
     }
 
+    /** @see org.assertj.core.api.AbstractCharSequenceAssert#doesNotContain(CharSequence...) */
     public static void assertNotContains(String actual, String notExpected) {
-        if (actual.contains(notExpected)) {
-            fail(format("'%s' contained unexpected '%s'", actual, notExpected));
-        }
+        assertThat(actual).doesNotContain(notExpected);
     }
 
+    /** @see org.assertj.core.api.AbstractCharSequenceAssert#startsWith(CharSequence) */
     public static void assertStartsWith(String expected, String actual) {
-        if (actual != null && actual.startsWith(expected)) {
-            return;
-        }
-        if (expected != null && actual != null) {
-            throw new ComparisonFailure("", expected, actual);
-        }
-        fail(formatAssertMessage(expected, null));
+        assertThat(actual).startsWith(expected);
     }
 
+    /**
+     * alternative implementation of {@link org.assertj.core.api.AbstractMapAssert#isEqualTo(Object)} that queries via
+     * {@link Properties#stringPropertyNames()}}
+     */
     public static void assertPropertiesEquals(Properties expected, Properties actual) {
-        if (expected == null && actual == null) {
-            return;
-        }
-
-        if (expected == null || actual == null) {
-            fail(formatAssertMessage(expected, actual));
+        if (expected == null) {
+            assertNull(actual);
+        } else {
+            assertNotNull(actual);
         }
 
         for (String key : expected.stringPropertyNames()) {
@@ -896,32 +914,10 @@ public abstract class HazelcastTestSupport {
         }
     }
 
-    private static String formatAssertMessage(Object expected, Object actual) {
-        StringBuilder assertMessage = new StringBuilder();
-        String expectedString = String.valueOf(expected);
-        String actualString = String.valueOf(actual);
-        if (expectedString.equals(actualString)) {
-            assertMessage.append("expected: ");
-            formatClassAndValue(assertMessage, expected, expectedString);
-            assertMessage.append(" but was: ");
-            formatClassAndValue(assertMessage, actual, actualString);
-        } else {
-            assertMessage.append("expected: <").append(expectedString)
-                    .append("> but was: <").append(actualString).append(">");
-        }
-        return assertMessage.toString();
-    }
-
-    private static void formatClassAndValue(StringBuilder message, Object value, String valueString) {
-        message.append((value == null) ? "null" : value.getClass().getName())
-                .append("<").append(valueString).append(">");
-    }
-
     @SuppressWarnings("unchecked")
     public static <E> E assertInstanceOf(Class<E> expected, Object actual) {
         assertNotNull(actual);
-        assertTrue(actual + " is not an instanceof " + expected.getName(),
-                expected.isAssignableFrom(actual.getClass()));
+        assertThat(expected).isAssignableFrom(actual.getClass());
         return (E) actual;
     }
 
@@ -951,10 +947,9 @@ public abstract class HazelcastTestSupport {
         }
     }
 
+    /** @see org.assertj.core.api.AbstractIterableAssert#containsExactlyInAnyOrderElementsOf(Iterable) */
     protected static <T> void assertCollection(Collection<T> expected, Collection<T> actual) {
-        assertEquals(String.format("Expected collection: `%s`, actual collection: `%s`", expected, actual),
-                expected.size(), actual.size());
-        assertContainsAll(expected, actual);
+        assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
     }
 
     protected static <T> void assertCollection(Collection<T> expected, Collection<T> actual, Comparator<T> comparator) {
@@ -967,16 +962,9 @@ public abstract class HazelcastTestSupport {
         }
     }
 
-    public static void assertIterableEquals(Iterable<?> actual, Object... expected) {
-        List<Object> actualList = new ArrayList<>();
-        for (Object object : actual) {
-            actualList.add(object);
-        }
-
-        var expectedList = asList(expected);
-
-        assertEquals("size should match", expectedList.size(), actualList.size());
-        assertEquals(expectedList, actualList);
+    /** @see org.assertj.core.api.AbstractIterableAssert#containsExactly(Object...) */
+    public static <T> void assertIterableEquals(Iterable<T> actual, T... expected) {
+        assertThat(actual).containsExactly(expected);
     }
 
     public static void assertCompletesEventually(final Future<?> future) {
@@ -992,7 +980,7 @@ public abstract class HazelcastTestSupport {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            fail(String.format("Future has not completed - %s", e));
+            fail("Future has not completed - %s", e);
         }
     }
 
@@ -1028,7 +1016,7 @@ public abstract class HazelcastTestSupport {
 
     public static <E> void assertEqualsEventually(final FutureTask<E> task, final E expected) {
         assertTrueEventually(() -> {
-            assertTrue("FutureTask is not complete", task.isDone());
+            assertThat(task).as("FutureTask is not complete").isDone();
             assertEquals(expected, task.get());
         });
     }
@@ -1045,8 +1033,8 @@ public abstract class HazelcastTestSupport {
         for (int i = 0; i < instances.length; i++) {
             int clusterSize = getClusterSize(instances[i]);
             if (expectedSize != clusterSize) {
-                fail(format("Cluster size is not correct. Expected: %d, actual: %d, instance index: %d",
-                        expectedSize, clusterSize, i));
+                fail("Cluster size is not correct. Expected: %d, actual: %d, instance index: %d",
+                        expectedSize, clusterSize, i);
             }
         }
     }
@@ -1367,7 +1355,8 @@ public abstract class HazelcastTestSupport {
      * @param actual   actual value which is used for assert
      */
     public static void assertEqualsStringFormat(String message, Object expected, Object actual) {
-        assertEquals(format(message, expected, actual), expected, actual);
+        assertThat(actual).as(message, expected, actual)
+                .isEqualTo(expected);
     }
 
     /**
@@ -1379,22 +1368,17 @@ public abstract class HazelcastTestSupport {
      * @param actual   actual value which is used for assert
      */
     public static void assertNotEqualsStringFormat(String message, Object expected, Object actual) {
-        assertNotEquals(format(message, expected, actual), expected, actual);
+        assertThat(actual).as(message, expected, actual)
+                .isNotEqualTo(expected);
     }
 
-    /**
-     * Assert that {@code actualValue >= lowerBound && actualValue <= upperBound}.
-     */
+    /** @see org.assertj.core.api.AbstractLongAssert#isBetween(Long, Long) */
     public static void assertBetween(String label, long actualValue, long lowerBound, long upperBound) {
-        assertTrue(format("Expected '%s' to be between %d and %d, but was %d",
-                        label, lowerBound, upperBound, actualValue),
-                actualValue >= lowerBound && actualValue <= upperBound);
+        assertThat(actualValue).as(label).isBetween(lowerBound, upperBound);
     }
 
     public static void assertGreaterOrEquals(String label, long actualValue, long lowerBound) {
-        assertTrue(format("Expected '%s' to be greater than or equal to %d, but was %d",
-                        label, lowerBound, actualValue),
-                actualValue >= lowerBound);
+        assertThat(actualValue).as(label).isGreaterThanOrEqualTo(lowerBound);
     }
 
     public static void assertExactlyOneSuccessfulRun(AssertTask task) {
@@ -1450,7 +1434,7 @@ public abstract class HazelcastTestSupport {
         throw new AssertionFailedError(excMsg);
     }
 
-    private static OperationParkerImpl getOperationParkingService(HazelcastInstance instance) {
+    protected static OperationParkerImpl getOperationParkingService(HazelcastInstance instance) {
         return (OperationParkerImpl) Accessors.getNodeEngineImpl(instance).getOperationParker();
     }
 
@@ -1559,7 +1543,11 @@ public abstract class HazelcastTestSupport {
     // ########## read from backup utils ##########
     // ############################################
 
-    protected Object readFromMapBackup(HazelcastInstance instance, String mapName, Object key) {
+    public static Object readFromMapBackup(HazelcastInstance instance, String mapName, Object key) {
+        return readFromMapBackup(instance, mapName, key, 1);
+    }
+
+    public static Object readFromMapBackup(HazelcastInstance instance, String mapName, Object key, int replicaIndex) {
         try {
             NodeEngine nodeEngine = Accessors.getNode(instance).getNodeEngine();
             SerializationService ss = Accessors.getNode(instance).getSerializationService();
@@ -1567,7 +1555,7 @@ public abstract class HazelcastTestSupport {
 
             MapOperation get = getMapOperationProvider(instance, mapName).createGetOperation(mapName, ss.toData(key));
             get.setPartitionId(partitionId);
-            get.setReplicaIndex(1);
+            get.setReplicaIndex(replicaIndex);
 
             return Accessors.getNode(instance).getNodeEngine().getOperationService().invokeOnPartition(get).get();
         } catch (Exception ex) {
@@ -1575,7 +1563,7 @@ public abstract class HazelcastTestSupport {
         }
     }
 
-    protected MapOperationProvider getMapOperationProvider(HazelcastInstance instance, String mapName) {
+    public static MapOperationProvider getMapOperationProvider(HazelcastInstance instance, String mapName) {
         MapService mapService = Accessors.getNodeEngineImpl(instance).getService(MapService.SERVICE_NAME);
         return mapService.getMapServiceContext().getMapOperationProvider(mapName);
     }
@@ -1625,8 +1613,9 @@ public abstract class HazelcastTestSupport {
     public static void assumeConfiguredByteOrder(InternalSerializationService serializationService,
                                                  ByteOrder assumedByteOrder) {
         ByteOrder configuredByteOrder = serializationService.getByteOrder();
-        assumeTrue(format("Assumed configured byte order %s, but was %s", assumedByteOrder, configuredByteOrder),
-                configuredByteOrder.equals(assumedByteOrder));
+        assumeThat(configuredByteOrder)
+                .as("Assumed configured byte order %s, but was %s", assumedByteOrder, configuredByteOrder)
+                .isEqualTo(assumedByteOrder);
     }
 
     /**
@@ -1663,5 +1652,10 @@ public abstract class HazelcastTestSupport {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /** Converts Windows line separators ({@code \r\n}) to {@code \r} */
+    protected static String convertWindowsLineSeperators(String str) {
+        return StringUtils.remove(str, StringUtils.CR);
     }
 }

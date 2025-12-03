@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ public class LazyCacheEntryView<K, V>
     private Object key;
     private Object value;
     private Object expiryPolicy;
-    private long creationTime;
-    private long expirationTime;
-    private long lastAccessTime;
-    private long accessHit;
-    private SerializationService serializationService;
+    private final long creationTime;
+    private final long expirationTime;
+    private final long lastAccessTime;
+    private final long accessHit;
+    private final SerializationService serializationService;
 
     public LazyCacheEntryView(Object key, Object value, long creationTime,
                               long expirationTime, long lastAccessTime, long accessHit, Object expiryPolicy) {

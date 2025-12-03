@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.client;
 
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.spi.EventHandler;
 import com.hazelcast.client.impl.spi.impl.ClientInvocationServiceImpl;
 import com.hazelcast.client.test.ClientTestSupport;
@@ -38,11 +38,11 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SMART;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SUBSET;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.UNISOCKET;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static com.hazelcast.client.config.RoutingMode.ALL_MEMBERS;
+import static com.hazelcast.client.config.RoutingMode.MULTI_MEMBER;
+import static com.hazelcast.client.config.RoutingMode.SINGLE_MEMBER;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastParametrizedRunner.class)
 @Parameterized.UseParametersRunnerFactory(HazelcastParallelParametersRunnerFactory.class)
@@ -54,7 +54,7 @@ public class ClientBackupAckTest extends ClientTestSupport {
 
     @Parameterized.Parameters(name = "{index}: routingMode={0}")
     public static Iterable<?> parameters() {
-        return Arrays.asList(UNISOCKET, RoutingMode.SMART);
+        return Arrays.asList(SINGLE_MEMBER, RoutingMode.ALL_MEMBERS);
     }
 
     private final TestHazelcastFactory hazelcastFactory = new TestHazelcastFactory();
@@ -66,7 +66,7 @@ public class ClientBackupAckTest extends ClientTestSupport {
 
     @Test
     public void testBackupAckToClientIsEnabled_byDefault() {
-        Assume.assumeTrue(routingMode == RoutingMode.SMART);
+        Assume.assumeTrue(routingMode == RoutingMode.ALL_MEMBERS);
 
         hazelcastFactory.newHazelcastInstance();
 
@@ -88,10 +88,10 @@ public class ClientBackupAckTest extends ClientTestSupport {
                 = getHazelcastClientInstanceImpl(client)
                 .getInvocationService().isBackupAckToClientEnabled();
 
-        if (routingMode == UNISOCKET || routingMode == SUBSET) {
+        if (routingMode == SINGLE_MEMBER || routingMode == MULTI_MEMBER) {
             assertFalse(isEnabled(client));
             assertFalse(backupAckToClientEnabled);
-        } else if (routingMode == SMART) {
+        } else if (routingMode == ALL_MEMBERS) {
             assertTrue(isEnabled(client));
             assertTrue(backupAckToClientEnabled);
         } else {

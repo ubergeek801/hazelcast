@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -356,7 +356,7 @@ public class RingbufferService implements ManagedService, RemoteService, Chunked
                 for (RingbufferContainer container : containerList) {
                     // TODO: add batching (which is a bit complex, since collections don't have a multi-name operation yet
                     SplitBrainMergePolicy<RingbufferMergeData, RingbufferMergeTypes, RingbufferMergeData> mergePolicy
-                            = getMergePolicy(container.getConfig().getMergePolicyConfig());
+                            = getMergePolicy(container.getConfig().getMergePolicyConfig(), container.getUserCodeNamespace());
 
                     sendBatch(partitionId, mergePolicy, container);
                 }
@@ -396,7 +396,7 @@ public class RingbufferService implements ManagedService, RemoteService, Chunked
             final ObjectNamespace ns = RingbufferService.getRingbufferNamespace(ringbufferName);
             final RingbufferContainer container = service.getContainerOrNull(partitionId, ns);
             if (container != null) {
-                return container.getConfig().getUserCodeNamespace();
+                return container.getUserCodeNamespace();
             }
             // Manual config lookup fallback
             RingbufferConfig config = service.getRingbufferConfig(ringbufferName);

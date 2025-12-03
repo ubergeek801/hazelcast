@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,8 +59,6 @@ public final class RuntimeAvailableProcessors {
      * Overrides the number of available processors that are set by the method {@link #override(int)}
      * <p>
      * This is to be used only for testing.
-     *
-     * @param availableProcessors
      */
     public static void overrideDefault(int availableProcessors) {
         defaultAvailableProcessors = availableProcessors;

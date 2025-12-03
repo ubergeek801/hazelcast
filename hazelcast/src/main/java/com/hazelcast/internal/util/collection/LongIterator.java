@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
 
 package com.hazelcast.internal.util.collection;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Iterator;
 
 /**
  * An iterator for a sequence of primitive integers.
  */
-@SuppressFBWarnings("EI2")
 public class LongIterator implements Iterator<Long> {
     private final long missingValue;
     private final long[] values;
@@ -42,6 +40,7 @@ public class LongIterator implements Iterator<Long> {
         this.values = values;
     }
 
+    @Override
     public boolean hasNext() {
         final long[] values = this.values;
         while (position < values.length) {
@@ -55,10 +54,12 @@ public class LongIterator implements Iterator<Long> {
         return false;
     }
 
+    @Override
     public Long next() {
         return nextValue();
     }
 
+    @Override
     public void remove() {
         throw new UnsupportedOperationException("remove");
     }

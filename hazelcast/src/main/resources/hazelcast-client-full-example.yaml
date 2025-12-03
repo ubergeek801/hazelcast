@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+# Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -106,10 +106,19 @@ hazelcast-client:
 
   #
   # The "backup-ack-to-client-enabled" element lets you enable/disable backups ack to client.
-  # This feature reduces number of hops and increase performance for smart clients.
-  # It is enabled by default for smart clients. This config has no effect for unisocket clients.
+  # This feature reduces number of hops and increase performance for ALL_MEMBERS routing clients.
+  # It is enabled by default for ALL_MEMBERS routing clients. This config has no effect for SINGLE_MEMBER routing clients.
   #
   backup-ack-to-client-enabled: true
+
+  #
+  # The cp-direct-to-leader-routing element lets you enable/disable direct-to-leader routing behaviour.
+  # This feature allows CP data structure operations to be sent directly to group leaders instead of using
+  # all members of the cluster. This functionality requires the cluster to have the appropriate Hazelcast
+  # Enterprise license, otherwise it will provide no benefit on the client.
+  # It is disabled by default. This option has no effect for SINGLE_MEMBER routing clients.
+  #
+  cp-direct-to-leader-routing: false
 
   #
   # ===== HAZELCAST NETWORK CONFIGURATION =====
@@ -125,15 +134,13 @@ hazelcast-client:
   #     Hazelcast-enabled applications. To fulfill this requirement, you can configure Hazelcast to use
   #     only defined outbound ports.
   #     The outbound ports are listed as a sequence under the "outbound-ports" element.
-  # * "subset-routing":
-  #     If true, this client will only connect to a subset of the cluster based on the configured routing-strategy.
-  #     Its default value is false.
-  #     Note : This feature may only be enabled if smart-routing is disabled.
-  # * "smart-routing":
-  #     If true, client will route the key based operations to owner of the key at the best effort. Note that it
-  #     uses a cached version of com.hazelcast.core.PartitionService#getPartitions() and doesn't guarantee that
-  #     the operation will always be executed on the owner. The cached table is updated every second.
-  #     Note : This feature may only be enabled if subset-routing is disabled.
+  # * "cluster-routing":
+  #     Defines the cluster member routing this client will use. The following sub-elements are available:
+  #       - "mode": One of: "ALL_MEMBERS", "MULTI_MEMBER", or "SINGLE_MEMBER". The default mode is "ALL_MEMBERS".
+  #       - "routing-strategy": When the "MULTI_MEMBER" mode is used, this element may be provided to define
+  #         the strategy used in this mode. The default routing-strategy is "PARTITION_GROUPS".
+  #
+  #     Note : The "MULTI_MEMBER" routing mode is only available in Hazelcast Enterprise.
   # * "redo-operation":
   #     If true, client will redo the operations that were executing on the server and client lost the connection.
   #     This can be because of network, or simply because the member died. However it is not clear whether the
@@ -191,7 +198,7 @@ hazelcast-client:
   #     the configuration details.
   # * "kubernetes":
   #     Set its "enabled" sub-element to true for discovery in the Kubernetes environment.
-  #     Please refer to https://github.com/hazelcast/hazelcast-kubernetes#hazelcast-configuration for
+  #     Please refer to https://docs.hazelcast.com/hazelcast/latest/kubernetes/kubernetes-auto-discovery#hazelcast-configuration for
   #     the configuration details.
   # * "eureka":
   #     Set its "enabled" sub-element to true for discovery with using Eureka Service Registry.
@@ -206,7 +213,7 @@ hazelcast-client:
   #     to learn how to do this.
   #     You can define multiple discovery strategies using the "discovery-strategy" sub-element and its
   #     properties. Please refer to
-  #     http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#discovering-cluster-members
+  #     https://docs.hazelcast.com/hazelcast/latest/clusters/discovery-mechanisms
   #     to see the properties you can use.
   #     The following is an example for EC2 cloud.
   #     discovery-strategies:
@@ -244,10 +251,8 @@ hazelcast-client:
     outbound-ports:
       - 34600
       - 34700-34710
-    subset-routing:
-      enabled : true
-      routing-strategy: PARTITION_GROUPS
-    smart-routing: true
+    cluster-routing:
+      mode: ALL_MEMBERS
     redo-operation: true
     connection-timeout: 60000
     socket-options:
@@ -513,9 +518,9 @@ hazelcast-client:
   # * POOLED: Manages memory blocks in thread local pools.
   #
   # It has the following sub-elements:
-  # - "size":
-  #     Size of the total native memory to allocate. You can give the size using its "value" attribute and the unit
-  #     using its "unit" attribute. Unit can be bytes, kilobytes, megabytes and gigabytes. Default value is 128 and
+  # - "capacity":
+  #     SDefines the total native memory capacity to allocate. You can give the size using its "value" attribute and the unit
+  #     using its "unit" attribute. Unit can be bytes, kilobytes, megabytes and gigabytes. Default value is 512 and
   #     default unit is MEGABYTES.
   # - "min-block-size":
   #     Minimum size of the blocks in bytes to split and fragment a page block to assign to an allocation request.
@@ -530,7 +535,7 @@ hazelcast-client:
   native-memory:
     enabled: false
     allocator-type: POOLED
-    size:
+    capacity:
       unit: MEGABYTES
       value: 128
     min-block-size: 1
@@ -880,8 +885,14 @@ hazelcast-client:
     rel-topic:
       read-batch-size: 100
       topic-overload-policy: DISCARD_NEWEST
+
   #
   # ===== HAZELCAST USER CODE DEPLOYMENT CONFIGURATION =====
+  #
+  # IMPORTANT: User Code Deployment is deprecated and marked for removal. User Code Namespaces should
+  # be used instead, which is configured in Hazelcast member configurations and does not require
+  # any client configuration. See https://docs.hazelcast.com/hazelcast/latest/clusters/user-code-namespaces
+  # for more information about User Code Namespaces.
   #
   # Configuration element's name is "user-code-deployment".
   # It has the following sub-nodes:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Adds a WAN replication configuration.
  */
 @SuppressWarnings("unused")
-@Generated("81ef0a8c8f39644bb1257340a7e787d3")
+@Generated("7ac2f6ce21823eaa30a1d8a8013c3d06")
 public final class DynamicConfigAddWanReplicationConfigCodec {
     //hex: 0x1B1200
     public static final int REQUEST_MESSAGE_TYPE = 1774080;
@@ -49,7 +49,6 @@ public final class DynamicConfigAddWanReplicationConfigCodec {
     private DynamicConfigAddWanReplicationConfigCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

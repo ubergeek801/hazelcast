@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ import java.util.Map.Entry;
  * Since Hazelcast 4.1, an instance of {@link ExtendedMapEntry} is provided as argument in {@link #process(Map.Entry)}
  * method:
  * <pre>
- * {@code
  * class IncrementWithOptionalTtl implements EntryProcessor<Integer, Integer, Void> {
  *     private final long ttlSeconds;
  *
@@ -138,8 +137,8 @@ public interface EntryProcessor<K, V, R> extends Serializable {
      * that a key exists but its backup processor may not find it at run time due
      * to an unsent backup of a previous operation (e.g. a previous put). In
      * those situations, Hazelcast internally/eventually will sync those owner
-     * and backup partitions so you will not lose any data.
-     * When coding an backup entry processor, you should take that case into
+     * and backup partitions, so you will not lose any data.
+     * When coding a backup entry processor, you should take that case into
      * account, otherwise {@link java.lang.NullPointerException}s can be seen
      * since {@link java.util.Map.Entry#getValue()} may return null.
      *

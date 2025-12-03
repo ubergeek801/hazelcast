@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ package com.hazelcast.hotrestart;
 import com.hazelcast.persistence.PersistenceService;
 
 /**
- * @deprecated since 5.0 because of renaming purposes.
+ * @deprecated because of renaming purposes.
  * Please use {@link com.hazelcast.persistence.PersistenceService} instead.
  */
-@Deprecated
+@Deprecated(since = "5.0")
 public interface HotRestartService extends PersistenceService {
     /**
-     * @deprecated since 5.0
+     * @deprecated
      * Use {@link PersistenceService#isBackupEnabled()} instead.
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     boolean isHotBackupEnabled();
 }

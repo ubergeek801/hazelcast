@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
   the directory where you start your Hazelcast client.
 
   To learn how to configure Hazelcast, please see the schema at
-  http://www.hazelcast.com/schema/client-config/hazelcast-client-config-5.5.xsd
+  http://www.hazelcast.com/schema/client-config/hazelcast-client-config-5.7.xsd
   or the Reference Manual at https://docs.hazelcast.com/
 -->
 
@@ -31,7 +31,7 @@
 <hazelcast-client xmlns="http://www.hazelcast.com/schema/client-config"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://www.hazelcast.com/schema/client-config
-                  http://www.hazelcast.com/schema/client-config/hazelcast-client-config-5.5.xsd">
+                  http://www.hazelcast.com/schema/client-config/hazelcast-client-config-5.7.xsd">
 
     <config-replacers fail-if-value-missing="false">
         <replacer class-name="com.hazelcast.config.replacer.EncryptionReplacer">
@@ -64,6 +64,8 @@
 
     <backup-ack-to-client-enabled>false</backup-ack-to-client-enabled>
 
+    <cp-direct-to-leader-routing>false</cp-direct-to-leader-routing>
+
     <network>
         <cluster-members>
             <address>127.0.0.1</address>
@@ -73,7 +75,7 @@
             <ports>34600</ports>
             <ports>34700-34710</ports>
         </outbound-ports>
-        <smart-routing>true</smart-routing>
+        <cluster-routing mode="ALL_MEMBERS"/>
         <redo-operation>true</redo-operation>
         <connection-timeout>60000</connection-timeout>
         <socket-options>
@@ -239,7 +241,7 @@
     </serialization>
 
     <native-memory enabled="false" allocator-type="POOLED">
-        <size unit="MEGABYTES" value="128"/>
+        <capacity unit="MEGABYTES" value="128"/>
         <min-block-size>1</min-block-size>
         <page-size>1</page-size>
         <metadata-space-percentage>40.5</metadata-space-percentage>

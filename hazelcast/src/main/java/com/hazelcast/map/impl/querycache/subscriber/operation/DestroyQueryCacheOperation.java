@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,11 @@ public class DestroyQueryCacheOperation extends AbstractNamedOperation {
             return;
         }
         UUID listenerId = listenerRegistry.remove(cacheId);
-        getMapServiceContext().removeEventListener(name, listenerId);
+        if (listenerId != null) {
+            getMapServiceContext().removeEventListener(name, listenerId);
+        } else {
+            getLogger().finest("No listener ID found for query cache '%s' - assuming cleanup already completed", cacheId);
+        }
     }
 
     private void removeAccumulatorInfo() {

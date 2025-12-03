@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ import com.hazelcast.spi.merge.SplitBrainMergePolicy;
 import com.hazelcast.spi.merge.SplitBrainMergePolicyProvider;
 import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.wan.impl.WanReplicationService;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.cache.CacheException;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
@@ -92,7 +91,6 @@ import static com.hazelcast.internal.util.ConcurrencyUtil.CALLER_RUNS;
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.FutureUtil.RETHROW_EVERYTHING;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
-import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.singleton;
 
 @SuppressWarnings({"checkstyle:classdataabstractioncoupling", "ClassFanOutComplexity", "MethodCount"})
@@ -130,7 +128,7 @@ public abstract class AbstractCacheService implements ICacheService,
                     CacheEntryCountResolver.createEntryCountResolver(getOrCreateCacheContext(name)));
 
     protected final ConstructorFunction<String, Set<Closeable>> cacheResourcesConstructorFunction =
-            name -> newSetFromMap(new ConcurrentHashMap<Closeable, Boolean>());
+            name -> ConcurrentHashMap.newKeySet();
 
     // mutex factory ensures each Set<Closeable> of cache resources is only constructed and inserted in resources map once
     protected final ContextMutexFactory cacheResourcesMutexFactory = new ContextMutexFactory();
@@ -172,7 +170,7 @@ public abstract class AbstractCacheService implements ICacheService,
     public SplitBrainMergePolicy getMergePolicy(String dataStructureName) {
         CacheConfig cacheConfig = getCacheConfig(dataStructureName);
         String mergePolicyName = cacheConfig.getMergePolicyConfig().getPolicy();
-        return mergePolicyProvider.getMergePolicy(mergePolicyName);
+        return mergePolicyProvider.getMergePolicy(mergePolicyName, cacheConfig.getUserCodeNamespace());
     }
 
     public ConcurrentMap<String, CacheConfig> getConfigs() {
@@ -229,7 +227,6 @@ public abstract class AbstractCacheService implements ICacheService,
     }
 
     @Override
-    @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public CachePartitionSegment[] getPartitionSegments() {
         return segments;
     }
@@ -360,7 +357,7 @@ public abstract class AbstractCacheService implements ICacheService,
         }
 
         WanReplicationService wanService = nodeEngine.getWanReplicationService();
-        wanService.removeWanEventCounters(ICacheService.SERVICE_NAME, cacheNameWithPrefix);
+        wanService.removeWanEventCounters(SERVICE_NAME, cacheNameWithPrefix);
         operationProviderCache.remove(cacheNameWithPrefix);
         deregisterAllListener(cacheNameWithPrefix);
         cacheContexts.remove(cacheNameWithPrefix);
@@ -577,7 +574,7 @@ public abstract class AbstractCacheService implements ICacheService,
         EventService eventService = getNodeEngine().getEventService();
 
         EventRegistration registration = eventService
-                .registerLocalListener(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, listener);
+                .registerLocalListener(SERVICE_NAME, cacheNameWithPrefix, listener);
         if (registration == null) {
             return null;
         }
@@ -589,7 +586,7 @@ public abstract class AbstractCacheService implements ICacheService,
         EventService eventService = getNodeEngine().getEventService();
 
         EventRegistration registration = eventService
-                .registerLocalListener(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener);
+                .registerLocalListener(SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener);
         if (registration == null) {
             return null;
         }
@@ -600,7 +597,7 @@ public abstract class AbstractCacheService implements ICacheService,
     public CompletableFuture<UUID> registerListenerAsync(String cacheNameWithPrefix, CacheEventListener listener) {
         EventService eventService = getNodeEngine().getEventService();
 
-        return eventService.registerListenerAsync(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, listener)
+        return eventService.registerListenerAsync(SERVICE_NAME, cacheNameWithPrefix, listener)
                 .thenApplyAsync((eventRegistration) -> updateRegisteredListeners(listener, eventRegistration),
                         CALLER_RUNS);
     }
@@ -610,7 +607,7 @@ public abstract class AbstractCacheService implements ICacheService,
                                                          EventFilter eventFilter) {
         EventService eventService = getNodeEngine().getEventService();
 
-        return eventService.registerListenerAsync(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener)
+        return eventService.registerListenerAsync(SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener)
                 .thenApplyAsync((eventRegistration) -> updateRegisteredListeners(listener, eventRegistration),
                         CALLER_RUNS);
     }
@@ -634,7 +631,7 @@ public abstract class AbstractCacheService implements ICacheService,
         EventService eventService = getNodeEngine().getEventService();
 
         EventRegistration registration = eventService
-                .registerListener(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, listener);
+                .registerListener(SERVICE_NAME, cacheNameWithPrefix, listener);
 
         return updateRegisteredListeners(listener, registration);
     }
@@ -644,7 +641,7 @@ public abstract class AbstractCacheService implements ICacheService,
         EventService eventService = getNodeEngine().getEventService();
 
         EventRegistration registration = eventService
-                .registerListener(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener);
+                .registerListener(SERVICE_NAME, cacheNameWithPrefix, eventFilter, listener);
 
         return updateRegisteredListeners(listener, registration);
     }
@@ -653,7 +650,7 @@ public abstract class AbstractCacheService implements ICacheService,
     public CompletableFuture<Boolean> deregisterListenerAsync(String cacheNameWithPrefix, UUID registrationId) {
         EventService eventService = getNodeEngine().getEventService();
 
-        return eventService.deregisterListenerAsync(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, registrationId)
+        return eventService.deregisterListenerAsync(SERVICE_NAME, cacheNameWithPrefix, registrationId)
                 .thenApplyAsync(result -> {
                     removeFromLocalResources(registrationId);
                     return result;
@@ -671,7 +668,7 @@ public abstract class AbstractCacheService implements ICacheService,
     public boolean deregisterListener(String cacheNameWithPrefix, UUID registrationId) {
         EventService eventService = getNodeEngine().getEventService();
 
-        if (eventService.deregisterListener(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix, registrationId)) {
+        if (eventService.deregisterListener(SERVICE_NAME, cacheNameWithPrefix, registrationId)) {
             removeFromLocalResources(registrationId);
             return true;
         }
@@ -688,7 +685,7 @@ public abstract class AbstractCacheService implements ICacheService,
                 removeFromLocalResources(registration.getId());
             }
         }
-        eventService.deregisterAllLocalListeners(AbstractCacheService.SERVICE_NAME, cacheNameWithPrefix);
+        eventService.deregisterAllLocalListeners(SERVICE_NAME, cacheNameWithPrefix);
         CacheContext cacheContext = cacheContexts.get(cacheNameWithPrefix);
         if (cacheContext != null) {
             cacheContext.resetCacheEntryListenerCount();
@@ -707,7 +704,7 @@ public abstract class AbstractCacheService implements ICacheService,
 
     @Override
     public CacheOperationProvider getCacheOperationProvider(String cacheNameWithPrefix, InMemoryFormat inMemoryFormat) {
-        if (InMemoryFormat.NATIVE.equals(inMemoryFormat)) {
+        if (InMemoryFormat.NATIVE == inMemoryFormat) {
             throw new IllegalArgumentException("Native memory is available only in Hazelcast Enterprise."
                     + "Make sure you have Hazelcast Enterprise JARs on your classpath!");
         }

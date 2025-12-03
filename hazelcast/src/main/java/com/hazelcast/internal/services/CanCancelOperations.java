@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ public interface CanCancelOperations {
      * <p>
      * Returning {@code true} consumes the cancellation signal only in this round of processing an
      * Operation Control packet; the same signal will be re-sent with the next packet, until the operation is
-     * removed from the Invocation Registry. Therefore it is safe to return {@code true} whenever the service
-     * recognizes the call ID as one it's responsible for, whether or not it actually manages
+     * removed from the Invocation Registry. Therefore, it is safe to return {@code true} whenever the service
+     * recognizes the call ID as one it's responsible for, whether it actually manages
      * to cancel the operation now.
      *
      * @param caller address of the member which sent the operation

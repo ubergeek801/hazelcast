@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,6 +46,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -89,24 +91,24 @@ public class MultiMapTest extends HazelcastTestSupport {
         multiMap.put("2", "y");
         multiMap.put("1", "A");
         multiMap.put("1", "B");
-        Collection g1 = multiMap.get("1");
+        Collection<String> g1 = multiMap.get("1");
         assertContains(g1, "A");
         assertContains(g1, "B");
         assertContains(g1, "C");
         assertEquals(5, multiMap.size());
         assertTrue(multiMap.remove("1", "C"));
         assertEquals(4, multiMap.size());
-        Collection g2 = multiMap.get("1");
+        Collection<String> g2 = multiMap.get("1");
         assertContains(g2, "A");
         assertContains(g2, "B");
         assertFalse(g2.contains("C"));
-        Collection r1 = multiMap.remove("2");
+        Collection<String> r1 = multiMap.remove("2");
         assertContains(r1, "x");
         assertContains(r1, "y");
         assertNotNull(multiMap.get("2"));
         assertTrue(multiMap.get("2").isEmpty());
         assertEquals(2, multiMap.size());
-        Collection r2 = multiMap.remove("1");
+        Collection<String> r2 = multiMap.remove("1");
         assertContains(r2, "A");
         assertContains(r2, "B");
         assertNotNull(multiMap.get("1"));
@@ -149,10 +151,9 @@ public class MultiMapTest extends HazelcastTestSupport {
         Config cfg = smallInstanceConfig()
                 .addMultiMapConfig(multiMapConfig1)
                 .addMultiMapConfig(multiMapConfig2);
-        HazelcastInstance hz = createHazelcastInstanceFactory(1)
-                .newInstances(cfg)[0];
 
-        return hz;
+        return createHazelcastInstanceFactory(1)
+                .newInstances(cfg)[0];
     }
 
     public void testMultiMapPutAllTemplate(HazelcastInstance instance1,
@@ -167,9 +168,9 @@ public class MultiMapTest extends HazelcastTestSupport {
         int totalItems = 0;
         Set<String> ks = expectedMultiMap.keySet();
         for (String s : ks) {
-            Collection expectedCollection = expectedMultiMap.get(s);
+            Collection<? extends Integer> expectedCollection = expectedMultiMap.get(s);
             totalItems += expectedCollection.size()
-                    + ((Long) expectedCollection.stream().distinct().count()).intValue();
+                          + ((Long) expectedCollection.stream().distinct().count()).intValue();
         }
 
         final CountDownLatch latchAdded = new CountDownLatch(totalItems);
@@ -208,9 +209,9 @@ public class MultiMapTest extends HazelcastTestSupport {
         assertOpenEventually(latchAdded);
 
         for (String s : ks) {
-            Collection c1 = resultMap1.get(s);
-            Collection c2 = resultMap2.get(s);
-            Collection expectedCollection = expectedMultiMap.get(s);
+            Collection<Integer> c1 = resultMap1.get(s);
+            Collection<Integer> c2 = resultMap2.get(s);
+            Collection<? extends Integer> expectedCollection = expectedMultiMap.get(s);
             assertEquals(expectedCollection.size(), c1.size());
             assertEquals(expectedCollection.stream().distinct().count(), c2.size());
         }
@@ -242,6 +243,22 @@ public class MultiMapTest extends HazelcastTestSupport {
                         (v) -> o.putAllAsync(v, expectedMultiMap.get(v))
                 )
         );
+    }
+
+    @Test
+    public void testMultiMapPutAllAsyncEmptyMap() throws ExecutionException, InterruptedException {
+        HazelcastInstance instance = testMultiMapPutAllSetup();
+        MultiMap<String, Integer> mmap = instance.getMultiMap(randomString());
+        mmap.putAllAsync(Collections.emptyMap()).toCompletableFuture().get();
+        assertEquals("Multimap should not have any entries", 0, mmap.size());
+    }
+
+    @Test
+    public void testMultiMapPutAllAsyncEmptyCollection() throws ExecutionException, InterruptedException {
+        HazelcastInstance instance = testMultiMapPutAllSetup();
+        MultiMap<String, Integer> mmap = instance.getMultiMap(randomString());
+        mmap.putAllAsync(randomString(), Collections.emptyList()).toCompletableFuture().get();
+        assertEquals("Multimap should not have any entries", 0, mmap.size());
     }
 
     @Test
@@ -549,9 +566,9 @@ public class MultiMapTest extends HazelcastTestSupport {
         assertEquals(1, getMultiMap(instances, name).valueCount("key2"));
         assertEquals(3, getMultiMap(instances, name).size());
 
-        Collection collection = getMultiMap(instances, name).get("key2");
+        Collection<Object> collection = getMultiMap(instances, name).get("key2");
         assertEquals(1, collection.size());
-        Iterator iterator = collection.iterator();
+        Iterator<Object> iterator = collection.iterator();
         Object value = iterator.next();
         assertEquals("key2_value1", value);
 
@@ -618,7 +635,7 @@ public class MultiMapTest extends HazelcastTestSupport {
     @Test(expected = NullPointerException.class)
     public void testContainsValue_whenNullKey() {
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(1);
-        MultiMap multiMap = getMultiMap(factory.newInstances(), randomString());
+        MultiMap<Object, Object> multiMap = getMultiMap(factory.newInstances(), randomString());
 
         multiMap.containsValue(null);
     }
@@ -662,7 +679,7 @@ public class MultiMapTest extends HazelcastTestSupport {
 
         Collection<Object> collection = getMultiMap(instances, name).get("key1");
         assertEquals(2, collection.size());
-        Iterator iterator = collection.iterator();
+        Iterator<Object> iterator = collection.iterator();
         assertEquals("key1_value1", iterator.next());
         assertEquals("key1_value2", iterator.next());
 
@@ -722,7 +739,7 @@ public class MultiMapTest extends HazelcastTestSupport {
         totalKeySet.addAll(localKeySet);
         assertEquals(3, totalKeySet.size());
 
-        Set keySet = getMultiMap(instances, name).keySet();
+        Set<Object> keySet = getMultiMap(instances, name).keySet();
         assertEquals(3, keySet.size());
 
         for (Object key : keySet) {
@@ -731,13 +748,13 @@ public class MultiMapTest extends HazelcastTestSupport {
 
         Set<Map.Entry<Object, Object>> entrySet = getMultiMap(instances, name).entrySet();
         assertEquals(9, entrySet.size());
-        for (Map.Entry entry : entrySet) {
+        for (Map.Entry<Object, Object> entry : entrySet) {
             String key = (String) entry.getKey();
             String val = (String) entry.getValue();
             assertTrue(val.startsWith(key));
         }
 
-        Collection values = getMultiMap(instances, name).values();
+        Collection<Object> values = getMultiMap(instances, name).values();
         assertEquals(9, values.size());
 
         assertTrue(getMultiMap(instances, name).containsKey("key2"));
@@ -759,7 +776,7 @@ public class MultiMapTest extends HazelcastTestSupport {
     @SuppressWarnings("unused")
     private static class CustomSerializable implements Serializable {
 
-        private long dummy1 = Clock.currentTimeMillis();
-        private String dummy2 = String.valueOf(dummy1);
+        private final long dummy1 = Clock.currentTimeMillis();
+        private final String dummy2 = String.valueOf(dummy1);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,7 +202,7 @@ public class FunctionsTest extends HazelcastTestSupport {
 
     static class SecurableFunction implements FunctionEx<Object, Object> {
 
-        private List<Permission> permissions;
+        private final List<Permission> permissions;
 
         SecurableFunction(List<Permission> permissions) {
             this.permissions = permissions;
@@ -226,7 +226,7 @@ public class FunctionsTest extends HazelcastTestSupport {
 
     static class SecurableBiFunction implements BiFunctionEx<Object, Object, Object> {
 
-        private List<Permission> permissions;
+        private final List<Permission> permissions;
 
         SecurableBiFunction(List<Permission> permissions) {
             this.permissions = permissions;
@@ -250,7 +250,7 @@ public class FunctionsTest extends HazelcastTestSupport {
 
     static class SecurableConsumer implements ConsumerEx<Object> {
 
-        private List<Permission> permissions;
+        private final List<Permission> permissions;
 
         SecurableConsumer(List<Permission> permissions) {
             this.permissions = permissions;
@@ -273,7 +273,7 @@ public class FunctionsTest extends HazelcastTestSupport {
 
     static class SecurableSupplier implements SupplierEx<Object> {
 
-        private List<Permission> permissions;
+        private final List<Permission> permissions;
 
         SecurableSupplier(List<Permission> permissions) {
             this.permissions = permissions;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ class AwsMetadataApi {
         if (responseCode == HTTP_OK) {
             return Optional.of(response.getBody());
         } else if (responseCode == HTTP_NOT_FOUND) {
-            LOGGER.fine(String.format("No %s information is found.", loggedName));
+            LOGGER.fine("No %s information is found.", loggedName);
             return Optional.empty();
         } else {
             throw new RuntimeException(String.format("Unexpected response code: %d", responseCode));

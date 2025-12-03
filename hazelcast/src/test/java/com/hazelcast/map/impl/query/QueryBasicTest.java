@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@ import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.IndexType;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
 import com.hazelcast.internal.serialization.impl.portable.PortableTest.ChildPortableObject;
 import com.hazelcast.internal.serialization.impl.portable.PortableTest.GrandParentPortableObject;
 import com.hazelcast.internal.serialization.impl.portable.PortableTest.ParentPortableObject;
+import com.hazelcast.internal.util.UuidUtil;
+import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder.EntryObject;
 import com.hazelcast.query.Predicates;
@@ -43,7 +44,6 @@ import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import com.hazelcast.internal.util.UuidUtil;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -53,7 +53,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,7 +71,7 @@ import static org.junit.Assert.fail;
 public class QueryBasicTest extends HazelcastTestSupport {
 
     protected Config getSmallConfig() {
-        return smallInstanceConfig();
+        return shrinkInstanceConfig(getConfig());
     }
 
     protected void configureMap(String name, Config config) {
@@ -401,7 +400,7 @@ public class QueryBasicTest extends HazelcastTestSupport {
         map.put("2", toto2);
         // works well
         Set<Map.Entry<String, Employee>> entries = map.entrySet(Predicates.sql("name='toto-super+hero'"));
-        assertTrue(entries.size() > 0);
+        assertFalse(entries.isEmpty());
         for (Map.Entry<String, Employee> entry : entries) {
             Employee e = entry.getValue();
             assertEquals(e, toto2);
@@ -416,7 +415,7 @@ public class QueryBasicTest extends HazelcastTestSupport {
         IMap<String, String> map = instance.getMap("queryWithThis");
         map.addIndex(IndexType.HASH, "this");
         for (int i = 0; i < 1000; i++) {
-            map.put("" + i, "" + i);
+            map.put("" + i, String.valueOf(i));
         }
         Predicate predicate = Predicates.newPredicateBuilder().getEntryObject().get("this").equal("10");
         Collection<String> set = map.values(predicate);
@@ -1153,7 +1152,7 @@ public class QueryBasicTest extends HazelcastTestSupport {
 
     @SafeVarargs
     private static <E> void assertEqualSets(Set<E> actual, E... expected) {
-        assertEquals(new HashSet<>(Arrays.asList(expected)), actual);
+        assertEquals(Set.of(expected), actual);
     }
 
 }

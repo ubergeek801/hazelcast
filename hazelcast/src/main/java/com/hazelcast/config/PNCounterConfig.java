@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ public class PNCounterConfig implements IdentifiedDataSerializable, NamedConfig 
     }
 
     /** Gets the name of the PN counter. */
+    @Override
     public String getName() {
         return name;
     }
@@ -76,6 +77,7 @@ public class PNCounterConfig implements IdentifiedDataSerializable, NamedConfig 
      * @param name the name of the PN counter
      * @return the updated PN counter config
      */
+    @Override
     public PNCounterConfig setName(String name) {
         checkNotNull(name);
         this.name = name;

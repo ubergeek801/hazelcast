@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,18 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.hazelcast.internal.util.EmptyStatement.ignore;
 import static com.hazelcast.internal.util.Preconditions.isNotNull;
-import static java.util.Collections.unmodifiableMap;
 
 /**
  * Utility class to deal with class loaders.
@@ -52,7 +53,7 @@ public final class ClassLoaderUtil {
 
     private static final boolean CLASS_CACHE_DISABLED = Boolean.getBoolean("hazelcast.compat.classloading.cache.disabled");
 
-    private static final Map<String, Class> PRIMITIVE_CLASSES;
+    private static final Map<String, Class> PRIMITIVE_CLASSES_BY_NAME;
     private static final int MAX_PRIM_CLASS_NAME_LENGTH = 7;
 
     private static final ClassLoaderWeakCache<Constructor> CONSTRUCTOR_CACHE = new ClassLoaderWeakCache<>();
@@ -71,17 +72,10 @@ public final class ClassLoaderUtil {
             throw new Error("Couldn't initialize irresolvable constructor.", e);
         }
 
-        final Map<String, Class> primitives = new HashMap<>(10, 1.0f);
-        primitives.put("boolean", boolean.class);
-        primitives.put("byte", byte.class);
-        primitives.put("int", int.class);
-        primitives.put("long", long.class);
-        primitives.put("short", short.class);
-        primitives.put("float", float.class);
-        primitives.put("double", double.class);
-        primitives.put("char", char.class);
-        primitives.put("void", void.class);
-        PRIMITIVE_CLASSES = unmodifiableMap(primitives);
+        Stream<Class<?>> primitiveClasses = Stream.of(boolean.class, byte.class, int.class, long.class, short.class,
+                float.class, double.class, char.class, void.class);
+        PRIMITIVE_CLASSES_BY_NAME =
+                primitiveClasses.collect(Collectors.toUnmodifiableMap(Class::getSimpleName, Function.identity()));
     }
 
     private ClassLoaderUtil() {
@@ -274,7 +268,7 @@ public final class ClassLoaderUtil {
 
     private static <T> Class<T> tryPrimitiveClass(String className) {
         if (className.length() <= MAX_PRIM_CLASS_NAME_LENGTH && Character.isLowerCase(className.charAt(0))) {
-            final Class primitiveClass = PRIMITIVE_CLASSES.get(className);
+            final Class primitiveClass = PRIMITIVE_CLASSES_BY_NAME.get(className);
             if (primitiveClass != null) {
                 return primitiveClass;
             }
@@ -291,7 +285,7 @@ public final class ClassLoaderUtil {
         }
     }
 
-    private static <T> Class<T> tryLoadClass(String className, ClassLoader classLoader) throws ClassNotFoundException {
+    public static <T> Class<T> tryLoadClass(String className, ClassLoader classLoader) throws ClassNotFoundException {
         Class<T> clazz;
         if (!CLASS_CACHE_DISABLED) {
             clazz = CLASS_CACHE.get(classLoader, className);
@@ -426,7 +420,7 @@ public final class ClassLoaderUtil {
                     innerCache = old;
                 }
             }
-            innerCache.put(className, new WeakReference<V>(value));
+            innerCache.put(className, new WeakReference<>(value));
         }
 
         public V get(ClassLoader classloader, String className) {

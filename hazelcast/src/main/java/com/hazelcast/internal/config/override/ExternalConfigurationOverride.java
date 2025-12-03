@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import com.hazelcast.internal.config.override.SystemPropertiesConfigProvider.Sys
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.hazelcast.internal.config.LicenseKey.maskLicense;
 import static com.hazelcast.internal.config.override.PropertiesToNodeConverter.propsToNode;
@@ -83,7 +82,7 @@ public class ExternalConfigurationOverride {
     }
 
     private <T> T overwrite(T config, ConfigConsumer<T> configProcessor, ConfigProvider... providers) {
-        ConfigOverrideValidator.validate(new HashSet<>(Arrays.asList(providers)));
+        ConfigOverrideValidator.validate(Set.of(providers));
 
         for (ConfigProvider configProvider : providers) {
             Map<String, String> properties = configProvider.properties();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ class AwsEcsApi {
     }
 
     List<String> listTaskPrivateAddresses(String cluster, AwsCredentials credentials) {
-        LOGGER.fine(String.format("Listing tasks from cluster: '%s'", cluster));
+        LOGGER.fine("Listing tasks from cluster: '%s'", cluster);
         List<String> taskArns = listTasks(cluster, credentials);
-        LOGGER.fine(String.format("AWS ECS ListTasks found the following tasks: %s", taskArns));
+        LOGGER.fine("AWS ECS ListTasks found the following tasks: %s", taskArns);
         if (!taskArns.isEmpty()) {
             List<Task> tasks = describeTasks(cluster, taskArns, credentials);
             if (!tasks.isEmpty()) {

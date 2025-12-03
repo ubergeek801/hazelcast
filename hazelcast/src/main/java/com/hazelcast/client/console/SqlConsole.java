@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,7 @@ import java.io.IOError;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -59,7 +57,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.hazelcast.client.console.HazelcastCommandLine.getHazelcastClientInstanceImpl;
 import static com.hazelcast.internal.util.StringUtil.equalsIgnoreCase;
 import static com.hazelcast.internal.util.StringUtil.lowerCaseInternal;
-import static com.hazelcast.internal.util.StringUtil.trim;
 
 @SuppressWarnings({
         "checkstyle:CyclomaticComplexity",
@@ -403,22 +400,10 @@ public final class SqlConsole {
             SqlColumnMetadata colMetadata = metadata.getColumn(i);
             SqlColumnType type = colMetadata.getType();
             switch (type) {
-                case BIGINT:
-                case DECIMAL:
-                case DOUBLE:
-                case INTEGER:
-                case REAL:
-                case SMALLINT:
-                case TINYINT:
+                case BIGINT, DECIMAL, DOUBLE, INTEGER, REAL, SMALLINT, TINYINT:
                     alignments[i] = Alignment.RIGHT;
                     break;
-                case BOOLEAN:
-                case DATE:
-                case NULL:
-                case OBJECT:
-                case TIMESTAMP:
-                case VARCHAR:
-                case TIMESTAMP_WITH_TIME_ZONE:
+                case BOOLEAN, DATE, NULL, OBJECT, TIMESTAMP, VARCHAR, TIMESTAMP_WITH_TIME_ZONE:
                 default:
                     alignments[i] = Alignment.LEFT;
             }
@@ -580,7 +565,7 @@ public final class SqlConsole {
                 }
             }
 
-            if (Constants.COMMAND_SET.contains(lowerCaseInternal(trim(line)))) {
+            if (Constants.COMMAND_SET.contains(lowerCaseInternal(line.strip()))) {
                 return;
             }
             // These EOFError exceptions are captured in LineReader's
@@ -613,7 +598,7 @@ public final class SqlConsole {
 
     private static class Constants {
 
-        static final Set<String> COMMAND_SET = new HashSet<>(Arrays.asList("clear", "exit", "help", "history"));
+        static final Set<String> COMMAND_SET = Set.of("clear", "exit", "help", "history");
         static final String EXIT_PROMPT = new AttributedStringBuilder()
                 .style(AttributedStyle.BOLD.foreground(PRIMARY_COLOR))
                 .append("Exiting from SQL console")

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public final class MapDelegatingSet<V> extends AbstractSet<V> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int size() {
         return delegate.size();
     }
@@ -50,6 +51,7 @@ public final class MapDelegatingSet<V> extends AbstractSet<V> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isEmpty() {
         return delegate.isEmpty();
     }
@@ -57,6 +59,7 @@ public final class MapDelegatingSet<V> extends AbstractSet<V> {
     /**
      * {@inheritDoc}
      */
+    @Override
     @SuppressWarnings("unchecked")
     public boolean contains(final Object o) {
         return contains.test(o);
@@ -65,6 +68,7 @@ public final class MapDelegatingSet<V> extends AbstractSet<V> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterator<V> iterator() {
         return iterator.get();
     }
@@ -72,6 +76,7 @@ public final class MapDelegatingSet<V> extends AbstractSet<V> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void clear() {
         delegate.clear();
     }

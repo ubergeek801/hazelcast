@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class InvocationMonitor_GetLastMemberHeartbeatMillisTest extends Hazelcas
 
     @Before
     public void setup() {
-        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), "" + CALL_TIMEOUT);
+        Config config = new Config().setProperty(OPERATION_CALL_TIMEOUT_MILLIS.getName(), String.valueOf(CALL_TIMEOUT));
 
         HazelcastInstance[] cluster = createHazelcastInstanceFactory(2).newInstances(config);
         local = cluster[0];

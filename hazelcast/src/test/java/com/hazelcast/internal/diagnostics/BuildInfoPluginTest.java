@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
 import static com.hazelcast.test.Accessors.getNodeEngineImpl;
 import static org.junit.Assert.assertEquals;
 
@@ -40,17 +38,17 @@ public class BuildInfoPluginTest extends AbstractDiagnosticsPluginTest {
     @Before
     public void setup() {
         HazelcastInstance hz = createHazelcastInstance();
-        plugin = new BuildInfoPlugin(getNodeEngineImpl(hz));
+        plugin = new BuildInfoPlugin(getNodeEngineImpl(hz).getLogger(BuildInfoPlugin.class));
         plugin.onStart();
     }
 
     @Test
     public void testGetPeriodMillis() {
-        assertEquals(DiagnosticsPlugin.STATIC, plugin.getPeriodMillis());
+        assertEquals(DiagnosticsPlugin.RUN_ONCE_PERIOD_MS, plugin.getPeriodMillis());
     }
 
     @Test
-    public void test() throws IOException {
+    public void test() {
         plugin.run(logWriter);
 
         BuildInfo buildInfo = BuildInfoProvider.getBuildInfo();

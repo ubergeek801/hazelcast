@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -506,6 +506,7 @@ public class CreateTopLevelDagVisitor extends CreateDagVisitorBase<Vertex> {
         return vertex;
     }
 
+    @Override
     public Vertex onNestedLoopJoin(JoinNestedLoopPhysicalRel rel) {
         assert rel.getRight() instanceof HazelcastPhysicalScan : rel.getRight().getClass();
 
@@ -629,8 +630,7 @@ public class CreateTopLevelDagVisitor extends CreateDagVisitorBase<Vertex> {
         Expression<?> offset = ConstantExpression.create(0L, QueryDataType.BIGINT);
 
         // We support only top-level LIMIT ... OFFSET.
-        if (input instanceof LimitPhysicalRel) {
-            LimitPhysicalRel limit = (LimitPhysicalRel) input;
+        if (input instanceof LimitPhysicalRel limit) {
             if (limit.fetch() != null) {
                 fetch = limit.fetch(dagBuildContext.getParameterMetadata());
             }
@@ -776,7 +776,7 @@ public class CreateTopLevelDagVisitor extends CreateDagVisitorBase<Vertex> {
      * @param vertex The vertex for {@code rel}
      */
     private void connectInputPreserveCollation(SingleRel rel, Vertex vertex) {
-        boolean preserveCollation = rel.getTraitSet().getCollation().getFieldCollations().size() > 0;
+        boolean preserveCollation = !rel.getTraitSet().getCollation().getFieldCollations().isEmpty();
         Vertex inputVertex = connectInput(rel.getInput(), vertex,
                 preserveCollation ? Edge::isolated : null);
 

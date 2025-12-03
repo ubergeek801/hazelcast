@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public class CountingMigrationAwareServiceTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // setup the counting migration aware service and execute 1 prepareReplicationOperation (which does not
         // affect the counter)
         countingMigrationAwareService = new CountingMigrationAwareService(wrappedMigrationAwareService);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ public class JobConfigTest extends JetTestSupport {
 
     /**
      * @see <a href="https://hazelcast.atlassian.net/browse/HZ-4712">HZ-4712 - Not being able to add more than one ZIP file with
-     *      JARs to Jet instance's classpath [GH#26320]</a>
+     *      JARs to Jet instances classpath [GH#26320]</a>
      */
     @Test
     public void testMultipleClassesFromZIP() {

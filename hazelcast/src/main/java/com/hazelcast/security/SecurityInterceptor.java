@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,10 @@ public interface SecurityInterceptor {
 
     /**
      *
-     * @param credentials
-     * @param objectType
-     * @param objectName
-     * @param methodName
-     * @param parameters
      * @throws AccessControlException if access is denied
      */
     void before(Credentials credentials, String objectType, String objectName, String methodName,
                 Parameters parameters) throws AccessControlException;
 
-    /**
-     *
-     * @param credentials
-     * @param objectType
-     * @param objectName
-     * @param methodName
-     * @param parameters
-     */
     void after(Credentials credentials, String objectType, String objectName, String methodName, Parameters parameters);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
@@ -97,7 +96,7 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
         validateBrainsConfig(brains);
 
         int clusterSize = getClusterSize();
-        instances = startInitialCluster(() -> config(), clusterSize);
+        instances = startInitialCluster(this::config, clusterSize);
     }
 
     @After
@@ -139,6 +138,7 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
                 .setProperty(ClusterProperty.MERGE_NEXT_RUN_DELAY_SECONDS.getName(), "5");
     }
 
+    @Override
     protected final Config getConfig() {
         return super.getConfig();
     }
@@ -222,16 +222,16 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
      *
      * @param brain index of brain to start a new instance in (0 to start instance in first brain or 1 to start instance in
      *              second brain)
-     * @return a HazelcastInstance whose {@code MockJoiner} has blacklisted the other brain's members and its connection
-     * manager blocks connections to other brain's members
-     * @see TestHazelcastInstanceFactory#newHazelcastInstance(Address, Config, Address[])
+     * @return a HazelcastInstance whose {@code MockJoiner} has blacklisted the other brain's members and its
+     *         {@code FirewallingServer} blocks connections to other brain's members
+     * @see TestHazelcastInstanceFactory.HazelcastInstanceBuilder#withBlockedAddresses(Set)
      */
     protected HazelcastInstance createHazelcastInstanceInBrain(int brain) {
         Address newMemberAddress = factory.nextAddress();
         Brains brains = getBrains();
         HazelcastInstance[] instancesToBlock = brain == 1 ? brains.firstHalf : brains.secondHalf;
 
-        List<Address> addressesToBlock = new ArrayList<>(instancesToBlock.length);
+        Set<Address> addressesToBlock = new HashSet<>(instancesToBlock.length);
         for (HazelcastInstance hz : instancesToBlock) {
             if (isInstanceActive(hz)) {
                 addressesToBlock.add(Accessors.getAddress(hz));
@@ -246,7 +246,11 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
         // indicate that we need to unblacklist addresses from the joiner when split-brain will be healed
         unblacklistHint = true;
         // create a new Hazelcast instance which has blocked addresses blacklisted in its joiner
-        return factory.newHazelcastInstance(newMemberAddress, config(), addressesToBlock.toArray(new Address[0]));
+        return factory.builder()
+                .withAddress(newMemberAddress)
+                .withConfig(config())
+                .withBlockedAddresses(addressesToBlock)
+                .construct();
     }
 
     private void validateBrainsConfig(int[] clusterTopology) {
@@ -564,10 +568,10 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
 
         @Override
         public Object merge(T mergingValue, T existingValue) {
-            if (mergingValue.getValue() instanceof Integer) {
+            if (mergingValue.getDeserializedValue() instanceof Integer) {
                 return mergingValue.getRawValue();
             }
-            if (existingValue != null && existingValue.getValue() instanceof Integer) {
+            if (existingValue != null && existingValue.getDeserializedValue() instanceof Integer) {
                 return existingValue.getRawValue();
             }
             return null;
@@ -594,13 +598,13 @@ public abstract class SplitBrainTestSupport extends HazelcastTestSupport {
         public Collection<Object> merge(MergingValue<Collection<Object>> mergingValue,
                                         MergingValue<Collection<Object>> existingValue) {
             Collection<Object> result = new ArrayList<>();
-            for (Object value : mergingValue.getValue()) {
+            for (Object value : mergingValue.getDeserializedValue()) {
                 if (value instanceof Integer) {
                     result.add(value);
                 }
             }
             if (existingValue != null) {
-                for (Object value : existingValue.getValue()) {
+                for (Object value : existingValue.getDeserializedValue()) {
                     if (value instanceof Integer) {
                         result.add(value);
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public abstract class AbstractGenericRecord implements InternalGenericRecord {
 
     protected abstract Object getClassIdentifier();
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -69,6 +70,7 @@ public abstract class AbstractGenericRecord implements InternalGenericRecord {
         return true;
     }
 
+    @Override
     public int hashCode() {
         int result = Objects.hash(getClassIdentifier());
         Set<String> thisFieldNames = getFieldNames();

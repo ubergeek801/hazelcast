@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.hazelcast.jet.core.ProcessorSupplier;
 import com.hazelcast.jet.core.test.TestSupport;
 import com.hazelcast.sql.impl.expression.ConstantExpression;
 import com.hazelcast.sql.impl.expression.Expression;
-import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -123,7 +122,7 @@ public class LazyDefiningPMSTest extends SimpleTestInClusterSupport {
         private Address ownderAddress;
 
         @Override
-        public void init(@NotNull ProcessorSupplier.Context context) {
+        public void init(@Nonnull ProcessorSupplier.Context context) {
             int[] memberPartitions = context.memberPartitions();
             Map<Address, int[]> addressMap = context.partitionAssignment();
             for (Entry<Address, int[]> entry : addressMap.entrySet()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,10 @@ import static com.hazelcast.internal.serialization.impl.SerializationUtil.conver
 @RunWith(HazelcastParallelClassRunner.class)
 public class DataInputJsonSchemaCreateTest extends AbstractJsonSchemaCreateTest {
 
-    private InternalSerializationService serializationService = new DefaultSerializationServiceBuilder().build();
-    private JsonFactory factory = new JsonFactory();
+    private final InternalSerializationService serializationService = new DefaultSerializationServiceBuilder().build();
+    private final JsonFactory factory = new JsonFactory();
 
+    @Override
     protected JsonParser createParserFromString(String jsonString) throws IOException {
         return factory.createParser(convertToInputStream(serializationService.createObjectDataInput(serializationService.toBytes(new HazelcastJsonValue(jsonString))), 12));
     }

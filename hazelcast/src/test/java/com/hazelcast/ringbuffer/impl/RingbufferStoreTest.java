@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,10 +333,10 @@ public class RingbufferStoreTest extends HazelcastTestSupport {
         @Override
         @SuppressWarnings("unchecked")
         public RingbufferStore<Integer> newRingbufferStore(String name, Properties properties) {
-            return ConcurrencyUtil.getOrPutIfAbsent(stores, name, new ConstructorFunction<String, RingbufferStore>() {
+            return ConcurrencyUtil.getOrPutIfAbsent(stores, name, new ConstructorFunction<>() {
                 @Override
                 public RingbufferStore<Integer> createNew(String arg) {
-                    return new TestRingbufferStore<Integer>();
+                    return new TestRingbufferStore<>();
                 }
             });
         }

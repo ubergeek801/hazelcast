@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 
 import static com.hazelcast.internal.tpcengine.TpcTestSupport.assertCompletesEventually;
 import static com.hazelcast.internal.tpcengine.TpcTestSupport.terminateAll;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -155,7 +155,7 @@ public abstract class AsyncSocketTest {
 
         CompletableFuture<Void> future = clientSocket.connect(new InetSocketAddress("127.0.0.1", 5002));
 
-        assertThrows(CompletionException.class, () -> future.join());
+        assertThrows(CompletionException.class, future::join);
     }
 
     @Test

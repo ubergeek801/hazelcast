@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public final class DirectoryLock {
      */
     public void release() {
         if (logger.isFineEnabled()) {
-            logger.fine("Releasing lock on " + lockFile().getAbsolutePath());
+            logger.fine("Releasing lock on %s", lockFile().getAbsolutePath());
         }
         try {
             lock.release();
@@ -93,19 +93,19 @@ public final class DirectoryLock {
      * is created inside the directory and that file is locked.
      *
      * @param dir    the directory
-     * @param logger logger
-     * @throws HazelcastException If lock file cannot be created or it's already locked
+     * @throws HazelcastException If lock file cannot be created, or it's already locked
      */
     public static DirectoryLock lockForDirectory(File dir, ILogger logger) {
         File lockFile = new File(dir, FILE_NAME);
         FileChannel channel = openChannel(lockFile);
         FileLock lock = acquireLock(lockFile, channel);
         if (logger.isFineEnabled()) {
-            logger.fine("Acquired lock on " + lockFile.getAbsolutePath());
+            logger.fine("Acquired lock on %s", lockFile.getAbsolutePath());
         }
         return new DirectoryLock(dir, channel, lock, logger);
     }
 
+    @SuppressWarnings("resource")
     private static FileChannel openChannel(File lockFile) {
         try {
             return new RandomAccessFile(lockFile, "rw").getChannel();

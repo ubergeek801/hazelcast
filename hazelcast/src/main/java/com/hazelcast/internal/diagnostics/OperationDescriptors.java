@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.diagnostics;
 
+import com.hazelcast.client.impl.operations.OperationFactoryWrapper;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationFactory;
 import com.hazelcast.spi.impl.operationservice.impl.operations.Backup;
@@ -46,8 +47,12 @@ public final class OperationDescriptors {
             OperationFactory operationFactory = partitionIteratingOperation.getOperationFactory();
             String desc = DESCRIPTORS.get(operationFactory.getClass().getName());
             if (desc == null) {
-                desc = PartitionIteratingOperation.class.getSimpleName() + "(" + operationFactory.getClass().getName() + ")";
-                DESCRIPTORS.put(operationFactory.getClass().getName(), desc);
+                Class<? extends OperationFactory> clazz = operationFactory.getClass();
+                if (operationFactory instanceof OperationFactoryWrapper ofw) {
+                    clazz = ofw.getOperationFactory().getClass();
+                }
+                desc = PartitionIteratingOperation.class.getSimpleName() + "(" + clazz.getName() + ")";
+                DESCRIPTORS.put(clazz.getName(), desc);
             }
             return desc;
         } else if (Backup.class.isAssignableFrom(operationClass)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ public interface Step<S> {
     /**
      * Idempotent next step finder.
      *
-     * @param state state
      * @return next step or null if there is no next step.
      * @implSpec This implementation always throws
      * {@code UnsupportedOperationException}.

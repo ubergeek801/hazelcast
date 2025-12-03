@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,7 @@ public class SqlAnalyzeStatement extends SqlCall {
                 case "storeMetricsAfterJobCompletion":
                     jobConfig.setStoreMetricsAfterJobCompletion(Boolean.parseBoolean(value));
                     break;
+                case "userCodeNamespace":
                 case "autoScaling":
                 case "splitBrainProtectionEnabled":
                 case "suspendOnFailure":

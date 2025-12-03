@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,10 @@ class ReplicatedMapMergeRunnable
     @Override
     protected SplitBrainMergePolicy getMergePolicy(String dataStructureName) {
         ReplicatedMapConfig replicatedMapConfig = getReplicatedMapConfig(dataStructureName);
-        return mergePolicyProvider.getMergePolicy(replicatedMapConfig.getMergePolicyConfig().getPolicy());
+        return mergePolicyProvider.getMergePolicy(
+                replicatedMapConfig.getMergePolicyConfig().getPolicy(),
+                replicatedMapConfig.getUserCodeNamespace()
+        );
     }
 
     @Override

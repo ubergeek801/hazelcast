@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static com.google.common.collect.ImmutableMap.of;
+import static java.util.Map.of;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -45,6 +45,7 @@ public class LocalElasticSourcesTest extends CommonElasticSourcesTest {
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
 
     @After
+    @Override
     public void tearDown() {
         factory.terminateAll();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import com.hazelcast.query.Predicate;
 import com.hazelcast.query.impl.getters.Extractors;
 import com.hazelcast.query.impl.getters.MultiResult;
 import com.hazelcast.query.impl.predicates.PredicateDataSerializerHook;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -66,8 +65,7 @@ public abstract class AbstractIndex implements InternalIndex {
 
     private volatile TypeConverter converter;
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public AbstractIndex(
+    protected AbstractIndex(
             Node node,
             IndexConfig config,
             InternalSerializationService ss,
@@ -94,7 +92,6 @@ public abstract class AbstractIndex implements InternalIndex {
         return config.getName();
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     @Override
     public String[] getComponents() {
         return components;
@@ -428,10 +425,9 @@ public abstract class AbstractIndex implements InternalIndex {
             return true;
         }
 
-        if (!(converter instanceof CompositeConverter)) {
+        if (!(converter instanceof CompositeConverter compositeConverter)) {
             return false;
         }
-        CompositeConverter compositeConverter = (CompositeConverter) converter;
         return compositeConverter.isTransient();
     }
 

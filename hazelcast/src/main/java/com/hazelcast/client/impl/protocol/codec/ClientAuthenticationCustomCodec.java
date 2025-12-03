@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Makes an authentication request to the cluster using custom credentials.
  */
 @SuppressWarnings("unused")
-@Generated("29ac518c93aee99eb5e4cb89dab9aee0")
+@Generated("599a2fab83148c5eab2c079bb5830391")
 public final class ClientAuthenticationCustomCodec {
     //hex: 0x000200
     public static final int REQUEST_MESSAGE_TYPE = 512;
@@ -46,7 +46,8 @@ public final class ClientAuthenticationCustomCodec {
     private static final int REQUEST_UUID_FIELD_OFFSET = PARTITION_ID_FIELD_OFFSET + INT_SIZE_IN_BYTES;
     private static final int REQUEST_SERIALIZATION_VERSION_FIELD_OFFSET = REQUEST_UUID_FIELD_OFFSET + UUID_SIZE_IN_BYTES;
     private static final int REQUEST_ROUTING_MODE_FIELD_OFFSET = REQUEST_SERIALIZATION_VERSION_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
-    private static final int REQUEST_INITIAL_FRAME_SIZE = REQUEST_ROUTING_MODE_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
+    private static final int REQUEST_CP_DIRECT_TO_LEADER_ROUTING_FIELD_OFFSET = REQUEST_ROUTING_MODE_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
+    private static final int REQUEST_INITIAL_FRAME_SIZE = REQUEST_CP_DIRECT_TO_LEADER_ROUTING_FIELD_OFFSET + BOOLEAN_SIZE_IN_BYTES;
     private static final int RESPONSE_STATUS_FIELD_OFFSET = RESPONSE_BACKUP_ACKS_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
     private static final int RESPONSE_MEMBER_UUID_FIELD_OFFSET = RESPONSE_STATUS_FIELD_OFFSET + BYTE_SIZE_IN_BYTES;
     private static final int RESPONSE_SERIALIZATION_VERSION_FIELD_OFFSET = RESPONSE_MEMBER_UUID_FIELD_OFFSET + UUID_SIZE_IN_BYTES;
@@ -60,7 +61,6 @@ public final class ClientAuthenticationCustomCodec {
     private ClientAuthenticationCustomCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -109,13 +109,24 @@ public final class ClientAuthenticationCustomCodec {
         public byte routingMode;
 
         /**
+         * The client's CP direct-to-leader routing setting (enabled or disabled)
+         */
+        public boolean cpDirectToLeaderRouting;
+
+        /**
          * True if the routingMode is received from the client, false otherwise.
          * If this is false, routingMode has the default value for its type.
          */
         public boolean isRoutingModeExists;
+
+        /**
+         * True if the cpDirectToLeaderRouting is received from the client, false otherwise.
+         * If this is false, cpDirectToLeaderRouting has the default value for its type.
+         */
+        public boolean isCpDirectToLeaderRoutingExists;
     }
 
-    public static ClientMessage encodeRequest(java.lang.String clusterName, byte[] credentials, @Nullable java.util.UUID uuid, java.lang.String clientType, byte serializationVersion, java.lang.String clientHazelcastVersion, java.lang.String clientName, java.util.Collection<java.lang.String> labels, byte routingMode) {
+    public static ClientMessage encodeRequest(java.lang.String clusterName, byte[] credentials, @Nullable java.util.UUID uuid, java.lang.String clientType, byte serializationVersion, java.lang.String clientHazelcastVersion, java.lang.String clientName, java.util.Collection<java.lang.String> labels, byte routingMode, boolean cpDirectToLeaderRouting) {
         ClientMessage clientMessage = ClientMessage.createForEncode();
         clientMessage.setRetryable(true);
         clientMessage.setOperationName("Client.AuthenticationCustom");
@@ -125,6 +136,7 @@ public final class ClientAuthenticationCustomCodec {
         encodeUUID(initialFrame.content, REQUEST_UUID_FIELD_OFFSET, uuid);
         encodeByte(initialFrame.content, REQUEST_SERIALIZATION_VERSION_FIELD_OFFSET, serializationVersion);
         encodeByte(initialFrame.content, REQUEST_ROUTING_MODE_FIELD_OFFSET, routingMode);
+        encodeBoolean(initialFrame.content, REQUEST_CP_DIRECT_TO_LEADER_ROUTING_FIELD_OFFSET, cpDirectToLeaderRouting);
         clientMessage.add(initialFrame);
         StringCodec.encode(clientMessage, clusterName);
         ByteArrayCodec.encode(clientMessage, credentials);
@@ -147,6 +159,12 @@ public final class ClientAuthenticationCustomCodec {
         } else {
             request.isRoutingModeExists = false;
         }
+        if (initialFrame.content.length >= REQUEST_CP_DIRECT_TO_LEADER_ROUTING_FIELD_OFFSET + BOOLEAN_SIZE_IN_BYTES) {
+            request.cpDirectToLeaderRouting = decodeBoolean(initialFrame.content, REQUEST_CP_DIRECT_TO_LEADER_ROUTING_FIELD_OFFSET);
+            request.isCpDirectToLeaderRoutingExists = true;
+        } else {
+            request.isCpDirectToLeaderRoutingExists = false;
+        }
         request.clusterName = StringCodec.decode(iterator);
         request.credentials = ByteArrayCodec.decode(iterator);
         request.clientType = StringCodec.decode(iterator);
@@ -156,7 +174,6 @@ public final class ClientAuthenticationCustomCodec {
         return request;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class ResponseParameters {
 
         /**

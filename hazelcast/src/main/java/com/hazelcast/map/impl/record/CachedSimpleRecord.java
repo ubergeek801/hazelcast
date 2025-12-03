@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package com.hazelcast.map.impl.record;
 
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 
+import java.lang.invoke.VarHandle;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static com.hazelcast.internal.util.JVMUtil.REFERENCE_COST_IN_BYTES;
 
@@ -33,8 +34,7 @@ import static com.hazelcast.internal.util.JVMUtil.REFERENCE_COST_IN_BYTES;
  * @see CachedSimpleRecordWithLRUEviction
  */
 class CachedSimpleRecord extends SimpleRecord<Data> {
-    private static final AtomicReferenceFieldUpdater<CachedSimpleRecord, Object> CACHED_VALUE =
-            AtomicReferenceFieldUpdater.newUpdater(CachedSimpleRecord.class, Object.class, "cachedValue");
+    private static final VarHandle CACHED_VALUE = ReflectionUtil.findVarHandle("cachedValue", Object.class);
 
     private transient volatile Object cachedValue;
 

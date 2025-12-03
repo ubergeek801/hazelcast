@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ package com.hazelcast.collection;
 
 import com.hazelcast.transaction.TransactionalQueue;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Concurrent, blocking, distributed, observable queue.
@@ -36,34 +34,6 @@ import java.util.concurrent.TimeUnit;
  * @see TransactionalQueue
  */
 public interface IQueue<E> extends BlockingQueue<E>, BaseQueue<E>, ICollection<E> {
-    /*
-     * Added poll(), poll(long timeout, TimeUnit unit) and take()
-     * methods here to prevent wrong method return type issue when
-     * compiled with java 8.
-     *
-     * For additional details see:
-     *
-     * http://mail.openjdk.java.net/pipermail/compiler-dev/2014-November/009139.html
-     * https://bugs.openjdk.java.net/browse/JDK-8064803
-     *
-     */
-
-    /**
-     * {@inheritDoc}
-     */
-    E poll();
-
-    /**
-     * {@inheritDoc}
-     */
-    E poll(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Nonnull
-    E take() throws InterruptedException;
-
     /**
      * Returns LocalQueueStats for this queue.
      * LocalQueueStats is the statistics for the local portion of this

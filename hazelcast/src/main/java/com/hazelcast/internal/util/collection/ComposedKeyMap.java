@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 
 /**
  * Map with a composed key.
- *
- * It's not thread safe and it does not allow nulls.
- *
+ * <p>
+ * It's not thread safe, and it does not allow nulls.
+ * <p>
  * It's biased towards use-cases where you have a smaller set of first keys.
- *
+ * <p>
  * Alternative implementation could avoid map nesting and wrap keys inside
  * a <code>ComposedKey</code> object.
  *

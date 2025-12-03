@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.hazelcast.config.tpc.TpcConfig;
 import com.hazelcast.config.tpc.TpcSocketConfig;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.internal.config.SchemaViolationConfigurationException;
+import com.hazelcast.internal.config.YamlMemberDomConfigProcessor;
 import com.hazelcast.internal.namespace.ResourceDefinition;
 import com.hazelcast.internal.serialization.impl.compact.CompactTestUtil;
 import com.hazelcast.jet.config.ResourceType;
@@ -99,6 +100,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -207,11 +209,11 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                       - name: mr
                         authentication:
                           jaas:
-                            - class-name: MyRequiredLoginModule
+                            - class-name: org.example.EmptyLoginModule
                               usage: REQUIRED
                               properties:
                                 login-property: login-value
-                            - class-name: MyRequiredLoginModule2
+                            - class-name: org.example.EmptyLoginModule
                               usage: SUFFICIENT
                               properties:
                                 login-property2: login-value2
@@ -223,11 +225,11 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                       - name: cr
                         authentication:
                           jaas:
-                            - class-name: MyOptionalLoginModule
+                            - class-name: org.example.EmptyLoginModule
                               usage: OPTIONAL
                               properties:
                                 client-property: client-value
-                            - class-name: MyRequiredLoginModule
+                            - class-name: org.example.EmptyLoginModule
                               usage: REQUIRED
                               properties:
                                 client-property2: client-value2
@@ -293,13 +295,13 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         Iterator<LoginModuleConfig> memberLoginIterator = memberLoginModuleConfigs.iterator();
 
         LoginModuleConfig memberLoginModuleCfg1 = memberLoginIterator.next();
-        assertEquals("MyRequiredLoginModule", memberLoginModuleCfg1.getClassName());
+        assertEquals("org.example.EmptyLoginModule", memberLoginModuleCfg1.getClassName());
         assertEquals(LoginModuleUsage.REQUIRED, memberLoginModuleCfg1.getUsage());
         assertEquals(1, memberLoginModuleCfg1.getProperties().size());
         assertEquals("login-value", memberLoginModuleCfg1.getProperties().getProperty("login-property"));
 
         LoginModuleConfig memberLoginModuleCfg2 = memberLoginIterator.next();
-        assertEquals("MyRequiredLoginModule2", memberLoginModuleCfg2.getClassName());
+        assertEquals("org.example.EmptyLoginModule", memberLoginModuleCfg2.getClassName());
         assertEquals(LoginModuleUsage.SUFFICIENT, memberLoginModuleCfg2.getUsage());
         assertEquals(1, memberLoginModuleCfg2.getProperties().size());
         assertEquals("login-value2", memberLoginModuleCfg2.getProperties().getProperty("login-property2"));
@@ -310,13 +312,13 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         Iterator<LoginModuleConfig> clientLoginIterator = clientLoginModuleConfigs.iterator();
 
         LoginModuleConfig clientLoginModuleCfg1 = clientLoginIterator.next();
-        assertEquals("MyOptionalLoginModule", clientLoginModuleCfg1.getClassName());
+        assertEquals("org.example.EmptyLoginModule", clientLoginModuleCfg1.getClassName());
         assertEquals(LoginModuleUsage.OPTIONAL, clientLoginModuleCfg1.getUsage());
         assertEquals(1, clientLoginModuleCfg1.getProperties().size());
         assertEquals("client-value", clientLoginModuleCfg1.getProperties().getProperty("client-property"));
 
         LoginModuleConfig clientLoginModuleCfg2 = clientLoginIterator.next();
-        assertEquals("MyRequiredLoginModule", clientLoginModuleCfg2.getClassName());
+        assertEquals("org.example.EmptyLoginModule", clientLoginModuleCfg2.getClassName());
         assertEquals(LoginModuleUsage.REQUIRED, clientLoginModuleCfg2.getUsage());
         assertEquals(1, clientLoginModuleCfg2.getProperties().size());
         assertEquals("client-value2", clientLoginModuleCfg2.getProperties().getProperty("client-property2"));
@@ -1683,7 +1685,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
     @Test
     public void testWanReplicationConfig_withMultipleBatchPublishersAndSameClusterName() {
 
-      String yaml = ""
+        String yaml = ""
                 + "hazelcast:\n"
                 + "  wan-replication:\n"
                 + "    fanout-test:\n"
@@ -2732,7 +2734,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
 
         assertEquals(1, mapConfig.getIndexConfigs().size());
         assertEquals("age", mapConfig.getIndexConfigs().get(0).getAttributes().get(0));
-        assertTrue(mapConfig.getIndexConfigs().get(0).getType() == IndexType.SORTED);
+        assertSame(mapConfig.getIndexConfigs().get(0).getType(), IndexType.SORTED);
         assertEquals(1, mapConfig.getAttributeConfigs().size());
         assertEquals("com.bank.CurrencyExtractor", mapConfig.getAttributeConfigs().get(0).getExtractorClassName());
         assertEquals("currency", mapConfig.getAttributeConfigs().get(0).getName());
@@ -2827,8 +2829,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                               capacity:\s
                                 value: 1138
                                 unit: BYTES
-                """
-                ;
+                """;
 
         Config config = buildConfig(yaml);
         MapConfig mapConfig = config.getMapConfig("people");
@@ -2983,7 +2984,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
     private void assertIndexesEqual(QueryCacheConfig queryCacheConfig) {
         for (IndexConfig indexConfig : queryCacheConfig.getIndexConfigs()) {
             assertEquals("name", indexConfig.getAttributes().get(0));
-            assertFalse(indexConfig.getType() == IndexType.SORTED);
+            assertNotSame(indexConfig.getType(), IndexType.SORTED);
         }
     }
 
@@ -3269,7 +3270,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
 
         Config config = new InMemoryYamlConfig(yaml);
         JavaSerializationFilterConfig javaReflectionFilterConfig
-            = config.getSqlConfig().getJavaReflectionFilterConfig();
+                = config.getSqlConfig().getJavaReflectionFilterConfig();
         assertNotNull(javaReflectionFilterConfig);
         ClassFilter blackList = javaReflectionFilterConfig.getBlacklist();
         assertNotNull(blackList);
@@ -3559,7 +3560,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         int readIOThreadCount = 16;
         int writeIOThreadCount = 1;
 
-        String yaml =  ""
+        String yaml = ""
                 + "hazelcast:\n";
         Config config = new InMemoryYamlConfig(yaml);
 
@@ -3571,7 +3572,6 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         assertEquals(DEFAULT_READ_IO_THREAD_COUNT, localDeviceConfig.getReadIOThreadCount());
         assertEquals(DEFAULT_WRITE_IO_THREAD_COUNT, localDeviceConfig.getWriteIOThreadCount());
         assertEquals(LocalDeviceConfig.DEFAULT_CAPACITY, localDeviceConfig.getCapacity());
-
 
 
         yaml = ""
@@ -4295,6 +4295,84 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
 
     }
 
+    @Override
+    @Test
+    public void testMultipleClientEndpointConfigs_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              client-server-socket-endpoint-config: {}
+              client-server-socket-endpoint-config: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleRestEndpointConfigs_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              rest-server-socket-endpoint-config: {}
+              rest-server-socket-endpoint-config: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleMemcacheEndpointConfigs_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              memcache-server-socket-endpoint-config: {}
+              memcache-server-socket-endpoint-config: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleJoinElements_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              join: {}
+              join: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleFailureDetectorElements_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              failure-detector: {}
+              failure-detector: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testMultipleMemberAddressProviderElements_throwsException() {
+        String yaml = """
+            hazelcast:
+            advanced-network:
+              member-address-provider: {}
+              member-address-provider: {}""";
+
+        expected.expect(InvalidConfigurationException.class);
+        buildConfig(yaml);
+    }
+
     @Test
     public void outboundPorts_asObject_ParsingTest() {
         String yaml = """
@@ -4305,7 +4383,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                       more-ports: 2600-3500
                 """;
         Config actual = buildConfig(yaml);
-        assertEquals(new HashSet<>(asList("2500-3000", "2600-3500")), actual.getNetworkConfig().getOutboundPortDefinitions());
+        assertEquals(Set.of("2500-3000", "2600-3500"), actual.getNetworkConfig().getOutboundPortDefinitions());
     }
 
     @Test
@@ -4318,7 +4396,7 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                       - 2500
                 """;
         Config actual = buildConfig(yaml);
-        assertEquals(new HashSet<>(asList("2500", "1234-1999")), actual.getNetworkConfig().getOutboundPortDefinitions());
+        assertEquals(Set.of("2500", "1234-1999"), actual.getNetworkConfig().getOutboundPortDefinitions());
     }
 
     @Override
@@ -5021,6 +5099,249 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         assertFalse(filterConfig.getBlacklist().isListed("not.in.the.blacklist.ClassName"));
     }
 
+    @Test
+    public void testNamespaceConfigs_newStyle() throws IOException {
+
+        File tempJar = tempFolder.newFile("tempJar.jar");
+        try (FileOutputStream out = new FileOutputStream(tempJar)) {
+            out.write(new byte[]{0x50, 0x4B, 0x03, 0x04});
+        }
+        File tempJarZip = tempFolder.newFile("tempZip.zip");
+        File tempClass = tempFolder.newFile("TempClass.class");
+
+        String yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    class-filter:\n"
+                + "      defaults-disabled: false\n"
+                + "      blacklist:\n"
+                + "        class:\n"
+                + "          - com.acme.app.BeanComparator\n"
+                + "      whitelist:\n"
+                + "        package:\n"
+                + "          - com.acme.app\n"
+                + "        prefix:\n"
+                + "          - com.hazelcast.\n"
+                + "    name-spaces:\n"
+                + "      ns1:\n"
+                + "        - id: \"jarId\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "        - id: \"zipId\"\n"
+                + "          resource-type: \"jars_in_zip\"\n"
+                + "          url: " + tempJarZip.toURI().toURL() + "\n"
+                + "        - id: \"classId\"\n"
+                + "          resource-type: \"class\"\n"
+                + "          url: " + tempClass.toURI().toURL() + "\n"
+                + "      ns2:\n"
+                + "        - id: \"jarId2\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n";
+
+        final UserCodeNamespacesConfig userCodeNamespacesConfig = buildConfig(yamlTestString).getNamespacesConfig();
+        assertThat(userCodeNamespacesConfig.isEnabled()).isTrue();
+        assertThat(userCodeNamespacesConfig.getNamespaceConfigs()).hasSize(2);
+        final UserCodeNamespaceConfig userCodeNamespaceConfig = userCodeNamespacesConfig.getNamespaceConfigs().get("ns1");
+
+        assertNotNull(userCodeNamespaceConfig);
+
+        assertThat(userCodeNamespaceConfig.getName()).isEqualTo("ns1");
+        assertThat(userCodeNamespaceConfig.getResourceConfigs()).hasSize(3);
+
+        // validate NS1 ResourceDefinition contents.
+        Collection<ResourceDefinition> ns1Resources = userCodeNamespaceConfig.getResourceConfigs();
+        Optional<ResourceDefinition> jarIdResource = ns1Resources.stream().filter(r -> r.id().equals("jarId")).findFirst();
+        assertThat(jarIdResource).isPresent();
+        assertThat(jarIdResource.get().url()).isEqualTo(tempJar.toURI().toURL().toString());
+        assertEquals(ResourceType.JAR, jarIdResource.get().type());
+        // check the bytes[] are equal
+        assertArrayEquals(getTestFileBytes(tempJar), jarIdResource.get().payload());
+        Optional<ResourceDefinition> zipId = ns1Resources.stream().filter(r -> r.id().equals("zipId")).findFirst();
+        Optional<ResourceDefinition> classId = ns1Resources.stream().filter(r -> r.id().equals("classId")).findFirst();
+        assertThat(zipId).isPresent();
+        assertThat(zipId.get().url()).isEqualTo(tempJarZip.toURI().toURL().toString());
+        assertEquals(ResourceType.JARS_IN_ZIP, zipId.get().type());
+        assertThat(classId).isPresent();
+        assertThat(classId.get().url()).isEqualTo(tempClass.toURI().toURL().toString());
+        assertEquals(ResourceType.CLASS, classId.get().type());
+        // check the bytes[] are equal
+        assertArrayEquals(getTestFileBytes(tempJarZip), zipId.get().payload());
+        // validate NS2 ResourceDefinition contents.
+        final UserCodeNamespaceConfig userCodeNamespaceConfig2 = userCodeNamespacesConfig.getNamespaceConfigs().get("ns2");
+        assertNotNull(userCodeNamespaceConfig2);
+        assertThat(userCodeNamespaceConfig2.getName()).isEqualTo("ns2");
+        assertThat(userCodeNamespaceConfig2.getResourceConfigs()).hasSize(1);
+        Collection<ResourceDefinition> ns2Resources = userCodeNamespaceConfig2.getResourceConfigs();
+        assertThat(ns2Resources).hasSize(1);
+        Optional<ResourceDefinition> jarId2Resource = ns2Resources.stream().filter(r -> r.id().equals("jarId2")).findFirst();
+        assertThat(jarId2Resource).isPresent();
+        assertThat(jarId2Resource.get().url()).isEqualTo(tempJar.toURI().toURL().toString());
+        assertEquals(ResourceType.JAR, jarId2Resource.get().type());
+        // check the bytes[] are equal
+        assertArrayEquals(getTestFileBytes(tempJar), jarId2Resource.get().payload());
+
+        // Validate filtering config
+        assertNotNull(userCodeNamespacesConfig.getClassFilterConfig());
+        JavaSerializationFilterConfig filterConfig = userCodeNamespacesConfig.getClassFilterConfig();
+        assertFalse(filterConfig.isDefaultsDisabled());
+        assertTrue(filterConfig.getWhitelist().isListed("com.acme.app.FakeClass"));
+        assertTrue(filterConfig.getWhitelist().isListed("com.hazelcast.fake.place.MagicClass"));
+        assertFalse(filterConfig.getWhitelist().isListed("not.in.the.whitelist.ClassName"));
+        assertTrue(filterConfig.getBlacklist().isListed("com.acme.app.BeanComparator"));
+        assertFalse(filterConfig.getBlacklist().isListed("not.in.the.blacklist.ClassName"));
+    }
+
+    /**
+     * Unit test for {@link YamlMemberDomConfigProcessor}. It is placed under {@link com.hazelcast.config} package,
+     * because we need access to the {@link UserCodeNamespacesConfig#getNamespaceConfigs()} package-private method.
+     */
+    @Test
+    public void unitTestNamespaceConfigs_oldStyle() throws IOException {
+        File tempJar = tempFolder.newFile("tempJar.jar");
+
+        String yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    ns1:\n"
+                + "      - id: \"jarId1\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "      - id: \"jarId2\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "    ns2:\n"
+                + "      - id: \"jarId3\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "      - id: \"jarId4\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n";
+
+        assertNamespaceConfig(yamlTestString);
+    }
+
+    /**
+     * Unit test for {@link YamlMemberDomConfigProcessor}. It is placed under {@link com.hazelcast.config} package,
+     * because we need access to the {@link UserCodeNamespacesConfig#getNamespaceConfigs()} package-private method.
+     */
+    @Test
+    public void unitTestNamespaceConfigs_newStyle() throws IOException {
+        File tempJar = tempFolder.newFile("tempJar.jar");
+
+        String yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    name-spaces:\n"
+                + "      ns1:\n"
+                + "        - id: \"jarId1\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "        - id: \"jarId2\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "      ns2:\n"
+                + "        - id: \"jarId3\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "        - id: \"jarId4\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n";
+
+        assertNamespaceConfig(yamlTestString);
+    }
+
+    /**
+     * Unit test for {@link YamlMemberDomConfigProcessor}. It is placed under {@link com.hazelcast.config} package,
+     * because we need access to the {@link UserCodeNamespacesConfig#getNamespaceConfigs()} package-private method.
+     */
+    @Test
+    public void unitTestDuplicatedNamespaceConfigs_mixedStyle_throws() throws IOException {
+        File tempJar = tempFolder.newFile("tempJar.jar");
+
+        /*
+           name-spaces:
+              ns1
+           ns1
+         */
+        final String yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    name-spaces:\n"
+                + "      ns1:\n"
+                + "        - id: \"jarId1\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "        - id: \"jarId2\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "    ns1:\n"
+                + "      - id: \"jarId3\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "      - id: \"jarId4\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n";
+
+        assertThatThrownBy(() -> buildConfig(yamlTestString).getNamespacesConfig())
+                .isInstanceOf(InvalidConfigurationException.class);
+
+        /*
+           ns1
+           name-spaces:
+              ns1
+         */
+        final String _yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    ns1:\n"
+                + "      - id: \"jarId3\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "      - id: \"jarId4\"\n"
+                + "        resource-type: \"jar\"\n"
+                + "        url: " + tempJar.toURI().toURL() + "\n"
+                + "    name-spaces:\n"
+                + "      ns1:\n"
+                + "        - id: \"jarId1\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n"
+                + "        - id: \"jarId2\"\n"
+                + "          resource-type: \"jar\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n";
+
+        assertThatThrownBy(() -> buildConfig(_yamlTestString).getNamespacesConfig())
+                .isInstanceOf(InvalidConfigurationException.class);
+    }
+
+    @Test
+    public void unitTestNamespaceConfigs_throws() throws IOException {
+        File tempJar = tempFolder.newFile("tempJar.jar");
+
+        String yamlTestString = "hazelcast:\n"
+                + "  user-code-namespaces:\n"
+                + "    enabled: true\n"
+                + "    name-spaces:\n"
+                + "      ns1:\n"
+                + "        - id: \"jarId1\"\n"
+                + "          resource-type: \"jars\"\n"
+                + "          url: " + tempJar.toURI().toURL() + "\n";
+
+        assertThatThrownBy(() -> buildConfig(yamlTestString))
+                .isInstanceOf(InvalidConfigurationException.class)
+                .hasMessageContaining("was configured with invalid resource type");
+    }
+
+    private void assertNamespaceConfig(String yamlTestString) {
+        final UserCodeNamespacesConfig ucnConfig = buildConfig(yamlTestString).getNamespacesConfig();
+        assertNotNull(ucnConfig);
+        assertTrue(ucnConfig.isEnabled());
+        Map<String, UserCodeNamespaceConfig> namespaceConfigs = ucnConfig.getNamespaceConfigs();
+        assertEquals(2, namespaceConfigs.size());
+        assertTrue(namespaceConfigs.keySet().containsAll(asList("ns1", "ns2")));
+        namespaceConfigs.values().forEach(namespaceConfig ->
+                assertEquals(2, namespaceConfig.getResourceConfigs().size()));
+    }
+
     @Override
     public void testRestConfig() throws IOException {
         String yaml = """
@@ -5030,6 +5351,8 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                     port: 8080
                     security-realm: realmName
                     token-validity-seconds: 500
+                    max-login-attempts: 10
+                    lockout-duration-seconds: 10
                     ssl:
                       enabled: true
                       client-auth: NEED
@@ -5181,6 +5504,13 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
                           dimension: 3
                           metric: EUCLIDEAN
                     vector-2:
+                      backup-count: 2
+                      async-backup-count: 1
+                      split-brain-protection-ref: splitBrainProtectionName
+                      user-code-namespace: ns1
+                      merge-policy:
+                        batch-size: 132
+                        class-name: CustomMergePolicy
                       indexes:
                         - dimension: 4
                           metric: COSINE
@@ -5191,14 +5521,156 @@ public class YamlConfigBuilderTest extends AbstractConfigBuilderTest {
         validateVectorCollectionConfig(config);
     }
 
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupCount_max() {
+        int backupCount = 6;
+        String yaml = simpleVectorCollectionBackupCountConfig(backupCount);
+        Config config = buildConfig(yaml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_backupCount_moreThanMax() {
+        String yaml = simpleVectorCollectionBackupCountConfig(7);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupCount_min() {
+        int backupCount = 0;
+        String yaml = simpleVectorCollectionBackupCountConfig(backupCount);
+        Config config = buildConfig(yaml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_backupCount_lessThanMin() {
+        String yaml = simpleVectorCollectionBackupCountConfig(-1);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_asyncBackupCount_max() {
+        int asyncBackupCount = 6;
+        // we need to set backup-count=0 since default is 1
+        // and backup count + async backup count must not exceed 6
+        String yaml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(0, asyncBackupCount);
+        Config config = buildConfig(yaml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(0);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_asyncBackupCount_moreThanMax() {
+        // we need to set backup-count=0 since default is 1
+        // and backup count + async backup count must not exceed 6
+        String yaml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(0, 7);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_asyncBackupCount_min() {
+        int asyncBackupCount = 0;
+        String yaml = simpleVectorCollectionAsyncBackupCountConfig(asyncBackupCount);
+        Config config = buildConfig(yaml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+    }
+
+    @Override
+    @Test(expected = InvalidConfigurationException.class)
+    public void testVectorCollectionConfig_asyncBackupCount_lessThanMin() {
+        String yaml = simpleVectorCollectionAsyncBackupCountConfig(-1);
+        buildConfig(yaml);
+    }
+
+    @Override
+    @Test
+    public void testVectorCollectionConfig_backupSyncAndAsyncCount_max() {
+        int backupCount = 4;
+        int asyncBackupCount = 2;
+        String yaml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(backupCount, asyncBackupCount);
+        Config config = buildConfig(yaml);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getBackupCount()).isEqualTo(backupCount);
+        assertThat(config.getVectorCollectionConfigs().get("vector-1").getAsyncBackupCount()).isEqualTo(asyncBackupCount);
+    }
+
+    @Override
+    @Test(expected = IllegalArgumentException.class)
+    public void testVectorCollectionConfig_backupSyncAndAsyncCount_moreThanMax() {
+        int backupCount = 4;
+        int asyncBackupCount = 3;
+        String yaml = simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(backupCount, asyncBackupCount);
+        buildConfig(yaml);
+    }
+
+    @Override
+    public void testVectorCollectionConfig_multipleIndexesWithTheSameName_fail() {
+        String yaml = """
+                hazelcast:
+                  vector-collection:
+                    vector-1:
+                      indexes:
+                        - name: index-1
+                          dimension: 2
+                          metric: DOT
+                          max-degree: 10
+                          ef-construction: 10
+                          use-deduplication: true
+                        - name: index-1
+                          dimension: 3
+                          metric: EUCLIDEAN
+                """;
+
+        Config config = buildConfig(yaml);
+    }
+
+    private String simpleVectorCollectionBackupCountConfig(int count) {
+        return simpleVectorCollectionBackupCountConfig("backup-count", count);
+    }
+
+    private String simpleVectorCollectionAsyncBackupCountConfig(int count) {
+        return simpleVectorCollectionBackupCountConfig("async-backup-count", count);
+    }
+
+    private String simpleVectorCollectionBackupCountConfig(String tagName, int count) {
+        return String.format("""
+                hazelcast:
+                  vector-collection:
+                    vector-1:
+                      %s: %d
+                      indexes:
+                        - dimension: 4
+                          metric: COSINE
+                """, tagName, count);
+    }
+
+    private String simpleVectorCollectionBackupCountAndAsyncBackupCountConfig(
+            int backupCount, int asyncBackupCount) {
+        return String.format("""
+                hazelcast:
+                  vector-collection:
+                    vector-1:
+                      backup-count: %d
+                      async-backup-count: %d
+                      indexes:
+                        - dimension: 4
+                          metric: COSINE
+                """, backupCount, asyncBackupCount);
+    }
+
     public String getAdvancedNetworkConfigWithSocketOption(String socketOption, int value) {
-        String yaml = ""
-                + "hazelcast:\n"
+        return "hazelcast:\n"
                 + "  advanced-network:\n"
                 + "    enabled: true\n"
                 + "    member-server-socket-endpoint-config: \n"
                 + "      socket-options: \n"
                 + "        " + socketOption + ": " + value + "\n";
-        return yaml;
     }
 }

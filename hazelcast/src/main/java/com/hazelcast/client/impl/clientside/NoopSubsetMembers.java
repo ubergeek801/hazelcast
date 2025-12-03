@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.client.impl.clientside;
 
+import com.hazelcast.client.config.ClusterRoutingConfig;
 import com.hazelcast.client.impl.connection.ClientConnection;
 
 import java.util.Collection;
@@ -23,8 +24,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Used instead of null when {@link
- * com.hazelcast.client.config.SubsetRoutingConfig} is not enabled.
+ * Used instead of null when {@link ClusterRoutingConfig#getRoutingMode()} is not
+ * set to {@link com.hazelcast.client.config.RoutingMode#MULTI_MEMBER}.
  */
 class NoopSubsetMembers implements SubsetMembers {
 

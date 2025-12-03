@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,30 @@
  */
 package com.hazelcast.jet.mongodb.dataconnection;
 
+import com.mongodb.ClientBulkWriteException;
 import com.mongodb.ClientSessionOptions;
+import com.mongodb.MongoDriverInformation;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.ChangeStreamIterable;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.ListDatabasesIterable;
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCluster;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.bulk.ClientBulkWriteOptions;
+import com.mongodb.client.model.bulk.ClientBulkWriteResult;
+import com.mongodb.client.model.bulk.ClientNamespacedWriteModel;
 import com.mongodb.connection.ClusterDescription;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MongoClient implementation that run given action on close and delegates all actions to some delegate.
@@ -166,5 +177,83 @@ class CloseableMongoClient implements MongoClient {
     @Override
     public ClusterDescription getClusterDescription() {
         return delegate.getClusterDescription();
+    }
+
+    @Override
+    public CodecRegistry getCodecRegistry() {
+        return delegate.getCodecRegistry();
+    }
+
+    @Override
+    public ReadPreference getReadPreference() {
+        return delegate.getReadPreference();
+    }
+
+    @Override
+    public WriteConcern getWriteConcern() {
+        return delegate.getWriteConcern();
+    }
+
+    @Override
+    public ReadConcern getReadConcern() {
+        return delegate.getReadConcern();
+    }
+
+    @Override
+    public Long getTimeout(TimeUnit timeUnit) {
+        return delegate.getTimeout(timeUnit);
+    }
+
+    @Override
+    public MongoCluster withCodecRegistry(CodecRegistry codecRegistry) {
+        return delegate.withCodecRegistry(codecRegistry);
+    }
+
+    @Override
+    public MongoCluster withReadPreference(ReadPreference readPreference) {
+        return delegate.withReadPreference(readPreference);
+    }
+
+    @Override
+    public MongoCluster withWriteConcern(WriteConcern writeConcern) {
+        return delegate.withWriteConcern(writeConcern);
+    }
+
+    @Override
+    public MongoCluster withReadConcern(ReadConcern readConcern) {
+        return delegate.withReadConcern(readConcern);
+    }
+
+    @Override
+    public MongoCluster withTimeout(long timeout, TimeUnit timeUnit) {
+        return delegate.withTimeout(timeout, timeUnit);
+    }
+
+    @Override
+    public ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models) throws ClientBulkWriteException {
+        return delegate.bulkWrite(models);
+    }
+
+    @Override
+    public ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models, ClientBulkWriteOptions options)
+            throws ClientBulkWriteException {
+        return delegate.bulkWrite(models, options);
+    }
+
+    @Override
+    public ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models)
+            throws ClientBulkWriteException {
+        return delegate.bulkWrite(clientSession, models);
+    }
+
+    @Override
+    public ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models,
+            ClientBulkWriteOptions options) throws ClientBulkWriteException {
+        return delegate.bulkWrite(clientSession, models, options);
+    }
+
+    @Override
+    public void appendMetadata(MongoDriverInformation mongoDriverInformation) {
+        delegate.appendMetadata(mongoDriverInformation);
     }
 }

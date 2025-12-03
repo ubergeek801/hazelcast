@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.hazelcast.spi.impl.executionservice.ExecutionService;
 import com.hazelcast.spi.impl.operationexecutor.impl.PartitionOperationThread;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationFactory;
+import com.hazelcast.spi.impl.operationservice.SelfResponseOperation;
 import com.hazelcast.spi.impl.operationservice.impl.operations.PartitionAwareOperationFactory;
 import com.hazelcast.spi.impl.operationservice.impl.operations.PartitionIteratingOperation;
 import com.hazelcast.spi.impl.operationservice.impl.operations.PartitionIteratingOperation.PartitionResponse;
@@ -123,20 +124,29 @@ final class InvokeOnPartitions {
                     .setTryCount(TRY_COUNT)
                     .setTryPauseMillis(TRY_PAUSE_MILLIS)
                     .invoke()
-                    .whenCompleteAsync(new FirstAttemptExecutionCallback(partitions), internalAsyncExecutor);
+                    .whenCompleteAsync(new FirstAttemptExecutionCallback(partitions), internalAsyncExecutor)
+                    .handleAsync((result, exception) -> {
+                        if (exception != null) {
+                            logger.warning(exception);
+                        }
+                        return result;
+                    }, internalAsyncExecutor);
         }
     }
 
     private void retryPartition(final int partitionId) {
-        Operation operation;
+        Operation op;
         PartitionAwareOperationFactory partitionAwareFactory = extractPartitionAware(operationFactory);
         if (partitionAwareFactory != null) {
-            operation = partitionAwareFactory.createPartitionOperation(partitionId);
+            op = partitionAwareFactory.createPartitionOperation(partitionId);
         } else {
-            operation = operationFactory.createOperation();
+            op = operationFactory.createOperation();
         }
+        // Only operations which expect a response should be invoked, otherwise they may not be de-registered
+        assert op.returnsResponse() || op instanceof SelfResponseOperation : String.format(
+                "Operation '%s' does not handle responses - this will break Future completion!", op.getClass().getSimpleName());
 
-        operationService.createInvocationBuilder(serviceName, operation, partitionId)
+        operationService.createInvocationBuilder(serviceName, op, partitionId)
                         .invoke()
                         .whenCompleteAsync((response, throwable) -> {
                             if (throwable == null) {
@@ -191,8 +201,8 @@ final class InvokeOnPartitions {
                         : "results.length=" + results.length + ", but was sent to just "
                         + requestedPartitions.size() + " partitions";
                 if (results.length != requestedPartitions.size()) {
-                    logger.fine("Responses received for " + responsePartitions.length + " partitions, but "
-                            + requestedPartitions.size() + " partitions were requested");
+                    logger.fine("Responses received for %s partitions, but %s partitions were requested",
+                            responsePartitions.length, requestedPartitions.size());
                 }
                 int failedPartitionsCnt = 0;
                 for (int i = 0; i < responsePartitions.length; i++) {

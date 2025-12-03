@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * An enumeration of in-house Connection types.
- * Note that a type could be provided by a custom client
+ * Note that a type could be provided by a custom client,
  * and it can be a string outside of {@link ConnectionType}
  */
 @SuppressWarnings("MagicNumber")
@@ -58,7 +58,7 @@ public final class ConnectionType {
     public static final String PYTHON_CLIENT = "PYH";
 
     /**
-     * Node.JS client Connection Type
+     * Node.js client Connection Type
      */
     public static final String NODEJS_CLIENT = "NJS";
 
@@ -87,6 +87,11 @@ public final class ConnectionType {
      */
     public static final String CL_CLIENT = "CLC";
 
+    /**
+     * Management Center Command Line client Connection Type
+     */
+    public static final String MC_CL_CLIENT = "MCCLC";
+
     private static final Map<String, Integer> ID_MAP = new HashMap<>();
 
     static {
@@ -102,6 +107,7 @@ public final class ConnectionType {
         ID_MAP.put(MC_JAVA_CLIENT, 9);
         ID_MAP.put(CSHARP_CLIENT, 10);
         ID_MAP.put(CL_CLIENT, 11);
+        ID_MAP.put(MC_CL_CLIENT, 12);
     }
 
     private ConnectionType() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -538,7 +538,6 @@ public interface ICacheRecordStore {
      *
      * @param mergingEntry     the {@link CacheMergeTypes} instance to merge
      * @param mergePolicy      the {@link SplitBrainMergePolicy} instance to apply
-     * @param callerProvenance
      * @return {@link CacheMergeResponse} indicating the result of the merge
      */
     CacheMergeResponse merge(CacheMergeTypes<Object, Object> mergingEntry,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,9 +96,9 @@ public class TopicTest extends HazelcastTestSupport {
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(nodeCount);
         HazelcastInstance[] instances = factory.newInstances();
 
-        final AtomicInteger count1 = new AtomicInteger(0);
-        final AtomicInteger count2 = new AtomicInteger(0);
-        final AtomicInteger count3 = new AtomicInteger(0);
+        final AtomicInteger count1 = new AtomicInteger();
+        final AtomicInteger count2 = new AtomicInteger();
+        final AtomicInteger count3 = new AtomicInteger();
 
         for (int i = 0; i < nodeCount; i++) {
             final HazelcastInstance instance = instances[i];
@@ -134,7 +134,7 @@ public class TopicTest extends HazelcastTestSupport {
     @Test
     public void testTopicPublishAsync() {
         final String randomName = "testTopicPublishAsync" + generateRandomString(5);
-        final AtomicInteger count = new AtomicInteger(0);
+        final AtomicInteger count = new AtomicInteger();
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = factory.newHazelcastInstance();
@@ -149,7 +149,7 @@ public class TopicTest extends HazelcastTestSupport {
     @Test
     public void testTopicPublishAll() throws ExecutionException, InterruptedException {
         final String randomName = "testTopicPublishAll" + generateRandomString(5);
-        final AtomicInteger count = new AtomicInteger(0);
+        final AtomicInteger count = new AtomicInteger();
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = factory.newHazelcastInstance();
@@ -165,7 +165,7 @@ public class TopicTest extends HazelcastTestSupport {
     @Test
     public void testTopicPublishingAllAsync() {
         final String randomName = "testTopicPublishingAllAsync" + generateRandomString(5);
-        final AtomicInteger count = new AtomicInteger(0);
+        final AtomicInteger count = new AtomicInteger();
 
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = factory.newHazelcastInstance();
@@ -179,7 +179,7 @@ public class TopicTest extends HazelcastTestSupport {
 
     @Test
     public void testBlockingAsync() {
-        AtomicInteger count = new AtomicInteger(0);
+        AtomicInteger count = new AtomicInteger();
         final String randomName = "testTopicPublishingAllAsync" + generateRandomString(5);
         TestHazelcastInstanceFactory factory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = factory.newHazelcastInstance();
@@ -345,11 +345,13 @@ public class TopicTest extends HazelcastTestSupport {
             this.data = data;
         }
 
+        @Override
         public void writeData(ObjectDataOutput out) throws IOException {
             publisher.writeData(out);
             out.writeString(data);
         }
 
+        @Override
         public void readData(ObjectDataInput in) throws IOException {
             publisher = new MemberImpl();
             publisher.readData(in);
@@ -469,7 +471,7 @@ public class TopicTest extends HazelcastTestSupport {
             HazelcastInstance instance = createHazelcastInstance();
             ITopic<String> topic = instance.getTopic(topicName);
 
-            final AtomicInteger onMessageCount = new AtomicInteger(0);
+            final AtomicInteger onMessageCount = new AtomicInteger();
             final CountDownLatch onMessageInvoked = new CountDownLatch(1);
 
             MessageListener<String> messageListener = msg -> {

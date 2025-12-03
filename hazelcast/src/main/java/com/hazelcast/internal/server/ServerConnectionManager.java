@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public interface ServerConnectionManager
 
     /**
      * Returns all connections managed by this ServerConnectionManager.
-     *
+     * <p>
      * In case of a member connection, it will also return connections that have not yet completed the
      * {@link com.hazelcast.internal.cluster.impl.MemberHandshake}.
      */

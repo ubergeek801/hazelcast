@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.hazelcast.commandline;
 
 import com.hazelcast.jet.function.RunnableEx;
+import com.hazelcast.test.annotation.ParallelJVMTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.SetSystemProperty;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-@Tag("com.hazelcast.test.annotation.ParallelJVMTest")
+@ParallelJVMTest
 class HazelcastServerCommandLineTest {
     private HazelcastServerCommandLine hazelcastServerCommandLine;
 
@@ -44,7 +44,7 @@ class HazelcastServerCommandLineTest {
     private RunnableEx start;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         hazelcastServerCommandLine = new HazelcastServerCommandLine(start);
     }
 

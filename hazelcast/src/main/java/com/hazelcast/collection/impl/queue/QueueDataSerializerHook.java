@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ import static com.hazelcast.internal.serialization.impl.FactoryIdHelper.QUEUE_DS
 /**
  * A {@link DataSerializerHook} for the queue operations and support structures.
  */
+@SuppressWarnings({"ClassDataAbstractionCoupling", "checkstyle:classfanoutcomplexity"})
 public final class QueueDataSerializerHook implements DataSerializerHook {
 
     public static final int F_ID = FactoryIdHelper.getFactoryId(QUEUE_DS_FACTORY, QUEUE_DS_FACTORY_ID);

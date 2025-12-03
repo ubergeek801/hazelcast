@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,11 +29,12 @@
     <parent>
         <groupId>com.hazelcast.jet</groupId>
         <artifactId>hazelcast-jet-extensions</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
     </parent>
 
     <properties>
         <!-- needed for CheckStyle -->
+        <main.basedir>${project.basedir}/../..</main.basedir>
         <checkstyle.headerLocation>${main.basedir}/checkstyle/ClassHeaderApache.txt</checkstyle.headerLocation>
     </properties>
 
@@ -88,6 +89,7 @@
             <artifactId>hazelcast-jet-cdc-debezium</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
+            <classifier>jar-with-dependencies</classifier>
         </dependency>
 
         <dependency>
@@ -99,14 +101,23 @@
                     <artifactId>mysql-connector-java</artifactId>
                     <groupId>mysql</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
-        <!-- Debezium version 1.9.8.Final has dependency on old mysql-connector-java. Exclude the old mysql driver and use the new driver.
-             When debezium is upgraded, we may clean this explicit dependency -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <!-- This forced ANTLR version shaded -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.9.3</version>
         </dependency>
 
         <!-- TEST -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.map.impl.operation.EntryOperation;
+import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Before;
@@ -47,7 +48,9 @@ public class InvocationPluginTest extends AbstractDiagnosticsPluginTest {
 
         hz = createHazelcastInstance(config);
 
-        plugin = new InvocationSamplePlugin(getNodeEngineImpl(hz));
+        NodeEngineImpl nodeEngine = getNodeEngineImpl(hz);
+        plugin = new InvocationSamplePlugin(nodeEngine.getLogger(InvocationSamplePlugin.class),
+                nodeEngine.getOperationService().getInvocationRegistry(), nodeEngine.getProperties());
         plugin.onStart();
     }
 

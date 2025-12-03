@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,10 +120,10 @@ class GcpClient {
         List<GcpAddress> result = new ArrayList<>();
         for (final String project : projects) {
             for (final String zone : zones) {
-                LOGGER.finest(String.format("Fetching instances for project '%s' and zone '%s'", project, zone));
+                LOGGER.finest("Fetching instances for project '%s' and zone '%s'", project, zone);
                 List<GcpAddress> addresses = gcpComputeApi.instances(project, zone, label, accessToken);
-                LOGGER.finest(String.format("Found the following instances for project '%s' and zone '%s': %s", project, zone,
-                        addresses));
+                LOGGER.finest("Found the following instances for project '%s' and zone '%s': %s", project, zone,
+                        addresses);
                 result.addAll(addresses);
             }
         }

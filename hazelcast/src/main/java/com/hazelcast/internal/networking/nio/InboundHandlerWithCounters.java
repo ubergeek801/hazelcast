@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.hazelcast.internal.util.counters.Counter;
  * Trigger for the ChannelReader to inject the appropriate counters. This is a
  * temporary solution, it would be best if the counters could be defined directly
  * on handlers and automatically get registered + unregistered.
- *
+ * <p>
  * Todo:
  * This class is a hack. We don't want to have any dependencies on this
  * packet.

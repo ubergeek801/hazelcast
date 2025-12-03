@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.hazelcast.test.HazelcastTestSupport.sleepAtLeastSeconds;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * AbstractJsonGetter uses a lot of caching and guessing based on previously
@@ -50,8 +50,8 @@ import static junit.framework.TestCase.assertTrue;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class AbstractJsonGetterTest {
 
-    private AbstractJsonGetter getter = new JsonGetter();
-    private JsonFactory factory = new JsonFactory();
+    private final AbstractJsonGetter getter = new JsonGetter();
+    private final JsonFactory factory = new JsonFactory();
 
     @Test
     public void testRepeatQueriesUseTheCachedContext() throws Exception {
@@ -141,20 +141,12 @@ public class AbstractJsonGetterTest {
 
     private class GetterRunner implements Runnable {
 
-        private AtomicBoolean running;
+        private final AtomicBoolean running;
         private boolean isFailed;
         private Throwable exception;
 
         GetterRunner(AtomicBoolean running) {
             this.running = running;
-        }
-
-        public boolean isFailed() {
-            return isFailed;
-        }
-
-        public Throwable getThrowable() {
-            return exception;
         }
 
         public String getStackTrace() {
@@ -183,9 +175,6 @@ public class AbstractJsonGetterTest {
      * Creates a one level json object from given names and values. Each
      * value is associated with the respective name in given order. However,
      * the order of name-value pairs within object are random
-     * @param names
-     * @param values
-     * @return
      */
     private HazelcastJsonValue createJsonValueWithRandomStructure(String[] names, String[] values) {
         Random random = new Random();

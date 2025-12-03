@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,6 @@ public final class NodeEngineThreadLocalContext {
      * @return This thread's {@link NodeEngine} reference if available, or {@code null}.
      */
     public static NodeEngine getNodeEngineThreadLocalContextOrNull() {
-        NodeEngine tlContext = NE_THREAD_LOCAL.get();
-        if (tlContext == null) {
-            return null;
-        } else {
-            return tlContext;
-        }
+        return NE_THREAD_LOCAL.get();
     }
 }

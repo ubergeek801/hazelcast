@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1130,7 +1130,7 @@ public class JobConfig implements IdentifiedDataSerializable {
      * job. It will be accessible to all the code attached to the underlying
      * pipeline or DAG, but not to any other code. There are several serializer
      * types you can register, see the
-     * <a href="https://jet-start.sh/docs/api/serialization#serialization-of-data-types
+     * <a href="https://docs.hazelcast.com/hazelcast/latest/pipelines/serialization#serialization-of-data-types
      * Programming Guide</a>.
      * <p>
      * A serializer registered on the job level has precedence over any
@@ -1211,7 +1211,12 @@ public class JobConfig implements IdentifiedDataSerializable {
     /**
      * Sets a custom {@link JobClassLoaderFactory} that will be used to load
      * job classes and resources on Jet members. Not supported for {@linkplain
-     * JetService#newLightJob(Pipeline) light jobs}
+     * JetService#newLightJob(Pipeline) light jobs}.
+     * <p>
+     * <b>NOTE:</b> Defining a custom factory means that a User Code Namespace
+     * should not be defined using {@link #setUserCodeNamespace(String)}
+     * as these features are incompatible and will result in an exception being
+     * thrown at Job creation if both are defined.
      *
      * @return {@code this} instance for fluent API
      */
@@ -1382,6 +1387,32 @@ public class JobConfig implements IdentifiedDataSerializable {
         checkNotNegative(timeoutMillis, "timeoutMillis can't be negative");
         this.timeoutMillis = timeoutMillis;
         return this;
+    }
+
+    /**
+     * Retrieves the User Code Namespace (UCN) to use with this job, if one has been set
+     * by calling {@link #setUserCodeNamespace(String)}. If a UCN is provided with a Jet
+     * job, then the job will have access to resources from the UCN during execution.
+     *
+     * @return the User Code Namespace associated with this job if it is configured, or
+     * {@code null} if one has not been set.
+     * @since 5.6
+     */
+    @Nullable
+    public String getUserCodeNamespace() {
+        return (String) this.arguments.get(JobConfigArguments.KEY_USER_CODE_NAMESPACE);
+    }
+
+    /**
+     * Sets the User Code Namespace (UCN) to use with this job. Setting this to {@code null}
+     * will clear the association of this job with a UCN. If a UCN is provided with a Jet
+     * job, then the job will have access to resources from the UCN during execution.
+     *
+     * @param namespace the User Code Namespace to use with this Jet job
+     * @since 5.6
+     */
+    public void setUserCodeNamespace(String namespace) {
+        this.arguments.put(JobConfigArguments.KEY_USER_CODE_NAMESPACE, namespace);
     }
 
     @Override

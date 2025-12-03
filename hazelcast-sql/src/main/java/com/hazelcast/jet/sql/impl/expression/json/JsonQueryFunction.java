@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,7 +237,7 @@ public class JsonQueryFunction extends VariExpression<HazelcastJsonValue> {
 
         JsonQueryFunction that = (JsonQueryFunction) o;
 
-        return this.onEmpty.equals(that.onEmpty) && this.onError.equals(that.onError);
+        return this.onEmpty == that.onEmpty && this.onError == that.onError;
     }
 
     @Override

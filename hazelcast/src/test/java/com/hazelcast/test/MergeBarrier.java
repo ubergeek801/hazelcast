@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,11 +73,11 @@ class MergeBarrier {
         @Override
         public void stateChanged(LifecycleEvent event) {
             LifecycleEvent.LifecycleState state = event.getState();
-            if (state.equals(MERGING)) {
+            if (state == MERGING) {
                 mergedInProgress.incrementAndGet();
-            } else if (state.equals(MERGED)) {
+            } else if (state == MERGED) {
                 mergedInProgress.decrementAndGet();
-            } else if (state.equals(MERGE_FAILED)) {
+            } else if (state == MERGE_FAILED) {
                 mergedInProgress.decrementAndGet();
             }
         }

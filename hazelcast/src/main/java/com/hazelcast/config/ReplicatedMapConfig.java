@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ public class ReplicatedMapConfig implements IdentifiedDataSerializable, NamedCon
      *
      * @return the name of the {@link ReplicatedMap}
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -98,6 +99,7 @@ public class ReplicatedMapConfig implements IdentifiedDataSerializable, NamedCon
      * @param name the name of the {@link ReplicatedMap}
      * @return the current replicated map config instance
      */
+    @Override
     public ReplicatedMapConfig setName(String name) {
         this.name = name;
         return this;
@@ -260,6 +262,7 @@ public class ReplicatedMapConfig implements IdentifiedDataSerializable, NamedCon
      * @return the updated {@link ReplicatedMapConfig} instance
      * @since 5.4
      */
+    @Override
     public ReplicatedMapConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;

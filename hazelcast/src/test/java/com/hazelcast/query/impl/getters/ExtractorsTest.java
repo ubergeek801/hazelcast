@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ public class ExtractorsTest {
     @Parameter
     public boolean useClassloader;
 
-    private Bond bond = new Bond();
+    private final Bond bond = new Bond();
 
     private InternalSerializationService ss;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         DefaultSerializationServiceBuilder builder = new DefaultSerializationServiceBuilder();
         ss = builder.setVersion(InternalSerializationService.VERSION_1).build();
     }
@@ -78,8 +78,9 @@ public class ExtractorsTest {
         Getter getterSecondInvocation = extractors.getGetter(bond, "car.power", true);
 
         // THEN
-        assertThat(getterFirstInvocation).isSameAs(getterSecondInvocation);
-        assertThat(getterFirstInvocation).isInstanceOf(FieldGetter.class);
+        assertThat(getterFirstInvocation)
+                .isInstanceOf(FieldGetter.class)
+                .isSameAs(getterSecondInvocation);
     }
 
     @Test

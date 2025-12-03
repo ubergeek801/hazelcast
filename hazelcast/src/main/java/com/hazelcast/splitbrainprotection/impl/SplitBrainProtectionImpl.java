@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,8 +203,8 @@ public class SplitBrainProtectionImpl implements SplitBrainProtection {
 
     /**
      * Returns if split brain protection is needed for this operation.
-     * The split brain protection is determined by the {@link SplitBrainProtectionConfig#type} and by the type of the operation -
-     * {@link ReadonlyOperation} or {@link MutatingOperation}.
+     * The split brain protection is determined by the {@link SplitBrainProtectionConfig#getProtectOn()} and by the type of the
+     * operation - {@link ReadonlyOperation} or {@link MutatingOperation}.
      *
      * @param op the operation which is to be executed
      * @return if this split brain protection should be consulted for this operation

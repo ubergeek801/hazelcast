@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static java.util.Collections.unmodifiableSet;
  * <li>the XML configuration</li>
  * </ul>
  *
- * @see <a href="http://docs.hazelcast.org/docs/latest-dev/manual/html-single/hazelcast-documentation.html#system-properties">
+ * @see <a href="https://docs.hazelcast.com/hazelcast/latest/system-properties">
  * System properties documentaiton</a>
  */
 public class HazelcastProperties {
@@ -148,7 +148,7 @@ public class HazelcastProperties {
 
         Function<HazelcastProperties, ?> function = property.getFunction();
         if (function != null) {
-            return "" + function.apply(this);
+            return String.valueOf(function.apply(this));
         }
         return property.getDefaultValue();
     }

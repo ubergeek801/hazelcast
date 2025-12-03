@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client.splitbrainprotection;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.cluster.Address;
@@ -37,7 +38,7 @@ public class SplitBrainProtectionTestUtil {
         ClientConfig clientConfig = new ClientConfig();
         Address address = getNode(instance).address;
         clientConfig.getNetworkConfig().addAddress(address.getHost() + ":" + address.getPort());
-        clientConfig.getNetworkConfig().setSmartRouting(false);
+        clientConfig.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         clientConfig.setClusterName(instance.getConfig().getClusterName());
         return clientConfig;
     }

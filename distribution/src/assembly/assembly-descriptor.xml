@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -65,11 +65,6 @@
         <file>
             <source>${project.build.directory}/classes/META-INF/THIRD-PARTY.txt</source>
             <destName>THIRD-PARTY.txt</destName>
-            <outputDirectory>licenses</outputDirectory>
-        </file>
-        <file>
-            <source>${basedir}/../target/aggregated-attribution.txt</source>
-            <destName>attribution.txt</destName>
             <outputDirectory>licenses</outputDirectory>
         </file>
 
@@ -157,6 +152,13 @@
             <destName>NOTICE</destName>
             <outputDirectory>/</outputDirectory>
         </file>
+
+        <!-- Release Notes from hazelcast.jar -->
+        <file>
+            <source>${configs.from.jar}/release_notes.txt</source>
+            <destName>release_notes.txt</destName>
+            <outputDirectory>/</outputDirectory>
+        </file>
     </files>
 
     <fileSets>
@@ -180,16 +182,14 @@
         </fileSet>
 
         <fileSet> <!-- Create empty directory -->
-            <outputDirectory>custom-lib</outputDirectory>
-            <excludes>
-                <exclude>**/*</exclude>
-            </excludes>
-        </fileSet>
-        <fileSet> <!-- Create empty directory -->
             <outputDirectory>bin/user-lib</outputDirectory>
             <excludes>
                 <exclude>**/*</exclude>
             </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../target/aggregated-attribution</directory>
+            <outputDirectory>licenses</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>

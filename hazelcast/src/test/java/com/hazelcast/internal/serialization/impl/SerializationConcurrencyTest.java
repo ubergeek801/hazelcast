@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class SerializationConcurrencyTest {
     public static final short FACTORY_ID = 1;
 
     @Test
-    public void test() throws IOException, InterruptedException {
+    public void test() throws InterruptedException {
         PortableFactory portableFactory = new PortableFactory() {
             @Override
             public Portable create(int classId) {
@@ -68,7 +68,7 @@ public class SerializationConcurrencyTest {
                 .build();
 
         final int k = 10;
-        final AtomicBoolean error = new AtomicBoolean(false);
+        final AtomicBoolean error = new AtomicBoolean();
         final CountDownLatch latch = new CountDownLatch(k);
         ExecutorService ex = Executors.newCachedThreadPool();
         for (int i = 0; i < k; i++) {

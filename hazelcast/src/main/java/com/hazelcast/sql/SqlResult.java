@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,10 @@ public interface SqlResult extends Iterable<SqlRow>, AutoCloseable {
      * Returns the number of rows updated by the statement or -1 if this result
      * is a row set. In case the result doesn't contain rows but the update
      * count isn't applicable or known, 0 is returned.
+     *
+     * @deprecated this method always returns {@code 0} for DML statements and should not be used.
      */
+    @Deprecated(since = "5.6", forRemoval = true)
     long updateCount();
 
     /**
@@ -117,7 +120,7 @@ public interface SqlResult extends Iterable<SqlRow>, AutoCloseable {
      * <p>
      * The query engine delivers the rows asynchronously. The query may become inactive even before all rows are
      * consumed. The invocation of this command will cancel the execution of the query on all members if the query
-     * is still active. Otherwise it is no-op. For a result with an update count it is always no-op.
+     * is still active. Otherwise, it is no-op. For a result with an update count it is always no-op.
      */
     @Override
     void close();

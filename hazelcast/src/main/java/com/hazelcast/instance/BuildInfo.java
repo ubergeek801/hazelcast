@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package com.hazelcast.instance;
 
 import com.hazelcast.logging.Logger;
+import com.hazelcast.version.MemberVersion;
 
+import static com.hazelcast.internal.util.StringUtil.isNullOrEmpty;
 import static com.hazelcast.internal.util.StringUtil.tokenizeVersionString;
 import static java.lang.Integer.parseInt;
 
@@ -38,14 +40,24 @@ public class BuildInfo {
     private final byte serializationVersion;
     private final BuildInfo upstreamBuildInfo;
     private final String commitId;
+    /**
+     * Last LTS version, meaning Long Term Support version lower or equal to {@linkplain #version}.
+     */
+    private final MemberVersion lastLtsVersion;
+    /**
+     * Previous minor version, e.g. for 100.1 it's 100.0.
+     */
+    private final MemberVersion previousVersion;
 
     public BuildInfo(String version, String build, String revision, int buildNumber, boolean enterprise,
                      byte serializationVersion, String commitId) {
-        this(version, build, revision, buildNumber, enterprise, serializationVersion, commitId, null);
+        this(version, build, revision, buildNumber, enterprise, serializationVersion, commitId, null, null, null);
     }
 
+    @SuppressWarnings("checkstyle:ParameterNumber")
     public BuildInfo(String version, String build, String revision, int buildNumber, boolean enterprise,
-                     byte serializationVersion, String commitId, BuildInfo upstreamBuildInfo) {
+                     byte serializationVersion, String commitId, BuildInfo upstreamBuildInfo,
+                     MemberVersion lastLtsVersion, MemberVersion previousVersion) {
         this.version = version;
         this.build = build;
         this.revision = revision;
@@ -54,6 +66,8 @@ public class BuildInfo {
         this.serializationVersion = serializationVersion;
         this.commitId = commitId;
         this.upstreamBuildInfo = upstreamBuildInfo;
+        this.lastLtsVersion = lastLtsVersion;
+        this.previousVersion = previousVersion;
     }
 
     public String getRevision() {
@@ -62,6 +76,15 @@ public class BuildInfo {
 
     public String getVersion() {
         return version;
+    }
+
+    /**
+     * Cluster version to which this node defaults, associated with given {@link #getVersion() member version}.
+     * <p>
+     * Cluster version may be different e.g. during cluster upgrade.
+     */
+    public MemberVersion getCodebaseVersion() {
+        return MemberVersion.of(version);
     }
 
     public String getBuild() {
@@ -88,6 +111,32 @@ public class BuildInfo {
         return commitId;
     }
 
+    public MemberVersion getLastLtsVersion() {
+        return lastLtsVersion;
+    }
+
+    public MemberVersion getPreviousVersion() {
+        return previousVersion;
+    }
+
+    public String toBuildString() {
+        String buildString = build;
+
+        if (!revision.isEmpty()) {
+            buildString += " - " + revision;
+
+            if (upstreamBuildInfo != null) {
+                String upstreamRevision = upstreamBuildInfo.getRevision();
+
+                if (!isNullOrEmpty(upstreamRevision)) {
+                    buildString += ", " + upstreamRevision;
+                }
+            }
+        }
+
+        return buildString;
+    }
+
     @Override
     public String toString() {
         return "BuildInfo{"
@@ -98,6 +147,8 @@ public class BuildInfo {
                 + ", enterprise=" + enterprise
                 + ", serializationVersion=" + serializationVersion
                 + (upstreamBuildInfo == null ? "" : ", upstream=" + upstreamBuildInfo)
+                + ", lastLtsVersion=" + lastLtsVersion
+                + ", previousVersion=" + previousVersion
                 + '}';
     }
 

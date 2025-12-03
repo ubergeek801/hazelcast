@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import com.hazelcast.security.ICredentialsFactory;
 /**
  * Contains configuration for Security
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public class SecurityConfig {
 
     private static final boolean DEFAULT_CLIENT_BLOCK_UNMAPPED_ACTIONS = true;

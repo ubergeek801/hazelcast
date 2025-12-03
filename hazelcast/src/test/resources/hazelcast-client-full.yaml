@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+# Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ hazelcast-client:
 
   backup-ack-to-client-enabled: false
 
+  cp-direct-to-leader-routing: false
+
   network:
     cluster-members:
       - 127.0.0.1
@@ -56,7 +58,8 @@ hazelcast-client:
     outbound-ports:
       - 34600
       - 34700-34710
-    smart-routing: true
+    cluster-routing:
+      mode: "ALL_MEMBERS"
     redo-operation: true
     connection-timeout: 60000
     socket-options:
@@ -212,7 +215,7 @@ hazelcast-client:
   native-memory:
     enabled: false
     allocator-type: POOLED
-    size:
+    capacity:
       unit: MEGABYTES
       value: 128
     min-block-size: 1

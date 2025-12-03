@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.hazelcast.kubernetes;
 import com.hazelcast.config.InvalidConfigurationException;
 import com.hazelcast.config.properties.PropertyDefinition;
 import com.hazelcast.internal.util.StringUtil;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -166,12 +165,10 @@ final class KubernetesConfig {
         return caCertificate;
     }
 
-    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private String readCaCertificate() {
         return fileContentsReader.readFileContents("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
     }
 
-    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private String readNamespace() {
         return fileContentsReader.readFileContents("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
     }
@@ -182,6 +179,7 @@ final class KubernetesConfig {
     }
 
     static class DefaultFileContentsReader implements FileContentsReader {
+        @Override
         public String readFileContents(String fileName) {
             try {
                 return Files.readString(Paths.get(fileName));

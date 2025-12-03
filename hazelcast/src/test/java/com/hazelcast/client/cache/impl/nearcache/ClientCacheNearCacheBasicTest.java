@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,12 +182,13 @@ public class ClientCacheNearCacheBasicTest extends AbstractNearCacheBasicTest<Da
 
         return new NearCacheTestContextBuilder<K, V, Data, String>(nearCacheConfig, client.getSerializationService())
                 .setNearCacheInstance(client)
-                .setNearCacheAdapter(new ICacheDataStructureAdapter<K, V>(clientCache))
+                .setNearCacheAdapter(new ICacheDataStructureAdapter<>(clientCache))
                 .setNearCache(nearCache)
                 .setNearCacheManager(nearCacheManager)
                 .setCacheManager(cacheManager);
     }
 
+    @Override
     @Test
     public void whenGetAndReplaceIsUsedWithCacheOnUpdate_thenNearCacheShouldBePopulated() {
         super.whenEntryIsAddedWithCacheOnUpdate_thenNearCacheShouldBePopulated(DataStructureAdapter.DataStructureMethods.GET_AND_REPLACE);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Client Protocol Task for handling messages with type ID:
- * {@link com.hazelcast.client.impl.protocol.codec.QueueMessageType#QUEUE_OFFER}
+ * {@link com.hazelcast.client.impl.protocol.codec.QueueOfferCodec#REQUEST_MESSAGE_TYPE}
  */
 public class QueueOfferMessageTask
         extends AbstractQueueMessageTask<QueueOfferCodec.RequestParameters> {

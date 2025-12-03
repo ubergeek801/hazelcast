@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import com.hazelcast.map.listener.MapEvictedListener;
 /**
  * Internal usage only adapter for {@link
  * com.hazelcast.map.listener.MapListener}.
- *
+ * <p>
  * The difference between this adapter and {@link EntryAdapter} is,
- * {@link EntryAdapter} is more limited form of this one and it doesn't
+ * {@link EntryAdapter} is more limited form of this one, and it doesn't
  * implement newly added listener interfaces.
  *
  * @param <K> key of the map entry

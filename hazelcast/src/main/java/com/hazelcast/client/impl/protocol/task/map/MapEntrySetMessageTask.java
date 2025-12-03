@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.util.IterationType;
 import com.hazelcast.map.impl.MapService;
+import com.hazelcast.map.impl.MapServiceContext;
 import com.hazelcast.map.impl.query.QueryResultRow;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
@@ -45,7 +46,15 @@ public class MapEntrySetMessageTask
     @Override
     protected Object reduce(Collection<QueryResultRow> result) {
         List<Map.Entry<Data, Data>> entries = new ArrayList<>(result);
-        incrementOtherOperationsCount(getService(MapService.SERVICE_NAME), parameters);
+        MapService mapService = (MapService) getService(MapService.SERVICE_NAME);
+
+        incrementOtherOperationsCount(mapService, parameters);
+        incrementMapMetric(mapService, parameters);
+
+        if (result.size() >= mapService.getMapServiceContext().getExpensiveInvocationReportingThreshold()) {
+            logger.info("Client " + endpoint.getUuid() + " invoked entrySet() on map " + parameters
+                    + " with " + result.size() + " returned entries.");
+        }
         return entries;
     }
 
@@ -82,5 +91,14 @@ public class MapEntrySetMessageTask
     @Override
     public Object[] getParameters() {
         return null;
+    }
+
+    private void incrementMapMetric(MapService service, String mapName) {
+        MapServiceContext mapServiceContext = service.getMapServiceContext();
+        if (mapServiceContext.getMapContainer(mapName).getMapConfig().isStatisticsEnabled()) {
+            mapServiceContext.getLocalMapStatsProvider()
+                    .getLocalMapStatsImpl(mapName)
+                    .incrementEntrySetCallCount();
+        }
     }
 }

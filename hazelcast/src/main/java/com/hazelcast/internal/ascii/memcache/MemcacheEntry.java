@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.hazelcast.internal.ascii.TextProtocolsDataSerializerHook;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +29,6 @@ import java.util.Arrays;
 
 import static com.hazelcast.internal.util.StringUtil.stringToBytes;
 
-@SuppressFBWarnings("EI_EXPOSE_REP")
 public class MemcacheEntry implements IdentifiedDataSerializable {
     private byte[] bytes;
     private byte[] value;
@@ -141,6 +139,7 @@ public class MemcacheEntry implements IdentifiedDataSerializable {
         return result;
     }
 
+    @Override
     public String toString() {
         return "MemcacheEntry{"
                 + "bytes="

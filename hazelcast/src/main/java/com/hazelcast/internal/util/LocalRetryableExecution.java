@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import static java.util.logging.Level.WARNING;
 
 /**
  * Class encapsulating local execution with retry logic. The operation must
- * not have an {@link OperationResponseHandler} set and it must return
+ * not have an {@link OperationResponseHandler} set, and it must return
  * response.
  * The retry will use the configured
  * {@link ClusterProperty#INVOCATION_MAX_RETRY_COUNT} and

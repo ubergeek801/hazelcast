@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.spi.impl.SpiDataSerializerHook;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -32,9 +32,9 @@ import static java.util.Objects.requireNonNull;
  * Simple implementation of {@link Credentials} using a raw byte array token.
  */
 @BinaryInterface
-@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class SimpleTokenCredentials implements TokenCredentials, IdentifiedDataSerializable {
 
+    @Serial
     private static final long serialVersionUID = -1508314631354255039L;
 
     private byte[] token;

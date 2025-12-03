@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,6 +176,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -186,7 +187,6 @@ import static com.hazelcast.internal.config.ConfigUtils.resolveResourceId;
 import static com.hazelcast.internal.config.DomConfigHelper.childElementWithName;
 import static com.hazelcast.internal.config.DomConfigHelper.childElements;
 import static com.hazelcast.internal.config.DomConfigHelper.cleanNodeName;
-import static com.hazelcast.internal.config.DomConfigHelper.firstChildElement;
 import static com.hazelcast.internal.config.DomConfigHelper.getBooleanValue;
 import static com.hazelcast.internal.config.DomConfigHelper.getDoubleValue;
 import static com.hazelcast.internal.config.DomConfigHelper.getIntegerValue;
@@ -240,13 +240,14 @@ public class HazelcastConfigBeanDefinitionParser extends AbstractHazelcastBeanDe
         ICMP_FAILURE_DETECTOR_CONFIG_PROPERTIES = Collections.unmodifiableMap(map);
     }
 
+    @Override
     public AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
         SpringXmlConfigBuilder springXmlConfigBuilder = new SpringXmlConfigBuilder(parserContext);
         springXmlConfigBuilder.handleConfig(element);
         return springXmlConfigBuilder.getBeanDefinition();
     }
 
-    private class SpringXmlConfigBuilder extends SpringXmlBuilderHelper {
+    private static class SpringXmlConfigBuilder extends SpringXmlBuilderHelper {
 
         private final ParserContext parserContext;
 
@@ -834,6 +835,18 @@ public class HazelcastConfigBeanDefinitionParser extends AbstractHazelcastBeanDe
         }
 
         void handleAdvancedNetwork(Node node) {
+            final Set<String> singletonElements = Set.of(
+                    "join",
+                    "failure-detector",
+                    "member-address-provider",
+                    "member-server-socket-endpoint-config",
+                    "client-server-socket-endpoint-config",
+                    "rest-server-socket-endpoint-config",
+                    "memcache-server-socket-endpoint-config"
+            );
+
+            final Set<String> seen = new HashSet<>(singletonElements.size());
+
             BeanDefinitionBuilder advNetworkConfigBuilder = createBeanBuilder(AdvancedNetworkConfig.class);
             AbstractBeanDefinition beanDefinition = advNetworkConfigBuilder.getBeanDefinition();
             fillAttributeValues(node, advNetworkConfigBuilder);
@@ -841,28 +854,46 @@ public class HazelcastConfigBeanDefinitionParser extends AbstractHazelcastBeanDe
             if (getBooleanValue(enabled)) {
                 hasAdvancedNetworkEnabled = true;
             }
+
             for (Node child : childElements(node)) {
                 String nodeName = cleanNodeName(child);
-                if ("join".equals(nodeName)) {
-                    handleJoin(child, advNetworkConfigBuilder);
-                } else if ("member-address-provider".equals(nodeName)) {
-                    handleMemberAddressProvider(child, advNetworkConfigBuilder);
-                } else if ("failure-detector".equals(nodeName)) {
-                    handleFailureDetector(child, advNetworkConfigBuilder);
-                } else if ("wan-endpoint-config".equals(nodeName)) {
-                    handleWanEndpointConfig(child);
-                } else if ("member-server-socket-endpoint-config".equals(nodeName)) {
-                    handleMemberServerSocketEndpointConfig(child);
-                } else if ("client-server-socket-endpoint-config".equals(nodeName)) {
-                    handleClientServerSocketEndpointConfig(child);
-                } else if ("wan-server-socket-endpoint-config".equals(nodeName)) {
-                    handleWanServerSocketEndpointConfig(child);
-                } else if ("rest-server-socket-endpoint-config".equals(nodeName)) {
-                    handleRestServerSocketEndpointConfig(child);
-                } else if ("memcache-server-socket-endpoint-config".equals(nodeName)) {
-                    handleMemcacheServerSocketEndpointConfig(child);
+                if (singletonElements.contains(nodeName) && !seen.add(nodeName)) {
+                    throw new InvalidConfigurationException("At most one " + nodeName
+                            + " is allowed under <advanced-network>.");
+                }
+                switch (nodeName) {
+                    case "join":
+                        handleJoin(child, advNetworkConfigBuilder);
+                        break;
+                    case "member-address-provider":
+                        handleMemberAddressProvider(child, advNetworkConfigBuilder);
+                        break;
+                    case "failure-detector":
+                        handleFailureDetector(child, advNetworkConfigBuilder);
+                        break;
+                    case "wan-endpoint-config":
+                        handleWanEndpointConfig(child);
+                        break;
+                    case "wan-server-socket-endpoint-config":
+                        handleWanServerSocketEndpointConfig(child);
+                        break;
+                    case "member-server-socket-endpoint-config":
+                        handleMemberServerSocketEndpointConfig(child);
+                        break;
+                    case "client-server-socket-endpoint-config":
+                        handleClientServerSocketEndpointConfig(child);
+                        break;
+                    case "rest-server-socket-endpoint-config":
+                        handleRestServerSocketEndpointConfig(child);
+                        break;
+                    case "memcache-server-socket-endpoint-config":
+                        handleMemcacheServerSocketEndpointConfig(child);
+                        break;
+                    default:
+                        break;
                 }
             }
+
             advNetworkConfigBuilder.addPropertyValue("endpointConfigs", endpointConfigsMap);
             configBuilder.addPropertyValue("advancedNetworkConfig", beanDefinition);
         }
@@ -2431,13 +2462,21 @@ public class HazelcastConfigBeanDefinitionParser extends AbstractHazelcastBeanDe
             String name = getTextContent(attName);
             fillAttributeValues(node, vectorCollectionConfigBuilder);
             ManagedList<AbstractBeanDefinition> vectorIndexConfigs = new ManagedList<>();
-            Node indexesNode = firstChildElement(node);
-            if ("indexes".equals(cleanNodeName(indexesNode))) {
-                for (Node childNode : childElements(indexesNode)) {
-                    String nodeName = cleanNodeName(childNode);
-                    if ("index".equals(nodeName)) {
-                        vectorIndexConfigs.add(parseVectorIndex(childNode));
+            for (Node childNode : childElements(node)) {
+                String nodeName = cleanNodeName(childNode);
+                if ("indexes".equals(nodeName)) {
+                    for (Node indexNode : childElements(childNode)) {
+                        String indexNodeName = cleanNodeName(indexNode);
+                        if ("index".equals(indexNodeName)) {
+                            vectorIndexConfigs.add(parseVectorIndex(indexNode));
+                        }
                     }
+                } else if ("split-brain-protection-ref".equals(nodeName)) {
+                    vectorCollectionConfigBuilder.addPropertyValue("splitBrainProtectionName", getTextContent(childNode));
+                } else if ("merge-policy".equals(nodeName)) {
+                    handleMergePolicyConfig(childNode, vectorCollectionConfigBuilder);
+                } else if ("user-code-namespace".equals(nodeName)) {
+                    vectorCollectionConfigBuilder.addPropertyValue("userCodeNamespace", getTextContent(childNode));
                 }
             }
             vectorCollectionConfigBuilder.addPropertyValue("vectorIndexConfigs", vectorIndexConfigs);

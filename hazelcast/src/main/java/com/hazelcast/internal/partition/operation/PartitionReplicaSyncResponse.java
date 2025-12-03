@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.internal.cluster.impl.ClusterServiceImpl;
 import com.hazelcast.internal.partition.ChunkSerDeHelper;
 import com.hazelcast.internal.partition.ChunkSupplier;
-import com.hazelcast.internal.partition.InternalPartitionService;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.PartitionReplica;
 import com.hazelcast.internal.partition.ReplicaErrorLogger;
+import com.hazelcast.internal.partition.ReplicaSyncEvent;
 import com.hazelcast.internal.partition.impl.InternalPartitionImpl;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
 import com.hazelcast.internal.partition.impl.PartitionDataSerializerHook;
@@ -37,13 +38,13 @@ import com.hazelcast.nio.serialization.impl.Versioned;
 import com.hazelcast.spi.exception.WrongTargetException;
 import com.hazelcast.spi.impl.AllowedDuringPassiveState;
 import com.hazelcast.spi.impl.NodeEngine;
+import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.spi.impl.operationservice.BackupOperation;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.OperationResponseHandler;
 import com.hazelcast.spi.impl.operationservice.PartitionAwareOperation;
 import com.hazelcast.spi.impl.operationservice.TargetAware;
 import com.hazelcast.spi.impl.operationservice.UrgentSystemOperation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -68,7 +69,6 @@ import static com.hazelcast.spi.impl.operationservice.OperationResponseHandlerFa
  * <li>if the node is not a replica anymore it will clear the replica versions for the partition</li>
  * </ul>
  */
-@SuppressFBWarnings("EI_EXPOSE_REP")
 public class PartitionReplicaSyncResponse extends AbstractPartitionOperation
         implements PartitionAwareOperation, BackupOperation, UrgentSystemOperation,
         AllowedDuringPassiveState, TargetAware, Versioned {
@@ -128,6 +128,9 @@ public class PartitionReplicaSyncResponse extends AbstractPartitionOperation
         PartitionReplicaManager replicaManager = partitionService.getReplicaManager();
         if (replicaIndex == currentReplicaIndex) {
             replicaManager.finalizeReplicaSync(partitionId, replicaIndex, namespace, versions);
+
+            var syncEvent = new ReplicaSyncEvent(partitionId, namespace, replicaIndex);
+            ((NodeEngineImpl) getNodeEngine()).onReplicaSync(syncEvent);
         } else {
             replicaManager.clearReplicaSyncRequest(partitionId, namespace, replicaIndex);
             if (currentReplicaIndex < 0) {
@@ -238,7 +241,7 @@ public class PartitionReplicaSyncResponse extends AbstractPartitionOperation
 
     @Override
     public String getServiceName() {
-        return InternalPartitionService.SERVICE_NAME;
+        return IPartitionService.SERVICE_NAME;
     }
 
     @Override

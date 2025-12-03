@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 package com.hazelcast.internal.util.collection;
 
 import com.hazelcast.internal.util.QuickMath;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
@@ -309,6 +308,7 @@ public class Long2ObjectHashMap<V> implements Map<Long, V> {
         return entrySet;
     }
 
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append('{');
@@ -530,9 +530,6 @@ public class Long2ObjectHashMap<V> implements Map<Long, V> {
         }
 
         @Override
-        public abstract T next();
-
-        @Override
         public void remove() {
             if (isPositionValid) {
                 final int position = getPosition();
@@ -571,8 +568,8 @@ public class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     @SuppressWarnings("unchecked")
-    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS",
-            justification = "deliberate, documented choice")
+//    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS",
+//            justification = "deliberate, documented choice")
     private class EntryIterator extends AbstractIterator<Entry<Long, V>> implements Entry<Long, V> {
 
         @Override

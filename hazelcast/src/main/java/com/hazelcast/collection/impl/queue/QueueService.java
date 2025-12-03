@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ public class QueueService implements ManagedService, MigrationAwareService, Tran
         }
 
         NamespaceUtil.runWithNamespace(nodeEngine, lookupNamespace(event.getName()), () -> {
-            if (event.eventType.equals(ItemEventType.ADDED)) {
+            if (event.eventType == ItemEventType.ADDED) {
                 listener.itemAdded(itemEvent);
             } else {
                 listener.itemRemoved(itemEvent);
@@ -505,8 +505,9 @@ public class QueueService implements ManagedService, MigrationAwareService, Tran
                     Queue<QueueItem> items = container.getItemQueue();
 
                     String name = container.getName();
+                    var config = container.getConfig();
                     SplitBrainMergePolicy<Collection<Object>, QueueMergeTypes<Object>, Collection<Object>> mergePolicy
-                            = getMergePolicy(container.getConfig().getMergePolicyConfig());
+                            = getMergePolicy(config.getMergePolicyConfig(), config.getUserCodeNamespace());
 
                     QueueMergeTypes mergingValue = createMergingValue(serializationService, items);
                     sendBatch(partitionId, name, mergePolicy, mergingValue);

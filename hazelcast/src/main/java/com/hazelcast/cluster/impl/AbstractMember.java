@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,10 +82,12 @@ public abstract class AbstractMember implements Member {
         this.liteMember = member.liteMember;
     }
 
+    @Override
     public Address getAddress() {
         return address;
     }
 
+    @Override
     public Map<EndpointQualifier, Address> getAddressMap() {
         return addressMap;
     }
@@ -115,7 +117,7 @@ public abstract class AbstractMember implements Member {
     @Override
     public InetSocketAddress getSocketAddress(EndpointQualifier qualifier) {
         Address addr = addressMap.get(qualifier);
-        if (addr == null && !qualifier.getType().equals(ProtocolType.MEMBER)) {
+        if (addr == null && qualifier.getType() != ProtocolType.MEMBER) {
             addr = addressMap.get(MEMBER);
         }
 
@@ -223,11 +225,10 @@ public abstract class AbstractMember implements Member {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof Member)) {
+        if (!(obj instanceof Member that)) {
             return false;
         }
 
-        Member that = (Member) obj;
         return address.equals(that.getAddress()) && Objects.equals(uuid, that.getUuid());
     }
 

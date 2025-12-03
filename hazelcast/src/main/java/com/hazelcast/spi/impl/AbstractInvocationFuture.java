@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@ package com.hazelcast.spi.impl;
 import com.hazelcast.core.ExecutionCallback;
 import com.hazelcast.core.HazelcastException;
 import com.hazelcast.instance.impl.OutOfMemoryErrorDispatcher;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.internal.util.ConcurrencyUtil;
 import com.hazelcast.internal.util.executor.UnblockableThread;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.impl.operationservice.WrappableException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -40,7 +42,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -51,7 +52,6 @@ import static com.hazelcast.internal.util.ConcurrencyUtil.CALLER_RUNS;
 import static com.hazelcast.internal.util.ExceptionUtil.cloneExceptionWithFixedAsyncStackTrace;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater;
 import static java.util.concurrent.locks.LockSupport.park;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
 import static java.util.concurrent.locks.LockSupport.unpark;
@@ -61,7 +61,7 @@ import static java.util.concurrent.locks.LockSupport.unpark;
  *
  * @param <V>
  */
-@SuppressFBWarnings(value = "DLS_DEAD_STORE_OF_CLASS_LITERAL", justification = "Recommended way to prevent classloading bug")
+//@SuppressFBWarnings(value = "DLS_DEAD_STORE_OF_CLASS_LITERAL", justification = "Recommended way to prevent classloading bug")
 @SuppressWarnings({"checkstyle:methodcount", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public abstract class AbstractInvocationFuture<V> extends InternalCompletableFuture<V> {
 
@@ -72,8 +72,7 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
         }
     };
 
-    private static final AtomicReferenceFieldUpdater<AbstractInvocationFuture, Object> STATE_UPDATER =
-            newUpdater(AbstractInvocationFuture.class, Object.class, "state");
+    private static final VarHandle STATE = ReflectionUtil.findVarHandle("state", Object.class);
 
     // reduce the risk of rare disastrous classloading in first call to
     // LockSupport.park: https://bugs.openjdk.java.net/browse/JDK-8074773
@@ -362,7 +361,7 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
         requireNonNull(executor);
         final InternalCompletableFuture<Void> future = newCompletableFuture();
         final CompletableFuture<?> otherFuture =
-                (other instanceof CompletableFuture) ? (CompletableFuture<?>) other : other.toCompletableFuture();
+                (other instanceof CompletableFuture<?> cf) ? cf : other.toCompletableFuture();
 
         if (isDone()) {
             unblockRunAfterBoth(otherFuture, action, executor, future);
@@ -471,7 +470,7 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
 
         final InternalCompletableFuture<Void> future = newCompletableFuture();
         final CompletableFuture<?> otherFuture =
-                (other instanceof CompletableFuture) ? (CompletableFuture<?>) other : other.toCompletableFuture();
+                (other instanceof CompletableFuture<?> cf) ? cf : other.toCompletableFuture();
 
         if (isDone()) {
             unblockRunAfterEither(action, executor, future);
@@ -509,7 +508,7 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
     }
 
     boolean compareAndSetState(Object oldState, Object newState) {
-        return STATE_UPDATER.compareAndSet(this, oldState, newState);
+        return STATE.compareAndSet(this, oldState, newState);
     }
 
     protected final Object getState() {
@@ -749,8 +748,8 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
 
     private void unblockAll(Object waiter, Executor executor) {
         while (waiter != null) {
-            if (waiter instanceof Thread) {
-                unpark((Thread) waiter);
+            if (waiter instanceof Thread thread) {
+                unpark(thread);
                 return;
             } else if (waiter.getClass() == WaitNode.class) {
                 WaitNode waitNode = (WaitNode) waiter;
@@ -794,14 +793,14 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
             return;
         }
         Object value = resolve(state);
-        if (waiter instanceof UniWaiter) {
-            ((UniWaiter) waiter).execute(executor, value);
-        } else if (waiter instanceof BiWaiter) {
-            Throwable t = (value instanceof ExceptionalResult) ? ((ExceptionalResult) value).cause : null;
+        if (waiter instanceof UniWaiter uniWaiter) {
+            uniWaiter.execute(executor, value);
+        } else if (waiter instanceof BiWaiter biWaiter) {
+            Throwable t = (value instanceof ExceptionalResult er) ? er.cause : null;
             value = (value instanceof ExceptionalResult) ? null : value;
-            ((BiWaiter) waiter).execute(executor, value, t);
-        } else if (waiter instanceof ExceptionallyNode) {
-            ((ExceptionallyNode) waiter).execute(value);
+            biWaiter.execute(executor, value, t);
+        } else if (waiter instanceof ExceptionallyNode node) {
+            node.execute(value);
         }
     }
 
@@ -812,10 +811,10 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
             return (V) resolved;
         }
         Throwable cause = ((ExceptionalResult) resolved).cause;
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        } else if (cause instanceof CompletionException) {
-            throw (CompletionException) cause;
+        if (cause instanceof CancellationException e) {
+            throw e;
+        } else if (cause instanceof CompletionException e) {
+            throw e;
         }
         throw new CompletionException(cause);
     }
@@ -878,8 +877,8 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
         final Object result = resolve(state);
         V value;
         Throwable throwable;
-        if (result instanceof ExceptionalResult) {
-            throwable = ((ExceptionalResult) result).getCause();
+        if (result instanceof ExceptionalResult exceptionalResult) {
+            throwable = exceptionalResult.getCause();
             value = null;
         } else {
             throwable = null;
@@ -906,8 +905,8 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
         Object result = resolve(state);
         V value;
         Throwable throwable;
-        if (result instanceof ExceptionalResult) {
-            throwable = ((ExceptionalResult) result).cause;
+        if (result instanceof ExceptionalResult exceptionalResult) {
+            throwable = exceptionalResult.cause;
             value = null;
         } else {
             throwable = null;
@@ -932,8 +931,8 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
     private void unblockExceptionally(@Nonnull Function<Throwable, ? extends V> fn,
                                       InternalCompletableFuture<V> future) {
         Object result = resolve(state);
-        if (result instanceof ExceptionalResult) {
-            Throwable throwable = ((ExceptionalResult) result).cause;
+        if (result instanceof ExceptionalResult exceptionalResult) {
+            Throwable throwable = exceptionalResult.cause;
             try {
                 V value = fn.apply(throwable);
                 future.complete(value);
@@ -1337,22 +1336,22 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
      * @return {@code true} in case the dependent was completed exceptionally, otherwise {@code false}
      */
     private static boolean cascadeException(Object resolved, CompletableFuture dependent) {
-        if (resolved instanceof ExceptionalResult) {
-            dependent.completeExceptionally(wrapInCompletionException((((ExceptionalResult) resolved).cause)));
+        if (resolved instanceof ExceptionalResult exceptionalResult) {
+            dependent.completeExceptionally(wrapInCompletionException((exceptionalResult.cause)));
             return true;
         }
         return false;
     }
 
     private static CompletionException wrapInCompletionException(Throwable t) {
-        return (t instanceof CompletionException)
-                ? (CompletionException) t
+        return (t instanceof CompletionException ce)
+                ? ce
                 : new CompletionException(t);
     }
 
     protected static ExceptionalResult wrapThrowable(Object value) {
-        if (value instanceof ExceptionalResult) {
-            return (ExceptionalResult) value;
+        if (value instanceof ExceptionalResult exceptionalResult) {
+            return exceptionalResult;
         }
         return new ExceptionalResult((Throwable) value);
     }
@@ -1425,8 +1424,6 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
          *         while the remote stack trace is reported in its cause exception.
          *     </li>
          * </ul>
-         *
-         * @return
          */
         public Throwable wrapForJoinInternal() {
             return wrapOrPeel(cause);
@@ -1505,8 +1502,8 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
         }
 
         public void execute(Object resolved) {
-            if (resolved instanceof ExceptionalResult) {
-                Throwable throwable = ((ExceptionalResult) resolved).cause;
+            if (resolved instanceof ExceptionalResult exceptionalResult) {
+                Throwable throwable = exceptionalResult.cause;
                 try {
                     R value = function.apply(throwable);
                     future.complete(value);
@@ -1894,7 +1891,7 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
     }
 
     private static boolean isStateCancelled(final Object state) {
-        return ((state instanceof ExceptionalResult)
+        return ((state instanceof ExceptionalResult er)
                 && (((ExceptionalResult) state).cause instanceof CancellationException));
     }
 
@@ -1946,25 +1943,25 @@ public abstract class AbstractInvocationFuture<V> extends InternalCompletableFut
     }
 
     static Throwable wrapOrPeel(Throwable cause) {
-        if (cause instanceof RuntimeException) {
-            return wrapRuntimeException((RuntimeException) cause);
+        if (cause instanceof RuntimeException exception) {
+            return wrapRuntimeException(exception);
         }
         if ((cause instanceof ExecutionException || cause instanceof InvocationTargetException)
                 && cause.getCause() != null) {
             return wrapOrPeel(cause.getCause());
         }
-        if (cause instanceof Error) {
-            if (cause instanceof OutOfMemoryError) {
-                OutOfMemoryErrorDispatcher.onOutOfMemory((OutOfMemoryError) cause);
+        if (cause instanceof Error error1) {
+            if (cause instanceof OutOfMemoryError error) {
+                OutOfMemoryErrorDispatcher.onOutOfMemory(error);
             }
-            return wrapError((Error) cause);
+            return wrapError(error1);
         }
         return new HazelcastException(cause);
     }
 
     private static RuntimeException wrapRuntimeException(RuntimeException cause) {
-        if (cause instanceof WrappableException) {
-            return ((WrappableException) cause).wrap();
+        if (cause instanceof WrappableException exception) {
+            return exception.wrap();
         }
         return cloneExceptionWithFixedAsyncStackTrace(cause);
     }

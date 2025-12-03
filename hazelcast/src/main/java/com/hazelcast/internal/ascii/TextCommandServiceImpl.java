@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ import com.hazelcast.internal.server.ServerConnectionManager;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.map.IMap;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -409,7 +408,6 @@ public class TextCommandServiceImpl implements TextCommandService {
         private final BlockingQueue<TextCommand> blockingQueue = new ArrayBlockingQueue<>(200);
         private final Object stopObject = new Object();
 
-        @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
         public void sendResponse(TextCommand textCommand) {
             blockingQueue.offer(textCommand);
         }
@@ -439,7 +437,6 @@ public class TextCommandServiceImpl implements TextCommandService {
             }
         }
 
-        @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
         void stop() {
             running = false;
             synchronized (stopObject) {

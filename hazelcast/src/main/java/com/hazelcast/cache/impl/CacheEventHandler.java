@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,10 +78,7 @@ public class CacheEventHandler {
         final Object eventData;
         final CacheEventType eventType = cacheEventContext.getEventType();
         switch (eventType) {
-            case CREATED:
-            case UPDATED:
-            case REMOVED:
-            case EXPIRED:
+            case CREATED, UPDATED, REMOVED, EXPIRED:
                 final CacheEventData cacheEventData =
                         new CacheEventDataImpl(cacheName, eventType, cacheEventContext.getDataKey(),
                                 cacheEventContext.getDataValue(), cacheEventContext.getDataOldValue(),
@@ -90,8 +87,7 @@ public class CacheEventHandler {
                 eventSet.addEventData(cacheEventData);
                 eventData = eventSet;
                 break;
-            case EVICTED:
-            case INVALIDATED:
+            case EVICTED, INVALIDATED:
                 eventData = new CacheEventDataImpl(cacheName, eventType, cacheEventContext.getDataKey(),
                         null, null, false);
                 break;

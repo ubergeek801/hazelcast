@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.hazelcast.replicatedmap.impl.operation;
 
+import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.replicatedmap.impl.ReplicatedMapService;
@@ -24,7 +26,6 @@ import com.hazelcast.spi.merge.SplitBrainMergePolicy;
 import com.hazelcast.spi.merge.SplitBrainMergeTypes.ReplicatedMapMergeTypes;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,10 +77,7 @@ public class MergeOperation extends AbstractNamedSerializableOperation {
     protected void writeInternal(ObjectDataOutput out) throws IOException {
         super.writeInternal(out);
         out.writeString(name);
-        out.writeInt(mergingEntries.size());
-        for (ReplicatedMapMergeTypes mergingEntry : mergingEntries) {
-            out.writeObject(mergingEntry);
-        }
+        SerializationUtil.writeList(mergingEntries, out);
         out.writeObject(mergePolicy);
     }
 
@@ -87,13 +85,8 @@ public class MergeOperation extends AbstractNamedSerializableOperation {
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
         name = in.readString();
-        int size = in.readInt();
-        mergingEntries = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            ReplicatedMapMergeTypes mergingEntry = in.readObject();
-            mergingEntries.add(mergingEntry);
-        }
-        mergePolicy = in.readObject();
+        mergingEntries = SerializationUtil.readList(in);
+        mergePolicy = NamespaceUtil.callWithNamespace(in::readObject, name, ReplicatedMapService::lookupNamespace);
     }
 
     @Override

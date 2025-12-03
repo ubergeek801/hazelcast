@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class JmxPublisherTestHelper {
 
     public void assertNoMBeans() {
         Set<ObjectInstance> instances = queryOurInstances();
-        if (instances.size() > 0) {
+        if (!instances.isEmpty()) {
             String jvmName = ManagementFactory.getRuntimeMXBean().getName();
             logger.info("Dangling metrics MBeans created by " + jvmName + ": " + instances);
         }

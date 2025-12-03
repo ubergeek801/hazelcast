@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class PluggableMemoryInfoAccessorTest extends HazelcastTestSupport {
                 .setSize(50);
 
         HazelcastInstance node = createHazelcastInstance(config);
-        IMap map = node.getMap("test");
+        IMap<Integer, Integer> map = node.getMap("test");
 
         for (int i = 0; i < 1000; i++) {
             map.put(i, i);

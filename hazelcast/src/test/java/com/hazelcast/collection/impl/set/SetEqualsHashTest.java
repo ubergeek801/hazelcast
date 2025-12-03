@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -43,7 +42,7 @@ public class SetEqualsHashTest extends HazelcastTestSupport {
         Data value = build.toData(randomString());
         CollectionItem firstItem = new CollectionItem(1, value);
         CollectionItem secondItem = new CollectionItem(2, value);
-        assertTrue(firstItem.equals(secondItem));
+        assertEquals(firstItem, secondItem);
         assertEquals(firstItem.hashCode(), secondItem.hashCode());
     }
 }

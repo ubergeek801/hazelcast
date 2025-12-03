@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -499,8 +499,7 @@ public class IMapSqlConnector implements SqlConnector {
 
         // ordering of attributes matters for partitioning (1,2) produces different partition than (2,1).
         final List<String> orderedKeyAttributes = new ArrayList<>();
-        if (strategy instanceof AttributePartitioningStrategy) {
-            final var attributeStrategy = (AttributePartitioningStrategy) strategy;
+        if (strategy instanceof AttributePartitioningStrategy attributeStrategy) {
             orderedKeyAttributes.addAll(asList(attributeStrategy.getPartitioningAttributes()));
         } else {
             orderedKeyAttributes.add(KEY_ATTRIBUTE_NAME.value());

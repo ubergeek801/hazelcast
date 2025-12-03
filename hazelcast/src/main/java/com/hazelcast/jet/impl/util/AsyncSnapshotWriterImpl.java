@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -306,8 +306,8 @@ public class AsyncSnapshotWriterImpl implements AsyncSnapshotWriter {
         // we're done
         currentMap = null;
         if (logger.isFineEnabled()) {
-            logger.fine(String.format("Stats for %s: keys=%,d, chunks=%,d, bytes=%,d",
-                    vertexName, totalKeys, totalChunks, totalPayloadBytes));
+            logger.fine("Stats for %s: keys=%,d, chunks=%,d, bytes=%,d",
+                    vertexName, totalKeys, totalChunks, totalPayloadBytes);
         }
         return true;
     }
@@ -474,6 +474,7 @@ public class AsyncSnapshotWriterImpl implements AsyncSnapshotWriter {
             size++;
         }
 
+        @Override
         public void write(@Nonnull byte[] b, int off, int len) {
             if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0)) {
                 throw new IndexOutOfBoundsException("off=" + off + ", len=" + len);

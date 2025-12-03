@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,10 @@ public class WriteBehindStore extends AbstractMapDataStore<Data, Object> {
     /**
      * Sequence number of store operations.
      */
-    private final AtomicLong sequence = new AtomicLong(0);
+    private final AtomicLong sequence = new AtomicLong();
 
     /**
-     * @see {@link com.hazelcast.config.MapStoreConfig#setWriteCoalescing(boolean)}
+     * @see com.hazelcast.config.MapStoreConfig#setWriteCoalescing(boolean)
      */
     private final boolean coalesce;
     private final int partitionId;
@@ -171,7 +171,7 @@ public class WriteBehindStore extends AbstractMapDataStore<Data, Object> {
         // they are referencing to the same entry-value. To prevent such a
         // problem, we are taking snapshot of the value by serializing it, this
         // means an extra serialization and additional latency for operations
-        // like map#put but it is needed, otherwise we can lost a state.
+        // like map#put, but it is needed, otherwise we can lose state.
         if (!coalesce && OBJECT == inMemoryFormat) {
             value = toHeapData(value);
         }

@@ -196,7 +196,7 @@
         "backup-ack-to-client-enabled": {
           "type": "boolean",
           "default": true,
-          "description": "The 'backup-ack-to-client-enabled' element lets you enable/disable backups ack to client. This feature reduces number of hops and increase performance for smart clients. It is enabled by default for smart clients. This config has no effect for unisocket clients."
+          "description": "The 'backup-ack-to-client-enabled' element lets you enable/disable backups ack to client. This feature reduces number of hops and increase performance for ALL_MEMBERS routing clients. It is enabled by default for smart clients. This config has no effect for SINGLE_MEMBER routing clients."
         },
         "listeners": {
           "$ref": "#/definitions/Listeners"
@@ -248,6 +248,11 @@
         },
         "tpc": {
           "$ref": "#/definitions/ClientTpc"
+        },
+        "cp-direct-to-leader-routing": {
+          "type": "boolean",
+          "default": false,
+          "description": "The cp-direct-to-leader-routing element lets you enable/disable direct-to-leader routing behaviour. This feature allows CP data structure operations to be sent directly to group leaders instead of using all members of the cluster. This functionality requires the cluster to have the appropriate Hazelcast Enterprise license, otherwise it will provide no benefit on the client. It is disabled by default. This option has no effect for SINGLE_MEMBER routing clients."
         }
       }
     },
@@ -490,7 +495,7 @@
     },
     "FailureDetector": {
       "type": "object",
-      "description": "A failure detector is responsible to determine if a member in the cluster is unreachable or crashed. Please refer to https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#failure-detector-configuration for the failure detectors implemented by Hazelcast.",
+      "description": "A failure detector is responsible to determine if a member in the cluster is unreachable or crashed. Please refer to https://docs.hazelcast.com/hazelcast/latest/clusters/failure-detector-configuration for the failure detectors implemented by Hazelcast.",
       "additionalProperties": false,
       "properties": {
         "icmp": {
@@ -612,7 +617,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "description": "Set its \"enabled\" sub-element to true for discovery in various cloud infrastructures. You also need to set the value of \"hazelcast.discovery.enabled\" property to true. See the description of the \"properties\" element to learn how to do this. You can define multiple discovery strategies using the \"discovery-strategy\" sub-element and its properties. Please refer to http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#discovering-cluster-members to see the properties you can use.",
+            "description": "Set its \"enabled\" sub-element to true for discovery in various cloud infrastructures. You also need to set the value of \"hazelcast.discovery.enabled\" property to true. See the description of the \"properties\" element to learn how to do this. You can define multiple discovery strategies using the \"discovery-strategy\" sub-element and its properties. Please refer to https://docs.hazelcast.com/hazelcast/latest/clusters/discovery-mechanisms to see the properties you can use.",
             "properties": {
               "enabled": {
                 "type": "boolean",
@@ -4945,27 +4950,28 @@
         "outbound-ports": {
           "$ref": "#/definitions/OutboundPorts"
         },
-        "subset-routing": {
+        "cluster-routing": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false,
-              "description": "If true, this client will only connect to a limited subset of the cluster, as specified with the defined routing-strategy. Default value of routing-strategy is PARTITION_GROUPS when not set. And subset-routing is disabled by default. Note: This feature may only be enabled if smart-routing is disabled."
+            "mode": {
+              "type": "string",
+              "enum": ["ALL_MEMBERS", "MULTI_MEMBER", "SINGLE_MEMBER"],
+              "default": "ALL_MEMBERS",
+              "description": "Defines the mode to use when connecting to the cluster - this can either be \"SINGLE_MEMBER\" to connect\nto a single member of the cluster, \"MULTI_MEMBER\" to connect to a subset of the cluster as defined by\nthe \"routing-strategy\" property, or \"ALL_MEMBERS\" to connect to all members of the cluster."
             },
             "routing-strategy": {
               "type": "string",
               "enum": ["PARTITION_GROUPS"],
               "default": "PARTITION_GROUPS",
-              "description": "Determines the routing strategy to use with subset routing."
+              "description": "Determines the routing strategy to use when the routing mode is MULTI_MEMBER."
             }
           },
-          "description": "Configures the subset routing capabilities."
+          "description": "Configures the client's routing preferences, which determine which members of the cluster it connects to."
         },
         "smart-routing": {
           "type": "boolean",
           "default": true,
-          "description": "If true, client will route the key based operations to owner of the key at the best effort. Note that it uses a cached version of com.hazelcast.core.PartitionService#getPartitions() and doesn't guarantee that the operation will always be executed on the owner. The cached table is updated every second. Also note that this feature may only be enabled if subset-routing is disabled."
+          "description": "This feature is deprecated, please see \"cluster-routing\" configuration options."
         },
         "redo-operation": {
           "type": "boolean",
@@ -5237,6 +5243,16 @@
           "$ref": "#/definitions/JavaSerializationFilter",
           "description":
           "Allows to configure blacklisting and whitelisting by class, package or prefix.\nIf a filtered class has been blacklisted, a SecurityException will be thrown.\nIf whitelisting is enabled, either by explicit declaration under whitelist or setting defaults-disabled=false, a SecurityException will be thrown if a filtered class has not been whitelisted.\nIf defaults-disabled is set to true, the default whitelist will not be used.\nIf set to false, the default whitelist will be used. In such cases that a class name does not match any of the whitelisted classes, packages or prefixes, a SecurityException will be thrown."
+        },
+        "name-spaces": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Namespace"
+            }
+          },
+          "description": "A list of User Code Namespace configurations."
         }
       },
       "additionalProperties": {

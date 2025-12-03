@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -516,7 +516,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         map.put(1, 1);
 
         IncrementorEntryProcessor<Integer> entryProcessor = new IncrementorEntryProcessor<>();
-        final AtomicInteger result = new AtomicInteger(0);
+        final AtomicInteger result = new AtomicInteger();
         final CountDownLatch latch = new CountDownLatch(1);
         map.submitToKey(1, entryProcessor).whenCompleteAsync((v, t) -> {
             if (t == null) {
@@ -683,12 +683,12 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         nodeFactory.newHazelcastInstance(cfg);
 
         IMap<Integer, Integer> map = instance1.getMap(MAP_NAME);
-        AtomicInteger addCount = new AtomicInteger(0);
-        AtomicInteger updateCount = new AtomicInteger(0);
-        AtomicInteger removeCount = new AtomicInteger(0);
-        AtomicInteger addKey1Sum = new AtomicInteger(0);
-        AtomicInteger updateKey1Sum = new AtomicInteger(0);
-        AtomicInteger removeKey1Sum = new AtomicInteger(0);
+        AtomicInteger addCount = new AtomicInteger();
+        AtomicInteger updateCount = new AtomicInteger();
+        AtomicInteger removeCount = new AtomicInteger();
+        AtomicInteger addKey1Sum = new AtomicInteger();
+        AtomicInteger updateKey1Sum = new AtomicInteger();
+        AtomicInteger removeKey1Sum = new AtomicInteger();
         CountDownLatch latch = new CountDownLatch(6);
 
         map.addEntryListener((EntryAddedListener<Integer, Integer>) event -> {
@@ -741,9 +741,9 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         HazelcastInstance instance1 = nodeFactory.newHazelcastInstance(cfg);
 
         IMap<Integer, Integer> map = instance1.getMap(MAP_NAME);
-        AtomicInteger addCount = new AtomicInteger(0);
-        AtomicInteger updateCount = new AtomicInteger(0);
-        AtomicInteger removeCount = new AtomicInteger(0);
+        AtomicInteger addCount = new AtomicInteger();
+        AtomicInteger updateCount = new AtomicInteger();
+        AtomicInteger removeCount = new AtomicInteger();
         CountDownLatch latch = new CountDownLatch(3);
         map.addEntryListener((EntryAddedListener<Integer, Integer>) event -> {
             addCount.incrementAndGet();
@@ -789,9 +789,9 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         nodeFactory.newHazelcastInstance(cfg);
 
         IMap<Integer, Integer> map = instance1.getMap(MAP_NAME);
-        AtomicInteger addCount = new AtomicInteger(0);
-        AtomicInteger updateCount = new AtomicInteger(0);
-        AtomicInteger removeCount = new AtomicInteger(0);
+        AtomicInteger addCount = new AtomicInteger();
+        AtomicInteger updateCount = new AtomicInteger();
+        AtomicInteger removeCount = new AtomicInteger();
         CountDownLatch latch = new CountDownLatch(300);
         map.addEntryListener((EntryAddedListener<Integer, Integer>) event -> {
             addCount.incrementAndGet();
@@ -1220,7 +1220,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
             map.put(i, i);
         }
 
-        AtomicBoolean indexCalled = new AtomicBoolean(false);
+        AtomicBoolean indexCalled = new AtomicBoolean();
         map.executeOnEntries(new NoOpEntryProcessor<>(), new IndexedTestPredicate<>(indexCalled));
 
         assertTrue("isIndexed method of IndexAwarePredicate should be called", indexCalled.get());
@@ -1234,7 +1234,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
             map.put(i, i);
         }
 
-        AtomicBoolean indexCalled = new AtomicBoolean(false);
+        AtomicBoolean indexCalled = new AtomicBoolean();
         map.executeOnEntries(new NoOpEntryProcessor<>(), new IndexedTestPredicate<>(indexCalled));
 
         assertFalse("isIndexed method of IndexAwarePredicate should not be called", indexCalled.get());
@@ -1356,7 +1356,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         testMap.set(1L, new MyData(10));
         testMap.set(2L, new MyData(20));
 
-        testMap.executeOnKeys(new HashSet<>(asList(1L, 2L)), new MyProcessor());
+        testMap.executeOnKeys(Set.of(1L, 2L), new MyProcessor());
 
         Predicate<Long, MyData> betweenPredicate = Predicates.between("lastValue", 0, 10);
         Collection<MyData> values = testMap.values(betweenPredicate);
@@ -1461,7 +1461,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
 
         final IMap<Object, Object> map = instance.getMap(MAP_NAME);
 
-        map.addEntryListener(new NoopMapListener<Object, Object>(), false);
+        map.addEntryListener(new NoopMapListener<>(), false);
 
         final LongAdder interceptGetCallCounter = new LongAdder();
         map.addInterceptor(new MapInterceptorAdaptor() {
@@ -1843,7 +1843,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
 
     static class ApplyCountAwareIndexedTestPredicate<K, V> implements IndexAwarePredicate<K, V> {
 
-        static final AtomicInteger PREDICATE_APPLY_COUNT = new AtomicInteger(0);
+        static final AtomicInteger PREDICATE_APPLY_COUNT = new AtomicInteger();
 
         private final Comparable<K> key;
         private final String attributeName;
@@ -1907,11 +1907,11 @@ public class EntryProcessorTest extends HazelcastTestSupport {
         }
 
         @Override
-        public void writeData(ObjectDataOutput out) throws IOException {
+        public void writeData(ObjectDataOutput out) {
         }
 
         @Override
-        public void readData(ObjectDataInput in) throws IOException {
+        public void readData(ObjectDataInput in) {
         }
     }
 
@@ -1955,7 +1955,7 @@ public class EntryProcessorTest extends HazelcastTestSupport {
     }
 
     /**
-     * This predicate is used to check whether or not {@link IndexAwarePredicate#isIndexed} method is called.
+     * This predicate is used to check whether {@link IndexAwarePredicate#isIndexed} method is called.
      */
     private static class IndexedTestPredicate<K, V> implements IndexAwarePredicate<K, V> {
 

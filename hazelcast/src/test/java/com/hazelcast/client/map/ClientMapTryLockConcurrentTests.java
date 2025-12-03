@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.test.HazelcastTestSupport.assertJoinable;
 import static com.hazelcast.test.HazelcastTestSupport.randomString;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -91,7 +91,7 @@ public class ClientMapTryLockConcurrentTests {
         int upTotal = map.get(upKey);
         int downTotal = map.get(downKey);
 
-        assertTrue("concurrent access to locked code caused wrong total", upTotal + downTotal == 0);
+        assertEquals("concurrent access to locked code caused wrong total", 0, upTotal + downTotal);
     }
 
     static class MapTryLockThread extends TestHelper {
@@ -100,6 +100,7 @@ public class ClientMapTryLockConcurrentTests {
             super(map, upKey, downKey);
         }
 
+        @Override
         public void doRun() throws Exception {
             if (map.tryLock(upKey)) {
                 try {
@@ -123,6 +124,7 @@ public class ClientMapTryLockConcurrentTests {
             super(map, upKey, downKey);
         }
 
+        @Override
         public void doRun() throws Exception {
             if (map.tryLock(upKey, 1, TimeUnit.MILLISECONDS)) {
                 try {
@@ -155,6 +157,7 @@ public class ClientMapTryLockConcurrentTests {
             this.downKey = downKey;
         }
 
+        @Override
         public void run() {
             try {
                 for (int i = 0; i < ITERATIONS; i++) {

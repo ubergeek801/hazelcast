@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MergePolicyConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.function.BiFunctionEx;
 import com.hazelcast.instance.impl.HazelcastBootstrap;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.instance.impl.NodeState;
@@ -68,6 +69,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -115,6 +118,7 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
     private final AtomicInteger numConcurrentAsyncOps = new AtomicInteger();
     private final Supplier<int[]> sharedPartitionKeys = memoizeConcurrent(this::computeSharedPartitionKeys);
     private final JobUploadStore jobUploadStore = new JobUploadStore();
+    private final ConcurrentMap<String, Long> connectorInitializeCounts = new ConcurrentHashMap<>();
     private ScheduledFuture<?> jobUploadStoreCheckerFuture;
 
     public JetServiceBackend(Node node) {
@@ -148,8 +152,8 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
         if (clientExceptionFactory != null) {
             ExceptionUtil.registerJetExceptions(clientExceptionFactory);
         } else {
-            logger.fine("Jet exceptions are not registered to the ClientExceptionFactory" +
-                        " since the ClientExceptionFactory is not accessible.");
+            logger.fine("Jet exceptions are not registered to the ClientExceptionFactory%s",
+                    " since the ClientExceptionFactory is not accessible.");
         }
         logger.info("Setting number of cooperative threads and default parallelism to "
                     + jetConfig.getCooperativeThreadCount());
@@ -157,6 +161,10 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
         // Run periodically to clean expired jar uploads
         this.jobUploadStoreCheckerFuture = nodeEngine.getExecutionService().scheduleWithRepetition(
                 jobUploadStore::cleanExpiredUploads, 0, JOB_UPLOAD_STORE_PERIOD, SECONDS);
+    }
+
+    public ConcurrentMap<String, Long> getConnectorInitializeCounts() {
+        return connectorInitializeCounts;
     }
 
     public void configureJetInternalObjects(Config config, HazelcastProperties properties) {
@@ -231,10 +239,8 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
                         t
                 );
             } else {
-                logger.fine(
-                        "All non-master members were informed about the shutdown of member "
-                                + nodeEngine.getNode().getThisUuid()
-                );
+                logger.fine("All non-master members were informed about the shutdown of member %s",
+                        nodeEngine.getNode().getThisUuid());
             }
         });
     }
@@ -279,12 +285,22 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
     @Override
     public void shutdown(boolean forceful) {
         // Cancel timer
-        jobUploadStoreCheckerFuture.cancel(true);
+        if (jobUploadStoreCheckerFuture != null) {
+            jobUploadStoreCheckerFuture.cancel(true);
+        }
 
-        jobExecutionService.shutdown();
-        taskletExecutionService.shutdown();
-        taskletExecutionService.awaitWorkerTermination();
-        networking.shutdown();
+        if (jobExecutionService != null) {
+            jobExecutionService.shutdown();
+        }
+
+        if (taskletExecutionService != null) {
+            taskletExecutionService.shutdown();
+            taskletExecutionService.awaitWorkerTermination();
+        }
+
+        if (networking != null) {
+            networking.shutdown();
+        }
     }
 
     @Override
@@ -425,8 +441,8 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
     public void beforeClusterStateChange(ClusterState requestedState) {
         if (requestedState == PASSIVE) {
             try {
-                nodeEngine.getOperationService().createInvocationBuilder(JetServiceBackend.SERVICE_NAME,
-                                new PrepareForPassiveClusterOperation(), nodeEngine.getMasterAddress())
+                nodeEngine.getOperationService().createMasterInvocationBuilder(JetServiceBackend.SERVICE_NAME,
+                                new PrepareForPassiveClusterOperation())
                         .invoke().get();
             } catch (InterruptedException | ExecutionException e) {
                 throw rethrow(e);
@@ -494,6 +510,16 @@ public class JetServiceBackend implements ManagedService, MembershipAwareService
                 wrapWithJetException(exception);
             }
         }
+    }
+
+    /**
+     * Used to collect phone home data about jet connector initialization.
+     * Sets count to 1 if it's absent in the map, otherwise increment it by 1.
+     * @param connectorName Name of the connector.
+     */
+    public void onConnectorInitialize(String connectorName) {
+        BiFunctionEx<String, Long, Long> incrementFn = (k, v) -> v == null ? 1L : v + 1L;
+        connectorInitializeCounts.compute(connectorName, incrementFn);
     }
 
     private void throwJetExceptionFromJobMetaData(JobMetaDataParameterObject jobMetaDataParameterObject, Exception exception) {

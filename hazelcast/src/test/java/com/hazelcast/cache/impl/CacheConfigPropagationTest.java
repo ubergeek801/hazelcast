@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,8 +160,7 @@ public class CacheConfigPropagationTest extends HazelcastTestSupport {
     }
 
     protected CacheService getCacheService(HazelcastInstance member) {
-        CacheService cacheService = getNodeEngineImpl(member).getService(SERVICE_NAME);
-        return cacheService;
+        return getNodeEngineImpl(member).getService(SERVICE_NAME);
     }
 
     private void assertNoPreJoinCacheConfig(CacheService cacheService) {

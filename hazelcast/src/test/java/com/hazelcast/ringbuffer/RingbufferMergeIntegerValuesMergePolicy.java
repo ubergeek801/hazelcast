@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ class RingbufferMergeIntegerValuesMergePolicy
 
     @Override
     public RingbufferMergeData merge(RingbufferMergeTypes mergingValue, RingbufferMergeTypes existingValue) {
-        final RingbufferMergeData mergingRingbuffer = mergingValue.getValue();
+        final RingbufferMergeData mergingRingbuffer = mergingValue.getDeserializedValue();
         final RingbufferMergeData result = new RingbufferMergeData(mergingRingbuffer.getCapacity());
         RingbufferMergeData existingRingbuffer;
         if (existingValue != null) {
-            existingRingbuffer = existingValue.getValue();
+            existingRingbuffer = existingValue.getDeserializedValue();
         } else {
             existingRingbuffer = new RingbufferMergeData(mergingRingbuffer.getCapacity());
         }

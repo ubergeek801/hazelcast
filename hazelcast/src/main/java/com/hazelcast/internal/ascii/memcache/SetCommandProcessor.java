@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class SetCommandProcessor extends MemcacheCommandProcessor<SetCommand> {
 
         } else if (REPLACE == setCommand.getType()) {
 
-            replaceCommandType(setCommand, mapName, key, value, ttl);
+            replaceCommandType(setCommand, mapName, key, value);
 
         } else if (APPEND == setCommand.getType()) {
 
@@ -95,7 +95,7 @@ public class SetCommandProcessor extends MemcacheCommandProcessor<SetCommand> {
         }
     }
 
-    private void replaceCommandType(SetCommand setCommand, String mapName, String key, Object value, int ttl) {
+    private void replaceCommandType(SetCommand setCommand, String mapName, String key, Object value) {
         boolean replaced = (textCommandService.replace(mapName, key, value) != null);
         if (replaced) {
             setCommand.setResponse(TextCommandConstants.STORED);

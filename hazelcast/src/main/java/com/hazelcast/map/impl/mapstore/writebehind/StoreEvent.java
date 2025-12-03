@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.map.impl.mapstore.writebehind;
 
+import java.io.Serial;
 import java.util.EventObject;
 
 /**
@@ -25,6 +26,7 @@ import java.util.EventObject;
  */
 public final class StoreEvent<E> extends EventObject {
 
+    @Serial
     private static final long serialVersionUID = -7071512331813330032L;
 
     /**

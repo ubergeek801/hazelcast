@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.map.impl.eviction.MapClearExpiredRecordsTask.PROP_TASK_PERIOD_SECONDS;
 import static com.hazelcast.test.OverridePropertyRule.set;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -212,15 +213,15 @@ public class LocalRecordStoreStatsImplTest extends HazelcastTestSupport {
 
     private void assertLastUpdateTime(Runnable runnable, boolean updated) {
         long lastUpdateTimeBefore = map.getLocalMapStats().getLastUpdateTime();
-        sleepAtLeastMillis(10);
+        sleepAtLeastMillis(100);
 
         runnable.run();
 
         long lastUpdateTimeAfter = map.getLocalMapStats().getLastUpdateTime();
         if (updated) {
-            assertTrue(lastUpdateTimeAfter > lastUpdateTimeBefore);
+            assertThat(lastUpdateTimeAfter).isGreaterThan(lastUpdateTimeBefore);
         } else {
-            assertTrue(lastUpdateTimeAfter == lastUpdateTimeBefore);
+            assertThat(lastUpdateTimeAfter).isEqualTo(lastUpdateTimeBefore);
         }
     }
 

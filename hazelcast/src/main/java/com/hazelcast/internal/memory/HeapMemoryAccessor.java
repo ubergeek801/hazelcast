@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,6 +194,7 @@ public interface HeapMemoryAccessor extends ByteAccessStrategy<Object> {
      * @param base   the object whose base address to use for the operation
      * @param offset offset from object's base to the accessed location
      */
+    @Override
     byte getByte(Object base, long offset);
 
     /**
@@ -203,6 +204,7 @@ public interface HeapMemoryAccessor extends ByteAccessStrategy<Object> {
      * @param offset offset from object's base to the accessed location
      * @param x      the referenced object to be written
      */
+    @Override
     void putByte(Object base, long offset, byte x);
 
     /**

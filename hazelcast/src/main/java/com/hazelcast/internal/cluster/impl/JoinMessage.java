@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.cluster.impl;
 
+import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.util.UUIDSerializationUtil;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.cluster.Address;
@@ -50,14 +51,14 @@ public class JoinMessage implements IdentifiedDataSerializable {
     public JoinMessage() {
     }
 
-    public JoinMessage(byte packetVersion, int buildNumber, MemberVersion memberVersion, Address address,
+    public JoinMessage(int buildNumber, MemberVersion memberVersion, Address address,
                        UUID uuid, boolean liteMember, ConfigCheck configCheck) {
-        this(packetVersion, buildNumber, memberVersion, address, uuid, liteMember, configCheck, Collections.emptySet(), 0);
+        this(buildNumber, memberVersion, address, uuid, liteMember, configCheck, Collections.emptySet(), 0);
     }
 
-    public JoinMessage(byte packetVersion, int buildNumber, MemberVersion memberVersion, Address address, UUID uuid,
+    public JoinMessage(int buildNumber, MemberVersion memberVersion, Address address, UUID uuid,
                        boolean liteMember, ConfigCheck configCheck, Collection<Address> memberAddresses, int dataMemberCount) {
-        this.packetVersion = packetVersion;
+        this.packetVersion = Packet.VERSION;
         this.buildNumber = buildNumber;
         this.memberVersion = memberVersion;
         this.address = address;

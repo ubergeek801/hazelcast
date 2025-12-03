@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Adds a user code namespace configuration.
  */
 @SuppressWarnings("unused")
-@Generated("ee60b4b37f1e08f6b8588d4ff66633fb")
+@Generated("e43e64b9c98e810a61516c8b734b42ce")
 public final class DynamicConfigAddUserCodeNamespaceConfigCodec {
     //hex: 0x1B1300
     public static final int REQUEST_MESSAGE_TYPE = 1774336;
@@ -49,7 +49,6 @@ public final class DynamicConfigAddUserCodeNamespaceConfigCodec {
     private DynamicConfigAddUserCodeNamespaceConfigCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_KEY_FORMA
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_AVRO_RECORD_NAME;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_AVRO_SCHEMA;
 import static com.hazelcast.jet.sql.impl.connector.SqlConnector.OPTION_VALUE_FORMAT;
-import static com.hazelcast.jet.sql.impl.connector.kafka.SqlAvroSchemaEvolutionTest.NAME_SSN_SCHEMA;
 import static com.hazelcast.jet.sql.impl.connector.keyvalue.KvMetadataAvroResolver.Schemas.OBJECT_SCHEMA;
 import static com.hazelcast.jet.sql.impl.connector.keyvalue.KvMetadataAvroResolver.optional;
 import static java.time.ZoneOffset.UTC;
@@ -93,15 +92,20 @@ import static org.junit.Assume.assumeTrue;
 public class SqlAvroTest extends KafkaSqlTestSupport {
     private static final int INITIAL_PARTITION_COUNT = 4;
 
-    static final Schema ID_SCHEMA = SchemaBuilder.record("jet.sql")
+    private static final Schema ID_SCHEMA = SchemaBuilder.record("jet.sql")
             .fields()
             .optionalInt("id")
             .endRecord();
-    static final Schema NAME_SCHEMA = SchemaBuilder.record("jet.sql")
+    private static final Schema NAME_SCHEMA = SchemaBuilder.record("jet.sql")
             .fields()
             .optionalString("name")
             .endRecord();
-    static final Schema ALL_TYPES_SCHEMA = SchemaBuilder.record("jet.sql")
+    private static final Schema NAME_SSN_SCHEMA = SchemaBuilder.record("jet.sql")
+            .fields()
+            .optionalString("name")
+            .optionalLong("ssn")
+            .endRecord();
+    private static final Schema ALL_TYPES_SCHEMA = SchemaBuilder.record("jet.sql")
             .fields()
             .optionalString("string")
             .optionalBoolean("boolean")
@@ -695,7 +699,7 @@ public class SqlAvroTest extends KafkaSqlTestSupport {
             assertRecords.run();
         } else {
             assertThatThrownBy(assertRecords::run)
-                    .hasMessageContaining("Error deserializing key/value");
+                    .hasMessageContaining("Error deserializing VALUE");
         }
     }
 

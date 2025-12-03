@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.hazelcast.spi.impl.operationservice.BackupOperation;
 import com.hazelcast.spi.impl.operationservice.BlockingOperation;
 import com.hazelcast.spi.impl.operationservice.CallStatus;
 import com.hazelcast.spi.impl.operationservice.Offload;
+import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.tenantcontrol.TenantControl;
 import com.hazelcast.wan.impl.CallerProvenance;
 
@@ -72,7 +73,6 @@ import static com.hazelcast.map.impl.operation.steps.engine.StepRunner.isStepRun
 import static com.hazelcast.spi.impl.operationservice.CallStatus.RESPONSE;
 import static com.hazelcast.spi.impl.operationservice.CallStatus.VOID;
 import static com.hazelcast.spi.impl.operationservice.CallStatus.WAIT;
-import static java.lang.String.format;
 
 @SuppressWarnings("checkstyle:methodcount")
 public abstract class MapOperation extends AbstractNamedOperation
@@ -164,8 +164,8 @@ public abstract class MapOperation extends AbstractNamedOperation
     private void logNoSuchMapExists() {
         ILogger logger = logger();
         if (logger.isFinestEnabled()) {
-            logger.finest(format("No such map exists [mapName=%s, operation=%s]",
-                    name, getClass().getName()));
+            logger.finest("No such map exists [mapName=%s, operation=%s]",
+                    name, getClass().getName());
         }
     }
 
@@ -265,7 +265,7 @@ public abstract class MapOperation extends AbstractNamedOperation
     }
 
     @Override
-    public void setBackupOpAfterRun(Consumer backupOpAfterRun) {
+    public void setBackupOpAfterRun(Consumer<Operation> backupOpAfterRun) {
         this.backupOpAfterRun = backupOpAfterRun;
     }
 

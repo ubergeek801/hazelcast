@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ public class ManagementCenterService {
 
     private final AtomicReference<String> tmsJson = new AtomicReference<>();
     private final TimedMemberStateFactory tmsFactory;
-    private final AtomicBoolean tmsFactoryInitialized = new AtomicBoolean(false);
+    private final AtomicBoolean tmsFactoryInitialized = new AtomicBoolean();
     private final ConsoleCommandHandler commandHandler;
     private final ClientBwListConfigHandler bwListConfigHandler;
     private final MCEventStore eventStore;
@@ -188,7 +188,7 @@ public class ManagementCenterService {
     private void registerExecutor() {
         final ExecutionService executionService = instance.node.nodeEngine.getExecutionService();
         int threadCount = instance.node.getProperties().getInteger(ClusterProperty.MC_EXECUTOR_THREAD_COUNT);
-        logger.finest("Creating new executor for Management Center service tasks with threadCount=" + threadCount);
+        logger.finest("Creating new executor for Management Center service tasks with threadCount=%s", threadCount);
         executionService.register(ExecutionService.MC_EXECUTOR,
                 threadCount, threadCount * EXECUTOR_QUEUE_CAPACITY_PER_THREAD,
                 ExecutorType.CACHED);

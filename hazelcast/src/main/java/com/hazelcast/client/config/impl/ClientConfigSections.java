@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ public enum ClientConfigSections {
     METRICS("metrics", false),
     INSTANCE_TRACKING("instance-tracking", false),
     SQL("sql", false),
-    TPC("tpc", false);
+    TPC("tpc", false),
+    CP_DIRECT_TO_LEADER_ROUTING("cp-direct-to-leader-routing", false);
 
     final boolean multipleOccurrence;
     private final String name;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,12 +107,12 @@ public final class KubernetesProperties {
 
     /**
      * <p>Configuration key: <code>service-per-pod-label-name</code></p>
-     * Defines the label name of the service used to expose one Hazelcast pod (for the external smart client use case).
+     * Defines the label name of the service used to expose one Hazelcast pod (for the external client use case).
      */
     public static final PropertyDefinition SERVICE_PER_POD_LABEL_NAME = property("service-per-pod-label-name", STRING);
     /**
      * <p>Configuration key: <code>service-per-pod-label-value</code></p>
-     * Defines the label value of the service used to expose one Hazelcast pod (for the external smart client use case).
+     * Defines the label value of the service used to expose one Hazelcast pod (for the external client use case).
      */
     public static final PropertyDefinition SERVICE_PER_POD_LABEL_VALUE = property("service-per-pod-label-value", STRING);
 

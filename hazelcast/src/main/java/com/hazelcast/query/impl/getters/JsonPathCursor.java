@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.query.impl.getters;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -48,8 +47,6 @@ public class JsonPathCursor {
 
     /**
      * Creates a shallow copy of this object
-     *
-     * @param other
      */
     JsonPathCursor(JsonPathCursor other) {
         this.attributePath = other.attributePath;
@@ -58,8 +55,6 @@ public class JsonPathCursor {
 
     /**
      * Creates a new cursor from given attribute path.
-     *
-     * @param attributePath
      */
     public static JsonPathCursor createCursor(String attributePath) {
         ArrayList<Triple> triples = new ArrayList<>(DEFAULT_PATH_ELEMENT_COUNT);
@@ -131,10 +126,8 @@ public class JsonPathCursor {
      * efficient to call repeatedly.
      *
      * The returned byte array must not be modified!
-     *
-     * @return
      */
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Making a copy reverses the benefit of this method")
+    //@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Making a copy reverses the benefit of this method")
     public byte[] getCurrentAsUTF8() {
         return currentAsUtf8;
     }

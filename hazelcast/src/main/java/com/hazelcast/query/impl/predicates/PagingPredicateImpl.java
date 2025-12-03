@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,9 +194,6 @@ public class PagingPredicateImpl<K, V>
 
     /**
      * Used if inner predicate is instanceof {@link IndexAwarePredicate} for filtering.
-     *
-     * @param queryContext
-     * @return
      */
     @Override
     public Set<QueryableEntry<K, V>> filter(QueryContext queryContext) {
@@ -225,9 +222,6 @@ public class PagingPredicateImpl<K, V>
 
     /**
      * Used if inner predicate is instanceof {@link IndexAwarePredicate} for checking if indexed.
-     *
-     * @param queryContext
-     * @return
      */
     @Override
     public boolean isIndexed(QueryContext queryContext) {
@@ -240,9 +234,6 @@ public class PagingPredicateImpl<K, V>
 
     /**
      * Used for delegating filtering to inner predicate.
-     *
-     * @param mapEntry
-     * @return
      */
     public boolean apply(Map.Entry mapEntry) {
         if (predicate != null) {

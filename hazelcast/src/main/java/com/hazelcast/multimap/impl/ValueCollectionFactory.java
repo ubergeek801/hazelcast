@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ public final class ValueCollectionFactory {
     /**
      * Returns corresponding {@link MultiMapConfig.ValueCollectionType} of a {@link java.util.Collection}
      *
-     * @param collection {@link MultiMapConfig.ValueCollectionType} to be find
+     * @param collection {@link MultiMapConfig.ValueCollectionType} to be found
      * @return corresponding {@link MultiMapConfig.ValueCollectionType} of a {@link java.util.Collection}
      * @throws java.lang.IllegalArgumentException if collectionType is unknown
      */

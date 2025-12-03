@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public enum JavaVersion implements JavaMajorVersion {
 
     /**
      * @see <a href="https://openjdk.org/jeps/223">
-     *      JEP 223: New Version-String Scheme
+     *      JEP 223: New Version-String Scheme</a>
      */
     static JavaMajorVersion detectCurrentVersion() {
         ILogger logger = Logger.getLogger(JavaVersion.class);
@@ -85,7 +85,7 @@ public enum JavaVersion implements JavaMajorVersion {
         int major = JVM.getMajorVersion();
 
         if (logger.isFineEnabled()) {
-            logger.fine("Detected runtime version: Java " + major);
+            logger.fine("Detected runtime version: Java %s", major);
         }
 
         return Arrays.<JavaMajorVersion>stream(values())

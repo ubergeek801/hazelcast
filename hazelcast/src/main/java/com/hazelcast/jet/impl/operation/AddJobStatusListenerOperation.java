@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class AddJobStatusListenerOperation extends AsyncJobOperation implements Versioned {
+public class AddJobStatusListenerOperation extends AsyncMasterAwareJobOperation implements Versioned {
     private boolean isLightJob;
     private Registration registration;
 
@@ -62,5 +62,10 @@ public class AddJobStatusListenerOperation extends AsyncJobOperation implements 
         isLightJob = in.readBoolean();
         registration = new Registration();
         registration.readData(in);
+    }
+
+    @Override
+    public boolean isRequireMasterExecution() {
+        return !isLightJob;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.test;
 
 import com.google.common.collect.EvictingQueue;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.logging.LogEvent;
 import com.hazelcast.logging.LogListener;
 
@@ -25,9 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
+import static java.lang.System.lineSeparator;
 import static java.util.Collections.synchronizedCollection;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -42,8 +46,8 @@ public class ExceptionRecorder implements LogListener {
 
     private final HazelcastInstance[] instances;
 
-    @SuppressWarnings("UnstableApiUsage")
     private final Collection<Throwable> throwables = synchronizedCollection(EvictingQueue.create(100));
+    private final List<Predicate<Throwable>> exclusions = new ArrayList<>();
 
     public ExceptionRecorder(HazelcastInstance instance, Level level) {
         this(new HazelcastInstance[]{instance}, level);
@@ -65,6 +69,43 @@ public class ExceptionRecorder implements LogListener {
         for (HazelcastInstance instance : instances) {
             instance.getLoggingService().removeLogListener(this);
         }
+    }
+
+    /**
+     * Ignore certain exceptions when invoking {@link #assertNoExceptions()}
+     * @param predicate an exception to ignore
+     * @return this ExceptionRecorder
+     */
+    public ExceptionRecorder ignore(Predicate<Throwable> predicate) {
+        if (predicate != null) {
+            exclusions.add(predicate);
+        }
+        return this;
+    }
+
+    public final void assertNoExceptions() {
+        List<Throwable> snapshot = exceptionsLogged();
+        if (snapshot.isEmpty()) {
+            return;
+        }
+
+        // Apply any configured exclusions
+        List<Throwable> relevant = exclusions.isEmpty()
+                ? snapshot
+                : snapshot.stream()
+                .filter(t -> exclusions.stream().noneMatch(p -> p.test(t)))
+                .toList();
+
+        if (relevant.isEmpty()) {
+            return;
+        }
+
+        String message = relevant.stream()
+                .map(ExceptionUtil::toString)
+                .distinct()
+                .collect(joining(lineSeparator() + "-".repeat(20) + lineSeparator()));
+
+        throw new AssertionError("Expected no exception, but found: " + lineSeparator() + message);
     }
 
     public List<Throwable> exceptionsLogged() {

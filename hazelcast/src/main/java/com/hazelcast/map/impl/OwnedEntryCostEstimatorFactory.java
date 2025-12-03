@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public final class OwnedEntryCostEstimatorFactory {
     }
 
     public static <K, V> EntryCostEstimator<K, V> createMapSizeEstimator(InMemoryFormat inMemoryFormat) {
-        if (BINARY.equals(inMemoryFormat)) {
+        if (BINARY == inMemoryFormat) {
             return (EntryCostEstimator<K, V>) new BinaryMapEntryCostEstimator();
         }
         return ZERO_SIZE_ESTIMATOR;

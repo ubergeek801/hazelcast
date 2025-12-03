@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.hazelcast.core.IExecutorService;
 import com.hazelcast.core.LifecycleService;
 import com.hazelcast.cp.CPSubsystem;
 import com.hazelcast.crdt.pncounter.PNCounter;
+import com.hazelcast.dataconnection.DataConnectionService;
 import com.hazelcast.durableexecutor.DurableExecutorService;
 import com.hazelcast.flakeidgen.FlakeIdGenerator;
 import com.hazelcast.instance.impl.executejar.ExecuteJobParameters;
@@ -61,7 +62,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 // A special HazelcastInstance that has a BootstrappedJetProxy
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public final class BootstrappedInstanceProxy implements HazelcastInstance {
 
     private static final ILogger LOGGER = Logger.getLogger(BootstrappedInstanceProxy.class);
@@ -308,6 +309,12 @@ public final class BootstrappedInstanceProxy implements HazelcastInstance {
     @Override
     public SqlService getSql() {
         return instance.getSql();
+    }
+
+    @Nonnull
+    @Override
+    public DataConnectionService getDataConnectionService() {
+        return instance.getDataConnectionService();
     }
 
     @Nonnull

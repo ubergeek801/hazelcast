@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,7 +267,7 @@ public class BatchStageTest extends PipelineTestSupport {
         BatchStage<String> mapped = batchStageFromList(input).mapUsingServiceAsyncBatched(serviceFactory, batchSize,
                 (executor, list) -> {
                     CompletableFuture<List<String>> f = new CompletableFuture<>();
-                    assertTrue("list size", list.size() <= batchSize && list.size() > 0);
+                    assertTrue("list size", list.size() <= batchSize && !list.isEmpty());
                     executor.schedule(() -> {
                         List<String> result = list.stream().map(i -> formatFn.apply(suffix, i)).collect(toList());
                         f.complete(result);
@@ -300,7 +300,7 @@ public class BatchStageTest extends PipelineTestSupport {
         BatchStage<String> mapped = batchStageFromList(input).mapUsingServiceAsyncBatched(serviceFactory, batchSize,
                 (executor, list) -> {
                     CompletableFuture<List<String>> f = new CompletableFuture<>();
-                    assertTrue("list size", list.size() <= batchSize && list.size() > 0);
+                    assertTrue("list size", list.size() <= batchSize && !list.isEmpty());
                     executor.schedule(() -> {
                         List<String> result = list.stream()
                                 .map(i -> i % 13 == 0 ? null : formatFn.apply(suffix, i))
@@ -397,7 +397,7 @@ public class BatchStageTest extends PipelineTestSupport {
                         batchSize,
                         (executor, keys, items) -> {
                             CompletableFuture<List<String>> f = new CompletableFuture<>();
-                            assertTrue("list size", items.size() <= batchSize && items.size() > 0);
+                            assertTrue("list size", items.size() <= batchSize && !items.isEmpty());
                             assertEquals("lists size equality", items.size(), keys.size());
                             executor.schedule(() -> {
                                 List<String> result = items.stream()
@@ -437,7 +437,7 @@ public class BatchStageTest extends PipelineTestSupport {
                         batchSize,
                         (executor, items) -> {
                             CompletableFuture<List<String>> f = new CompletableFuture<>();
-                            assertTrue("list size", items.size() <= batchSize && items.size() > 0);
+                            assertTrue("list size", items.size() <= batchSize && !items.isEmpty());
                             executor.schedule(() -> {
                                 List<String> result = items.stream()
                                         .map(i -> formatFn.apply(suffix, i))
@@ -476,7 +476,7 @@ public class BatchStageTest extends PipelineTestSupport {
                         batchSize,
                         (executor, keys, items) -> {
                             CompletableFuture<List<String>> f = new CompletableFuture<>();
-                            assertTrue("list size", items.size() <= batchSize && items.size() > 0);
+                            assertTrue("list size", items.size() <= batchSize && !items.isEmpty());
                             assertEquals("lists size equality", items.size(), keys.size());
                             executor.schedule(() -> {
                                 List<String> results = items.isEmpty() ? Collections.emptyList() : new ArrayList<>();
@@ -675,7 +675,7 @@ public class BatchStageTest extends PipelineTestSupport {
         stage.writeTo(sink);
         Job job = hz().getJet().newJob(p);
 
-        assertThatThrownBy(() -> job.join())
+        assertThatThrownBy(job::join)
                 .hasMessageContaining("mock error");
     }
 

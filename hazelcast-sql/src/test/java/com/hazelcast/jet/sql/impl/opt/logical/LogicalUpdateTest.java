@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class LogicalUpdateTest extends OptimizerTestSupport {
 
         boolean[] inputRefFound = new boolean[1];
         ((UpdateLogicalRel) logicalRel).getSourceExpressionList().get(0).accept(
-                new RexVisitorImpl<Object>(true) {
+                new RexVisitorImpl<>(true) {
                     @Override
                     public Object visitInputRef(RexInputRef inputRef) {
                         // indexes are determined by IMap predefined row structure

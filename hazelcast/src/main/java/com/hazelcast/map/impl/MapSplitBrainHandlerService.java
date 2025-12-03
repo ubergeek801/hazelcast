@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,16 +151,16 @@ class MapSplitBrainHandlerService extends AbstractSplitBrainHandlerService<Recor
         assertRunningOnPartitionThread();
 
         if (logger.isFineEnabled()) {
-            logger.fine(String.format("Destroyed store [mapName:%s, partitionId:%d, partitionSize:%d]",
-                    store.getName(), store.getPartitionId(), store.size()));
+            logger.fine("Destroyed store [mapName:%s, partitionId:%d, partitionSize:%d]",
+                    store.getName(), store.getPartitionId(), store.size());
         }
 
         store.beforeOperation();
         try {
             if (store.getMapContainer().getMapConfig().getTieredStoreConfig().isEnabled()) {
-                ((DefaultRecordStore) store).destroyStorageImmediate(false, true);
+                ((DefaultRecordStore) store).destroyStorageImmediate(false, true, null);
             } else {
-                ((DefaultRecordStore) store).destroyStorageAfterClear(false, true);
+                ((DefaultRecordStore) store).destroyStorageAfterClear(false, true, null);
             }
         } finally {
             store.afterOperation();
@@ -176,8 +176,12 @@ class MapSplitBrainHandlerService extends AbstractSplitBrainHandlerService<Recor
 
     @Override
     protected boolean hasMergeablePolicy(RecordStore store) {
-        String policy = store.getMapContainer().getMapConfig().getMergePolicyConfig().getPolicy();
-        Object mergePolicy = mapServiceContext.getNodeEngine().getSplitBrainMergePolicyProvider().getMergePolicy(policy);
+        var mapConfig = store.getMapContainer().getMapConfig();
+        String policy = mapConfig.getMergePolicyConfig().getPolicy();
+        String namespace = mapConfig.getUserCodeNamespace();
+        Object mergePolicy = mapServiceContext.getNodeEngine()
+                .getSplitBrainMergePolicyProvider()
+                .getMergePolicy(policy, namespace);
         return !(mergePolicy instanceof DiscardMergePolicy);
     }
 }

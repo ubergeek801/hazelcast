@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -269,7 +268,7 @@ public class ClientMapStoreTest extends HazelcastTestSupport {
         IMap<String, String> map = node.getMap(MAP_NAME);
 
         //load not existent entries
-        Map<String, String> responseMap = map.getAll(new HashSet<>(asList("key1", "key2", "key3")));
+        Map<String, String> responseMap = map.getAll(Set.of("key1", "key2", "key3"));
         assertEquals(0, responseMap.size());
         assertEquals(0, map.size());
     }
@@ -433,7 +432,7 @@ public class ClientMapStoreTest extends HazelcastTestSupport {
         String mapNameWithStoreAndSize = "MapStoreMaxSize*";
 
         String xml = "<hazelcast xsi:schemaLocation=\"http://www.hazelcast.com/schema/config\n"
-                + "                             http://www.hazelcast.com/schema/config/hazelcast-config-5.5.xsd\"\n"
+                + "                             http://www.hazelcast.com/schema/config/hazelcast-config-5.6.xsd\"\n"
                 + "                             xmlns=\"http://www.hazelcast.com/schema/config\"\n"
                 + "                             xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
                 + "\n"

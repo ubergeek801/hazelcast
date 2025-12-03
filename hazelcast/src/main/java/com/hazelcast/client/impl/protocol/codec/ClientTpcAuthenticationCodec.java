@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Makes an authentication request to TPC channels.
  */
 @SuppressWarnings("unused")
-@Generated("f63f24443c87e3d420232929913df172")
+@Generated("becd2ce264ca6ccd54719e8f6ae35067")
 public final class ClientTpcAuthenticationCodec {
     //hex: 0x001600
     public static final int REQUEST_MESSAGE_TYPE = 5632;
@@ -50,7 +50,6 @@ public final class ClientTpcAuthenticationCodec {
     private ClientTpcAuthenticationCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

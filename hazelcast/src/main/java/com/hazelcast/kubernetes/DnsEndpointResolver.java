@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ final class DnsEndpointResolver
         try {
             for (InetAddress address : future.get(serviceDnsTimeout, TimeUnit.SECONDS)) {
                 if (addresses.add(address.getHostAddress()) && logger.isFinestEnabled()) {
-                    logger.finest("Found node service with address: " + address);
+                    logger.finest("Found node service with address: %s", address);
                 }
             }
         } catch (ExecutionException e) {

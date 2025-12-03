@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import static org.junit.Assert.fail;
 public class ContextMutexFactoryTest {
 
     private ContextMutexFactory contextMutexFactory;
-    private final AtomicBoolean testFailed = new AtomicBoolean(false);
+    private final AtomicBoolean testFailed = new AtomicBoolean();
 
     @Before
     public void setup() {
@@ -94,9 +94,7 @@ public class ContextMutexFactoryTest {
     private void await(CyclicBarrier cyc) {
         try {
             cyc.await();
-        } catch (InterruptedException e) {
-            testFailed.set(true);
-        } catch (BrokenBarrierException e) {
+        } catch (InterruptedException | BrokenBarrierException e) {
             testFailed.set(true);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,9 +128,8 @@ public class NearCachePreloader<K> {
         }
 
         long startedNanos = Timer.nanos();
-        BufferingInputStream bis = null;
-        try {
-            bis = new BufferingInputStream(new FileInputStream(storeFile), BUFFER_SIZE);
+
+        try (BufferingInputStream bis = new BufferingInputStream(new FileInputStream(storeFile), BUFFER_SIZE)) {
             if (!checkHeader(bis)) {
                 return;
             }
@@ -141,8 +140,6 @@ public class NearCachePreloader<K> {
             logger.info(format("Loaded %d keys of Near Cache %s in %d ms", loadedKeys, nearCacheName, elapsedMillis));
         } catch (Exception e) {
             logger.warning(format("Could not pre-load Near Cache %s (%s)", nearCacheName, storeFile.getAbsolutePath()), e);
-        } finally {
-            closeResource(bis);
         }
     }
 

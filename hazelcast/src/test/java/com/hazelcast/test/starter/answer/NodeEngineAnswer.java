@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.test.starter.answer;
 
+import com.hazelcast.internal.namespace.impl.NoOpUserCodeNamespaceService;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
 import org.mockito.invocation.InvocationOnMock;
@@ -28,6 +29,8 @@ import static org.mockito.Mockito.mock;
  */
 public class NodeEngineAnswer extends AbstractAnswer {
 
+    private Object ucnService;
+
     public NodeEngineAnswer(Object delegate) {
         super(delegate);
     }
@@ -39,6 +42,16 @@ public class NodeEngineAnswer extends AbstractAnswer {
         } else if (arguments.length == 1 && methodName.equals("getService")) {
             Object service = invokeForMock(invocation, arguments);
             return createMockForTargetClass(service, new ServiceAnswer(service));
+        } else if (arguments.length == 0 && methodName.equals("getNamespaceService")) {
+            if (ucnService == null) {
+                try {
+                    ucnService = invoke(invocation);
+                } catch (NoSuchMethodException ignored) {
+                    // <5.4.0 compatability tests support, since UCN code is used internally a lot, even if UCN is not enabled
+                    ucnService = mock(NoOpUserCodeNamespaceService.class);
+                }
+            }
+            return ucnService;
         } else if (arguments.length == 0 && methodName.equals("getOperationService")) {
             Object operationService = invokeForMock(invocation);
             return mock(OperationServiceImpl.class, new OperationServiceAnswer(operationService));

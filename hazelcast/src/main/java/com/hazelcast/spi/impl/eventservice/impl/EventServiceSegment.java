@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.EVENT_METRIC_EVENT_SERVICE_SEGMENT_LISTENER_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.EVENT_METRIC_EVENT_SERVICE_SEGMENT_PUBLICATION_COUNT;
-import static java.util.Collections.newSetFromMap;
 
 /**
  * Segment of the event service. Each segment is responsible for a single service and
@@ -135,7 +134,7 @@ public class EventServiceSegment<S> {
         Collection<Registration> listenerList = registrations.get(topic);
         if (listenerList == null && forceCreate) {
             ConstructorFunction<String, Collection<Registration>> func
-                    = key -> newSetFromMap(new ConcurrentHashMap<Registration, Boolean>());
+                    = key -> ConcurrentHashMap.newKeySet();
             return ConcurrencyUtil.getOrPutIfAbsent(registrations, topic, func);
         }
         return listenerList;

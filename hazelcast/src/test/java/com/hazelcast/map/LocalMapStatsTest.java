@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,6 +247,18 @@ public class LocalMapStatsTest extends HazelcastTestSupport {
         assertEquals(0, localMapStats.getHits());
         assertGreaterOrEquals("totalSetLatency should be > 0", localMapStats.getTotalSetLatency(), 1);
         assertGreaterOrEquals("maxSetLatency should be > 0", localMapStats.getMaxSetLatency(), 1);
+    }
+
+    @Test
+    public void testValues() {
+        getMap().values();
+        assertEquals(1, getMapStats().getValuesCallCount());
+    }
+
+    @Test
+    public void testEntrySet() {
+        getMap().entrySet();
+        assertEquals(1, getMapStats().getEntrySetCallCount());
     }
 
     @Test

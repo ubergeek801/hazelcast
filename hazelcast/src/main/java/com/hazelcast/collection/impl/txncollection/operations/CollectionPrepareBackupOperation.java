@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.hazelcast.internal.util.UUIDSerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.spi.impl.operationservice.BackupOperation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -37,7 +36,6 @@ public class CollectionPrepareBackupOperation extends CollectionOperation implem
     public CollectionPrepareBackupOperation() {
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public CollectionPrepareBackupOperation(String name, long[] itemIds, UUID transactionId) {
         super(name);
         this.itemIds = itemIds;

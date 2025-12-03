@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,7 +267,7 @@ public abstract class RingbufferAbstractTest extends HazelcastTestSupport {
         for (int iteration = 0; iteration < c.getCapacity() * 100; iteration++) {
             long oldTail = ringbuffer.tailSequence();
 
-            String item = "" + iteration;
+            String item = String.valueOf(iteration);
             long sequence = ringbuffer.addAsync(item, OVERWRITE).toCompletableFuture().get();
             long expectedSequence = oldTail + 1;
 
@@ -330,7 +330,7 @@ public abstract class RingbufferAbstractTest extends HazelcastTestSupport {
         for (int iteration = 0; iteration < c.getCapacity() * 100; iteration++) {
             long oldTail = ringbuffer.tailSequence();
 
-            String item = "" + iteration;
+            String item = String.valueOf(iteration);
             long sequence = ringbuffer.add(item);
             long expectedSequence = oldTail + 1;
 

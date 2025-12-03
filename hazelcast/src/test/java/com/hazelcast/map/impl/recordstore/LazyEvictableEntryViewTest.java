@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,69 +92,69 @@ public class LazyEvictableEntryViewTest {
     }
 
     @Test
-    public void test_getCreationTime() throws Exception {
+    public void test_getCreationTime() {
         assertEquals(0, view.getCreationTime());
     }
 
     @Test
-    public void test_getExpirationTime() throws Exception {
+    public void test_getExpirationTime() {
         assertEquals(Long.MAX_VALUE, view.getExpirationTime());
     }
 
     @Test
-    public void test_getHits() throws Exception {
+    public void test_getHits() {
         assertEquals(0, view.getHits());
     }
 
     @Test
-    public void test_getLastAccessTime() throws Exception {
+    public void test_getLastAccessTime() {
         assertEquals(0, view.getLastAccessTime());
     }
 
     @Test
-    public void test_getLastStoredTime() throws Exception {
+    public void test_getLastStoredTime() {
         assertEquals(0, view.getLastStoredTime());
     }
 
     @Test
-    public void test_getLastUpdateTime() throws Exception {
+    public void test_getLastUpdateTime() {
         assertEquals(0, view.getLastUpdateTime());
     }
 
     @Test
-    public void test_getVersion() throws Exception {
+    public void test_getVersion() {
         assertEquals(0, view.getVersion());
     }
 
     @Test
-    public void test_getTtl() throws Exception {
+    public void test_getTtl() {
         assertEquals(Long.MAX_VALUE, view.getTtl());
     }
 
     @Test
-    public void test_getRecord() throws Exception {
+    public void test_getRecord() {
         assertEquals(recordInstance, ((LazyEvictableEntryView) view).getRecord());
     }
 
     @Test
-    public void test_equals() throws Exception {
+    public void test_equals() {
         EntryView entryView = createLazyEvictableEntryView();
 
         assertTrue(view.equals(entryView) && entryView.equals(view));
     }
 
     @Test
-    public void test_equals_whenSameReference() throws Exception {
-        assertTrue(view.equals(view));
+    public void test_equals_whenSameReference() {
+        assertEquals(view, view);
     }
 
     @Test
-    public void test_equals_whenSuppliedObjectIsNotEntryView() throws Exception {
-        assertFalse(view.equals(this));
+    public void test_equals_whenSuppliedObjectIsNotEntryView() {
+        assertNotEquals(view, this);
     }
 
     @Test
-    public void test_hashCode() throws Exception {
+    public void test_hashCode() {
         EntryView entryView = createLazyEvictableEntryView();
 
         assertEquals(entryView.hashCode(), view.hashCode());

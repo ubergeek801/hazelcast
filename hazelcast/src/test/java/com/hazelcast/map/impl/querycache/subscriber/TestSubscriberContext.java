@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@
 package com.hazelcast.map.impl.querycache.subscriber;
 
 import com.hazelcast.map.impl.querycache.QueryCacheContext;
-import com.hazelcast.map.impl.querycache.accumulator.Accumulator;
 import com.hazelcast.map.impl.querycache.accumulator.AccumulatorInfo;
 import com.hazelcast.map.impl.querycache.event.DefaultQueryCacheEventData;
 import com.hazelcast.map.impl.querycache.event.sequence.Sequenced;
 
-import java.util.Collections;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,20 +74,20 @@ public class TestSubscriberContext extends NodeSubscriberContext {
         }
 
         @Override
-        public Accumulator createAccumulator(AccumulatorInfo info) {
+        public TestSubscriberAccumulator createAccumulator(AccumulatorInfo info) {
             return new TestSubscriberAccumulator(getContext(), info);
         }
     }
 
     private class TestSubscriberAccumulator extends SubscriberAccumulator {
 
-        private final Set<Long> lostSequenceNumber = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+        private final Set<Long> lostSequenceNumber = ConcurrentHashMap.newKeySet();
 
         TestSubscriberAccumulator(QueryCacheContext context, AccumulatorInfo info) {
             super(context, info);
 
             if (enableEventLoss) {
-                // just pick a sequence number to mimic out of order events
+                // just pick a sequence number to mimic out-of-order events
                 lostSequenceNumber.add(new Random().nextInt(eventCount) + 1L);
             }
         }
@@ -98,7 +96,7 @@ public class TestSubscriberContext extends NodeSubscriberContext {
         protected boolean isNextEvent(Sequenced event) {
             DefaultQueryCacheEventData eventData = (DefaultQueryCacheEventData) event;
             if (lostSequenceNumber.remove(event.getSequence())) {
-                // create an out of order event by changing actual sequence
+                // create an out-of-order event by changing actual sequence
                 DefaultQueryCacheEventData copy = new DefaultQueryCacheEventData(eventData);
                 copy.setSequence(eventData.getSequence() * 2);
 

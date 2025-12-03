@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.client.impl.spi;
 import com.hazelcast.client.LoadBalancer;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.impl.connection.ClientConnection;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.spi.impl.ClientInvocation;
 import com.hazelcast.cluster.Member;
@@ -61,9 +62,11 @@ public interface ClientInvocationService {
                            UUID uuid);
 
     /**
-     * Behaviour of this method varies for unisocket and smart client
-     * Unisocket invokes on only available connection
-     * SmartClient randomly picks a connection to invoke on via {@link LoadBalancer}
+     * Behaviour of this method varies for {@link RoutingMode#SINGLE_MEMBER}, {@link RoutingMode#MULTI_MEMBER},
+     * and {@link RoutingMode#ALL_MEMBERS} routing clients.
+     * {@link RoutingMode#SINGLE_MEMBER} routing invokes on only available connection
+     * {@link RoutingMode#MULTI_MEMBER} and {@link RoutingMode#ALL_MEMBERS} routing randomly picks a connection
+     * to invoke on via {@link LoadBalancer}.
      *
      * @param invocation to be invoked
      * @return true if successfully send, false otherwise
@@ -81,7 +84,7 @@ public interface ClientInvocationService {
 
     /**
      * This will be called on each connection close.
-     * Note that is different than {@link ConnectionListener#connectionRemoved(Connection)} where `connectionRemoved`
+     * Note that is different from {@link ConnectionListener#connectionRemoved(Connection)} where `connectionRemoved`
      * means an authenticated connection is disconnected
      *
      * @param connection closed connection

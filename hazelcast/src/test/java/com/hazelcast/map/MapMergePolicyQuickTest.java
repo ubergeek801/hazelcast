@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class MapMergePolicyQuickTest extends HazelcastTestSupport {
         recordStore.beforeOperation();
         NodeEngine nodeEngine = mapServiceContext.getNodeEngine();
         SplitBrainMergePolicyProvider mergePolicyProvider = nodeEngine.getSplitBrainMergePolicyProvider();
-        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(LatestUpdateMergePolicy.class.getName());
+        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(LatestUpdateMergePolicy.class.getName(), null);
         long now = Clock.currentTimeMillis();
 
         SimpleEntryView<Data, Data> initialEntry = new SimpleEntryView<>(dataKey, dataValue);
@@ -97,7 +97,7 @@ public class MapMergePolicyQuickTest extends HazelcastTestSupport {
         recordStore.beforeOperation();
         NodeEngine nodeEngine = mapServiceContext.getNodeEngine();
         SplitBrainMergePolicyProvider mergePolicyProvider = nodeEngine.getSplitBrainMergePolicyProvider();
-        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(PutIfAbsentMergePolicy.class.getName());
+        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(PutIfAbsentMergePolicy.class.getName(), null);
 
         SimpleEntryView<Data, Data> initialEntry = new SimpleEntryView<>(dataKey, dataValue);
         recordStore.merge(createMergingEntry(nodeEngine.getSerializationService(), initialEntry), mergePolicy, CallerProvenance.NOT_WAN);
@@ -124,7 +124,7 @@ public class MapMergePolicyQuickTest extends HazelcastTestSupport {
         recordStore.beforeOperation();
         NodeEngine nodeEngine = mapServiceContext.getNodeEngine();
         SplitBrainMergePolicyProvider mergePolicyProvider = nodeEngine.getSplitBrainMergePolicyProvider();
-        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(PassThroughMergePolicy.class.getName());
+        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(PassThroughMergePolicy.class.getName(), null);
 
         SimpleEntryView<Data, Data> initialEntry = new SimpleEntryView<>(dataKey, dataValue);
         recordStore.merge(createMergingEntry(nodeEngine.getSerializationService(), initialEntry), mergePolicy, CallerProvenance.NOT_WAN);

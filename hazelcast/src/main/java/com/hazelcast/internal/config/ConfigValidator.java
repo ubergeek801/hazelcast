@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.internal.config;
 
 import com.hazelcast.cache.ICache;
-import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.CacheConfig;
 import com.hazelcast.config.CacheSimpleConfig;
 import com.hazelcast.config.CollectionConfig;
@@ -30,6 +29,7 @@ import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.IndexType;
 import com.hazelcast.config.InvalidConfigurationException;
+import com.hazelcast.config.LoginModuleConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MaxSizePolicy;
 import com.hazelcast.config.MultiMapConfig;
@@ -41,13 +41,17 @@ import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.ReplicatedMapConfig;
 import com.hazelcast.config.RingbufferConfig;
 import com.hazelcast.config.ScheduledExecutorConfig;
+import com.hazelcast.config.SecurityConfig;
 import com.hazelcast.config.ServerSocketEndpointConfig;
 import com.hazelcast.config.TieredStoreConfig;
 import com.hazelcast.config.WanBatchPublisherConfig;
 import com.hazelcast.config.WanReplicationConfig;
 import com.hazelcast.config.cp.CPSubsystemConfig;
+import com.hazelcast.config.security.JaasAuthenticationConfig;
+import com.hazelcast.config.security.RealmConfig;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.instance.ProtocolType;
+import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.util.MutableInteger;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.eviction.EvictionPolicyComparator;
@@ -55,6 +59,8 @@ import com.hazelcast.spi.merge.MergingValue;
 import com.hazelcast.spi.merge.SplitBrainMergePolicyProvider;
 import com.hazelcast.spi.merge.SplitBrainMergeTypes;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -83,6 +89,7 @@ import static com.hazelcast.instance.ProtocolType.MEMBER;
 import static com.hazelcast.instance.ProtocolType.WAN;
 import static com.hazelcast.internal.config.MergePolicyValidator.checkMapMergePolicy;
 import static com.hazelcast.internal.config.MergePolicyValidator.checkMergeTypeProviderHasRequiredTypes;
+import static com.hazelcast.internal.nio.ClassLoaderUtil.isClassAvailable;
 import static com.hazelcast.internal.util.Preconditions.checkTrue;
 import static com.hazelcast.internal.util.StringUtil.isNullOrEmpty;
 import static java.lang.String.format;
@@ -123,7 +130,6 @@ public final class ConfigValidator {
     /**
      * Validates the given {@link MapConfig}.
      *
-     * @param config
      * @param mapConfig the {@link MapConfig}
      */
     public static void checkMapConfig(Config config, MapConfig mapConfig,
@@ -182,7 +188,7 @@ public final class ConfigValidator {
         }
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
-        if (!EvictionPolicy.NONE.equals(evictionConfig.getEvictionPolicy())) {
+        if (EvictionPolicy.NONE != evictionConfig.getEvictionPolicy()) {
             throw new InvalidConfigurationException(format("Eviction is not supported "
                     + "for Tiered-Store map [%s]", mapConfig.getName()));
         }
@@ -526,9 +532,13 @@ public final class ConfigValidator {
      */
     public static void checkCacheConfig(CacheSimpleConfig cacheSimpleConfig,
                                         SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkCacheConfig(cacheSimpleConfig.getInMemoryFormat(), cacheSimpleConfig.getEvictionConfig(),
+        checkCacheConfig(
+                cacheSimpleConfig.getInMemoryFormat(),
+                cacheSimpleConfig.getEvictionConfig(),
                 cacheSimpleConfig.getMergePolicyConfig().getPolicy(),
-                SplitBrainMergeTypes.CacheMergeTypes.class, mergePolicyProvider, COMMONLY_SUPPORTED_EVICTION_POLICIES);
+                SplitBrainMergeTypes.CacheMergeTypes.class, mergePolicyProvider,
+                COMMONLY_SUPPORTED_EVICTION_POLICIES,
+                cacheSimpleConfig.getUserCodeNamespace());
     }
 
     /**
@@ -538,12 +548,19 @@ public final class ConfigValidator {
      *                    to check @param mergePolicyProvider the {@link
      *                    SplitBrainMergePolicyProvider} to resolve merge policy classes
      */
-    public static void checkCacheConfig(CacheConfig cacheConfig,
-                                        SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkCacheConfig(cacheConfig.getInMemoryFormat(), cacheConfig.getEvictionConfig(),
-                cacheConfig.getMergePolicyConfig().getPolicy(), SplitBrainMergeTypes.CacheMergeTypes.class,
-                mergePolicyProvider, COMMONLY_SUPPORTED_EVICTION_POLICIES);
-
+    public static void checkCacheConfig(
+            CacheConfig cacheConfig,
+            SplitBrainMergePolicyProvider mergePolicyProvider
+    ) {
+        checkCacheConfig(
+                cacheConfig.getInMemoryFormat(),
+                cacheConfig.getEvictionConfig(),
+                cacheConfig.getMergePolicyConfig().getPolicy(),
+                SplitBrainMergeTypes.CacheMergeTypes.class,
+                mergePolicyProvider,
+                COMMONLY_SUPPORTED_EVICTION_POLICIES,
+                cacheConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -559,19 +576,20 @@ public final class ConfigValidator {
      * @param mergeTypes           the cache merge types
      * @param mergePolicyProvider  the {@link SplitBrainMergePolicyProvider} to resolve merge policy classes
      */
-    public static void checkCacheConfig(InMemoryFormat inMemoryFormat,
-                                        EvictionConfig evictionConfig,
-                                        String mergePolicyClassname,
-                                        Class<? extends MergingValue> mergeTypes,
-                                        SplitBrainMergePolicyProvider mergePolicyProvider,
-                                        Set<EvictionPolicy> supportedEvictionPolicies) {
+    private static void checkCacheConfig(InMemoryFormat inMemoryFormat,
+                                  EvictionConfig evictionConfig,
+                                  String mergePolicyClassname,
+                                  Class<? extends MergingValue> mergeTypes,
+                                  SplitBrainMergePolicyProvider mergePolicyProvider,
+                                  Set<EvictionPolicy> supportedEvictionPolicies,
+                                  @Nullable String namespace) {
         try {
             checkNotNativeWhenOpenSource(inMemoryFormat);
             checkEvictionConfig(evictionConfig, supportedEvictionPolicies);
             checkCacheMaxSizePolicy(evictionConfig.getMaxSizePolicy(), inMemoryFormat);
-            checkMergeTypeProviderHasRequiredTypes(mergeTypes, mergePolicyProvider, mergePolicyClassname);
+            checkMergeTypeProviderHasRequiredTypes(mergeTypes, mergePolicyProvider, mergePolicyClassname, namespace);
         } catch (InvalidConfigurationException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e.getMessage(), e.getCause());
         }
     }
 
@@ -603,8 +621,12 @@ public final class ConfigValidator {
      */
     public static void checkReplicatedMapConfig(ReplicatedMapConfig replicatedMapConfig,
                                                 SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.ReplicatedMapMergeTypes.class, mergePolicyProvider,
-                replicatedMapConfig.getMergePolicyConfig().getPolicy());
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.ReplicatedMapMergeTypes.class,
+                mergePolicyProvider,
+                replicatedMapConfig.getMergePolicyConfig().getPolicy(),
+                replicatedMapConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -615,8 +637,12 @@ public final class ConfigValidator {
      */
     public static void checkMultiMapConfig(MultiMapConfig multiMapConfig,
                                            SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.MultiMapMergeTypes.class, mergePolicyProvider,
-                multiMapConfig.getMergePolicyConfig().getPolicy());
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.MultiMapMergeTypes.class,
+                mergePolicyProvider,
+                multiMapConfig.getMergePolicyConfig().getPolicy(),
+                multiMapConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -627,8 +653,12 @@ public final class ConfigValidator {
      */
     public static void checkQueueConfig(QueueConfig queueConfig,
                                         SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.QueueMergeTypes.class, mergePolicyProvider,
-                queueConfig.getMergePolicyConfig().getPolicy());
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.QueueMergeTypes.class,
+                mergePolicyProvider,
+                queueConfig.getMergePolicyConfig().getPolicy(),
+                queueConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -639,9 +669,12 @@ public final class ConfigValidator {
      */
     public static void checkCollectionConfig(CollectionConfig collectionConfig,
                                              SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.CollectionMergeTypes.class,
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.CollectionMergeTypes.class,
                 mergePolicyProvider,
-                collectionConfig.getMergePolicyConfig().getPolicy());
+                collectionConfig.getMergePolicyConfig().getPolicy(),
+                collectionConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -652,8 +685,12 @@ public final class ConfigValidator {
      */
     public static void checkRingbufferConfig(RingbufferConfig ringbufferConfig,
                                              SplitBrainMergePolicyProvider mergePolicyProvider) {
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.RingbufferMergeTypes.class, mergePolicyProvider,
-                ringbufferConfig.getMergePolicyConfig().getPolicy());
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.RingbufferMergeTypes.class,
+                mergePolicyProvider,
+                ringbufferConfig.getMergePolicyConfig().getPolicy(),
+                ringbufferConfig.getUserCodeNamespace()
+        );
     }
 
     /**
@@ -665,8 +702,12 @@ public final class ConfigValidator {
     public static void checkScheduledExecutorConfig(ScheduledExecutorConfig scheduledExecutorConfig,
                                                     SplitBrainMergePolicyProvider mergePolicyProvider) {
         String mergePolicyClassName = scheduledExecutorConfig.getMergePolicyConfig().getPolicy();
-        checkMergeTypeProviderHasRequiredTypes(SplitBrainMergeTypes.ScheduledExecutorMergeTypes.class,
-                mergePolicyProvider, mergePolicyClassName);
+        checkMergeTypeProviderHasRequiredTypes(
+                SplitBrainMergeTypes.ScheduledExecutorMergeTypes.class,
+                mergePolicyProvider,
+                mergePolicyClassName,
+                scheduledExecutorConfig.getUserCodeNamespace()
+        );
     }
 
     public static void checkCPSubsystemConfig(CPSubsystemConfig config) {
@@ -740,17 +781,32 @@ public final class ConfigValidator {
         }
     }
 
-    /**
-     * Throws {@link InvalidConfigurationException} if the given {@link ClientNetworkConfig}
-     * has an invalid configuration.
-     * <p>
-     * If both smart routing and subset routing are enabled, this configuration is deemed invalid.
-     *
-     * @param networkConfig supplied ClientNetworkConfig
-     */
-    public static void checkClientNetworkConfig(ClientNetworkConfig networkConfig) {
-        if (networkConfig.isSmartRouting() && networkConfig.getSubsetRoutingConfig().isEnabled()) {
-            throw new InvalidConfigurationException("Only one of subset-routing or smart-routing can be enabled at once!");
+    public static void checkSecurityConfig(Node node, SecurityConfig securityConfig) {
+        if (!securityConfig.isEnabled()) {
+            return;
         }
+        Map<String, RealmConfig> realmConfigs = securityConfig.getRealmConfigs();
+        List<String> errors = new ArrayList<>();
+        if (realmConfigs != null) {
+            realmConfigs.values().forEach(realmConfig -> {
+                JaasAuthenticationConfig jaas = realmConfig.getJaasAuthenticationConfig();
+                if (jaas != null) {
+                    for (LoginModuleConfig jaasLoginModuleConfig : jaas.getLoginModuleConfigs()) {
+                        ClassLoader configClassLoader = node.getConfigClassLoader();
+                        String className = jaasLoginModuleConfig.getClassName();
+                        if (isNotBlank(className) && !isClassAvailable(configClassLoader, className)) {
+                            errors.add(className);
+                        }
+                    }
+                }
+            });
+        }
+        if (!errors.isEmpty()) {
+            throw new InvalidConfigurationException("Login module class(es) not found: " + String.join(", ", errors));
+        }
+    }
+
+    private static boolean isNotBlank(String className) {
+        return className != null && !className.isEmpty();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -74,7 +74,7 @@ public class OperationRunnerImplTest extends HazelcastTestSupport {
     @Test
     public void runTask() {
         final AtomicLong counter = new AtomicLong();
-        operationRunner.run(() -> counter.incrementAndGet());
+        operationRunner.run(counter::incrementAndGet);
         assertEquals(1, counter.get());
     }
 
@@ -172,11 +172,12 @@ public class OperationRunnerImplTest extends HazelcastTestSupport {
             }
         };
         op.setPartitionId(operationRunner.getPartitionId());
+        op.setOperationResponseHandler(responseHandler);
 
         operationRunner.run(op);
         assertEquals(0, counter.get());
         // verify that the response handler was not called
-        verify(responseHandler, never()).sendResponse(same(op), any());
+        verifyNoMoreInteractions(responseHandler);
     }
 
     @Test

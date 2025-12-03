@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 @FunctionalInterface
 @SuppressWarnings("JavadocType")
-public interface TypedByteArrayDeserializer<T>  {
+public interface TypedByteArrayDeserializer<T> {
     /**
      * Reads object from objectDataInputStream
      *
@@ -32,5 +32,5 @@ public interface TypedByteArrayDeserializer<T>  {
      * @return read object
      * @throws IOException in case of failure to read
      */
-    T read(byte[] bytes, Class aClass) throws IOException;
+    T read(byte[] bytes, Class<?> aClass) throws IOException;
 }

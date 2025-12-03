@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,6 +186,29 @@ public class AwsDiscoveryStrategyTest {
         // given
         String privateIp = "192.168.1.15";
         String publicIp = "38.146.24.2";
+        given(awsClient.getAddresses()).willReturn(Map.of(privateIp, publicIp));
+
+        // when
+        Iterable<DiscoveryNode> nodes = awsDiscoveryStrategy.discoverNodes();
+
+        // then
+        List<DiscoveryNode> nodeList = toList(nodes);
+        DiscoveryNode node1 = nodeList.get(0);
+        assertEquals(privateIp, node1.getPrivateAddress().getHost());
+        assertEquals(PORT1, node1.getPrivateAddress().getPort());
+        assertEquals(publicIp, node1.getPublicAddress().getHost());
+
+        DiscoveryNode node2 = nodeList.get(1);
+        assertEquals(privateIp, node2.getPrivateAddress().getHost());
+        assertEquals(PORT2, node2.getPrivateAddress().getPort());
+        assertEquals(publicIp, node2.getPublicAddress().getHost());
+    }
+
+    @Test
+    public void discoverNodesIPv6() {
+        // given
+        String privateIp = "192.168.1.15";
+        String publicIp = "2001:0DB8:C21A::1";
         given(awsClient.getAddresses()).willReturn(Map.of(privateIp, publicIp));
 
         // when

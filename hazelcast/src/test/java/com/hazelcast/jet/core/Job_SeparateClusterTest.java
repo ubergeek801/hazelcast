@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.jet.core;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
+import com.hazelcast.client.config.ClusterRoutingConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.properties.ClientProperty;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.config.Config;
@@ -134,7 +136,7 @@ public class Job_SeparateClusterTest extends JetTestSupport {
         ClientConfig config = new ClientConfig()
                 .setProperty(ClientProperty.INVOCATION_TIMEOUT_SECONDS.getName(), Integer.toString(timeoutSecs))
                 .setNetworkConfig(new ClientNetworkConfig()
-                        .setSmartRouting(false)
+                        .setClusterRoutingConfig(new ClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER))
                         .addAddress(address.getHost() + ":" + address.getPort())
                 );
         HazelcastInstance client = createHazelcastClient(config);

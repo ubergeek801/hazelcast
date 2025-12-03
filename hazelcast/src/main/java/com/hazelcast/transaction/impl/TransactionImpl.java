@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,6 +159,7 @@ public class TransactionImpl implements Transaction {
         return txOwnerUuid;
     }
 
+    @Override
     public boolean isOriginatedFromClient() {
         return originatedFromClient;
     }
@@ -472,25 +473,22 @@ public class TransactionImpl implements Transaction {
     }
 
     static ExceptionHandler createReplicationTxExceptionHandler(final ILogger logger) {
-        return new ExceptionHandler() {
-            @Override
-            public void handleException(Throwable throwable) {
-                if (throwable instanceof TimeoutException) {
-                    throw new TransactionTimedOutException(throwable);
-                }
-                if (throwable instanceof MemberLeftException) {
-                    logger.warning("Member left while replicating tx begin: " + throwable);
+        return throwable -> {
+            if (throwable instanceof TimeoutException) {
+                throw new TransactionTimedOutException(throwable);
+            }
+            if (throwable instanceof MemberLeftException) {
+                logger.warning("Member left while replicating tx begin: " + throwable);
+                return;
+            }
+            if (throwable instanceof ExecutionException) {
+                Throwable cause = throwable.getCause();
+                if (cause instanceof TargetNotMemberException || cause instanceof HazelcastInstanceNotActiveException) {
+                    logger.warning("Member left while replicating tx begin: " + cause);
                     return;
                 }
-                if (throwable instanceof ExecutionException) {
-                    Throwable cause = throwable.getCause();
-                    if (cause instanceof TargetNotMemberException || cause instanceof HazelcastInstanceNotActiveException) {
-                        logger.warning("Member left while replicating tx begin: " + cause);
-                        return;
-                    }
-                }
-                throw rethrow(throwable);
             }
+            throw rethrow(throwable);
         };
     }
 }

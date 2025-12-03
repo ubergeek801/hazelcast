@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import com.hazelcast.core.LifecycleListener;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.partition.InternalPartition;
 import com.hazelcast.internal.partition.InternalPartitionService;
-import com.hazelcast.internal.util.EmptyStatement;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.map.IMap;
@@ -55,7 +54,6 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -440,18 +438,6 @@ public class MapLoaderTest extends HazelcastTestSupport {
                 .hasMessageStartingWith("Key loaded by a MapLoader cannot be null");
     }
 
-    private void handleNpeFromKnownIssue(NullPointerException e) {
-        if ("Key loaded by a MapLoader cannot be null.".equals(e.getMessage())) {
-            // this case is a known issue, which may break the test rarely
-            // map operations following the previous size() operation may still see this NPE cached in a Future
-            // in DefaultRecordStore#loadingFutures
-            EmptyStatement.ignore(e);
-        } else {
-            // otherwise we see a new issue, which we should be notified about
-            throw e;
-        }
-    }
-
     @Test
     public void testNullChecks_withMapStore_nullKeys() {
         String name = "testNullChecks_withMapStore";
@@ -494,7 +480,7 @@ public class MapLoaderTest extends HazelcastTestSupport {
 
                     @Override
                     public Set<Object> loadAllKeys() {
-                        return new HashSet<>(Collections.singletonList(1));
+                        return Set.of(1);
                     }
                 });
 
@@ -550,7 +536,7 @@ public class MapLoaderTest extends HazelcastTestSupport {
     @Test
     public void testGetAll_putsLoadedItemsToIMap() {
         Integer[] requestedKeys = {1, 2, 3};
-        AtomicInteger loadedKeysCounter = new AtomicInteger(0);
+        AtomicInteger loadedKeysCounter = new AtomicInteger();
         MapStore<Integer, Integer> mapStore = createMapLoader(loadedKeysCounter);
 
         IMap<Integer, Integer> map = TestMapUsingMapStoreBuilder.<Integer, Integer>create()
@@ -560,7 +546,7 @@ public class MapLoaderTest extends HazelcastTestSupport {
                 .withPartitionCount(1)
                 .build();
 
-        Set<Integer> keySet = new HashSet<>(Arrays.asList(requestedKeys));
+        Set<Integer> keySet = Set.of(requestedKeys);
 
         map.getAll(keySet);
         map.getAll(keySet);
@@ -775,7 +761,7 @@ public class MapLoaderTest extends HazelcastTestSupport {
 
         private SampleIndexableObject[] values = new SampleIndexableObject[10];
         private Set<Integer> keys = new HashSet<>();
-        private AtomicInteger loadAllKeysCallCount = new AtomicInteger(0);
+        private AtomicInteger loadAllKeysCallCount = new AtomicInteger();
 
         public SampleIndexableObjectMapLoader() {
             for (int i = 0; i < 10; i++) {

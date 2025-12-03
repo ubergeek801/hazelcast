@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.nio.ByteOrder;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -75,7 +74,7 @@ public class ObjectDataOutputStreamTest {
         SerializationV1DataSerializable testDataFromSerializer = new SerializationV1DataSerializable();
         testDataFromSerializer.readData(input);
 
-        assertTrue(testData.equals(testDataFromSerializer));
+        assertEquals(testData, testDataFromSerializer);
     }
 
     @Test
@@ -94,7 +93,7 @@ public class ObjectDataOutputStreamTest {
         SerializationV1DataSerializable testDataFromSerializer = new SerializationV1DataSerializable();
         testDataFromSerializer.readData(input);
 
-        assertTrue(testData.equals(testDataFromSerializer));
+        assertEquals(testData, testDataFromSerializer);
     }
 
     @Test

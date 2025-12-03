@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.cache.impl.CacheEventData;
 import com.hazelcast.cache.impl.CacheEventListener;
 import com.hazelcast.cache.impl.CacheEventSet;
 import com.hazelcast.cache.impl.CacheService;
+import com.hazelcast.cache.impl.ICacheService;
 import com.hazelcast.client.impl.ClientEndpoint;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.CacheAddEntryListenerCodec;
@@ -58,7 +59,7 @@ public class CacheAddEntryListenerMessageTask
 
     @Override
     protected CompletableFuture<UUID> processInternal() {
-        final CacheService service = getService(CacheService.SERVICE_NAME);
+        final CacheService service = getService(ICacheService.SERVICE_NAME);
         CacheEntryListener cacheEntryListener = new CacheEntryListener(endpoint, this);
 
         if (parameters.localOnly) {
@@ -70,7 +71,7 @@ public class CacheAddEntryListenerMessageTask
 
     @Override
     protected void addDestroyAction(UUID registrationId) {
-        final CacheService service = getService(CacheService.SERVICE_NAME);
+        final CacheService service = getService(ICacheService.SERVICE_NAME);
         endpoint.addDestroyAction(registrationId, () -> service.deregisterListener(parameters.name, registrationId));
     }
 

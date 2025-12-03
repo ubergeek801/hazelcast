@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,7 +66,6 @@ import static com.hazelcast.config.MapConfig.DEFAULT_IN_MEMORY_FORMAT;
 import static com.hazelcast.instance.impl.TestUtil.toData;
 import static com.hazelcast.internal.util.IterableUtil.size;
 import static com.hazelcast.query.impl.IndexRegistry.SKIP_PARTITIONS_COUNT_CHECK;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -251,6 +249,7 @@ public class IndexTest {
 
     private class TestPortableFactory implements PortableFactory {
 
+        @Override
         public Portable create(int classId) {
             switch (classId) {
                 case MainPortable.CLASS_ID:
@@ -258,10 +257,6 @@ public class IndexTest {
                 default:
                     return null;
             }
-        }
-
-        public int getFactoryId() {
-            return FACTORY_ID;
         }
     }
 
@@ -317,22 +312,12 @@ public class IndexTest {
             this.str = str;
         }
 
-        private MainPortable(byte b, boolean bool, char c, short s, int i, long l, float f, double d, String str) {
-            this.b = b;
-            this.bool = bool;
-            this.c = c;
-            this.s = s;
-            this.i = i;
-            this.l = l;
-            this.f = f;
-            this.d = d;
-            this.str = str;
-        }
-
+        @Override
         public int getClassId() {
             return CLASS_ID;
         }
 
+        @Override
         public void writePortable(PortableWriter writer) throws IOException {
             writer.writeByte("b", b);
             writer.writeBoolean("bool", bool);
@@ -345,6 +330,7 @@ public class IndexTest {
             writer.writeString("str", str);
         }
 
+        @Override
         public void readPortable(PortableReader reader) throws IOException {
             b = reader.readByte("b");
             bool = reader.readBoolean("bool");
@@ -425,6 +411,7 @@ public class IndexTest {
                     + '}';
         }
 
+        @Override
         public int getFactoryId() {
             return FACTORY_ID;
         }
@@ -470,7 +457,7 @@ public class IndexTest {
         assertEquals(1, index.getRecords(555L, true, 555L, true).size());
         CachedQueryEntry<?, ?> record50 = newRecord(50L, 555L);
         index.putEntry(record50, null, record50, Index.OperationSource.USER);
-        assertEquals(new HashSet<QueryableEntry>(asList(record5, record50)), index.getRecords(555L));
+        assertEquals(Set.of(record5, record50), index.getRecords(555L));
 
         Map<Data, QueryableEntry> records = getRecordMap(index, 555L);
         assertNotNull(records);

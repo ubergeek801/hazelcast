@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,12 +71,10 @@ public class SPIAwareMemberGroupFactory extends BackupSafeMemberGroupFactory imp
                     return memberGroups;
                 }
             }
+        } catch (ValidationException e) {
+            throw new InvalidConfigurationException("Invalid configuration", e);
         } catch (Exception e) {
-            if (e instanceof ValidationException) {
-                throw new InvalidConfigurationException("Invalid configuration", e);
-            } else {
-                throw new RuntimeException("Failed to configure discovery strategies", e);
-            }
+            throw new RuntimeException("Failed to configure discovery strategies", e);
         }
 
         return memberGroups;

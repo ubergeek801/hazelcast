@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class ClusterJoinManager {
      * with a new random UUID). In order to support crashed members recovery
      * with Persistence, partition table validation does not expect an
      * identical partition table.
-     *
+     * <p>
      * Accessed by operation & cluster heartbeat threads
      */
     private final ConcurrentMap<UUID, Long> leftMembersUuids = new ConcurrentHashMap<>();
@@ -196,8 +196,8 @@ public class ClusterJoinManager {
 
         if (joinInProgress) {
             if (logger.isFineEnabled()) {
-                logger.fine(format("Join or membership claim is in progress, cannot handle join request from %s at the moment",
-                        target));
+                logger.fine("Join or membership claim is in progress, cannot handle join request from %s at the moment",
+                        target);
             }
             return;
         }
@@ -252,7 +252,7 @@ public class ClusterJoinManager {
      * @param joinMessage the {@link JoinMessage} received from another node.
      * @return {@code true} if packet version of join message matches this node's packet version and configurations
      * are found to be compatible, otherwise {@code false}.
-     * @throws Exception in case any exception occurred while checking compatibility
+     * @throws RuntimeException in case any exception occurred while checking compatibility
      * @see ConfigCheck
      */
     public boolean validateJoinMessage(JoinMessage joinMessage) {
@@ -263,7 +263,7 @@ public class ClusterJoinManager {
             ConfigCheck newMemberConfigCheck = joinMessage.getConfigCheck();
             ConfigCheck clusterConfigCheck = node.createConfigCheck();
             return clusterConfigCheck.isCompatible(newMemberConfigCheck);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.warning(format("Invalid join request from %s, cause: %s", joinMessage.getAddress(), e.getMessage()));
             throw e;
         }
@@ -311,7 +311,7 @@ public class ClusterJoinManager {
         UUID targetUuid = joinRequest.getUuid();
 
         if (hotRestartService.isMemberExcluded(target, targetUuid)) {
-            logger.fine("cannot join " + target + " because it is excluded in cluster start.");
+            logger.fine("cannot join %s because it is excluded in cluster start.", target);
             hotRestartService.notifyExcludedMember(target);
             return true;
         }
@@ -414,14 +414,14 @@ public class ClusterJoinManager {
                 passed = Boolean.TRUE;
             } catch (LoginException e) {
                 throw new SecurityException(format("Authentication has failed for %s @%s, cause: %s",
-                        String.valueOf(credentials), endpoint, e.getMessage()));
+                        credentials, endpoint, e.getMessage()));
             } finally {
-                Address remoteAddr = connection == null ? null : connection.getRemoteAddress();
+                Address remoteAddress = connection == null ? null : connection.getRemoteAddress();
                 nodeEngine.getNode().getNodeExtension().getAuditlogService()
                     .eventBuilder(AuditlogTypeIds.AUTHENTICATION_MEMBER)
                     .message("Member connection authentication.")
                     .addParameter("credentials", credentials)
-                    .addParameter("remoteAddress", remoteAddr)
+                    .addParameter("remoteAddress", remoteAddress)
                     .addParameter("endpoint", endpoint)
                     .addParameter("passed", passed)
                     .log();
@@ -500,14 +500,14 @@ public class ClusterJoinManager {
         clusterServiceLock.lock();
         try {
             if (logger.isFineEnabled()) {
-                logger.fine(format("Handling master response %s from %s", masterAddress, callerAddress));
+                logger.fine("Handling master response %s from %s", masterAddress, callerAddress);
             }
 
             if (clusterService.isJoined()) {
                 if (logger.isFineEnabled()) {
-                    logger.fine(format("Master address information (%s) came from %s. This node is already joined. "
+                    logger.fine("Master address information (%s) came from %s. This node is already joined. "
                             + "The received master address will be suggested as a temporary member address "
-                            + "in the TCP joiner configuration.", masterAddress, callerAddress));
+                            + "in the TCP joiner configuration.", masterAddress, callerAddress);
                 }
                 suggestAddressToKnownMembers(masterAddress);
                 return;
@@ -580,7 +580,7 @@ public class ClusterJoinManager {
 
         BuildInfo buildInfo = node.getBuildInfo();
         Address thisAddress = node.getThisAddress();
-        JoinMessage joinMessage = new JoinMessage(Packet.VERSION, buildInfo.getBuildNumber(), node.getVersion(),
+        JoinMessage joinMessage = new JoinMessage(buildInfo.getBuildNumber(), node.getVersion(),
                 thisAddress, clusterService.getThisUuid(), node.isLiteMember(), node.createConfigCheck());
         return nodeEngine.getOperationService().send(new WhoisMasterOp(joinMessage), toAddress);
     }
@@ -603,8 +603,8 @@ public class ClusterJoinManager {
             }
         } else {
             if (logger.isFineEnabled()) {
-                logger.fine(format("Received a master question from %s,"
-                        + " but this node is not master itself or doesn't have a master yet!", joinMessage.getAddress()));
+                logger.fine("Received a master question from %s,"
+                        + " but this node is not master itself or doesn't have a master yet!", joinMessage.getAddress());
             }
         }
     }
@@ -631,7 +631,7 @@ public class ClusterJoinManager {
         }
 
         if (masterAddress.equals(target)) {
-            logger.fine("Cannot send master answer to " + target + " since it is the known master");
+            logger.fine("Cannot send master answer to %s since it is the known master", target);
             return;
         }
 
@@ -652,7 +652,7 @@ public class ClusterJoinManager {
 
             if (clusterService.isMaster() && !isMastershipClaimInProgress()) {
                 if (logger.isFineEnabled()) {
-                    logger.fine(format("Ignoring join request, member already exists: %s", joinMessage));
+                    logger.fine("Ignoring join request, member already exists: %s", joinMessage);
                 }
 
                 // send members update back to node trying to join again...
@@ -917,7 +917,7 @@ public class ClusterJoinManager {
         }
 
         if (logger.isFineEnabled()) {
-            logger.fine("Checking if we should merge to: " + joinMessage);
+            logger.fine("Checking if we should merge to: %s", joinMessage);
         }
 
         if (!checkValidSplitBrainJoinMessage(joinMessage)) {
@@ -974,8 +974,8 @@ public class ClusterJoinManager {
     private boolean checkValidSplitBrainJoinMessage(SplitBrainJoinMessage joinMessage) {
         try {
             if (!validateJoinMessage(joinMessage)) {
-                logger.fine("Cannot process split brain merge message from " + joinMessage.getAddress()
-                        + ", since join-message could not be validated.");
+                logger.fine("Cannot process split brain merge message from %s, since join-message could not be validated.",
+                        joinMessage.getAddress());
                 return false;
             }
         } catch (Exception e) {
@@ -1001,8 +1001,7 @@ public class ClusterJoinManager {
     private boolean checkMergeTargetIsNotMember(SplitBrainJoinMessage joinMessage) {
         if (clusterService.getMember(joinMessage.getAddress()) != null) {
             if (logger.isFineEnabled()) {
-                logger.fine("Should not merge to " + joinMessage.getAddress()
-                        + ", because it is already member of this cluster.");
+                logger.fine("Should not merge to %s, because it is already member of this cluster.", joinMessage.getAddress());
             }
             return false;
         }
@@ -1013,8 +1012,8 @@ public class ClusterJoinManager {
         ClusterState clusterState = clusterService.getClusterState();
         if (!clusterState.isJoinAllowed()) {
             if (logger.isFineEnabled()) {
-                logger.fine("Should not merge to " + joinMessage.getAddress() + ", because this cluster is in "
-                        + clusterState + " state.");
+                logger.fine("Should not merge to %s, because this cluster is in %s state.", joinMessage.getAddress(),
+                        clusterState);
             }
             return false;
         }

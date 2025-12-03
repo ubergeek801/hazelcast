@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class MapFetchIndexOperation extends MapOperation implements ReadonlyOper
             int sizeLimit
     ) {
         super(mapName);
-        checkPositive(sizeLimit, "" + sizeLimit);
+        checkPositive(sizeLimit, String.valueOf(sizeLimit));
         this.indexName = indexName;
         this.partitionIdSet = partitionIdSet;
         this.pointers = pointers;
@@ -148,13 +148,13 @@ public class MapFetchIndexOperation extends MapOperation implements ReadonlyOper
             Data lastEntryKeyData = pointer.getLastEntryKeyData();
 
             if (logger.isFinestEnabled()) {
-                logger.finest("Processing pointer: " + pointer);
+                logger.finest("Processing pointer: %s", pointer);
             }
 
             Iterator<IndexKeyEntries> entryIterator = getEntryIterator(index, pointer);
             while (entryIterator.hasNext()) {
                 IndexKeyEntries indexKeyEntries = entryIterator.next();
-                @SuppressWarnings({"rawtypes"})
+                @SuppressWarnings("rawtypes")
                 Iterator<QueryableEntry> keyEntries = indexKeyEntries.getEntries();
 
                 // Read and add until size limit is reached or iterator ends
@@ -187,7 +187,7 @@ public class MapFetchIndexOperation extends MapOperation implements ReadonlyOper
                         );
 
                         if (logger.isFinestEnabled()) {
-                            logger.finest("Generated pointer: " + newPointers[0]);
+                            logger.finest("Generated pointer: %s", newPointers[0]);
                         }
 
                         System.arraycopy(pointers, i + 1, newPointers, 1, newPointers.length - 1);

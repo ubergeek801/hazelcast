@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,13 @@ import com.hazelcast.jet.pipeline.file.LinesTextFileFormat;
 import com.hazelcast.jet.pipeline.file.ParquetFileFormat;
 import com.hazelcast.jet.pipeline.file.RawBytesFileFormat;
 import com.hazelcast.jet.pipeline.file.TextFileFormat;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,14 +85,13 @@ public class LocalFileSourceFactory implements FileSourceFactory {
                 fsc.isIgnoreFileNotFound(), mapFn);
     }
 
-    @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
     private abstract static class AbstractReadFileFnProvider implements ReadFileFnProvider {
 
         @Nonnull @Override
         public <T> FunctionEx<Path, Stream<T>> createReadFileFn(@Nonnull FileFormat<T> format) {
             FunctionEx<InputStream, Stream<T>> mapInputStreamFn = mapInputStreamFn(format);
             return path -> {
-                FileInputStream fis = new FileInputStream(path.toFile());
+                InputStream fis = Files.newInputStream(path);
                 return mapInputStreamFn.apply(fis).onClose(() -> uncheckRun(fis::close));
             };
         }
@@ -113,7 +111,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
 
             return path -> {
                 // Jackson doesn't handle empty files
-                if (path.toFile().length() == 0) {
+                if (Files.size(path) == 0) {
                     return Stream.empty();
                 }
 

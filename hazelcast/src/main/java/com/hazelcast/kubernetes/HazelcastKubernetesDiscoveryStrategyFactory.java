@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.hazelcast.logging.Logger;
 import com.hazelcast.spi.discovery.DiscoveryNode;
 import com.hazelcast.spi.discovery.DiscoveryStrategy;
 import com.hazelcast.spi.discovery.DiscoveryStrategyFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -77,10 +76,12 @@ public class HazelcastKubernetesDiscoveryStrategyFactory
         this.tokenPath = tokenPath;
     }
 
+    @Override
     public Class<? extends DiscoveryStrategy> getDiscoveryStrategyType() {
         return HazelcastKubernetesDiscoveryStrategy.class;
     }
 
+    @Override
     public DiscoveryStrategy newDiscoveryStrategy(DiscoveryNode discoveryNode, ILogger logger,
                                                   Map<String, Comparable> properties) {
         ClusterTopologyIntentTracker tracker = null;
@@ -91,6 +92,7 @@ public class HazelcastKubernetesDiscoveryStrategyFactory
         return new HazelcastKubernetesDiscoveryStrategy(logger, properties, tracker);
     }
 
+    @Override
     public Collection<PropertyDefinition> getConfigurationProperties() {
         return PROPERTY_DEFINITIONS;
     }
@@ -109,7 +111,6 @@ public class HazelcastKubernetesDiscoveryStrategyFactory
         return tokenFileExists() && defaultKubernetesMasterReachable();
     }
 
-    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     boolean tokenFileExists() {
         return new File(tokenPath).exists();
     }

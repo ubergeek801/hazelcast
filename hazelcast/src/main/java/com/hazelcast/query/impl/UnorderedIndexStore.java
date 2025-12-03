@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,7 +279,7 @@ public class UnorderedIndexStore extends BaseSingleValueIndexStore {
         }
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity"})
+    @SuppressWarnings("checkstyle:npathcomplexity")
     @Override
     public Set<QueryableEntry> getRecords(Comparable from, boolean fromInclusive, Comparable to, boolean toInclusive) {
         takeReadLock();

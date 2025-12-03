@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,12 @@ import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static com.hazelcast.map.impl.MapService.SERVICE_NAME;
@@ -110,7 +110,7 @@ public class MapRemoveFailingBackupTest extends HazelcastTestSupport {
         }, 30);
     }
 
-    @NotNull
+    @Nonnull
     protected Config getConfig() {
         Config config = super.getConfig();
         config.getSerializationConfig().addDataSerializableFactory(100, new Factory());

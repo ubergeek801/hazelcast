@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,7 +242,7 @@ public class InOperatorIntegrationTest extends ExpressionTestSupport {
             Object... params
     ) {
         List<SqlRow> rows = execute(sql, params);
-        assertTrue(rows.stream().allMatch(row -> row.getMetadata().getColumn(0).getType().equals(expectedType)));
+        assertTrue(rows.stream().allMatch(row -> row.getMetadata().getColumn(0).getType() == expectedType));
         List<Object> rowValues = rows.stream().map(row -> row.getObject(0)).collect(Collectors.toList());
         assertThat(rowValues).containsExactlyInAnyOrderElementsOf(asList(expectedResults));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,17 +131,17 @@ public final class SimpleFunctionalMapTest {
         Map<String, AtomicLong> mapStats = new ConcurrentHashMap<>(10);
 
         public Stats() {
-            mapStats.put("put", new AtomicLong(0));
-            mapStats.put("get", new AtomicLong(0));
-            mapStats.put("remove", new AtomicLong(0));
-            mapStats.put("size", new AtomicLong(0));
-            mapStats.put("containsKey", new AtomicLong(0));
-            mapStats.put("containsValue", new AtomicLong(0));
-            mapStats.put("clear", new AtomicLong(0));
-            mapStats.put("keySet", new AtomicLong(0));
-            mapStats.put("values", new AtomicLong(0));
-            mapStats.put("entrySet", new AtomicLong(0));
-            mapStats.put("putIfAbsent", new AtomicLong(0));
+            mapStats.put("put", new AtomicLong());
+            mapStats.put("get", new AtomicLong());
+            mapStats.put("remove", new AtomicLong());
+            mapStats.put("size", new AtomicLong());
+            mapStats.put("containsKey", new AtomicLong());
+            mapStats.put("containsValue", new AtomicLong());
+            mapStats.put("clear", new AtomicLong());
+            mapStats.put("keySet", new AtomicLong());
+            mapStats.put("values", new AtomicLong());
+            mapStats.put("entrySet", new AtomicLong());
+            mapStats.put("putIfAbsent", new AtomicLong());
         }
 
         public Stats getAndReset() {

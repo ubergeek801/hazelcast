@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class CRDTReplicationMigrationService implements ManagedService, Membersh
             }
             long start = System.nanoTime();
             try {
-                logger.fine("Replicating " + serviceName + " to " + target);
+                logger.fine("Replicating %s to %s", serviceName, target);
                 InternalCompletableFuture<Object> future =
                         operationService.createInvocationBuilder(null, operation, target.getAddress())
                                 .setTryCount(1)

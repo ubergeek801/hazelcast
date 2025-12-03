@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class OracleSchemaJdbcSqlConnectorTest extends SchemaJdbcConnectorTest {
     }
 
     @Before
+    @Override
     public void setUp() throws Exception {
         assumeThat(schema)
                 .describedAs("Name with double quotes not supported on Oracle")

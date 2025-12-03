@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,12 @@ public class MapListenerAdapterTest extends HazelcastTestSupport {
         TestHazelcastInstanceFactory instanceFactory = createHazelcastInstanceFactory(1);
         HazelcastInstance instance = instanceFactory.newHazelcastInstance(cfg);
 
-        IMap map = instance.getMap(mapName);
+        IMap<Integer, Integer> map = instance.getMap(mapName);
 
         final CountDownLatch expirationLatch = new CountDownLatch(1);
-        map.addEntryListener(new MapListenerAdapter() {
-            public void onEntryEvent(EntryEvent event) {
+        map.addEntryListener(new MapListenerAdapter<Integer, Integer>() {
+            @Override
+            public void onEntryEvent(EntryEvent<Integer, Integer> event) {
                 expirationLatch.countDown();
             }
         }, false);

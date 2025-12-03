@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import static com.hazelcast.spi.properties.ClusterProperty.SOCKET_CLIENT_BIND;
 import static com.hazelcast.spi.properties.ClusterProperty.SOCKET_CLIENT_BIND_ANY;
 
 /**
- * The TcpServerConnector is responsible to make connections by connecting to a remote serverport. Once completed,
+ * The TcpServerConnector is responsible to make connections by connecting to a remote server port. Once completed,
  * it will send the protocol and a {@link com.hazelcast.internal.cluster.impl.MemberHandshake}.
  */
 class TcpServerConnector {
@@ -112,13 +112,13 @@ class TcpServerConnector {
         public void run() {
             if (!connectionManager.getServer().isLive()) {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("ConnectionManager is not live, connection attempt to " + remoteAddress + " is cancelled!");
+                    logger.finest("ConnectionManager is not live, connection attempt to %s is cancelled!", remoteAddress);
                 }
                 return;
             }
 
             if (logger.isFinestEnabled()) {
-                logger.finest("Starting to connect to " + remoteAddress);
+                logger.finest("Starting to connect to %s", remoteAddress);
             }
 
             try {
@@ -231,7 +231,7 @@ class TcpServerConnector {
                         return;
                     } catch (IOException e) {
                         ex = e;
-                        logger.finest("Could not bind port[ " + port + "]: " + e.getMessage());
+                        logger.finest("Could not bind port[ %s]: %s", port, e.getMessage());
                     }
                 }
                 throw ex;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.hazelcast.map.impl.MapService.SERVICE_NAME;
-import static java.util.Collections.sort;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
@@ -165,7 +164,7 @@ public class MapClearExpiredRecordsTask
             partitionContainer.setLastCleanupTimeCopy(partitionContainer.getLastCleanupTime());
         }
 
-        sort(partitionContainers, partitionContainerComparator);
+        partitionContainers.sort(partitionContainerComparator);
     }
 
     @Override

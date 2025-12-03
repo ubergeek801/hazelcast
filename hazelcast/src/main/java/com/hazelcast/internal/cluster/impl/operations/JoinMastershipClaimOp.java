@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class JoinMastershipClaimOp extends AbstractJoinOperation {
             logger.warning("This node requires MulticastJoin strategy!");
         }
         if (logger.isFineEnabled()) {
-            logger.fine("Sending '" + approvedAsMaster + "' for master claim of node: " + getCallerAddress());
+            logger.fine("Sending '%s' for master claim of node: %s", approvedAsMaster, getCallerAddress());
         }
     }
 

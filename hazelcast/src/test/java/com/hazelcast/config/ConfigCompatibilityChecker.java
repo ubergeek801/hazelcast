@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1274,7 +1274,7 @@ public class ConfigCompatibilityChecker {
             Set<EndpointQualifier> t1EndpointQualifiers = t1.getEndpointConfigs().keySet();
             Set<EndpointQualifier> t2EndpointQualifiers = t2.getEndpointConfigs().keySet();
             isCollectionCompatible(t1EndpointQualifiers, t2EndpointQualifiers,
-                    new ConfigChecker<EndpointQualifier>() {
+                    new ConfigChecker<>() {
                         @Override
                         boolean check(EndpointQualifier t1, EndpointQualifier t2) {
                             return t1.equals(t2);

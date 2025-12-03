@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,8 @@ public abstract class AbstractHazelcastCacheManager implements HazelcastCacheMan
     protected final URI uri;
     protected final Properties properties;
 
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
-    private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
+    private final AtomicBoolean isClosed = new AtomicBoolean();
+    private final AtomicBoolean isDestroyed = new AtomicBoolean();
 
     private final WeakReference<ClassLoader> classLoaderReference;
     private final String cacheNamePrefix;

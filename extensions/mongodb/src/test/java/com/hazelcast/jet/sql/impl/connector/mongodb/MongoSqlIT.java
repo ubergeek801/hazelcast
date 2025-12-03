@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,14 @@ import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.MongoDBContainer;
 
-import static com.hazelcast.jet.TestedVersions.MONGO_VERSION;
+import static com.hazelcast.jet.TestedVersions.MONGO_IMAGE;
 import static com.hazelcast.test.DockerTestUtil.assumeDockerEnabled;
 
 @RunWith(HazelcastSerialClassRunner.class)
 @Category({QuickTest.class})
 public abstract class MongoSqlIT extends SqlTestSupport {
     public static final MongoDBContainer mongoContainer
-            = new MongoDBContainer("mongo:" + MONGO_VERSION);
+            = new MongoDBContainer(MONGO_IMAGE);
 
     protected static SqlService sqlService;
     protected static MongoClient mongoClient;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.MapStore;
-import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryLoadedListener;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
@@ -233,10 +232,6 @@ public class LoadAllTest extends AbstractMapStoreTest {
         for (int i = rangeStart; i < rangeEnd; i++) {
             assertEquals(i, map.get(i));
         }
-    }
-
-    private static void addListener(IMap map, final CountDownLatch counter) {
-        map.addEntryListener((EntryAddedListener<Object, Object>) event -> counter.countDown(), true);
     }
 
     private static void addLoadedListener(IMap map, final CountDownLatch counter) {

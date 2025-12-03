@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package com.hazelcast.flakeidgen.impl;
 
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.internal.util.Clock;
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.lang.invoke.VarHandle;
 
 /**
  * A utility to serve IDs from IdBatch one by one, watching for validity.
@@ -61,8 +62,7 @@ public class AutoBatcher {
     }
 
     private static final class Block {
-        private static final AtomicIntegerFieldUpdater<Block> NUM_RETURNED = AtomicIntegerFieldUpdater
-                .newUpdater(Block.class, "numReturned");
+        private static final VarHandle NUM_RETURNED = ReflectionUtil.findVarHandle("numReturned", int.class);
 
         private final IdBatch idBatch;
         private final long invalidSince;

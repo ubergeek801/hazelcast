@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import static com.hazelcast.internal.util.Preconditions.isNotNull;
  * This is an extension to {@link MapLoader}. Entries loaded by EntryLoader
  * may have expiration times attached to them. In that case, the entry
  * is removed after given expiration time.
- *
+ * <p>
  * See {@link MapLoader}.
  *
  * @param <K> type of the EntryLoader key
- * @param <V> type of the EnyryLoader value
+ * @param <V> type of the EntryLoader value
  */
 @NamespacesSupported
 public interface EntryLoader<K, V> extends MapLoader<K, EntryLoader.MetadataAwareValue<V>> {

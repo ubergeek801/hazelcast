@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.cache.CacheTestSupport.createServerCachingProvider;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -412,7 +411,7 @@ public class ICacheDataStructureAdapterTest extends HazelcastTestSupport {
         cache.put(42, "value-42");
         cache.put(65, "value-65");
 
-        Set<Integer> keys = new HashSet<>(asList(23, 65, 88));
+        Set<Integer> keys = Set.of(23, 65, 88);
         Map<Integer, EntryProcessorResult<String>> resultMap = adapter.invokeAll(keys, new ICacheReplaceEntryProcessor(),
                 "value", "newValue");
         assertEquals(2, resultMap.size());

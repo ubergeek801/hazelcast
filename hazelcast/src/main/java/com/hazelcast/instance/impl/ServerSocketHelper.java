@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ final class ServerSocketHelper {
                                                          InetAddress bindAddress,
                                                          int port, int portCount, boolean isPortAutoIncrement,
                                                          boolean isReuseAddress, boolean bindAny) {
-        logger.finest("inet reuseAddress:" + isReuseAddress);
+        logger.finest("inet reuseAddress: %s", isReuseAddress);
 
         if (port == 0) {
             logger.info("No explicit port is given, system will pick up an ephemeral port.");
@@ -137,9 +137,9 @@ final class ServerSocketHelper {
             }
             serverSocket.setReceiveBufferSize(endpointConfig.getSocketRcvBufferSizeKb() * KILO_BYTE);
 
-            logger.fine("Trying to bind inet socket address: " + socketBindAddress);
+            logger.fine("Trying to bind inet socket address: %s", socketBindAddress);
             serverSocket.bind(socketBindAddress, SOCKET_BACKLOG_LENGTH);
-            logger.fine("Bind successful to inet socket address: " + serverSocket.getLocalSocketAddress());
+            logger.fine("Bind successful to inet socket address: %s", serverSocket.getLocalSocketAddress());
 
             serverSocketChannel.configureBlocking(false);
             return serverSocketChannel;

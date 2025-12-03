@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,9 @@ public class LongStreamSourceP extends AbstractProcessor {
         lastReportNanos = nowNanoTime;
         long localItemCountSinceLastReport = (valueToEmit - valueAtLastReport) / totalParallelism;
         valueAtLastReport = valueToEmit;
-        logger.fine(String.format("p%d: %,.0f items/second",
+        logger.fine("p%d: %,.0f items/second",
                 globalProcessorIndex,
-                localItemCountSinceLastReport / ((double) nanosSinceLastReport / NANOS_PER_SECOND)));
+                localItemCountSinceLastReport / ((double) nanosSinceLastReport / NANOS_PER_SECOND));
     }
 
     private static long determineTimeOffset() {

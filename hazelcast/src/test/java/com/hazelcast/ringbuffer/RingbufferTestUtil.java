@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package com.hazelcast.ringbuffer;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.instance.impl.TestUtil;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.ringbuffer.impl.RingbufferContainer;
 import com.hazelcast.ringbuffer.impl.RingbufferService;
 import com.hazelcast.spi.impl.NodeEngineImpl;
+import com.hazelcast.test.Accessors;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,7 +58,7 @@ final class RingbufferTestUtil {
      * Returns all backup items of a {@link Ringbuffer} by a given ringbuffer name.
      * <p>
      * Note: You have to provide the {@link HazelcastInstance} you want to retrieve the backups from.
-     * Use {@link getBackupInstance} to retrieve the backup instance for a given replica index.
+     * Use {@link Accessors#getBackupInstance(HazelcastInstance[], int, int)} to retrieve the backup instance for a given replica index.
      *
      * @param backupInstance the {@link HazelcastInstance} to retrieve the backups from
      * @param partitionId    the partition ID of the ringbuffer
@@ -64,6 +66,9 @@ final class RingbufferTestUtil {
      * @return a {@link Collection} with the backup items
      */
     static Collection<Object> getBackupRingbuffer(HazelcastInstance backupInstance, int partitionId, String ringbufferName) {
+        // Backup may be owned by instance with previous version, need to setup namespaces for it as well.
+        // It does not really matter which particular NodeEngine is used as long as it is from the same Hazelcast version.
+        TestUtil.setupNamespacesForCurrentThread(backupInstance);
         NodeEngineImpl nodeEngine = getNodeEngineImpl(backupInstance);
         RingbufferService service = nodeEngine.getService(RingbufferService.SERVICE_NAME);
         RingbufferContainer container = service.getContainerOrNull(partitionId, getRingbufferNamespace(ringbufferName));

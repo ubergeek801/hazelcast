@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,23 @@
 package com.hazelcast.internal.hotrestart;
 
 import com.hazelcast.cluster.ClusterState;
+import com.hazelcast.cluster.Member;
 import com.hazelcast.config.HotRestartPersistenceConfig;
 import com.hazelcast.instance.impl.ClusterTopologyIntent;
+import com.hazelcast.instance.impl.ClusterTopologyIntentTracker;
+import com.hazelcast.internal.cluster.impl.ClusterJoinManager;
 import com.hazelcast.internal.cluster.impl.operations.OnJoinOp;
 import com.hazelcast.internal.management.dto.ClusterHotRestartStatusDTO;
 import com.hazelcast.cluster.Address;
+import com.hazelcast.internal.partition.InternalPartitionService;
 import com.hazelcast.internal.partition.PartitionRuntimeState;
+import com.hazelcast.internal.partition.operation.SafeStateCheckOperation;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Internal service for interacting with hot restart related functionalities (e.g. force and partial start)
@@ -56,7 +63,6 @@ public interface InternalHotRestartService {
      * stores the given {@code newClusterState} and applies it after recovery is complete,
      * returning {@code true}. Otherwise, does nothing and returns {@code false}.
      *
-     * @param newClusterState
      * @return {@code true} if recovery is in progress, indicating that the new cluster
      * state will be applied once recovery is complete, otherwise {@code false}.
      */
@@ -140,24 +146,24 @@ public interface InternalHotRestartService {
     /**
      * Waits until partition replicas (primaries and backups) get in sync.
      *
-     * @param timeout timeout
      * @param unit time unit
+     * @param supplier the {@link SafeStateCheckOperation} supplier
      * @throws IllegalStateException when timeout happens or a member leaves the cluster while waiting
      */
-    void waitPartitionReplicaSyncOnCluster(long timeout, TimeUnit unit);
+    void waitPartitionReplicaSyncOnCluster(long timeout, TimeUnit unit, Supplier<SafeStateCheckOperation> supplier);
 
     void setRejoiningActiveCluster(boolean rejoiningActiveCluster);
 
     /**
      * Apply given {@link PartitionRuntimeState} after recovery is successfully completed.
      *
-     * @param partitionRuntimeState
+     * @see InternalPartitionService#createPartitionState()
+     * @see ClusterJoinManager#startJoin
      */
-    void deferApplyPartitionState(PartitionRuntimeState partitionRuntimeState);
+    void deferApplyPartitionState(@Nullable PartitionRuntimeState partitionRuntimeState);
 
     /**
      * Apply given {@link OnJoinOp} after recovery is successfully completed.
-     * @param postJoinOp
      */
     void deferPostJoinOps(OnJoinOp postJoinOp);
 
@@ -168,9 +174,8 @@ public interface InternalHotRestartService {
     boolean isClusterMetadataFoundOnDisk();
 
     /**
-     * Invoked each time an enabled {@link com.hazelcast.instance.impl.ClusterTopologyIntentTracker}
-     * detects a change of cluster topology in the runtime environment. Only used when running in a
-     * managed context (Kubernetes).
+     * Invoked each time an enabled {@link ClusterTopologyIntentTracker} detects a change of cluster
+     * topology in the runtime environment. Only used when running in a managed context (Kubernetes).
      */
     void onClusterTopologyIntentChange();
 
@@ -179,4 +184,25 @@ public interface InternalHotRestartService {
      * @param clusterTopologyIntent the cluster topology intent, as detected by master member.
      */
     void setClusterTopologyIntentOnMaster(ClusterTopologyIntent clusterTopologyIntent);
+
+    /**
+     * Callback method when a member has left the cluster, and what the cluster's state is
+     * as the member leaves. This is used to track crashed members and mark them as unsafe
+     * if they crash (leave the cluster in an ACTIVE-like state) while 1 or more other nodes
+     * are marked as crashed.
+     *
+     * @param member       the member which is discovered to have crashed.
+     * @param clusterState the cluster's state when the member left
+     */
+    void onMemberLeft(Member member, ClusterState clusterState);
+
+    /**
+     * Callback method when a member joins the cluster. This is used to remove crashed
+     * members from tracking on non-master nodes, as only the master node responds to
+     * Hot Restart requests, but other nodes need to keep their tracker up-to-date as
+     * they may become master in the future.
+     *
+     * @param member the member which has joined the cluster.
+     */
+    void onMemberJoined(Member member);
 }

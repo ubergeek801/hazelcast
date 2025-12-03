@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class HazelcastOracleDialect extends OracleSqlDialect implements TypeReso
 
     @Override
     public @Nullable SqlNode getCastSpec(RelDataType type) {
-        if (type.getSqlTypeName().equals(SqlTypeName.VARCHAR)) {
+        if (type.getSqlTypeName() == SqlTypeName.VARCHAR) {
             return new SqlDataTypeSpec(
                     new SqlAlienSystemTypeNameSpec("VARCHAR(128)", type.getSqlTypeName(), SqlParserPos.ZERO),
                     SqlParserPos.ZERO);

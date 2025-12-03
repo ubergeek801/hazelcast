@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +55,9 @@ public final class SimpleMultiMapTest {
         boolean load = init(args);
         ExecutorService es = newFixedThreadPool(threadCount);
         final MultiMap<String, byte[]> map = instance.getMultiMap("default");
-        final AtomicInteger gets = new AtomicInteger(0);
-        final AtomicInteger puts = new AtomicInteger(0);
-        final AtomicInteger removes = new AtomicInteger(0);
+        final AtomicInteger gets = new AtomicInteger();
+        final AtomicInteger puts = new AtomicInteger();
+        final AtomicInteger removes = new AtomicInteger();
         load(load, es, map);
 
         for (int i = 0; i < threadCount; i++) {

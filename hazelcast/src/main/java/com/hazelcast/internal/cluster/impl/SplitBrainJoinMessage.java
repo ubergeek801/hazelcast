@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,10 @@ public class SplitBrainJoinMessage extends JoinMessage {
     }
 
     @SuppressWarnings("checkstyle:parameternumber")
-    public SplitBrainJoinMessage(byte packetVersion, int buildNumber, MemberVersion version, Address address, UUID uuid,
+    public SplitBrainJoinMessage(int buildNumber, MemberVersion version, Address address, UUID uuid,
                                  boolean liteMember, ConfigCheck configCheck, Collection<Address> memberAddresses,
                                  int dataMemberCount, Version clusterVersion, int memberListVersion) {
-        super(packetVersion, buildNumber, version, address, uuid, liteMember, configCheck, memberAddresses, dataMemberCount);
+        super(buildNumber, version, address, uuid, liteMember, configCheck, memberAddresses, dataMemberCount);
         this.clusterVersion = clusterVersion;
         this.memberListVersion = memberListVersion;
     }

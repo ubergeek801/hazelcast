@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ import static java.lang.String.format;
  * backup partitions) of all maps on this node. This value is useful
  * to put a higher limit on total number of entries that can exist
  * in all write-behind-queues to prevent OOME.
- *
+ * <p>
  * There is only one counter instance per node.
  */
 public class NodeWideUsedCapacityCounter {
     private final long maxPerNodeCapacity;
-    private final AtomicLong nodeWideUsedCapacityCounter = new AtomicLong(0);
+    private final AtomicLong nodeWideUsedCapacityCounter = new AtomicLong();
 
     public NodeWideUsedCapacityCounter(HazelcastProperties properties) {
         this.maxPerNodeCapacity = properties.getLong(ClusterProperty.MAP_WRITE_BEHIND_QUEUE_CAPACITY);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -609,8 +609,12 @@ public class MultiMapService implements ManagedService, RemoteService, ChunkedMi
 
                 for (MultiMapContainer container : containers) {
                     String name = container.getObjectNamespace().getObjectName();
-                    SplitBrainMergePolicy<Collection<Object>, MultiMapMergeTypes<Object, Object>,
-                            Collection<Object>> mergePolicy = getMergePolicy(container.getConfig().getMergePolicyConfig());
+                    SplitBrainMergePolicy<Collection<Object>,
+                            MultiMapMergeTypes<Object, Object>,
+                            Collection<Object>> mergePolicy = getMergePolicy(
+                            container.getConfig().getMergePolicyConfig(),
+                            container.getConfig().getUserCodeNamespace()
+                    );
                     int batchSize = container.getConfig().getMergePolicyConfig().getBatchSize();
 
                     List<MultiMapMergeContainer> mergeContainers = new ArrayList<>(batchSize);

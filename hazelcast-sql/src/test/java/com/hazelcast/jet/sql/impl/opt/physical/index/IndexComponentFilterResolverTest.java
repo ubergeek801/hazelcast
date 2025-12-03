@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.test.HazelcastParametrizedRunner;
 import com.hazelcast.test.HazelcastSerialParametersRunnerFactory;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import junit.framework.TestCase;
 import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.junit.Test;
@@ -40,10 +39,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 @RunWith(HazelcastParametrizedRunner.class)
 @Parameterized.UseParametersRunnerFactory(HazelcastSerialParametersRunnerFactory.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
-public class IndexComponentFilterResolverTest extends TestCase {
+public class IndexComponentFilterResolverTest {
     private static final RexInputRef REX_INPUT_REF = new RexInputRef(0, HazelcastIntegerType.create(SqlTypeName.INTEGER, false));
     private static final QueryDataType QUERY_DATA_TYPE = QueryDataType.INT;
 

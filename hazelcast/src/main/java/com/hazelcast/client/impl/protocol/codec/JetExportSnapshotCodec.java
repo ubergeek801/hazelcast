@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
 /**
  */
 @SuppressWarnings("unused")
-@Generated("e6cbbd7059b5576872995c1c484c9d5e")
+@Generated("3645370a849656980a7bc2424557d6ea")
 public final class JetExportSnapshotCodec {
     //hex: 0xFE0A00
     public static final int REQUEST_MESSAGE_TYPE = 16648704;
@@ -50,7 +50,6 @@ public final class JetExportSnapshotCodec {
     private JetExportSnapshotCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

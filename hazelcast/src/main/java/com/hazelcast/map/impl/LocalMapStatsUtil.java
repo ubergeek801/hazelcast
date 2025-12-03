@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ public final class LocalMapStatsUtil {
 
     /**
      * Increments other operations count statistic in local map statistics.
-     * @param service
-     * @param mapName
      */
     public static void incrementOtherOperationsCount(MapService service, String mapName) {
         MapServiceContext mapServiceContext = service.getMapServiceContext();

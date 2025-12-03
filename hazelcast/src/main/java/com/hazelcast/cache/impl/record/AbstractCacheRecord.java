@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.cache.impl.CacheDataSerializerHook;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 
@@ -47,6 +46,7 @@ public abstract class AbstractCacheRecord<V, E> implements CacheRecord<V, E>, Id
         this.expirationTime = expirationTime;
     }
 
+    @Override
     public long getExpirationTime() {
         return expirationTime;
     }
@@ -88,8 +88,8 @@ public abstract class AbstractCacheRecord<V, E> implements CacheRecord<V, E>, Id
     }
 
     @Override
-    @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
-            justification = "CacheRecord can be accessed by only its own partition thread.")
+//    @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
+//            justification = "CacheRecord can be accessed by only its own partition thread.")
     public void incrementHits() {
         hits++;
     }

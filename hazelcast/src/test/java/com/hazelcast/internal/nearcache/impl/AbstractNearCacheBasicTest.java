@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     /**
      * Creates the {@link NearCacheTestContext} used by the Near Cache tests.
      * <p>
-     * The backing {@link DataStructureAdapter} will be populated with {@value DEFAULT_RECORD_COUNT} entries.
+     * The backing {@link DataStructureAdapter} will be populated with {@value #DEFAULT_RECORD_COUNT} entries.
      *
      * @param <K> key type of the created {@link DataStructureAdapter}
      * @param <V> value type of the created {@link DataStructureAdapter}
@@ -888,14 +888,10 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
                 case SET_EXPIRY_POLICY:
                     assertTrue(adapter.setExpiryPolicy(i, expiryPolicy));
                     break;
-                case EXECUTE_ON_KEYS:
-                case PUT_ALL:
-                case INVOKE_ALL:
-                case SET_EXPIRY_POLICY_MULTI_KEY:
+                case EXECUTE_ON_KEYS, PUT_ALL, INVOKE_ALL, SET_EXPIRY_POLICY_MULTI_KEY:
                     invalidationMap.put(i, newValue);
                     break;
-                case EXECUTE_ON_ENTRIES:
-                case EXECUTE_ON_ENTRIES_WITH_PREDICATE:
+                case EXECUTE_ON_ENTRIES, EXECUTE_ON_ENTRIES_WITH_PREDICATE:
                     break;
                 case SET_TTL:
                     adapter.setTtl(i, 1, TimeUnit.DAYS);
@@ -1117,7 +1113,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_WITH_OLD_VALUE)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_WITH_OLD_VALUE} is used.
      */
     @Test
     public void whenRemoveWithOldValueIsUsed_thenNearCacheShouldBeInvalidated_onNearCacheAdapter() {
@@ -1125,7 +1121,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_WITH_OLD_VALUE)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_WITH_OLD_VALUE} is used.
      */
     @Test
     public void whenRemoveWithOldValueIsUsed_thenNearCacheShouldBeInvalidated_onDataAdapter() {
@@ -1165,7 +1161,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL} is used.
      */
     @Test
     public void whenRemoveAllIsUsed_thenNearCacheShouldBeInvalidated_onNearCacheAdapter() {
@@ -1173,7 +1169,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL} is used.
      */
     @Test
     public void whenRemoveAllIsUsed_thenNearCacheShouldBeInvalidated_onDataAdapter() {
@@ -1181,7 +1177,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL_WITH_KEYS)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL_WITH_KEYS} is used.
      */
     @Test
     public void whenRemoveAllWithKeysIsUsed_thenNearCacheShouldBeInvalidated_onNearCacheAdapter() {
@@ -1189,7 +1185,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL_WITH_KEYS)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#REMOVE_ALL_WITH_KEYS} is used.
      */
     @Test
     public void whenRemoveAllWithKeysIsUsed_thenNearCacheShouldBeInvalidated_onDataAdapter() {
@@ -1197,7 +1193,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#CLEAR)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#CLEAR} is used.
      */
     @Test
     public void whenClearIsUsed_thenNearCacheShouldBeInvalidated_onNearCacheAdapter() {
@@ -1205,7 +1201,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#CLEAR)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#CLEAR} is used.
      */
     @Test
     public void whenClearIsUsed_thenNearCacheShouldBeInvalidated_onDataAdapter() {
@@ -1213,7 +1209,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#DESTROY)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#DESTROY} is used.
      */
     @Test
     public void whenDestroyIsUsed_thenNearCacheShouldBeInvalidated_onNearCacheAdapter() {
@@ -1221,7 +1217,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
     }
 
     /**
-     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#DESTROY)} is used.
+     * Checks that the Near Cache is eventually invalidated when {@link DataStructureMethods#DESTROY} is used.
      */
     @Test
     public void whenDestroyIsUsed_thenNearCacheShouldBeInvalidated_onDataAdapter() {
@@ -1283,8 +1279,7 @@ public abstract class AbstractNearCacheBasicTest<NK, NV> extends HazelcastTestSu
                     case REMOVE_ALL_WITH_KEYS:
                         removeKeys.add(i);
                         break;
-                    case CLEAR:
-                    case DESTROY:
+                    case CLEAR, DESTROY:
                         break;
                     default:
                         throw new IllegalArgumentException("Unexpected method: " + method);

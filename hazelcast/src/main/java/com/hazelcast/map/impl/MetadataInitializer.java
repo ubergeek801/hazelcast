@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,10 @@ public interface MetadataInitializer {
      * Returns metadata for given binary data. Implementing class decides
      * the type of the metadata returned.
      *
-     * @param keyData
      * @return metadata created from given binary data
      * @throws IOException
      */
-    Object createFromData(Data keyData) throws IOException;
+    Object createFromData(Data data) throws IOException;
 
     /**
      * Returns metadata for given object. Implementing class decides
@@ -43,7 +42,6 @@ public interface MetadataInitializer {
      * It is up to the implementating class to verify the type of the
      * argument.
      *
-     * @param object
      * @return metadata created from given object
      * @throws IOException
      */

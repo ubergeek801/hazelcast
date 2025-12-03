@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package com.hazelcast.test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import javax.annotation.Nonnull;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Sets or clears a property before running a test. The property will be restored once the test is finished.
@@ -74,6 +78,30 @@ public final class OverridePropertyRule implements TestRule {
     }
 
     public String setOrClearProperty(String value) {
+        return setOrClearProperty(propertyName, value);
+    }
+
+    public static String setOrClearProperty(String propertyName, String value) {
         return value == null ? System.clearProperty(propertyName) : System.setProperty(propertyName, value);
+    }
+
+    /**
+     * Executes given piece of code with given system property changed.
+     * <b>Note</b> that this method should be used only in {@link HazelcastSerialClassRunner serial tests} as
+     * system properties are static and changes will interfere with other tests.
+     */
+    public static void withChangedProperty(@Nonnull final String propertyName,
+                                           @Nonnull final String newValue,
+                                           @Nonnull final Runnable action) {
+        requireNonNull(propertyName, "property name must be non-null");
+        requireNonNull(newValue, "property name must be non-null");
+        requireNonNull(action, "property name must be non-null");
+
+        String oldValue = setOrClearProperty(propertyName, newValue);
+        try {
+            action.run();
+        } finally {
+            setOrClearProperty(propertyName, oldValue);
+        }
     }
 }

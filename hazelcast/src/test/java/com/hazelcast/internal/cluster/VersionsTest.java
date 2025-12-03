@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package com.hazelcast.internal.cluster;
 
+import com.hazelcast.instance.BuildInfoProvider;
+import com.hazelcast.test.annotation.QuickTest;
 import com.hazelcast.version.Version;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static com.hazelcast.test.HazelcastTestSupport.assertUtilityConstructor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Tag("com.hazelcast.test.annotation.QuickTest")
+@QuickTest
 class VersionsTest {
     @Test
     void testConstructor() {
@@ -50,9 +50,8 @@ class VersionsTest {
 
     @Test
     void testCurrentVersion() {
-        assertNotNull(Versions.CURRENT_CLUSTER_VERSION);
-        assertNotNull(Versions.PREVIOUS_CLUSTER_VERSION);
-
-        assertNotEquals(Versions.PREVIOUS_CLUSTER_VERSION, Versions.CURRENT_CLUSTER_VERSION);
+        assertNotEquals(BuildInfoProvider.getBuildInfo()
+                .getPreviousVersion()
+                .asVersion(), Versions.CURRENT_CLUSTER_VERSION);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,17 +54,17 @@ public enum GetOpSteps implements IMapOpStep {
         @Override
         public void runStep(State state) {
             RecordStore recordStore = state.getRecordStore();
-            BiTuple<Object, Long> loadedValueWithExpiry = ((DefaultRecordStore) recordStore)
-                    .loadValueWithExpiry(state.getKey(), state.getNow());
-            state.setLoadedOldValueWithExpiry(loadedValueWithExpiry);
-            if (loadedValueWithExpiry != null) {
-                state.setOldValue(loadedValueWithExpiry.element1);
+            BiTuple<Object, Long> loadedValueWithTtl = ((DefaultRecordStore) recordStore)
+                    .loadValueWithTtl(state.getKey(), state.getNow());
+            state.setLoadedOldValueWithTtl(loadedValueWithTtl);
+            if (loadedValueWithTtl != null) {
+                state.setOldValue(loadedValueWithTtl.element1);
             }
         }
 
         @Override
         public Step nextStep(State state) {
-            return state.getLoadedOldValueWithExpiry() == null ? GetOpSteps.RESPONSE : GetOpSteps.ON_LOAD;
+            return state.getLoadedOldValueWithTtl() == null ? GetOpSteps.RESPONSE : GetOpSteps.ON_LOAD;
         }
     },
 
@@ -73,7 +73,7 @@ public enum GetOpSteps implements IMapOpStep {
         public void runStep(State state) {
             RecordStore recordStore = state.getRecordStore();
             Record record = ((DefaultRecordStore) recordStore).onLoadRecord(state.getKey(),
-                    state.getLoadedOldValueWithExpiry(), false, state.getCallerAddress(), state.getNow());
+                    state.getLoadedOldValueWithTtl(), false, state.getCallerAddress(), state.getNow());
             record = recordStore.evictIfExpired(state.getKey(), state.getNow(), false)
                     ? null : record;
             state.setOldValue(record == null ? null : record.getValue());

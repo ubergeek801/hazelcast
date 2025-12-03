@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
 /**
  */
 @SuppressWarnings("unused")
-@Generated("28c5d4ef54bc0f7ee5477c326c96e82a")
+@Generated("762fe112446461349635a0e9bac99683")
 public final class JetUpdateJobConfigCodec {
     //hex: 0xFE1500
     public static final int REQUEST_MESSAGE_TYPE = 16651520;
@@ -49,7 +49,6 @@ public final class JetUpdateJobConfigCodec {
     private JetUpdateJobConfigCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

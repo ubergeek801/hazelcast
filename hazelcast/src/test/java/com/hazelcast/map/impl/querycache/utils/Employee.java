@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.hazelcast.map.impl.querycache.utils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Random;
 
 public class Employee implements Serializable, Comparable<Employee> {
 
-    public static final long serialVersionUID = 5850489412220165243L;
+    @Serial
+    private static final long serialVersionUID = 5850489412220165243L;
 
     public static final int MAX_AGE = 75;
     public static final double MAX_SALARY = 1000.0;

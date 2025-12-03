@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class KafkaConnectJdbcIT extends JetTestSupport {
             .withLogConsumer(new Slf4jLogConsumer(LOGGER).withPrefix("Docker"));
 
     private static final int ITEM_COUNT = 1_000;
-    private static final String FILE_NAME = "confluentinc-kafka-connect-jdbc-10.6.3.zip";
+    private static final String FILE_NAME = "confluentinc-kafka-connect-jdbc-10.8.4.zip";
 
     @BeforeClass
     public static void setUpDocker() {
@@ -381,9 +381,7 @@ public class KafkaConnectJdbcIT extends JetTestSupport {
             assertTrueEventually(() -> assertThat(map).hasSizeGreaterThan(currentElements));
             scheduledFuture.cancel(false);
 
-            assertTrueEventually(() -> {
-                assertThat(map).hasSize(recordsCreatedCounter.intValue());
-            });
+            assertTrueEventually(() -> assertThat(map).hasSize(recordsCreatedCounter.intValue()));
         }
     }
 
@@ -396,7 +394,7 @@ public class KafkaConnectJdbcIT extends JetTestSupport {
         try (Connection conn = DriverManager.getConnection(mysql.getJdbcUrl(), USERNAME, PASSWORD);
              Statement stmt = conn.createStatement()
         ) {
-            String sql = String.format("INSERT INTO " + testName + " VALUES(" + index + ", " + index + ")");
+            String sql = String.format("INSERT INTO %s VALUES (%d , %d)", testName, index, index);
             stmt.addBatch(sql);
             stmt.executeBatch();
         } catch (Exception e) {
@@ -410,7 +408,7 @@ public class KafkaConnectJdbcIT extends JetTestSupport {
              Statement stmt = conn.createStatement()
         ) {
             for (int i = 0; i < ITEM_COUNT; i++) {
-                String sql = String.format("INSERT INTO " + tableName + " VALUES(%d, '" + tableName + "-%d')", i, i);
+                String sql = String.format("INSERT INTO %s VALUES(%d, '%s-%d')", tableName, i, tableName, i);
                 stmt.addBatch(sql);
             }
             int[] ints = stmt.executeBatch();

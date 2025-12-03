@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.client.replicatedmap;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.properties.ClientProperty;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.client.util.ConfigRoutingUtil;
@@ -58,7 +58,7 @@ public class ClientReplicatedMapLiteMemberTest {
 
     @Parameterized.Parameters(name = "{index}: routingMode={0}")
     public static Iterable<?> parameters() {
-        return Arrays.asList(RoutingMode.UNISOCKET, RoutingMode.SMART);
+        return Arrays.asList(RoutingMode.SINGLE_MEMBER, RoutingMode.ALL_MEMBERS);
     }
 
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
@@ -105,7 +105,7 @@ public class ClientReplicatedMapLiteMemberTest {
         List<HazelcastInstance> instances = createNodes(3, 1);
 
         ClientConfig clientConfig = newClientConfig();
-        if (routingMode == RoutingMode.UNISOCKET) {
+        if (routingMode == RoutingMode.SINGLE_MEMBER) {
             configureDummyClientConnection(instances.get(0), clientConfig);
         }
         HazelcastInstance client = factory.newHazelcastClient(clientConfig);

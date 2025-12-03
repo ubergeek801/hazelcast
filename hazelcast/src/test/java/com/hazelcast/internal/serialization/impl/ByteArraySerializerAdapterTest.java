@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class ByteArraySerializerAdapterTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         adapter.destroy();
     }
 
@@ -74,7 +74,7 @@ public class ByteArraySerializerAdapterTest {
     }
 
     @Test
-    public void testAdaptorEqualAndHashCode() throws Exception {
+    public void testAdaptorEqualAndHashCode() {
         ByteArraySerializerAdapter theOther = new ByteArraySerializerAdapter(serializer);
         ByteArraySerializerAdapter theEmptyOne = new ByteArraySerializerAdapter(null);
 
@@ -90,7 +90,7 @@ public class ByteArraySerializerAdapterTest {
     }
 
     @Test
-    public void testString() throws Exception {
+    public void testString() {
         assertNotNull(adapter.toString());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static com.hazelcast.test.starter.HazelcastVersionLocator.Artifact.OS_TES
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -31,6 +30,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
+import com.hazelcast.test.annotation.NightlyTest;
 import com.hazelcast.test.starter.HazelcastVersionLocator;
 import com.hazelcast.test.starter.HazelcastVersionLocator.Artifact;
 
@@ -38,21 +38,20 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
  * TODO This test doesn't force a re-download, so if an artifact is cached in the local repository, the download won't be
  *      exercised. It's difficult to modify the local Maven repository as it's not encapsulated for the scope of testing
  */
-@Tag("com.hazelcast.test.annotation.NightlyTest")
-public class HazelcastVersionLocatorTest {
+@NightlyTest
+class HazelcastVersionLocatorTest {
     private static HashFunction hashFunction;
-    private static Map<HazelcastVersionLocator.Artifact, File> files;
 
     @BeforeAll
-    public static void setUp() {
+    static void setUp() {
         hashFunction = Hashing.crc32c();
-        files = HazelcastVersionLocator.locateVersion("4.0", true);
     }
 
     static Stream<Arguments> testDownloadVersion() {
@@ -63,9 +62,11 @@ public class HazelcastVersionLocatorTest {
     @ParameterizedTest
     @MethodSource("testDownloadVersion")
     void testDownloadVersion(Artifact artifact, String expectedHash) throws IOException {
+        Map<Artifact, File> files = HazelcastVersionLocator.locateVersion("4.0", artifact.isEnterprise());
         final File file = files.get(artifact);
+        Objects.requireNonNull(file, MessageFormat.format("Failed to find {0} JAR in {1}", artifact, files));
         final HashCode memberHash = Files.asByteSource(file).hash(hashFunction);
         assertEquals(expectedHash, memberHash.toString(),
-                MessageFormat.format("Expected hash of Hazelcast {0} JAR to be {1}", artifact, expectedHash));
+                MessageFormat.format("Unexpected hash of Hazelcast {0} JAR", artifact));
     }
 }

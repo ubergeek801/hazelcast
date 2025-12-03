@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.hazelcast.json.internal.JsonDataSerializerHook.JSON_SCHEMA_STRUCT_NODE;
 
@@ -43,8 +44,6 @@ public class JsonSchemaStructNode extends JsonSchemaNode {
     /**
      * Adds a child node to this Json node. It is added as the last item
      * in order.
-     *
-     * @param description
      */
     public void addChild(JsonSchemaNameValue description) {
         inners.add(description);
@@ -82,7 +81,7 @@ public class JsonSchemaStructNode extends JsonSchemaNode {
         }
         JsonSchemaStructNode that = (JsonSchemaStructNode) o;
 
-        return inners != null ? inners.equals(that.inners) : that.inners == null;
+        return Objects.equals(inners, that.inners);
     }
 
     @Override
@@ -102,8 +101,8 @@ public class JsonSchemaStructNode extends JsonSchemaNode {
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
         out.writeInt(inners.size());
-        for (int i = 0; i < inners.size(); i++) {
-            inners.get(i).writeData(out);
+        for (JsonSchemaNameValue inner : inners) {
+            inner.writeData(out);
         }
         // Don't serialize parent node from superclass to avoid cyclic dependency
     }

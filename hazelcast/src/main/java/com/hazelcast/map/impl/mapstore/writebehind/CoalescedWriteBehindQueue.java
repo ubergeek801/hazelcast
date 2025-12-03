@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ package com.hazelcast.map.impl.mapstore.writebehind;
 import com.hazelcast.map.impl.mapstore.writebehind.entry.DelayedEntry;
 import com.hazelcast.internal.serialization.Data;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,7 +145,7 @@ class CoalescedWriteBehindQueue implements WriteBehindQueue<DelayedEntry> {
     @Override
     public List<DelayedEntry> asList() {
         Collection<DelayedEntry> values = map.values();
-        return Collections.unmodifiableList(new ArrayList<>(values));
+        return List.copyOf(values);
     }
 
     @Override

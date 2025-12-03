@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,11 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleService;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.instance.impl.NodeContext;
-import com.hazelcast.instance.impl.NodeState;
 import com.hazelcast.internal.util.AddressUtil;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -37,34 +33,33 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.hazelcast.core.LifecycleEvent.LifecycleState.SHUTDOWN;
+import static com.hazelcast.instance.impl.NodeState.SHUT_DOWN;
 import static com.hazelcast.test.HazelcastTestSupport.assertTrueEventually;
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableMap;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public final class TestNodeRegistry {
 
     private final ConcurrentMap<Address, Node> nodes = new ConcurrentHashMap<>(10);
     private final Collection<Address> joinAddresses;
-    private final List<String> nodeExtensionPriorityList;
 
-    public TestNodeRegistry(Collection<Address> addresses, List<String> nodeExtensionPriorityList) {
-        this.joinAddresses = addresses;
-        this.nodeExtensionPriorityList = nodeExtensionPriorityList;
-    }
-
-    public NodeContext createNodeContext(Address address) {
-        return createNodeContext(address, Collections.emptySet());
+    public TestNodeRegistry(Collection<Address> addresses) {
+        joinAddresses = addresses;
     }
 
     public NodeContext createNodeContext(final Address address, Set<Address> initiallyBlockedAddresses) {
         final Node node = nodes.get(address);
         if (node != null) {
             assertFalse(address + " is already registered", node.isRunning());
-            assertTrueEventually(address + " should be SHUT_DOWN",
-                    () -> assertThat(node.getState()).isEqualTo(NodeState.SHUT_DOWN));
+            assertTrueEventually(() ->
+                    assertSame(address + " should be SHUT_DOWN", node.getState(), SHUT_DOWN));
             nodes.remove(address, node);
         }
-        return new MockNodeContext(this, address, initiallyBlockedAddresses, nodeExtensionPriorityList);
+        return new MockNodeContext(this, address, initiallyBlockedAddresses);
     }
 
     public HazelcastInstance getInstance(Address address) {
@@ -88,12 +83,8 @@ public final class TestNodeRegistry {
         return node != null && node.isRunning() ? node.hazelcastInstance : null;
     }
 
-    public void removeInstance(Address address) {
-        nodes.remove(address);
-    }
-
     public Collection<HazelcastInstance> getAllHazelcastInstances() {
-        Collection<HazelcastInstance> all = new LinkedList<>();
+        Collection<HazelcastInstance> all = new ArrayList<>();
         for (Node node : nodes.values()) {
             if (node.isRunning()) {
                 all.add(node.hazelcastInstance);
@@ -125,9 +116,7 @@ public final class TestNodeRegistry {
     }
 
     private void shutdown(boolean terminate) {
-        Iterator<Node> iterator = nodes.values().iterator();
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
+        for (Node node : nodes.values()) {
             HazelcastInstance hz = node.hazelcastInstance;
             LifecycleService lifecycleService = hz.getLifecycleService();
             if (terminate) {
@@ -135,12 +124,11 @@ public final class TestNodeRegistry {
             } else {
                 lifecycleService.shutdown();
             }
-            iterator.remove();
         }
     }
 
     Map<Address, Node> getNodes() {
-        return Collections.unmodifiableMap(nodes);
+        return unmodifiableMap(nodes);
     }
 
     Node getNode(Address address) {
@@ -148,24 +136,22 @@ public final class TestNodeRegistry {
     }
 
     Collection<Address> getJoinAddresses() {
-        return Collections.unmodifiableCollection(joinAddresses);
+        return unmodifiableCollection(joinAddresses);
     }
 
     void registerNode(Node node) {
         Address address = node.getThisAddress();
         Node currentNode = nodes.putIfAbsent(address, node);
-        if (currentNode != null) {
-            verifyInvariant(currentNode.equals(node), "This address is already in registry! " + address);
-        }
+        assertTrue("This address is already in registry! " + address,
+                currentNode == null || currentNode.equals(node));
+        node.hazelcastInstance.getLifecycleService().addLifecycleListener(event -> {
+            if (event.getState() == SHUTDOWN) {
+                nodes.remove(address);
+            }
+        });
     }
 
     Collection<Address> getAddresses() {
-        return Collections.unmodifiableCollection(nodes.keySet());
-    }
-
-    private static void verifyInvariant(boolean check, String msg) {
-        if (!check) {
-            throw new AssertionError(msg);
-        }
+        return unmodifiableCollection(nodes.keySet());
     }
 }

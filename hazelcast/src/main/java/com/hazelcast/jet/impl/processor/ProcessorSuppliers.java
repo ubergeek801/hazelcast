@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,12 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import java.io.IOException;
+import java.io.Serial;
 
 public final class ProcessorSuppliers {
     public static class AggregatePSupplier<A, R> implements SupplierEx<Processor>, IdentifiedDataSerializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
         private AggregateOperation<A, R> aggrOp;
 
         public AggregatePSupplier() {
@@ -66,6 +69,8 @@ public final class ProcessorSuppliers {
     }
 
     public static class ProcessorMapPSupplier<T, R> implements IdentifiedDataSerializable, SupplierEx<Processor> {
+        @Serial
+        private static final long serialVersionUID = 1L;
         private FunctionEx<? super T, ? extends R> mapFn;
 
         public ProcessorMapPSupplier() {

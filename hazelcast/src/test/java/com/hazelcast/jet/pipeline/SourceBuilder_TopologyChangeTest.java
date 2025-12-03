@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,12 +55,12 @@ public class SourceBuilder_TopologyChangeTest extends JetTestSupport {
 
     @Test
     public void test_restartJob_nodeShutDown() {
-        testTopologyChange(() -> createHazelcastInstance(), node -> node.shutdown(), true);
+        testTopologyChange(this::createHazelcastInstance, HazelcastInstance::shutdown, true);
     }
 
     @Test
     public void test_restartJob_nodeTerminated() {
-        testTopologyChange(() -> createHazelcastInstance(), node -> node.getLifecycleService().terminate(),
+        testTopologyChange(this::createHazelcastInstance, node -> node.getLifecycleService().terminate(),
                 false);
     }
 

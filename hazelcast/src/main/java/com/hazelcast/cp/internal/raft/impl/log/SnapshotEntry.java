@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.cp.internal.raft.impl.log;
 
 import com.hazelcast.cp.internal.raft.impl.RaftDataSerializerConstants;
 import com.hazelcast.cp.internal.raft.impl.RaftEndpoint;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
@@ -29,9 +30,10 @@ import java.util.LinkedHashSet;
 import static java.util.Collections.unmodifiableCollection;
 
 /**
- * Represents a snapshot in the {@link RaftLog}.
+ * Represents a snapshot in the {@code RaftLog}.
  * <p>
- * Snapshot entry is sent to followers via {@link InstallSnapshot} RPC.
+ * The snapshot entry is sent to followers chunk by
+ * chunk using the {@link InstallSnapshotRequest} RPC.
  */
 public class SnapshotEntry extends LogEntry implements IdentifiedDataSerializable {
 
@@ -41,7 +43,8 @@ public class SnapshotEntry extends LogEntry implements IdentifiedDataSerializabl
     public SnapshotEntry() {
     }
 
-    public SnapshotEntry(int term, long index, Object operation, long groupMembersLogIndex,
+    public SnapshotEntry(int term, long index, Object operation,
+                         long groupMembersLogIndex,
                          Collection<RaftEndpoint> groupMembers) {
         super(term, index, operation);
         this.groupMembersLogIndex = groupMembersLogIndex;
@@ -60,10 +63,7 @@ public class SnapshotEntry extends LogEntry implements IdentifiedDataSerializabl
     public void writeData(ObjectDataOutput out) throws IOException {
         super.writeData(out);
         out.writeLong(groupMembersLogIndex);
-        out.writeInt(groupMembers.size());
-        for (RaftEndpoint endpoint : groupMembers) {
-            out.writeObject(endpoint);
-        }
+        SerializationUtil.writeCollection(groupMembers, out);
     }
 
     @Override
@@ -87,7 +87,8 @@ public class SnapshotEntry extends LogEntry implements IdentifiedDataSerializabl
     public String toString(boolean detailed) {
         return "SnapshotEntry{" + "term=" + term() + ", index=" + index()
                 + (detailed ? ", operation=" + operation() : "")
-                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + '}';
+                + ", groupMembersLogIndex=" + groupMembersLogIndex
+                + ", groupMembers=" + groupMembers + '}';
     }
 
     @Override

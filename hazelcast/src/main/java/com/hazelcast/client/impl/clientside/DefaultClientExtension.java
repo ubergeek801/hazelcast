@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ import com.hazelcast.client.HazelcastClientNotActiveException;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.client.config.SocketOptions;
-import com.hazelcast.client.config.SubsetRoutingConfig;
 import com.hazelcast.client.impl.ClientExtension;
 import com.hazelcast.client.impl.connection.tcp.ClientPlainChannelInitializer;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.proxy.ClientMapProxy;
 import com.hazelcast.client.impl.spi.ClientClusterService;
 import com.hazelcast.client.impl.spi.ClientProxyFactory;
 import com.hazelcast.client.impl.spi.impl.ClientClusterServiceImpl;
+import com.hazelcast.client.impl.spi.impl.listener.ClientCPGroupViewService;
+import com.hazelcast.client.impl.spi.impl.listener.NoOpClientCPGroupViewService;
 import com.hazelcast.client.map.impl.nearcache.NearCachedClientMapProxy;
 import com.hazelcast.client.properties.ClientProperty;
 import com.hazelcast.config.InstanceTrackingConfig;
@@ -60,7 +62,6 @@ import com.hazelcast.jet.JetService;
 import com.hazelcast.jet.impl.JetClientInstanceImpl;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelcast.logging.LoggingService;
 import com.hazelcast.map.impl.MapService;
 import com.hazelcast.nio.SocketInterceptor;
 import com.hazelcast.partition.PartitioningStrategy;
@@ -81,10 +82,10 @@ import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.InstanceTrackingUtil.writeInstanceTrackingFile;
 import static com.hazelcast.spi.properties.ClusterProperty.SOCKET_CLIENT_BUFFER_DIRECT;
 
-@SuppressWarnings({"WeakerAccess", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"WeakerAccess", "checkstyle:ClassFanOutComplexity", "ClassDataAbstractionCoupling"})
 public class DefaultClientExtension implements ClientExtension {
 
-    protected static final ILogger LOGGER = Logger.getLogger(ClientExtension.class);
+    protected static final ILogger LOGGER = Logger.getLogger(DefaultClientExtension.class);
 
     protected volatile HazelcastClientInstanceImpl client;
     protected JetClientInstanceImpl jetClient;
@@ -249,7 +250,7 @@ public class DefaultClientExtension implements ClientExtension {
 
     @Override
     public CPSubsystem createCPSubsystem(HazelcastClientInstanceImpl hazelcastClientInstance) {
-        return new CPSubsystemStubImpl();
+        return new CPSubsystemStubImpl(true);
     }
 
     @Override
@@ -258,12 +259,18 @@ public class DefaultClientExtension implements ClientExtension {
     }
 
     @Override
-    public ClientClusterService createClientClusterService(LoggingService loggingService,
-                                                           SubsetRoutingConfig subsetRoutingConfig) {
-        if (subsetRoutingConfig.isEnabled()) {
-            throw new InvalidConfigurationException("Subset routing is an enterprise feature since 5.5. "
-                    + "You must use Hazelcast enterprise to enable this feature.");
+    public ClientClusterService createClientClusterService(HazelcastClientInstanceImpl clientInstance) {
+        if (clientInstance.getClientConfig().getNetworkConfig()
+                .getClusterRoutingConfig().getRoutingMode() == RoutingMode.MULTI_MEMBER) {
+            throw new InvalidConfigurationException(String.format("%s routing is an enterprise feature since 5.5. "
+                    + "You must use Hazelcast enterprise to enable this feature.", RoutingMode.MULTI_MEMBER));
         }
-        return new ClientClusterServiceImpl(loggingService);
+        return new ClientClusterServiceImpl(clientInstance);
+    }
+
+    @Override
+    public ClientCPGroupViewService createClientCPGroupViewService(HazelcastClientInstanceImpl hazelcastClientInstance,
+                                                                   boolean directToLeaderRoutingEnabled) {
+        return new NoOpClientCPGroupViewService();
     }
 }

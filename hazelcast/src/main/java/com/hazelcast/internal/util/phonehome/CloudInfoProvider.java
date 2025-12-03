@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.hazelcast.internal.util.phonehome;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -34,7 +33,6 @@ import static com.hazelcast.internal.util.phonehome.PhoneHomeMetrics.VIRIDIAN;
 /**
  * Provides information about cloud deployment
  */
-@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
 class CloudInfoProvider implements MetricsProvider {
     static final HazelcastProperty AWS_ENDPOINT = new HazelcastProperty(
             "hazelcast.phonehome.endpoint.aws", "http://169.254.169.254/latest/meta-data");

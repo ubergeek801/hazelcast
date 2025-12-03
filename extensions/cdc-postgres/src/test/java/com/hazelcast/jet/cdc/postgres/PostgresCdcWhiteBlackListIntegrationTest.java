@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -261,16 +261,14 @@ public class PostgresCdcWhiteBlackListIntegrationTest extends AbstractPostgresCd
                 .withNativeTimestamps(0)
                 .filter(t -> t.schema().startsWith(SCHEMA_PREFIX))
                 .setLocalParallelism(1)
-                .<ChangeRecord>customTransform("filter_timestamps", filterTimestampsProcessorSupplier())
-                .setLocalParallelism(1)
-                .groupingKey(record -> (Integer) record.key().toMap().get("id"))
+                .groupingKey(changeRecord -> (Integer) changeRecord.key().toMap().get("id"))
                 .mapStateful(
                         LongAccumulator::new,
-                        (accumulator, rowId, record) -> {
+                        (accumulator, rowId, changeRecord) -> {
                             long count = accumulator.get();
                             accumulator.add(1);
-                            Operation operation = record.operation();
-                            RecordPart value = record.value();
+                            Operation operation = changeRecord.operation();
+                            RecordPart value = changeRecord.value();
                             TableRow row = value.toObject(TableRow.class);
                             return entry(rowId + "/" + count, operation + ":" + row);
                         })

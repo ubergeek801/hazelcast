@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
  * job. See also {@link TerminateExecutionOperation}, which is sent from
  * coordinator to members to terminate execution.
  */
-public class TerminateJobOperation extends AsyncJobOperation {
+public class TerminateJobOperation extends AsyncMasterAwareJobOperation {
 
     private TerminationMode terminationMode;
     private boolean isLightJob;
@@ -73,5 +73,10 @@ public class TerminateJobOperation extends AsyncJobOperation {
         super.readInternal(in);
         terminationMode = TerminationMode.values()[in.readByte()];
         isLightJob = in.readBoolean();
+    }
+
+    @Override
+    public boolean isRequireMasterExecution() {
+        return !isLightJob;
     }
 }

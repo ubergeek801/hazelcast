@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.diagnostics;
 
+import com.hazelcast.client.impl.operations.OperationFactoryWrapper;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -35,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.UUID;
 
 import static com.hazelcast.internal.diagnostics.OperationDescriptors.toOperationDesc;
 import static java.lang.String.format;
@@ -68,6 +70,14 @@ public class OperationDescriptorsTest extends HazelcastTestSupport {
     @Test
     public void testPartitionIteratingOperation() {
         PartitionIteratingOperation op = new PartitionIteratingOperation(new DummyOperationFactory(), new int[0]);
+        String result = toOperationDesc(op);
+        assertEquals(format("PartitionIteratingOperation(%s)", DummyOperationFactory.class.getName()), result);
+    }
+
+    @Test
+    public void testPartitionIteratingOperationWithWrapper() {
+        PartitionIteratingOperation op = new PartitionIteratingOperation(
+                new OperationFactoryWrapper(new DummyOperationFactory(), UUID.randomUUID()), new int[0]);
         String result = toOperationDesc(op);
         assertEquals(format("PartitionIteratingOperation(%s)", DummyOperationFactory.class.getName()), result);
     }

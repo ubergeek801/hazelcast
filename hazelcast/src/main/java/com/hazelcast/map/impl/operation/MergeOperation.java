@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.map.impl.operation;
 
 import com.hazelcast.config.InvalidConfigurationException;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.map.impl.MapContainer;
 import com.hazelcast.map.impl.MapDataSerializerHook;
@@ -356,10 +357,7 @@ public class MergeOperation extends MapOperation
     protected void writeInternal(ObjectDataOutput out) throws IOException {
         super.writeInternal(out);
 
-        out.writeInt(mergingEntries.size());
-        for (MapMergeTypes mergingEntry : mergingEntries) {
-            out.writeObject(mergingEntry);
-        }
+        SerializationUtil.writeList(mergingEntries, out);
         out.writeObject(mergePolicy);
         out.writeBoolean(disableWanReplicationEvent);
     }
@@ -368,13 +366,8 @@ public class MergeOperation extends MapOperation
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
 
-        int size = in.readInt();
-        mergingEntries = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            MapMergeTypes mergingEntry = in.readObject();
-            mergingEntries.add(mergingEntry);
-        }
-        mergePolicy = in.readObject();
+        mergingEntries = SerializationUtil.readList(in);
+        mergePolicy = callWithNamespaceAwareness(in::readObject);
         disableWanReplicationEvent = in.readBoolean();
     }
 

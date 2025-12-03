@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.client;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientSecurityConfig;
 import com.hazelcast.client.config.ConnectionRetryConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.spi.impl.ClientExecutionServiceImpl;
 import com.hazelcast.client.properties.ClientProperty;
 import com.hazelcast.client.test.TestHazelcastFactory;
@@ -124,13 +125,13 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void testOperationRedo_smartRoutingDisabled() {
+    public void testOperationRedo_allMembersRoutingDisabled() {
         HazelcastInstance hz1 = hazelcastFactory.newHazelcastInstance();
         hazelcastFactory.newHazelcastInstance();
 
         ClientConfig clientConfig = new ClientConfig();
         clientConfig.getNetworkConfig().setRedoOperation(true);
-        clientConfig.getNetworkConfig().setSmartRouting(false);
+        clientConfig.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         HazelcastInstance client = hazelcastFactory.newHazelcastClient(clientConfig);
 
         Thread thread = new Thread(() -> {
@@ -241,13 +242,13 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
                 Logger.getLogger(getClass()).info("stateChanged: " + event);
                 LifecycleState eventState = event.getState();
 
-                if (CLIENT_CONNECTED.equals(eventState)) {
+                if (CLIENT_CONNECTED == eventState) {
                     if (!stateAtomicReference.compareAndSet(CLIENT_DISCONNECTED, CLIENT_CONNECTED)) {
                         //fail the test
                         stateAtomicReference.set(FAILURE);
                     }
                     connectedLatch.countDown();
-                } else if (CLIENT_DISCONNECTED.equals(eventState)) {
+                } else if (CLIENT_DISCONNECTED == eventState) {
                     if (!stateAtomicReference.compareAndSet(CLIENT_CONNECTED, CLIENT_DISCONNECTED)) {
                         //fail the test
                         stateAtomicReference.set(FAILURE);
@@ -255,7 +256,7 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
                     disconnectedLatch.countDown();
                 } else {
                     LifecycleState state = list.poll();
-                    if (state != null && state.equals(eventState)) {
+                    if (state != null && state == eventState) {
                         latch.countDown();
                     }
                 }
@@ -391,6 +392,7 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
 
         IMap<Object, Object> m = client.getMap("m");
         UUID id = m.addEntryListener(new EntryAdapter<>() {
+            @Override
             public void entryAdded(EntryEvent<Object, Object> event) {
                 latch.countDown();
             }
@@ -439,18 +441,22 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
         SamplePortable() {
         }
 
+        @Override
         public int getFactoryId() {
             return 5;
         }
 
+        @Override
         public int getClassId() {
             return 6;
         }
 
+        @Override
         public void writePortable(PortableWriter writer) throws IOException {
             writer.writeInt("a", a);
         }
 
+        @Override
         public void readPortable(PortableReader reader) throws IOException {
             a = reader.readInt("a");
         }
@@ -799,7 +805,7 @@ public class ClientRegressionWithMockNetworkTest extends HazelcastTestSupport {
 
         AtomicBoolean isClientDisconnected = new AtomicBoolean();
         client.getLifecycleService().addLifecycleListener(event -> {
-            if (CLIENT_DISCONNECTED.equals(event.getState())) {
+            if (CLIENT_DISCONNECTED == event.getState()) {
                 isClientDisconnected.set(true);
             }
         });

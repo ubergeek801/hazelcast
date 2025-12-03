@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public final class CdcSinks {
      *     delete the key from the map ({@link Operation#DELETE})
      * </li><li>
      *     insert a new value for the key
-     *          ({@link Operation#SYNC} & {@link Operation#INSERT})
+     *          ({@link Operation#SYNC} &amp; {@link Operation#INSERT})
      * </li><li>
      *     update the current value for the key ({@link Operation#UPDATE})
      * </li></ul>
@@ -176,7 +176,7 @@ public final class CdcSinks {
      *     delete the key from the map ({@link Operation#DELETE})
      * </li><li>
      *     insert a new value for the key
-     *          ({@link Operation#SYNC} & {@link Operation#INSERT})
+     *          ({@link Operation#SYNC} &amp; {@link Operation#INSERT})
      * </li><li>
      *     update the current value for the key ({@link Operation#UPDATE})
      * </li></ul>
@@ -235,7 +235,7 @@ public final class CdcSinks {
             @Nonnull FunctionEx<? super ChangeRecord, ? extends V> valueFn
     ) {
         FunctionEx<? super ChangeRecord, ? extends V> toValueFn =
-                changeRecord -> DELETE.equals(changeRecord.operation()) ? null : valueFn.apply(changeRecord);
+                changeRecord -> DELETE == changeRecord.operation() ? null : valueFn.apply(changeRecord);
         String clientXml = asXmlString(clientConfig);
         ProcessorSupplier supplier = AbstractHazelcastConnectorSupplier.ofMap(clientXml,
                 procFn(name, map, clientXml, keyFn, toValueFn));

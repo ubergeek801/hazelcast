@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.internal.serialization.SerializationService;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.util.UnmodifiableListIterator;
 
 import java.io.IOException;
 import java.util.AbstractList;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -130,19 +130,12 @@ public class UnmodifiableLazyList extends AbstractList implements IdentifiedData
 
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeInt(list.size());
-        for (Object o : this) {
-            out.writeObject(o);
-        }
+        SerializationUtil.writeList(this, out);
     }
 
     @Override
     public void readData(ObjectDataInput in) throws IOException {
-        int size = in.readInt();
-        list = new ArrayList(size);
-        for (int i = 0; i < size; i++) {
-            list.add(in.readObject());
-        }
+        list = SerializationUtil.readList(in);
     }
 
     private class UnmodifiableLazyListIterator extends UnmodifiableListIterator {

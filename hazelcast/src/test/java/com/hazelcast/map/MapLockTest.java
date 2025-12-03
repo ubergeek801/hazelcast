@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 import static com.hazelcast.test.Accessors.getNodeEngineImpl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastParallelClassRunner.class)
@@ -251,8 +252,8 @@ public class MapLockTest extends HazelcastTestSupport {
 
         assertFalse("the result of try put should be false as the absent key is locked", putResult);
         assertTrueEventually(() -> {
-            assertEquals("the key should be absent ", null, map1.get(key));
-            assertEquals("the key should be absent ", null, map2.get(key));
+            assertNull("the key should be absent ", map1.get(key));
+            assertNull("the key should be absent ", map2.get(key));
         });
     }
 
@@ -271,7 +272,7 @@ public class MapLockTest extends HazelcastTestSupport {
 
         assertEquals("TTL of KEY has expired, KEY is locked, we expect VAL", val, map.get(key));
         map.unlock(key);
-        assertEquals("TTL of KEY has expired, KEY is unlocked, we expect null", null, map.get(key));
+        assertNull("TTL of KEY has expired, KEY is unlocked, we expect null", map.get(key));
     }
 
     @Test
@@ -284,14 +285,14 @@ public class MapLockTest extends HazelcastTestSupport {
         map.lock(KEY);
         map.clear();
 
-        assertEquals("a locked key should not be removed by map clear", false, map.isEmpty());
-        assertEquals("a key present in a map, should be locked after map clear", true, map.isLocked(KEY));
+        assertFalse("a locked key should not be removed by map clear", map.isEmpty());
+        assertTrue("a key present in a map, should be locked after map clear", map.isLocked(KEY));
     }
 
     /**
      * Do not use ungraceful node.getLifecycleService().terminate(), because that leads
      * backup inconsistencies between nodes and eventually this test will fail.
-     * Instead use graceful node.getLifecycleService().shutdown().
+     * Instead, use graceful node.getLifecycleService().shutdown().
      */
     @Test
     public void testClear_withLockedKey_whenNodeShutdown() {

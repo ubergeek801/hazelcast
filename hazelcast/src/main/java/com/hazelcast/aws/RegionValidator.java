@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ import java.util.regex.Pattern;
  */
 final class RegionValidator {
     private static final Pattern AWS_REGION_PATTERN =
-        Pattern.compile("\\w{2}(-gov-|-)(north|northeast|east|southeast|south|southwest|west|northwest|central)-\\d(?!.+)");
+        Pattern.compile("aws(?:-(?:cn|us-gov|iso(?:-b)?))?-global|(?:af|ap|ca|cn|eu(?:-isoe)?|eusc-de|il|me|mx|sa|us"
+                + "(?:-(?:gov|iso|isob|isof))?)-(?:north(?:east|west)?|south(?:east|west)?|east|west|central)-[1-7]");
 
     private RegionValidator() {
     }

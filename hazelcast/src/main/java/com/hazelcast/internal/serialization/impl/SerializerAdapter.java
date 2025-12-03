@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public interface SerializerAdapter {
 
     Serializer getImpl();
 
-    default Object read(ObjectDataInput in, Class aClass) throws IOException {
+    default Object read(ObjectDataInput in, Class<?> aClass) throws IOException {
         throw new HazelcastSerializationException(this + " is not implementing the " + TypedStreamDeserializer.class
                 + " interface. Please implement this interface to deserialize for class " + aClass);
     }

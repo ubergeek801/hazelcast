@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public abstract class ConcurrencyDetection {
 
     /**
      * The DisabledConcurrencyDetection indicates that there is always concurrency,
-     * even if there is no concurrency. This prevent write through and therefore lets the
+     * even if there is no concurrency. This prevents write through and therefore lets the
      * system behave as before the write through was added.
      */
     private static final class DisabledConcurrencyDetection extends ConcurrencyDetection {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,14 +97,10 @@ final class CacheProxyLoadAllTask implements Runnable {
             if (completionListener != null) {
                 completionListener.onException(e);
             }
+        } catch (OutOfMemoryError t) {
+            throw rethrow(t);
         } catch (Throwable t) {
-            if (t instanceof OutOfMemoryError) {
-                throw rethrow(t);
-            } else {
-                if (completionListener != null) {
-                    completionListener.onException(new CacheException(t));
-                }
-            }
+            completionListener.onException(new CacheException(t));
         }
     }
 

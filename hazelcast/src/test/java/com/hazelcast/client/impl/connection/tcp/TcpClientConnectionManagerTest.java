@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientTpcConfig;
 import com.hazelcast.client.impl.clientside.HazelcastClientInstanceImpl;
 import com.hazelcast.client.impl.connection.ClientConnectionManager;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.ClientTestSupport;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.cluster.Address;
@@ -28,6 +29,7 @@ import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.QuickTest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -88,37 +90,39 @@ public class TcpClientConnectionManagerTest extends ClientTestSupport {
     }
 
     @Test
-    public void testIsUnisocketClient_whenTpcDisabledAndSmartRoutingDisabled() {
-        verifyIsUnisocketClient(false, false);
+    public void testIsSingleMemberClient_whenTpcDisabledAndAllMembersRoutingDisabled() {
+        verifyIsSingleMemberClient(false, false);
     }
 
     @Test
-    public void testIsUnisocketClient_whenTpcEnabledAndSmartRoutingDisabled() {
-        verifyIsUnisocketClient(true, false);
+    @Ignore("TPC only supports ALL_MEMBERS routing after the introduction of MULTI_MEMBER routing")
+    public void testIsSingleMemberClient_whenTpcEnabledAndAllMembersRoutingDisabled() {
+        verifyIsSingleMemberClient(true, false);
     }
 
     @Test
-    public void testIsUnisocketClient_whenTpcDisabledAndSmartRoutingEnabled() {
-        verifyIsUnisocketClient(false, true);
+    public void testIsSingleMemberClient_whenTpcDisabledAndAllMembersRoutingEnabled() {
+        verifyIsSingleMemberClient(false, true);
     }
 
     @Test
-    public void testIsUnisocketClient_whenTpcEnabledAndSmartRoutingEnabled() {
-        verifyIsUnisocketClient(true, true);
+    public void testIsSingleMemberClient_whenTpcEnabledAndAllMembersRoutingEnabled() {
+        verifyIsSingleMemberClient(true, true);
     }
 
-    private void verifyIsUnisocketClient(boolean tpcEnabled, boolean smartRouting) {
+    private void verifyIsSingleMemberClient(boolean tpcEnabled, boolean allMembersRouting) {
         ClientConfig config = new ClientConfig();
         config.getTpcConfig().setEnabled(tpcEnabled);
-        config.getNetworkConfig().setSmartRouting(smartRouting);
+        config.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(allMembersRouting
+                ? RoutingMode.ALL_MEMBERS : RoutingMode.SINGLE_MEMBER);
 
         HazelcastInstance client = factory.newHazelcastClient(config);
         HazelcastClientInstanceImpl clientImpl = getHazelcastClientInstanceImpl(client);
 
         ClientConnectionManager connectionManager = clientImpl.getConnectionManager();
-        boolean isUnisocket = connectionManager.getRoutingMode() == RoutingMode.UNISOCKET;
-        // should be unisocket only when smart routing is false and TPC disabled
-        assertEquals(!smartRouting && !tpcEnabled, isUnisocket);
+        boolean isSingleMember = connectionManager.getRoutingMode() == RoutingMode.SINGLE_MEMBER;
+        // should be SINGLE_MEMBER routing only when ALL_MEMBERS routing is not set and TPC disabled
+        assertEquals(!allMembersRouting && !tpcEnabled, isSingleMember);
     }
 
     @Test
@@ -128,12 +132,13 @@ public class TcpClientConnectionManagerTest extends ClientTestSupport {
         Address address = instance.getCluster().getLocalMember().getAddress();
         String addressString = address.getHost() + ":" + address.getPort();
         ClientConfig config = new ClientConfig();
-        config.setProperty(TcpClientConnectionManager.SKIP_MEMBER_LIST_DURING_RECONNECTION.getName(), "true");
-        config.getNetworkConfig().setSmartRouting(false);
+        config.setProperty("hazelcast.client.internal.skip.member.list.during.reconnection", "true");
+        config.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
+
         config.getNetworkConfig().addAddress(addressString);
         config.getConnectionStrategyConfig().getConnectionRetryConfig().setClusterConnectTimeoutMillis(3_000);
 
-        // There are two members, and the unisocket client is connecting
+        // There are two members, and the SINGLE_MEMBER routing client is connecting
         // to one of them. (the address of the `instance` defined above)
         HazelcastInstance client = factory.newHazelcastClient(config);
 

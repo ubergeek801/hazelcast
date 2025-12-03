@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,16 @@ import com.hazelcast.jet.datamodel.Tag;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.io.Serial;
+
 import static com.hazelcast.internal.serialization.impl.SerializationUtil.checkSerializable;
 
 
 public class AggregateOperation2Impl<T0, T1, A, R>
         extends AggregateOperationImpl<A, R>
         implements AggregateOperation2<T0, T1, A, R> {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public AggregateOperation2Impl() {
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,4 +307,14 @@ public interface MapServiceContext extends MapServiceContextInterceptorSupport,
     default Collection<IndexConfig> getMapIndexConfigs(String mapName) {
         return Collections.emptyList();
     }
+
+    /**
+     * Returns the threshold at or above which certain {@link com.hazelcast.map.IMap} invocations
+     * by clients should be logged on the member side. Provided in {@link MapServiceContext} to avoid
+     * repeated lookups of the property value at runtime.
+     *
+     * @see com.hazelcast.spi.properties.ClusterProperty#EXPENSIVE_IMAP_INVOCATION_REPORTING_THRESHOLD
+     * @return the threshold as defined by the property
+     */
+    int getExpensiveInvocationReportingThreshold();
 }

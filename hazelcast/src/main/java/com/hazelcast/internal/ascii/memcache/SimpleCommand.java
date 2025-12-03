@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public class SimpleCommand extends AbstractTextCommand {
         super(type);
     }
 
+    @Override
     public boolean readFrom(ByteBuffer src) {
         return true;
     }
@@ -36,6 +37,7 @@ public class SimpleCommand extends AbstractTextCommand {
         this.response = ByteBuffer.wrap(value);
     }
 
+    @Override
     public boolean writeTo(ByteBuffer dst) {
         while (dst.hasRemaining() && response.hasRemaining()) {
             dst.put(response.get());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.jet.sql;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.impl.connection.ClientConnection;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.SqlExecute_reservedCodec;
 import com.hazelcast.client.util.ConfigRoutingUtil;
@@ -52,8 +52,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SMART;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.UNISOCKET;
+import static com.hazelcast.client.config.RoutingMode.ALL_MEMBERS;
+import static com.hazelcast.client.config.RoutingMode.SINGLE_MEMBER;
 import static com.hazelcast.sql.SqlStatement.DEFAULT_CURSOR_BUFFER_SIZE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -74,7 +74,7 @@ public class SqlErrorClientTest extends SqlErrorAbstractTest {
 
     @Parameterized.Parameters(name = "{index}: routingMode={0}")
     public static Iterable<?> parameters() {
-        return Arrays.asList(UNISOCKET, SMART);
+        return Arrays.asList(SINGLE_MEMBER, ALL_MEMBERS);
     }
 
     @Override

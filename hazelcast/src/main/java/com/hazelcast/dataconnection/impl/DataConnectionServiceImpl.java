@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class DataConnectionServiceImpl implements InternalDataConnectionService 
                             return current;
                         }
                         // close the old DataConnection
-                        logger.fine("Asynchronously closing the old data connection: " + config.getName());
+                        logger.fine("Asynchronously closing the old data connection: %s", config.getName());
                         //noinspection resource
                         ForkJoinPool.commonPool().execute(() -> {
                             try {
@@ -163,7 +163,7 @@ public class DataConnectionServiceImpl implements InternalDataConnectionService 
     }
 
     private DataConnection createDataConnectionInstance(DataConnectionConfig config) {
-        logger.finest("Creating '" + config.getName() + "' data connection");
+        logger.finest("Creating '%s' data connection", config.getName());
         String type = config.getType();
         try {
             Class<? extends DataConnection> dataConnectionClass = typeToDataConnectionClass.get(normalizeTypeName(config));
@@ -222,7 +222,7 @@ public class DataConnectionServiceImpl implements InternalDataConnectionService 
     @Override
     public void removeDataConnection(String name) {
         dataConnections.computeIfPresent(name, (k, v) -> {
-            if (CONFIG.equals(v.source)) {
+            if (CONFIG == v.source) {
                 throw new HazelcastException("Data connection '" + name + "' is configured via Config "
                         + "and can't be removed");
             }
@@ -250,7 +250,7 @@ public class DataConnectionServiceImpl implements InternalDataConnectionService 
     @Override
     public void shutdown() {
         for (Map.Entry<String, DataConnectionEntry> entry : dataConnections.entrySet()) {
-            logger.finest("Closing '" + entry.getKey() + "' data connection");
+            logger.finest("Closing '%s' data connection", entry.getKey());
             DataConnectionEntry dataConnection = entry.getValue();
             try {
                 dataConnection.instance.destroy();

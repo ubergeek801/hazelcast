@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,7 +289,7 @@ public class LocalMapStatsProvider {
 
     private void logReplicaHasNoOwner(int partitionId, int replica) {
         if (logger.isFinestEnabled()) {
-            logger.finest("partitionId: " + partitionId + ", replica: " + replica + " has no owner!");
+            logger.finest("partitionId: %s, replica: %s has no owner!", partitionId, replica);
         }
     }
 
@@ -353,13 +353,18 @@ public class LocalMapStatsProvider {
         Map<String, OnDemandIndexStats> freshStats = null;
         if (globalIndexRegistry != null) {
             assert globalIndexRegistry.isGlobal();
-            localMapStats.setQueryCount(globalIndexRegistry.getIndexesStats().getQueryCount());
-            localMapStats.setIndexedQueryCount(globalIndexRegistry.getIndexesStats().getIndexedQueryCount());
+            IndexesStats indexesStats = globalIndexRegistry.getIndexesStats();
+            localMapStats.setQueryCount(indexesStats.getQueryCount());
+            localMapStats.setIndexedQueryCount(indexesStats.getIndexedQueryCount());
+            localMapStats.setIndexesSkippedQueryCount(indexesStats.getIndexesSkippedQueryCount());
+            localMapStats.setNoMatchingIndexQueryCount(indexesStats.getNoMatchingIndexQueryCount());
             freshStats = aggregateFreshIndexStats(globalIndexRegistry.getIndexes(), null);
             finalizeFreshIndexStats(freshStats);
         } else {
             long queryCount = 0;
             long indexedQueryCount = 0;
+            long indexesSkippedQueryCount = 0;
+            long noMatchingIndexQueryCount = 0;
 
             int partitionCount = partitionService.getPartitionCount();
             for (int partitionId = 0; partitionId < partitionCount; partitionId++) {
@@ -383,12 +388,17 @@ public class LocalMapStatsProvider {
                 // maximum among partitions.
                 queryCount = Math.max(queryCount, indexesStats.getQueryCount());
                 indexedQueryCount = Math.max(indexedQueryCount, indexesStats.getIndexedQueryCount());
+                indexesSkippedQueryCount = Math.max(indexesSkippedQueryCount, indexesStats.getIndexesSkippedQueryCount());
+                noMatchingIndexQueryCount = Math.max(noMatchingIndexQueryCount,
+                        indexesStats.getNoMatchingIndexQueryCount());
 
                 freshStats = aggregateFreshIndexStats(partitionedIndexRegistry.getIndexes(), freshStats);
             }
 
             localMapStats.setQueryCount(queryCount);
             localMapStats.setIndexedQueryCount(indexedQueryCount);
+            localMapStats.setIndexesSkippedQueryCount(indexesSkippedQueryCount);
+            localMapStats.setNoMatchingIndexQueryCount(noMatchingIndexQueryCount);
 
             finalizeFreshIndexStats(freshStats);
         }
@@ -428,6 +438,10 @@ public class LocalMapStatsProvider {
             freshIndexStats.setTotalUpdateLatency(freshIndexStats.getTotalUpdateLatency() + indexStats.getTotalUpdateLatency());
             freshIndexStats.setRemoveCount(freshIndexStats.getRemoveCount() + indexStats.getRemoveCount());
             freshIndexStats.setTotalRemoveLatency(freshIndexStats.getTotalRemoveLatency() + indexStats.getTotalRemoveLatency());
+            freshIndexStats.setPartitionsIndexed(indexStats.getPartitionsIndexed());
+            freshIndexStats.setPartitionUpdatesStarted(indexStats.getPartitionUpdatesStarted());
+            freshIndexStats.setPartitionUpdatesFinished(indexStats.getPartitionUpdatesFinished());
+            freshIndexStats.setIndexNotReadyQueryCount(indexStats.getIndexNotReadyQueryCount());
         }
 
         return freshStats;

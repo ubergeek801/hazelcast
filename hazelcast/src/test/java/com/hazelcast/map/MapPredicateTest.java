@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,11 +152,11 @@ public class MapPredicateTest extends HazelcastTestSupport {
         map.put(5, 5);
 
         Set<Map.Entry<Integer, Integer>> entrySet = new HashSet<>();
-        entrySet.add(new AbstractMap.SimpleImmutableEntry<Integer, Integer>(1, 1));
-        entrySet.add(new AbstractMap.SimpleImmutableEntry<Integer, Integer>(2, 2));
-        entrySet.add(new AbstractMap.SimpleImmutableEntry<Integer, Integer>(3, 3));
-        entrySet.add(new AbstractMap.SimpleImmutableEntry<Integer, Integer>(4, 4));
-        entrySet.add(new AbstractMap.SimpleImmutableEntry<Integer, Integer>(5, 5));
+        entrySet.add(new AbstractMap.SimpleImmutableEntry<>(1, 1));
+        entrySet.add(new AbstractMap.SimpleImmutableEntry<>(2, 2));
+        entrySet.add(new AbstractMap.SimpleImmutableEntry<>(3, 3));
+        entrySet.add(new AbstractMap.SimpleImmutableEntry<>(4, 4));
+        entrySet.add(new AbstractMap.SimpleImmutableEntry<>(5, 5));
 
         assertEquals(entrySet, map.entrySet());
     }

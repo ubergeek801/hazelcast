@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,29 +23,29 @@ import com.hazelcast.core.HazelcastInstanceAware;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class TestEntryListener implements EntryListener, HazelcastInstanceAware {
+class TestEntryListener implements EntryListener<Object, Object>, HazelcastInstanceAware {
 
     static final AtomicBoolean INSTANCE_AWARE = new AtomicBoolean();
 
     @Override
-    public void entryAdded(EntryEvent event) {
+    public void entryAdded(EntryEvent<Object, Object> event) {
     }
 
     @Override
-    public void entryEvicted(EntryEvent event) {
+    public void entryEvicted(EntryEvent<Object, Object> event) {
     }
 
     @Override
-    public void entryExpired(EntryEvent event) {
+    public void entryExpired(EntryEvent<Object, Object> event) {
 
     }
 
     @Override
-    public void entryRemoved(EntryEvent event) {
+    public void entryRemoved(EntryEvent<Object, Object> event) {
     }
 
     @Override
-    public void entryUpdated(EntryEvent event) {
+    public void entryUpdated(EntryEvent<Object, Object> event) {
     }
 
     @Override

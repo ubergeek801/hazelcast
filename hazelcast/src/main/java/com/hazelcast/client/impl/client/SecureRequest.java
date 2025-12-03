@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,11 @@ public interface SecureRequest {
 
     /**
      * Used for {@link com.hazelcast.security.SecurityInterceptor}
-     * @return
      */
     String getDistributedObjectType();
 
     /**
      * Used for {@link com.hazelcast.security.SecurityInterceptor}
-     * @return
      */
     String getDistributedObjectName();
 
@@ -58,7 +56,6 @@ public interface SecureRequest {
      * Method name which called via a distributedObject
      * for map.put, methodName will be 'put'
      * For requests which do not produced via a distributedObject should return null, for example internal client.
-     * @return
      */
     String getMethodName();
 
@@ -67,7 +64,6 @@ public interface SecureRequest {
      * Parameters passed to the method by a distributedObject
      * for map.put(key, value) parameters should be 'key' and 'value'
      * parameters can be in binary or object form, underlying implementation will de-serialize lazily
-     * @return
      */
     Object[] getParameters();
 }

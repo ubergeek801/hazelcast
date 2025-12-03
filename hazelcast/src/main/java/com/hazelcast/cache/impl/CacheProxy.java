@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -253,7 +253,7 @@ public class CacheProxy<K, V> extends CacheProxySupport<K, V>
             CacheEntryProcessorResult<T> ceResult;
             try {
                 T result = invoke(key, entryProcessor, arguments);
-                ceResult = result != null ? new CacheEntryProcessorResult<T>(result) : null;
+                ceResult = result != null ? new CacheEntryProcessorResult<>(result) : null;
             } catch (Exception e) {
                 ceResult = new CacheEntryProcessorResult<>(e);
             }

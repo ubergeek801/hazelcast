@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,6 @@ import com.hazelcast.map.impl.operation.MergeOperation;
 import com.hazelcast.map.impl.record.Record;
 import com.hazelcast.map.impl.recordstore.expiry.ExpiryMetadata;
 import com.hazelcast.map.listener.EntryMergedListener;
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableFactory;
 import com.hazelcast.spi.impl.NodeEngineImpl;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
@@ -83,14 +81,11 @@ public class ClientListenersTest extends HazelcastTestSupport {
     @Before
     public void setup() {
         ClientConfig config = new ClientConfig();
-        config.getSerializationConfig().addPortableFactory(5, new PortableFactory() {
-            @Override
-            public Portable create(int classId) {
-                if (classId == 6) {
-                    return new ClientRegressionWithMockNetworkTest.SamplePortable();
-                }
-                return null;
+        config.getSerializationConfig().addPortableFactory(5, classId -> {
+            if (classId == 6) {
+                return new ClientRegressionWithMockNetworkTest.SamplePortable();
             }
+            return null;
         });
 
         config.addListenerConfig(new ListenerConfig("com.hazelcast.client.ClientListenersTest$StaticListener"));

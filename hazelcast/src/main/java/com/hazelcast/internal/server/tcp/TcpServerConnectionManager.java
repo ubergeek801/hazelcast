@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class TcpServerConnectionManager extends TcpServerConnectionManagerBase
     @Nonnull
     public List<ServerConnection> getAllConnections(@Nonnull Address address) {
         UUID instanceUuid = addressRegistry.uuidOf(address);
-        // Because duplicate connections can be established on the planes and
+        // Because duplicate connections can be established on the planes, and
         // we don't keep all duplicates on the planes, we need to iterate over
         // connections set which stores all active connections.
         return instanceUuid != null
@@ -161,11 +161,11 @@ public class TcpServerConnectionManager extends TcpServerConnectionManagerBase
             });
             if (isNotYetInProgress.get()) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Connection to: " + address + " streamId:" + streamId + " is not yet in progress");
+                    logger.fine("Connection to: %s streamId:%s is not yet in progress", address, streamId);
                 }
             } else {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Connection to: " + address + " streamId:" + streamId + " is already in progress");
+                    logger.fine("Connection to: %s streamId:%s is already in progress", address, streamId);
                 }
             }
         }
@@ -301,7 +301,7 @@ public class TcpServerConnectionManager extends TcpServerConnectionManagerBase
             connections.add(connection);
 
             if (logger.isFineEnabled()) {
-                logger.fine("Established socket connection between " + channel.localSocketAddress() + " and " + channel
+                logger.fine("Established socket connection between %s and %s", channel.localSocketAddress(), channel
                         .remoteSocketAddress());
             }
             openedCount.inc();
@@ -330,6 +330,7 @@ public class TcpServerConnectionManager extends TcpServerConnectionManagerBase
         return c;
     }
 
+    @Override
     @Probe(name = TCP_METRIC_ENDPOINT_MANAGER_COUNT, level = MANDATORY)
     public int connectionCount() {
         int c = 0;

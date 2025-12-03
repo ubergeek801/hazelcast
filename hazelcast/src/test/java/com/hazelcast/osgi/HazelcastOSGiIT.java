@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.ops4j.pax.url.maven.commons.MavenConstants;
 import org.ops4j.pax.url.mvn.ServiceConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import javax.inject.Inject;
 
@@ -66,7 +65,7 @@ class HazelcastOSGiIT {
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         for (Bundle bundle : bundleContext.getBundles()) {
             if ("com.hazelcast".equals(bundle.getSymbolicName())) {
                 bundle.uninstall();
@@ -78,13 +77,5 @@ class HazelcastOSGiIT {
         } else {
             System.setProperty(MAVEN_REPOSITORIES_PROP, oldMavenRepoProperty);
         }
-    }
-
-    private HazelcastOSGiService getService() {
-        ServiceReference serviceRef = bundleContext.getServiceReference(HazelcastOSGiService.class.getName());
-        if (serviceRef == null) {
-            return null;
-        }
-        return (HazelcastOSGiService) bundleContext.getService(serviceRef);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@ import com.hazelcast.map.impl.mapstore.writebehind.entry.DelayedEntry;
 import com.hazelcast.internal.serialization.Data;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -153,7 +151,7 @@ class CyclicWriteBehindQueue implements WriteBehindQueue<DelayedEntry> {
      */
     @Override
     public List<DelayedEntry> asList() {
-        return Collections.unmodifiableList(new ArrayList<>(deque));
+        return List.copyOf(deque);
     }
 
     @Override

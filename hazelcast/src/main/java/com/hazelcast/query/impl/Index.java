@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,6 @@ public interface Index {
     Set<QueryableEntry> evaluate(Predicate predicate);
 
     /**
-     * @param value      value
      * @param descending whether the entries should come in the descending order.
      *                   {@code true} means a descending order,
      *                   {@code false} means an ascending order.
@@ -140,7 +139,6 @@ public interface Index {
     Iterator<IndexKeyEntries> getSqlRecordIteratorBatch(Comparable value, boolean descending);
 
     /**
-     * @param value            value
      * @param descending       whether the entries should come in the descending order.
      *                         {@code true} means a descending order,
      *                         {@code false} means an ascending order.
@@ -169,7 +167,6 @@ public interface Index {
 
     /**
      * @param comparison comparison type
-     * @param value      value
      * @param descending whether the entries should come in the descending order.
      *                   {@code true} means a descending order,
      *                   {@code false} means an ascending order.
@@ -179,7 +176,6 @@ public interface Index {
 
     /**
      * @param comparison       comparison type
-     * @param value            value
      * @param descending       whether the entries should come in the descending order.
      *                         {@code true} means a descending order,
      *                         {@code false} means an ascending order.

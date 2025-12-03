@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>com.hazelcast</groupId>
         <artifactId>hazelcast-root</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -32,6 +32,7 @@
     <properties>
         <configs.from.jar>${project.build.directory}/config</configs.from.jar>
         <main.basedir>${project.parent.basedir}</main.basedir>
+        <prometheus.version>0.20.0</prometheus.version>
     </properties>
 
     <build>
@@ -78,7 +79,7 @@
                                     <groupId>com.hazelcast</groupId>
                                     <artifactId>hazelcast</artifactId>
                                     <outputDirectory>${configs.from.jar}</outputDirectory>
-                                    <includes>**/*.xml,**/*.yaml,META-INF/NOTICE</includes>
+                                    <includes>**/*.xml,**/*.yaml,META-INF/NOTICE,**/*.txt</includes>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -129,6 +130,13 @@
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
@@ -192,7 +200,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-wm</artifactId>
-            <version>5.0</version>
+            <version>5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.hazelcast</groupId>
@@ -291,6 +299,12 @@
             <artifactId>hazelcast-jet-python</artifactId>
             <version>${project.version}</version>
             <classifier>${fat.dependency.classifier}</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.hazelcast.jet</groupId>
+                    <artifactId>hazelcast-jet-grpc</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.hazelcast.jet</groupId>

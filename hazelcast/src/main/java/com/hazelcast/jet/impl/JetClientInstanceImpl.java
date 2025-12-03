@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,9 @@ import com.hazelcast.logging.ILogger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -81,14 +81,29 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
         return client.getClientClusterService().getMasterMember().getUuid();
     }
 
-    @Override
-    public Map<UUID, GetJobIdsResult> getJobsInt(String onlyName, Long onlyJobId) {
+    private Map<UUID, GetJobIdsResult> getJobsInt(String onlyName, Long onlyJobId) {
         return invokeRequestOnAnyMemberAndDecodeResponse(
                 JetGetJobIdsCodec.encodeRequest(onlyName, onlyJobId == null ? ALL_JOBS : onlyJobId),
                 resp -> {
                     Data responseSerialized = JetGetJobIdsCodec.decodeResponse(resp).response;
                     return serializationService.toObject(responseSerialized);
                 });
+    }
+
+    protected GetJobIdsResult getJobByName(String onlyName) {
+        var result = getJobsInt(onlyName, null);
+        // Only normal jobs can have a name.
+        // Since information about normal jobs is requested from the master node only, a single result is expected.
+        assert result.size() == 1 : "Exactly one result is expected";
+        return result.values().stream().findFirst().orElseThrow();
+    }
+
+    protected Map<UUID, GetJobIdsResult> getJobsById(Long onlyJobId) {
+        return getJobsInt(null, onlyJobId);
+    }
+
+    protected Map<UUID, GetJobIdsResult> getAllJobs() {
+        return getJobsInt(null, null);
     }
 
     @Nonnull
@@ -99,10 +114,10 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
 
     /**
      * Returns a list of jobs and a summary of their details.
-     * @deprecated Since 5.3, to be removed in 6.0. Use {@link #getJobAndSqlSummaryList()} instead
+     * @deprecated to be removed in 6.0. Use {@link #getJobAndSqlSummaryList()} instead
      */
     @Nonnull
-    @Deprecated
+    @Deprecated(since = "5.3", forRemoval = true)
     public List<JobSummary> getJobSummaryList() {
         return invokeRequestOnMasterAndDecodeResponse(JetGetJobSummaryListCodec.encodeRequest(),
                 JetGetJobSummaryListCodec::decodeResponse);
@@ -273,11 +288,9 @@ public class JetClientInstanceImpl extends AbstractJetInstance<UUID> {
 
     private void sendJobMultipart(JobUploadCall jobUploadCall, Path jarPath)
             throws IOException, NoSuchAlgorithmException {
-        File file = jarPath.toFile();
-
         byte[] partBuffer = jobUploadCall.allocatePartBuffer();
 
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+        try (InputStream fileInputStream = Files.newInputStream(jarPath)) {
 
             // Start from part #1
             for (int currentPartNumber = 1; currentPartNumber <= jobUploadCall.getTotalParts(); currentPartNumber++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ import com.hazelcast.spi.merge.SplitBrainMergeTypes.CacheMergeTypes;
 import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.spi.tenantcontrol.TenantControl;
 import com.hazelcast.wan.impl.CallerProvenance;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.cache.configuration.Factory;
@@ -79,7 +78,7 @@ import javax.cache.processor.EntryProcessor;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -98,6 +97,7 @@ import static com.hazelcast.cache.impl.operation.MutableOperation.IGNORE_COMPLET
 import static com.hazelcast.cache.impl.record.CacheRecord.TIME_NOT_AVAILABLE;
 import static com.hazelcast.cache.impl.record.CacheRecordFactory.isExpiredAt;
 import static com.hazelcast.internal.config.ConfigValidator.checkCacheEvictionConfig;
+import static com.hazelcast.internal.namespace.NamespaceUtil.callWithNamespace;
 import static com.hazelcast.internal.util.EmptyStatement.ignore;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
 import static com.hazelcast.internal.util.SetUtil.createHashSet;
@@ -105,8 +105,8 @@ import static com.hazelcast.internal.util.ThreadUtil.assertRunningOnPartitionThr
 import static com.hazelcast.spi.impl.merge.MergingValueFactory.createMergingEntry;
 import static java.util.Collections.emptySet;
 
-@SuppressWarnings({"checkstyle:methodcount", "checkstyle:classfanoutcomplexity",
-        "checkstyle:classdataabstractioncoupling"})
+@SuppressWarnings({"checkstyle:methodcount", "checkstyle:classfanoutcomplexity", "checkstyle:classdataabstractioncoupling",
+        "RedundantCast", "rawtypes", "unchecked"})
 public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extends SampleableCacheRecordMap<Data, R>>
         implements ICacheRecordStore, EvictionListener<Data, R> {
 
@@ -134,7 +134,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
     protected final ClearExpiredRecordsTask clearExpiredRecordsTask;
     protected final SamplingEvictionStrategy<Data, R, CRM> evictionStrategy;
     protected final EvictionPolicyEvaluator<Data, R> evictionPolicyEvaluator;
-    protected final Map<CacheEventType, Set<CacheEventData>> batchEvent = new HashMap<>();
+    protected final Map<CacheEventType, Set<CacheEventData>> batchEvent = new EnumMap<>(CacheEventType.class);
     protected final CompositeCacheRSMutationObserver compositeCacheRSMutationObserver;
 
     protected boolean primary;
@@ -205,6 +205,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
         init();
     }
 
+    @Override
     public SerializationService getSerializationService() {
         return ss;
     }
@@ -884,8 +885,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
                 inMemoryExpiryPolicy = toValue(expiryPolicy);
                 dataOldExpiryPolicy = toData(getExpiryPolicyOrNull(record));
                 break;
-            case BINARY:
-            case NATIVE:
+            case BINARY, NATIVE:
                 inMemoryExpiryPolicy = toData(expiryPolicy);
                 dataOldExpiryPolicy = toData(getExpiryPolicyOrNull(record));
                 break;
@@ -907,8 +907,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
             return null;
         }
         switch (cacheConfig.getInMemoryFormat()) {
-            case NATIVE:
-            case BINARY:
+            case NATIVE, BINARY:
                 return policyData;
             case OBJECT:
                 return toValue(policyData);
@@ -1054,7 +1053,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
                 if (cacheWriter.exists()) {
                     Object objKey = dataToValue(key);
                     Object objValue = toValue(value);
-                    cacheWriter.get().write(new CacheEntry<Object, Object>(objKey, objValue));
+                    cacheWriter.get().write(new CacheEntry<>(objKey, objValue));
                 }
             } catch (Exception e) {
                 if (!(e instanceof CacheWriterException)) {
@@ -1087,7 +1086,6 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
         }
     }
 
-    @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
     protected void deleteAllCacheEntry(Set<Data> keys) {
         if (isWriteThrough() && keys != null && !keys.isEmpty()) {
             try (TenantControl.Closeable ctx = cacheWriter.getTenantControl().setTenant()) {
@@ -1235,6 +1233,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
         }
     }
 
+    @Override
     public void evictExpiredEntries(int expirationPercentage) {
         long now = Clock.currentTimeMillis();
         int maxIterationCount = getMaxIterationCount(size(), expirationPercentage);
@@ -1660,8 +1659,6 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
      * <p>
      * The expiration task runs on only primary replicas. Expiration on backup replicas are dictated by primary replicas. However,
      * it is still important to mark a backup replica as expirable because it might be promoted to be the primary in a later time.
-     *
-     * @param expiryTime
      */
     protected void markExpirable(long expiryTime) {
         if (expiryTime > 0 && expiryTime < Long.MAX_VALUE) {
@@ -1818,7 +1815,7 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
                 }
             }
         } else {
-            Data oldValue = ss.toData(record.getValue());
+            Data oldValue = valueToData(record.getValue());
             CacheMergeTypes<Object, Object> existingEntry = createMergingEntry(ss, key, oldValue, record);
             Object newValue = mergePolicy.merge(mergingEntry, existingEntry);
 
@@ -1831,6 +1828,11 @@ public abstract class AbstractCacheRecordStore<R extends CacheRecord, CRM extend
         }
 
         return result.isMergeApplied() ? new CacheMergeResponse(record, result) : new CacheMergeResponse(null, result);
+    }
+
+    private Data toData(R record) {
+        return callWithNamespace(nodeEngine, getConfig().getUserCodeNamespace(),
+                () -> ss.toData(record.getValue()));
     }
 
     private CacheMergeResponse.MergeResult updateWithMergingValue(Data key, Object existingValue, Object mergingValue,

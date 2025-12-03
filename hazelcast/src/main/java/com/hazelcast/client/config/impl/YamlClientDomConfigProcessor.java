@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class YamlClientDomConfigProcessor extends ClientDomConfigProcessor {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:cyclomaticcomplexity"})
+    @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     protected SerializationConfig parseSerialization(final Node node) {
         SerializationConfig serializationConfig = new SerializationConfig();
         for (Node child : childElements(node)) {

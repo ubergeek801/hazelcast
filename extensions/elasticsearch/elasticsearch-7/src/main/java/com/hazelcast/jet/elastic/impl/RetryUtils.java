@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public final class RetryUtils {
                         throw sneakyThrow(e);
                     }
                     long waitIntervalMs = Math.min(MAX_BACKOFF_MS, MS_IN_SECOND * (1 << retryCount));
-                    LOGGER.fine(String.format("Couldn't connect to Elastic, [%s] retrying in %s seconds...", retryCount,
-                            waitIntervalMs / MS_IN_SECOND));
+                    LOGGER.fine("Couldn't connect to Elastic, [%s] retrying in %s seconds...", retryCount,
+                            waitIntervalMs / MS_IN_SECOND);
                     sleep(waitIntervalMs);
                 } else {
                     throw sneakyThrow(e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package com.hazelcast.jet.pipeline.file;
 
-import java.util.HashSet;
 import java.util.Set;
-
-import static java.util.Arrays.asList;
 
 /**
  * Internal util class to detect glob wildcards in a path
@@ -27,9 +24,9 @@ import static java.util.Arrays.asList;
 final class WildcardMatcher {
 
     private static final char BACKSLASH = '\\';
-    private static final Set<Character> WILDCARDS = new HashSet<>(asList(
+    private static final Set<Character> WILDCARDS = Set.of(
             '*', '?', '{', '['
-    ));
+    );
 
     /**
      * Utility class

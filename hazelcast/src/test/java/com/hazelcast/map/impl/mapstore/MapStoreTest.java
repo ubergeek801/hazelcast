@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.hazelcast.config.MapStoreConfig.InitialLoadMode.EAGER;
 import static com.hazelcast.map.impl.mapstore.writebehind.WriteBehindFlushTest.assertWriteBehindQueuesEmpty;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -89,8 +88,8 @@ public class MapStoreTest extends AbstractMapStoreTest {
         _map.put("key2", "value2");
         _map.put("key3", "value3");
 
-        final AtomicBoolean loadAllCalled = new AtomicBoolean(false);
-        final AtomicBoolean loadCalled = new AtomicBoolean(false);
+        final AtomicBoolean loadAllCalled = new AtomicBoolean();
+        final AtomicBoolean loadCalled = new AtomicBoolean();
 
         TestHazelcastInstanceFactory nodeFactory = createHazelcastInstanceFactory(2);
         Config config = getConfig();
@@ -143,7 +142,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
 
     @Test
     public void map_set_does_not_trigger_load_of_old_value() {
-        final AtomicBoolean loadCalled = new AtomicBoolean(false);
+        final AtomicBoolean loadCalled = new AtomicBoolean();
 
         Config config = getConfig();
         MapStoreConfig mapStoreConfig = new MapStoreConfig();
@@ -174,7 +173,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
         HazelcastInstance node = createHazelcastInstance(config);
         IMap<String, String> map = node.getMap(randomName());
 
-        Map<String, String> responseMap = map.getAll(new HashSet<>(asList("key1", "key2", "key3")));
+        Map<String, String> responseMap = map.getAll(Set.of("key1", "key2", "key3"));
 
         assertEquals(0, responseMap.size());
         assertEquals(0, map.size());
@@ -450,9 +449,9 @@ public class MapStoreTest extends AbstractMapStoreTest {
 
     @Test(timeout = 120000)
     public void issue587CallMapLoaderDuringRemoval() {
-        final AtomicInteger loadCount = new AtomicInteger(0);
-        final AtomicInteger storeCount = new AtomicInteger(0);
-        final AtomicInteger deleteCount = new AtomicInteger(0);
+        final AtomicInteger loadCount = new AtomicInteger();
+        final AtomicInteger storeCount = new AtomicInteger();
+        final AtomicInteger deleteCount = new AtomicInteger();
 
         class SimpleMapStore2 extends SimpleMapStore<String, Long> {
 
@@ -460,16 +459,19 @@ public class MapStoreTest extends AbstractMapStoreTest {
                 super(store);
             }
 
+            @Override
             public Long load(String key) {
                 loadCount.incrementAndGet();
                 return super.load(key);
             }
 
+            @Override
             public void store(String key, Long value) {
                 storeCount.incrementAndGet();
                 super.store(key, value);
             }
 
+            @Override
             public void delete(String key) {
                 deleteCount.incrementAndGet();
                 super.delete(key);
@@ -512,6 +514,15 @@ public class MapStoreTest extends AbstractMapStoreTest {
 
     @Test(timeout = 120000)
     public void testOneMemberFlush() {
+        testOneMemberFlush(false);
+    }
+
+    @Test(timeout = 120000)
+    public void testOneMemberFlushAsync() {
+        testOneMemberFlush(true);
+    }
+
+    private void testOneMemberFlush(boolean async) {
         TestMapStore testMapStore = new TestMapStore(1, 1, 1);
         testMapStore.setLoadAllKeys(false);
         int size = 100;
@@ -526,7 +537,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
         assertEquals(size, map.size());
         assertEquals(0, testMapStore.getStore().size());
         assertEquals(size, map.getLocalMapStats().getDirtyEntryCount());
-        map.flush();
+        flush(map, async);
         assertEquals(size, testMapStore.getStore().size());
         assertEquals(0, map.getLocalMapStats().getDirtyEntryCount());
         assertEquals(size, map.size());
@@ -536,7 +547,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
         }
         assertEquals(size / 2, map.size());
         assertEquals(size, testMapStore.getStore().size());
-        map.flush();
+        flush(map, async);
         assertEquals(size / 2, testMapStore.getStore().size());
         assertEquals(size / 2, map.size());
     }
@@ -883,7 +894,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
 
     private static class ChunkedLoader extends SimpleMapLoader {
 
-        private AtomicInteger numberOfChunks = new AtomicInteger(0);
+        private AtomicInteger numberOfChunks = new AtomicInteger();
 
         ChunkedLoader(int size, boolean slow) {
             super(size, slow);
@@ -1172,7 +1183,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
         private AtomicInteger count;
 
         public WaitingOnFirstTestMapStore() {
-            this.count = new AtomicInteger(0);
+            this.count = new AtomicInteger();
         }
 
         @Override
@@ -1237,6 +1248,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
             latchLoadAllKeys = new CountDownLatch(expectedLoadAllKeys);
         }
 
+        @Override
         public void init(HazelcastInstance hazelcastInstance, Properties properties, String mapName) {
             this.hazelcastInstance = hazelcastInstance;
             this.properties = properties;
@@ -1252,6 +1264,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
             this.loadAllKeys = loadAllKeys;
         }
 
+        @Override
         public void destroy() {
             destroyCount.incrementAndGet();
         }
@@ -1313,6 +1326,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
             }
         }
 
+        @Override
         public Set loadAllKeys() {
             callCount.incrementAndGet();
             latchLoadAllKeys.countDown();
@@ -1407,6 +1421,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
             store.put(key, value);
         }
 
+        @Override
         public Set<K> loadAllKeys() {
             if (loadAllKeys) {
                 return store.keySet();
@@ -1476,7 +1491,7 @@ public class MapStoreTest extends AbstractMapStoreTest {
 
         public final CountDownLatch latch;
         public final int waitSecond;
-        public final AtomicInteger count = new AtomicInteger(0);
+        public final AtomicInteger count = new AtomicInteger();
         public final int sleepStoreAllSeconds;
 
         public MapStoreWithStoreCount(int expectedStore, int seconds) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,46 +20,46 @@ import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.impl.clientside.HazelcastClientProxy;
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.test.annotation.QuickTest;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(CustomSpringJUnit4ClassRunner.class)
+
+@ExtendWith({SpringExtension.class, CustomSpringExtension.class})
 @ContextConfiguration(locations = {"client-network-defaults-context.xml"})
-@Category(QuickTest.class)
-public class TestClientConfigAndSpringDefaults {
+class TestClientConfigAndSpringDefaults {
 
     private ClientConfig clientConfig;
 
     @Autowired
     private HazelcastClientProxy client;
 
-    @BeforeClass
-    @AfterClass
+    @BeforeAll
+    @AfterAll
     public static void start() {
         HazelcastClient.shutdownAll();
         Hazelcast.shutdownAll();
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         clientConfig = client.getClientConfig();
     }
 
     @Test
-    public void testDefaults() {
+    void testDefaults() {
         ClientConfig defaults = new ClientConfig();
 
-        assertEquals(defaults.getNetworkConfig().isSmartRouting(), clientConfig.getNetworkConfig().isSmartRouting());
         assertEquals(defaults.getNetworkConfig().getConnectionTimeout(), clientConfig.getNetworkConfig().getConnectionTimeout());
-        assertEquals(defaults.getNetworkConfig().getSubsetRoutingConfig().isEnabled(), clientConfig.getNetworkConfig().getSubsetRoutingConfig().isEnabled());
+        assertEquals(defaults.getNetworkConfig().getClusterRoutingConfig().getRoutingMode(),
+                clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingMode());
     }
 }

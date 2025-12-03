@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,14 @@ public class GlobalPerIndexStats implements PerIndexStats {
             "totalRemoveLatency");
     private static final AtomicLongFieldUpdater<GlobalPerIndexStats> VALUES_MEMORY_COST = newUpdater(GlobalPerIndexStats.class,
             "valuesMemoryCost");
+    private static final AtomicLongFieldUpdater<GlobalPerIndexStats> PARTITIONS_INDEXED = newUpdater(GlobalPerIndexStats.class,
+            "partitionsIndexed");
+    private static final AtomicLongFieldUpdater<GlobalPerIndexStats> PARTITION_UPDATES_STARTED = newUpdater(
+            GlobalPerIndexStats.class, "partitionUpdatesStarted");
+    private static final AtomicLongFieldUpdater<GlobalPerIndexStats> PARTITION_UPDATES_FINISHED = newUpdater(
+            GlobalPerIndexStats.class, "partitionUpdatesFinished");
+    private static final AtomicLongFieldUpdater<GlobalPerIndexStats> INDEX_NOT_READY_QUERY_COUNT = newUpdater(
+            GlobalPerIndexStats.class, "indexNotReadyQueryCount");
 
     private final boolean ordered;
     private final boolean usesCachedQueryableEntries;
@@ -90,6 +98,10 @@ public class GlobalPerIndexStats implements PerIndexStats {
     private volatile long removeCount;
     private volatile long totalRemoveLatency;
     private volatile long valuesMemoryCost;
+    private volatile long partitionsIndexed;
+    private volatile long partitionUpdatesStarted;
+    private volatile long partitionUpdatesFinished;
+    private volatile long indexNotReadyQueryCount;
 
     /**
      * Constructs a new instance of global index stats.
@@ -231,6 +243,7 @@ public class GlobalPerIndexStats implements PerIndexStats {
     public void onClear() {
         entryCount = 0;
         valuesMemoryCost = 0;
+        partitionsIndexed = 0;
     }
 
     @Override
@@ -272,4 +285,38 @@ public class GlobalPerIndexStats implements PerIndexStats {
         return new GlobalIndexOperationStats();
     }
 
+    @Override
+    public long getIndexNotReadyQueryCount() {
+        return indexNotReadyQueryCount;
+    }
+
+    @Override
+    public void incrementIndexNotReadyQueryCount() {
+        INDEX_NOT_READY_QUERY_COUNT.incrementAndGet(this);
+    }
+
+    @Override
+    public long getPartitionsIndexed() {
+        return partitionsIndexed;
+    }
+
+    @Override
+    public long getPartitionUpdatesStarted() {
+        return partitionUpdatesStarted;
+    }
+
+    @Override
+    public long getPartitionUpdatesFinished() {
+        return partitionUpdatesFinished;
+    }
+
+    @Override
+    public void onPartitionChange(PartitionIndexChangeEvent changeEvent) {
+        @SuppressWarnings("unused") long change = switch (changeEvent) {
+            case CHANGE_STARTED -> PARTITION_UPDATES_STARTED.incrementAndGet(this);
+            case CHANGE_FINISHED -> PARTITION_UPDATES_FINISHED.incrementAndGet(this);
+            case INDEXED -> PARTITIONS_INDEXED.incrementAndGet(this);
+            case UNINDEXED -> PARTITIONS_INDEXED.decrementAndGet(this);
+        };
+    }
 }

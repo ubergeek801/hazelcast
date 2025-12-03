@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ import static com.hazelcast.test.starter.ReflectionUtils.getDelegateFromMock;
 import static com.hazelcast.test.starter.ReflectionUtils.getFieldValueReflectively;
 import static java.lang.reflect.Proxy.isProxyClass;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 @SuppressWarnings("WeakerAccess")
 public final class TestPartitionUtils {
@@ -234,17 +234,17 @@ public final class TestPartitionUtils {
     public static void assertAllPartitionsBelongTo(HazelcastInstance instance) {
         InternalPartitionService internalPartitionService = getPartitionService(instance);
         int partitionCount = internalPartitionService.getPartitionCount();
-        assertTrue(internalPartitionService.getMemberPartitionsIfAssigned(getAddress(instance)).size() == partitionCount);
+        assertEquals(internalPartitionService.getMemberPartitionsIfAssigned(getAddress(instance)).size(), partitionCount);
     }
 
     public static void assertSomePartitionsBelongTo(HazelcastInstance instance, Address address) {
         InternalPartitionService internalPartitionService = getPartitionService(instance);
-        assertTrue(internalPartitionService.getMemberPartitionsIfAssigned(address).size() > 0);
+        assertFalse(internalPartitionService.getMemberPartitionsIfAssigned(address).isEmpty());
     }
 
     public static void assertSomePartitionsBelongTo(HazelcastInstance instance) {
         InternalPartitionService internalPartitionService = getPartitionService(instance);
-        assertTrue(internalPartitionService.getMemberPartitionsIfAssigned(getAddress(instance)).size() > 0);
+        assertFalse(internalPartitionService.getMemberPartitionsIfAssigned(getAddress(instance)).isEmpty());
     }
 
     public static void assertNoPartitionsBelongTo(HazelcastInstance instance) {

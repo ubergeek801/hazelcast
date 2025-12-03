@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,7 @@ public final class SourceBuilder<C> {
             @Nonnull String name,
             @Nonnull FunctionEx<? super Processor.Context, ? extends C> createFn
     ) {
-        return new SourceBuilder<C>(name, createFn).new Batch<Void>();
+        return new SourceBuilder<C>(name, createFn).new Batch<>();
     }
 
     /**
@@ -261,7 +261,7 @@ public final class SourceBuilder<C> {
             @Nonnull String name,
             @Nonnull FunctionEx<? super Processor.Context, ? extends C> createFn
     ) {
-        return new SourceBuilder<C>(name, createFn).new Stream<Void>();
+        return new SourceBuilder<C>(name, createFn).new Stream<>();
     }
 
     /**
@@ -327,7 +327,7 @@ public final class SourceBuilder<C> {
      * partitioned, you may run into issues with event skew between partitions
      * assigned to a given parallel processor. The timestamp you get from one
      * partition may be significantly behind the timestamp you already got from
-     * another one. If the skew is more than the allowed lag and you have
+     * another one. If the skew is more than the allowed lag, and you have
      * {@linkplain StreamSourceStage#withNativeTimestamps(long) configured
      * native timestamps}, you risk that the events will be late. Use a
      * {@linkplain Sources#streamFromProcessorWithWatermarks custom processor}
@@ -345,7 +345,7 @@ public final class SourceBuilder<C> {
             @Nonnull String name,
             @Nonnull FunctionEx<? super Processor.Context, ? extends C> createFn
     ) {
-        return new SourceBuilder<C>(name, createFn).new TimestampedStream<Void>();
+        return new SourceBuilder<C>(name, createFn).new TimestampedStream<>();
     }
 
     private abstract class Base<T> {
@@ -392,7 +392,7 @@ public final class SourceBuilder<C> {
         }
 
         /**
-         * Sets the the permission required to use this sink when the
+         * Sets the permission required to use this sink when the
          * security is enabled. The default value is {@code null} which
          * means there is no restriction to use this sink. Security is an
          * enterprise feature.
@@ -738,7 +738,7 @@ public final class SourceBuilder<C> {
          * is distributed, the list will contain objects returned by {@code
          * createSnapshotFn} in all parallel instances. This is why {@code
          * restoreSnapshotFn} accepts a list of snapshot objects. It should
-         * figure out which part of the snapshot data pertains to it and it can
+         * figure out which part of the snapshot data pertains to it, and it can
          * do so as explained {@link Base#distributed here}.
          *
          * @param restoreSnapshotFn the function to restore the state into the

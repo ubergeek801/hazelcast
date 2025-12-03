@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,7 +98,7 @@ public class EvictionMaxSizePolicyTest extends HazelcastTestSupport {
 
         String mapName = "testPerNodePolicy_afterGracefulShutdown";
         Config config = createConfig(PER_NODE, perNodeMaxSize, mapName);
-        Set<Object> evictedKeySet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        Set<Object> evictedKeySet = ConcurrentHashMap.newKeySet();
         // populate map from one of the nodes
         List<HazelcastInstance> nodes = createNodes(nodeCount, config);
         assertClusterSize(3, nodes.toArray(new HazelcastInstance[0]));
@@ -150,9 +149,9 @@ public class EvictionMaxSizePolicyTest extends HazelcastTestSupport {
 
     /**
      * Eviction starts if a partitions' size exceeds this number:
-     *
+     * <p>
      * double maxPartitionSize = 1D * nodeCount * perNodeMaxSize / PARTITION_COUNT;
-     *
+     * <p>
      * when calculated `maxPartitionSize` is under 1, we should forcibly set it
      * to 1, otherwise all puts will immediately be removed by eviction.
      */
@@ -179,17 +178,20 @@ public class EvictionMaxSizePolicyTest extends HazelcastTestSupport {
         HazelcastInstance node1 = instanceFactory.newHazelcastInstance(config);
         HazelcastInstance node2 = instanceFactory.newHazelcastInstance(config);
 
+        // Wait for the cluster to form before populating the map
+        assertClusterSizeEventually(2, node1, node2);
+
         IMap<Integer, Integer> map1 = node1.getMap(mapName);
         for (int i = 0; i < 2222; i++) {
             map1.put(i, i);
         }
 
-        IMap map2 = node2.getMap(mapName);
+        IMap<Integer, Integer> map2 = node2.getMap(mapName);
         LocalMapStats localMapStats1 = map1.getLocalMapStats();
         LocalMapStats localMapStats2 = map2.getLocalMapStats();
 
-        assertEqualsEventually(() -> localMapStats2.getBackupEntryCount(), localMapStats1.getOwnedEntryCount());
-        assertEqualsEventually(() -> localMapStats1.getBackupEntryCount(), localMapStats2.getOwnedEntryCount());
+        assertEqualsEventually(localMapStats2::getBackupEntryCount, localMapStats1.getOwnedEntryCount());
+        assertEqualsEventually(localMapStats1::getBackupEntryCount, localMapStats2.getOwnedEntryCount());
     }
 
     @Test

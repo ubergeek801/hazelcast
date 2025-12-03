@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,6 @@ import java.util.stream.Stream;
 import static com.hazelcast.function.Functions.wholeItem;
 import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.aggregate.AggregateOperations.coAggregateOperationBuilder;
-import static com.hazelcast.jet.core.test.JetAssert.assertFalse;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.datamodel.Tuple3.tuple3;
 import static com.hazelcast.jet.pipeline.BatchAggregateTest.FORMAT_FN;
@@ -68,6 +67,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -271,7 +271,7 @@ public class RebalanceBatchStageTest extends PipelineTestSupport {
                 enrichingStage,
                 joinMapEntries(wholeItem()),
                 // Method reference avoided due to JDK bug
-                (k, v) -> entry(k, v));
+                Util::entry);
 
         // Then
         joined.writeTo(sink);
@@ -644,7 +644,7 @@ public class RebalanceBatchStageTest extends PipelineTestSupport {
                 .setName("filter trues 2")
                 .writeTo(SinkBuilder.sinkBuilder("sink",
                         context -> context.hazelcastInstance().getList("result" + context.globalProcessorIndex()))
-                .receiveFn((list, o) -> list.add(o)).build());
+                .receiveFn(List::add).build());
 
         member.getJet().newJob(p).join();
 

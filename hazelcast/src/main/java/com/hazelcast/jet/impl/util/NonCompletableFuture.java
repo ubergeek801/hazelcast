@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.jet.impl.util;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -63,7 +62,6 @@ public class NonCompletableFuture extends CompletableFuture<Void> {
         throw new UnsupportedOperationException("This future can't be completed by an outside caller");
     }
 
-    @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION")
     public void internalComplete() {
         super.complete(null);
     }

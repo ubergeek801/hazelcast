@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * the new configuration is ignored and the existing one is preserved.
  */
 @SuppressWarnings("unused")
-@Generated("8a718068bdb658823acc11725fda4ccd")
+@Generated("6f3d191e15c7866535b58d36e48263ec")
 public final class DynamicConfigAddExecutorConfigCodec {
     //hex: 0x1B0800
     public static final int REQUEST_MESSAGE_TYPE = 1771520;
@@ -54,7 +54,6 @@ public final class DynamicConfigAddExecutorConfigCodec {
     private DynamicConfigAddExecutorConfigCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**

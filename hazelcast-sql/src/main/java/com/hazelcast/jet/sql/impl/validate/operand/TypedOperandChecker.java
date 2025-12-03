@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class TypedOperandChecker extends AbstractOperandChecker {
 
     @Override
     protected boolean matchesTargetType(RelDataType operandType) {
-        if (type != null && type.getSqlTypeName().equals(SqlTypeName.OTHER)) {
+        if (type != null && type.getSqlTypeName() == SqlTypeName.OTHER) {
             return type.getFamily().equals(operandType.getFamily());
         } else {
             return operandType.getSqlTypeName() == targetTypeName;

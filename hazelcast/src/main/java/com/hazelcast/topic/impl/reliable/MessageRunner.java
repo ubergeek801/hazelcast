@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,9 +225,9 @@ public abstract class MessageRunner<E> implements BiConsumer<ReadResultSet<Relia
         final long currentHeadSequence = ringbuffer.headSequence();
         if (listener.isLossTolerant()) {
             if (logger.isFinestEnabled()) {
-                logger.finest(String.format("MessageListener %s on topic %s requested a too large sequence: %s. "
+                logger.finest("MessageListener %s on topic %s requested a too large sequence: %s. "
                                 + ". Jumping from old sequence: %s to sequence: %s",
-                        listener, topicName, t.getMessage(), sequence, currentHeadSequence));
+                        listener, topicName, t.getMessage(), sequence, currentHeadSequence);
             }
             this.sequence = currentHeadSequence;
             return true;

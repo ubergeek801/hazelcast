@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.hazelcast.jet.json;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.hazelcast.core.HazelcastJsonValue;
@@ -23,10 +25,10 @@ import com.hazelcast.jet.pipeline.Sources;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +58,11 @@ public final class JsonUtil {
     private static final JSON JSON_JR;
 
     static {
-        JSON.Builder builder = JSON.builder();
+        JsonFactory jf = JsonFactory.builder()
+                                    .enable(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER)
+                                    .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
+                                    .build();
+        JSON.Builder builder = JSON.builder(jf).enable(JSON.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
         try {
             Class.forName("com.fasterxml.jackson.annotation.JacksonAnnotation", false, JsonUtil.class.getClassLoader());
             builder.register(JacksonAnnotationExtension.std);
@@ -161,7 +167,7 @@ public final class JsonUtil {
      */
     @Nonnull
     public static <T> Stream<T> beanSequenceFrom(Path path, @Nonnull Class<T> type) throws IOException {
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(path.toFile()), UTF_8);
+        Reader reader = new InputStreamReader(Files.newInputStream(path), UTF_8);
         Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(JsonUtil.beanSequenceFrom(reader, type),
                 Spliterator.ORDERED | Spliterator.NONNULL);
         return StreamSupport.stream(spliterator, false);
@@ -178,11 +184,11 @@ public final class JsonUtil {
      */
     @Nonnull
     public static Stream<Map<String, Object>> mapSequenceFrom(Path path) throws IOException {
-            InputStreamReader reader = new InputStreamReader(new FileInputStream(path.toFile()), UTF_8);
-            Spliterator<Map<String, Object>> spliterator =
-                    Spliterators.spliteratorUnknownSize(JsonUtil.mapSequenceFrom(reader),
-                    Spliterator.ORDERED | Spliterator.NONNULL);
-            return StreamSupport.stream(spliterator, false);
+        Reader reader = new InputStreamReader(Files.newInputStream(path), UTF_8);
+        Spliterator<Map<String, Object>> spliterator =
+                Spliterators.spliteratorUnknownSize(JsonUtil.mapSequenceFrom(reader),
+                Spliterator.ORDERED | Spliterator.NONNULL);
+        return StreamSupport.stream(spliterator, false);
     }
 
     /**

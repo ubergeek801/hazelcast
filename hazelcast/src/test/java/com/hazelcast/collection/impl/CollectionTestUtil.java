@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.hazelcast.collection.impl.set.SetService;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.spi.impl.NodeEngineImpl;
+import com.hazelcast.test.Accessors;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,7 +69,7 @@ public final class CollectionTestUtil {
      * Returns all backup items of an {@link IList} by a given list name.
      * <p>
      * Note: You have to provide the {@link HazelcastInstance} you want to retrieve the backups from.
-     * Use {@link getBackupInstance} to retrieve the backup instance for a given replica index.
+     * Use {@link Accessors#getBackupInstance(HazelcastInstance[], int, int)} to retrieve the backup instance for a given replica index.
      *
      * @param backupInstance the {@link HazelcastInstance} to retrieve the backups from
      * @param listName       the list name
@@ -112,7 +113,7 @@ public final class CollectionTestUtil {
      * Returns all backup items of an {@link IQueue} by a given queue name.
      * <p>
      * Note: You have to provide the {@link HazelcastInstance} you want to retrieve the backups from.
-     * Use {@link getBackupInstance} to retrieve the backup instance for a given replica index.
+     * Use {@link Accessors#getBackupInstance(HazelcastInstance[], int, int)} to retrieve the backup instance for a given replica index.
      *
      * @param backupInstance the {@link HazelcastInstance} to retrieve the backups from
      * @param queueName      the queue name
@@ -155,7 +156,7 @@ public final class CollectionTestUtil {
      * Returns all backup items of an {@link ISet} by a given set name.
      * <p>
      * Note: You have to provide the {@link HazelcastInstance} you want to retrieve the backups from.
-     * Use {@link getBackupInstance} to retrieve the backup instance for a given replica index.
+     * Use {@link Accessors#getBackupInstance(HazelcastInstance[], int, int)} to retrieve the backup instance for a given replica index.
      *
      * @param backupInstance the {@link HazelcastInstance} to retrieve the backups from
      * @param setName        the set name

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,12 @@ import com.hazelcast.logging.ILogger;
 import java.util.UUID;
 
 import com.hazelcast.cluster.Address;
-import com.hazelcast.internal.nio.Packet;
 
 public class NodeMulticastListener implements MulticastListener {
 
     private final Node node;
     private final ILogger logger;
-    private ConfigCheck ourConfig;
+    private final ConfigCheck ourConfig;
 
     public NodeMulticastListener(Node node) {
         this.node = node;
@@ -55,7 +54,7 @@ public class NodeMulticastListener implements MulticastListener {
 
     private void logDroppedMessage(Object msg) {
         if (logger.isFineEnabled()) {
-            logger.fine("Dropped: " + msg);
+            logger.fine("Dropped: %s", msg);
         }
     }
 
@@ -68,7 +67,7 @@ public class NodeMulticastListener implements MulticastListener {
         ClusterServiceImpl clusterService = node.getClusterService();
         Address masterAddress = clusterService.getMasterAddress();
         if (clusterService.isMaster()) {
-            JoinMessage response = new JoinMessage(Packet.VERSION, node.getBuildInfo().getBuildNumber(), node.getVersion(),
+            JoinMessage response = new JoinMessage(node.getBuildInfo().getBuildNumber(), node.getVersion(),
                     node.getThisAddress(), node.getThisUuid(), node.isLiteMember(), node.createConfigCheck());
             node.multicastService.send(response);
         } else if (joinMessage.getAddress().equals(masterAddress)) {

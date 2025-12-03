@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.internal.dynamicconfig;
 import com.hazelcast.config.CacheSimpleConfig;
 import com.hazelcast.config.CardinalityEstimatorConfig;
 import com.hazelcast.config.Config;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
 import com.hazelcast.config.DurableExecutorConfig;
 import com.hazelcast.config.ExecutorConfig;
 import com.hazelcast.config.DataConnectionConfig;
@@ -245,6 +246,11 @@ class EmptyConfigurationService implements ConfigurationService {
     @Override
     public Map<String, VectorCollectionConfig> getVectorCollectionConfigs() {
         return emptyMap();
+    }
+
+    @Override
+    public DiagnosticsConfig getDiagnosticsConfig() {
+        return null;
     }
 
     @Override

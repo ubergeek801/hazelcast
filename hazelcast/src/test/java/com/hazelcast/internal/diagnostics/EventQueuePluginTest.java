@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public class EventQueuePluginTest extends AbstractDiagnosticsPluginTest {
         NodeEngineImpl nodeEngine = getNodeEngineImpl(hz);
         EventServiceImpl eventService = (EventServiceImpl) nodeEngine.getEventService();
 
-        plugin = new EventQueuePlugin(nodeEngine, eventService.getEventExecutor());
+        plugin = new EventQueuePlugin(nodeEngine.getLogger(EventQueuePlugin.class), eventService.getEventExecutor(), nodeEngine.getProperties());
         plugin.onStart();
 
         itemCounter = plugin.getOccurrenceMap();

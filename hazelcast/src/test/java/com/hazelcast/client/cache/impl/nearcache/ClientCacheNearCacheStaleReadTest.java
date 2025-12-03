@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,10 +69,10 @@ public class ClientCacheNearCacheStaleReadTest extends HazelcastTestSupport {
 
     private static final ILogger LOGGER = Logger.getLogger(ClientCacheNearCacheStaleReadTest.class);
 
-    private final AtomicInteger valuePut = new AtomicInteger(0);
-    private final AtomicBoolean stop = new AtomicBoolean(false);
-    private final AtomicInteger assertionViolationCount = new AtomicInteger(0);
-    private final AtomicBoolean failed = new AtomicBoolean(false);
+    private final AtomicInteger valuePut = new AtomicInteger();
+    private final AtomicBoolean stop = new AtomicBoolean();
+    private final AtomicInteger assertionViolationCount = new AtomicInteger();
+    private final AtomicBoolean failed = new AtomicBoolean();
 
     private HazelcastInstance member;
     private HazelcastInstance client;

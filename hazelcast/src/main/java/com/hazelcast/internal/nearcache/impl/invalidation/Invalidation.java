@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,14 +44,14 @@ public abstract class Invalidation implements IMapEvent, IdentifiedDataSerializa
     private UUID partitionUuid;
     private long sequence = NO_SEQUENCE;
 
-    public Invalidation() {
+    protected Invalidation() {
     }
 
-    public Invalidation(String dataStructureName) {
+    protected Invalidation(String dataStructureName) {
         this.dataStructureName = checkNotNull(dataStructureName, "dataStructureName cannot be null");
     }
 
-    public Invalidation(String dataStructureName, UUID sourceUuid, UUID partitionUuid, long sequence) {
+    protected Invalidation(String dataStructureName, UUID sourceUuid, UUID partitionUuid, long sequence) {
         this.dataStructureName = checkNotNull(dataStructureName, "dataStructureName cannot be null");
         // sourceUuid can be null.
         this.sourceUuid = sourceUuid;

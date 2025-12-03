@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,14 +78,14 @@ public class SingleValueAllPredicatesExtractorTest extends SingleValueAllPredica
 
     public static class IqExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             collector.addObject(target.brain.iq);
         }
     }
 
     public static class NameExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             collector.addObject(target.brain.name);
         }
     }

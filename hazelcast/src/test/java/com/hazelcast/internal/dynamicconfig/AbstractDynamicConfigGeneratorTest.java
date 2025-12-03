@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -953,7 +953,9 @@ public abstract class AbstractDynamicConfigGeneratorTest extends HazelcastTestSu
                 10,
                 11,
                 true
-        );
+        ).setBackupCount(2)
+                .setAsyncBackupCount(1)
+                .setUserCodeNamespace("ns1");
 
         Config config = new Config()
                 .addVectorCollectionConfig(originVectorCollectionConfig);

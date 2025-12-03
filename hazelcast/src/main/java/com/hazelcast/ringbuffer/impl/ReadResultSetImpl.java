@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.projection.Projection;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.spi.impl.SerializationServiceSupport;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.util.AbstractList;
@@ -56,11 +55,13 @@ public class ReadResultSetImpl<O, E> extends AbstractList<E>
         implements IdentifiedDataSerializable, HazelcastInstanceAware, ReadResultSet<E> {
 
     protected transient SerializationService serializationService;
+
     private transient int minSize;
     private transient int maxSize;
     private transient IFunction<O, Boolean> filter;
     private transient Predicate<? super O> predicate;
     private transient Projection<? super O, E> projection;
+    private transient boolean markNextEventAsLostEventsDetected;
 
     private Data[] items;
     private long[] seqs;
@@ -80,7 +81,6 @@ public class ReadResultSetImpl<O, E> extends AbstractList<E>
         this.filter = filter;
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ReadResultSetImpl(int readCount, List<Data> items, long[] seqs, long nextSeq) {
         this.readCount = readCount;
         this.items = items.toArray(new Data[0]);
@@ -106,7 +106,6 @@ public class ReadResultSetImpl<O, E> extends AbstractList<E>
         return size >= minSize;
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Data[] getDataItems() {
         return items;
     }
@@ -239,5 +238,15 @@ public class ReadResultSetImpl<O, E> extends AbstractList<E>
         }
         seqs = in.readLongArray();
         nextSeq = in.readLong();
+    }
+
+    public void markAsLostEventDetected() {
+        this.markNextEventAsLostEventsDetected = true;
+    }
+
+    protected boolean getAndClearLostEventsFlag() {
+        var r =  markNextEventAsLostEventsDetected;
+        this.markNextEventAsLostEventsDetected = false;
+        return r;
     }
 }

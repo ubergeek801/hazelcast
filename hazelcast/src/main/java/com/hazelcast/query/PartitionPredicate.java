@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.util.Collections;
 
 /**
  * A {@link Predicate} that restricts the execution of a {@link Predicate} to specific partitions.
- *
+ * <p>
  * This can help to speed up query execution since only a subset of all partitions needs to be queried.
- *
+ * <p>
  * This predicate only has effect if used as an outermost predicate.
  *
  * @param <K> type of the entry key
@@ -40,7 +40,7 @@ public interface PartitionPredicate<K, V> extends Predicate<K, V> {
     /**
      * Returns the partition keys that determine the partitions the {@linkplain
      * #getTarget() target} {@link Predicate} is going to execute on.
-     *
+     * <p>
      * A default implementation of {@linkplain #getPartitionKeys() partition keys}
      * that wraps the {@linkplain #getPartitionKey() partition key} in a singleton
      * collection is provided for backwards compatibility.

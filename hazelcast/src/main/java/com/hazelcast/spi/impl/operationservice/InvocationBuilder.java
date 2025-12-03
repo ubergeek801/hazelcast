@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.internal.server.ServerConnectionManager;
 import com.hazelcast.internal.partition.InternalPartition;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.spi.impl.operationservice.impl.Invocation;
 import com.hazelcast.spi.impl.operationservice.impl.InvocationFuture;
 
 import static com.hazelcast.internal.util.Preconditions.checkFalse;
@@ -279,4 +280,6 @@ public abstract class InvocationBuilder {
     }
 
     public abstract <E> InvocationFuture<E> invoke();
+
+    public abstract <E> Invocation<E> build();
 }

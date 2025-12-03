@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ package com.hazelcast.instance;
 
 import com.hazelcast.auditlog.impl.NoOpAuditlogService;
 import com.hazelcast.cache.impl.ICacheService;
+import com.hazelcast.client.impl.NoOpClientEngine;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.instance.impl.NodeContext;
 import com.hazelcast.instance.impl.NodeExtension;
 import com.hazelcast.internal.cluster.Joiner;
+import com.hazelcast.internal.diagnostics.HealthMonitor;
 import com.hazelcast.internal.dynamicconfig.ClusterWideConfigurationService;
 import com.hazelcast.internal.dynamicconfig.DynamicConfigListener;
 import com.hazelcast.internal.hotrestart.NoopInternalHotRestartService;
@@ -97,6 +99,8 @@ public class TestNodeContext implements NodeContext {
         when(nodeExtension.getInternalHotRestartService()).thenReturn(new NoopInternalHotRestartService());
         when(nodeExtension.getNamespaceService()).thenReturn(new NoOpUserCodeNamespaceService(TestNodeContext.class.getClassLoader()));
         when(nodeExtension.createTpcServerBootstrap()).thenReturn(new TpcServerBootstrapImpl(node));
+        when(nodeExtension.createClientEngine()).thenReturn(new NoOpClientEngine());
+        when(nodeExtension.createHealthMonitor()).thenReturn(mock(HealthMonitor.class));
         return nodeExtension;
     }
 

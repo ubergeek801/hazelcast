@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Simple configuration to hold parsed listener config.
@@ -122,13 +123,10 @@ public class CacheSimpleEntryListenerConfig implements IdentifiedDataSerializabl
         if (synchronous != that.synchronous) {
             return false;
         }
-        if (cacheEntryListenerFactory != null ? !cacheEntryListenerFactory.equals(that.cacheEntryListenerFactory)
-                : that.cacheEntryListenerFactory != null) {
+        if (!Objects.equals(cacheEntryListenerFactory, that.cacheEntryListenerFactory)) {
             return false;
         }
-        return cacheEntryEventFilterFactory != null
-                ? cacheEntryEventFilterFactory.equals(that.cacheEntryEventFilterFactory)
-                : that.cacheEntryEventFilterFactory == null;
+        return Objects.equals(cacheEntryEventFilterFactory, that.cacheEntryEventFilterFactory);
     }
 
     @Override

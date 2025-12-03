@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@
 package com.hazelcast.internal.diagnostics;
 
 import com.hazelcast.logging.ILogger;
+import com.hazelcast.spi.properties.HazelcastProperty;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Plugin for the {@link Diagnostics}.
@@ -35,17 +40,40 @@ public abstract class DiagnosticsPlugin {
     /**
      * Indicates that a plugin should be run once.
      */
-    static final long STATIC = -1;
+    static final long RUN_ONCE_PERIOD_MS = -1;
 
     /**
-     * Indicates that the plugin is disabled.
+     * Indicates that the plugin is disabled and not going to be scheduled at all to run.
      */
-    static final long DISABLED = 0;
+    static final long NOT_SCHEDULED_PERIOD_MS = 0;
 
     protected final ILogger logger;
+    /**
+     * Indicates that weather plugin is scheduled to run or not.
+     */
+    final AtomicBoolean isActive = new AtomicBoolean(false);
+    private final Map<String, String> properties = new ConcurrentHashMap<>();
 
-    public DiagnosticsPlugin(ILogger logger) {
+
+    protected DiagnosticsPlugin(ILogger logger) {
         this.logger = logger;
+    }
+
+    protected void setActive() {
+        isActive.set(true);
+    }
+
+    protected void setInactive() {
+        isActive.set(false);
+    }
+
+    /**
+     * Indicates that plugin is scheduled to run.
+     *
+     * @return true if the plugin is scheduled to run, false otherwise.
+     */
+    public boolean isActive() {
+        return isActive.get();
     }
 
     /**
@@ -62,7 +90,59 @@ public abstract class DiagnosticsPlugin {
      */
     public abstract long getPeriodMillis();
 
-    public abstract void onStart();
+    public void onStart() {
+        setActive();
+    }
+
+    public void onShutdown() {
+        setInactive();
+    }
+
+    /**
+     * Indicates if the plugin can be enabled at runtime.
+     *
+     * @return true if the plugin can be enabled at runtime, false otherwise.
+     */
+    public boolean canBeEnabledDynamically() {
+        return true;
+    }
+
+    void setProperties(Map<String, String> props) {
+        setProperties(props, true);
+    }
+
+    private void setProperties(Map<String, String> props, boolean refresh) {
+        if (!isActive() && !this.properties.equals(props)) {
+            this.properties.clear();
+            this.properties.putAll(props);
+            if (refresh) {
+                readProperties();
+            }
+        }
+    }
+
+    /**
+     * Reads the properties from the diagnostics config.
+     * <p>
+     * This method is called when the plugin is initialized and when the
+     * properties are set. The implementer should read its properties from the config.
+     * </p>
+     */
+    abstract void readProperties();
+
+    /**
+     * Overrides the property with the value from the diagnostics config if it is set.
+     */
+    HazelcastProperty overrideProperty(HazelcastProperty property) {
+        String value = properties.get(property.getName());
+
+        if (value == null) {
+            return property;
+        }
+
+        property.setSystemProperty(value);
+        return property;
+    }
 
     public abstract void run(DiagnosticsLogWriter writer);
 }

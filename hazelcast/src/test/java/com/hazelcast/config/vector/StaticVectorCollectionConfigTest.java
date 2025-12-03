@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,8 @@ public class StaticVectorCollectionConfigTest extends HazelcastTestSupport {
     @Test
     public void setSeveralVectorCollectionConfig() {
         var vectorCollectionConfigs = range(0, 3)
-                .mapToObj(i -> buildVectorCollectionConfig("collection-" + i, "index-" + i, i, Metric.EUCLIDEAN))
+                .mapToObj(i -> buildVectorCollectionConfig("collection-" + i, "index-" + i, i + 1, Metric.EUCLIDEAN)
+                        .setBackupCount(i).setAsyncBackupCount(i))
                 .collect(Collectors.toMap(VectorCollectionConfig::getName, identity()));
         Config config = new Config().setVectorCollectionConfigs(vectorCollectionConfigs);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.test.TestHazelcastInstanceFactory;
 
 import java.util.Collection;
 
+import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
 import static com.hazelcast.test.Accessors.getBackupInstance;
 import static com.hazelcast.test.Accessors.getPartitionIdViaReflection;
 import static org.junit.Assert.assertEquals;
@@ -77,7 +78,7 @@ public abstract class AbstractCollectionBackupTest extends HazelcastTestSupport 
         HazelcastInstance backupInstance = getBackupInstance(instances, partitionId, 2);
 
         // we terminate the ownerInstance, so the backups on promotedInstance have to be promoted
-        factory.terminate(ownerInstance);
+        terminateInstance(ownerInstance);
         waitAllForSafeState(factory.getAllHazelcastInstances());
 
         // we add additional items to the collection, so new backups have to be created on backupInstance

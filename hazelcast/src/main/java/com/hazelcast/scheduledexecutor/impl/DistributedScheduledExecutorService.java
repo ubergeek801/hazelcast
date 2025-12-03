@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class DistributedScheduledExecutorService
     public static final CapacityPermit NOOP_PERMIT = new NoopCapacityPermit();
 
     //Testing only
-    static final AtomicBoolean FAIL_MIGRATIONS = new AtomicBoolean(false);
+    static final AtomicBoolean FAIL_MIGRATIONS = new AtomicBoolean();
 
     private static final Object NULL_OBJECT = new Object();
 
@@ -175,9 +175,11 @@ public class DistributedScheduledExecutorService
 
         unRegisterPartitionListenerIfExists();
 
-        for (ScheduledExecutorPartition partition : partitions) {
-            if (partition != null) {
-                partition.destroy();
+        if (partitions != null) {
+            for (ScheduledExecutorPartition partition : partitions) {
+                if (partition != null) {
+                    partition.destroy();
+                }
             }
         }
     }
@@ -240,7 +242,7 @@ public class DistributedScheduledExecutorService
 
         ScheduledExecutorPartition partition = partitions[event.getPartitionId()];
         if (event.getMigrationEndpoint() == MigrationEndpoint.SOURCE && event.getCurrentReplicaIndex() == 0) {
-            // this is the partition owner at the beginning of the migration
+            // this is the partition owner at the beginning of the migration,
             // so we suspend tasks now and promote them back if the migration
             // is rolled back
             partition.suspendTasks();
@@ -370,7 +372,10 @@ public class DistributedScheduledExecutorService
                     String name = container.getName();
                     MergePolicyConfig mergePolicyConfig = collector.getMergePolicyConfig(container);
                     SplitBrainMergePolicy<ScheduledTaskDescriptor, ScheduledExecutorMergeTypes,
-                            ScheduledTaskDescriptor> mergePolicy = getMergePolicy(mergePolicyConfig);
+                            ScheduledTaskDescriptor> mergePolicy = getMergePolicy(
+                                    mergePolicyConfig,
+                            container.getUserCodeNamespace()
+                    );
                     int batchSize = mergePolicyConfig.getBatchSize();
 
                     mergingEntries = new ArrayList<>(batchSize);

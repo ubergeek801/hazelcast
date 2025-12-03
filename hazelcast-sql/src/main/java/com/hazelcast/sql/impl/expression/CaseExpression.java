@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class CaseExpression<T> implements Expression<T> {
 
     @SuppressWarnings("unchecked")
     public static <T> CaseExpression<T> nullif(Expression<?> left, Expression<?> right) {
-        return new CaseExpression<T>(
+        return new CaseExpression<>(
                 new Expression[]{ComparisonPredicate.create(left, right, ComparisonMode.EQUALS)},
                 new Expression[]{ConstantExpression.create(null, left.getType())},
                 left

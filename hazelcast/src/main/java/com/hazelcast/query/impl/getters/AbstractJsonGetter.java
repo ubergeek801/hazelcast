@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,9 +70,6 @@ public abstract class AbstractJsonGetter extends Getter {
      *         {@code long} or {@code double}
      *     </li>
      * </ul>
-     *
-     * @param value
-     * @return
      */
     public static Object convertFromJsonValue(JsonValue value) {
         if (value == null) {
@@ -201,11 +198,9 @@ public abstract class AbstractJsonGetter extends Getter {
      * attribute when this method returns. If given path does not exist
      * in the current level, then parser points to matching
      * {@code JsonToken.END_OBJECT} of the current object.
-     *
+     * <p>
      * Assumes the parser points to a {@code JsonToken.START_OBJECT}
      *
-     * @param parser
-     * @param pathCursor
      * @return {@code true} if given attribute name exists in the current object
      * @throws IOException
      */
@@ -237,11 +232,9 @@ public abstract class AbstractJsonGetter extends Getter {
      * array to the result. Otherwise, it traverses all objects in
      * given array and adds their scalar values named
      * {@code pathCursor#getNext()} to the result.
-     *
+     * <p>
      * Assumes the parser points to an array.
      *
-     * @param parser
-     * @param pathCursor
      * @return All matches in the current array that conform to
      * [any].lastPath search
      * @throws IOException

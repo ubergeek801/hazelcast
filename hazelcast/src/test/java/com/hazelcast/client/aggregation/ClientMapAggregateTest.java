@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public class ClientMapAggregateTest
         factory.shutdownAll();
     }
 
+    @Override
     public <K, V> IMap<K, V> getMapWithNodeCount(int nodeCount) {
         if (nodeCount < 1) {
             throw new IllegalArgumentException("node count < 1");

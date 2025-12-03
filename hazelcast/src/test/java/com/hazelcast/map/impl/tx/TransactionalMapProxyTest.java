@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class TransactionalMapProxyTest extends HazelcastTestSupport {
 
-    private String mapName = randomMapName();
+    private final String mapName = randomMapName();
 
     @Test
     public void whenMapProxyIsCreated_mapContainerIsNotCreated() {

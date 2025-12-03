@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ final class PartitionStateGeneratorImpl implements PartitionStateGenerator {
             tryArrange(state, groups, partitionCount, aggressive, partitions);
             if (tryCount++ > 0) {
                 if (LOGGER.isFineEnabled()) {
-                    LOGGER.fine("Re-trying partition arrangement. Count: " + tryCount);
+                    LOGGER.fine("Re-trying partition arrangement. Count: %s", tryCount);
                 }
             }
         } while (tryCount < MAX_RETRY_COUNT && !areGroupsBalanced(groups, partitionCount));
@@ -474,7 +474,7 @@ final class PartitionStateGeneratorImpl implements PartitionStateGenerator {
             }
             if (containsPartition(partitionId)) {
                 if (LOGGER.isFinestEnabled()) {
-                    LOGGER.finest("Partition[" + partitionId + "] is already owned by this group!");
+                    LOGGER.finest("Partition[%s] is already owned by this group!", partitionId);
                 }
                 return false;
             }
@@ -633,7 +633,7 @@ final class PartitionStateGeneratorImpl implements PartitionStateGenerator {
             }
             if (containsPartition(partitionId)) {
                 if (LOGGER.isFinestEnabled()) {
-                    LOGGER.finest("Partition[" + partitionId + "] is already owned by this node " + replica);
+                    LOGGER.finest("Partition[%s] is already owned by this node %s", partitionId, replica);
                 }
                 return false;
             }
@@ -681,10 +681,6 @@ final class PartitionStateGeneratorImpl implements PartitionStateGenerator {
             return getPartitions(index).add(partitionId);
         }
 
-        boolean contains(int index, Integer partitionId) {
-            return getPartitions(index).contains(partitionId);
-        }
-
         boolean contains(Integer partitionId) {
             for (Set<Integer> set : partitions) {
                 if (set != null && set.contains(partitionId)) {
@@ -710,7 +706,7 @@ final class PartitionStateGeneratorImpl implements PartitionStateGenerator {
             }
         }
 
-        private void check(int index) {
+        private static void check(int index) {
             if (index < 0 || index >= InternalPartition.MAX_REPLICA_COUNT) {
                 throw new ArrayIndexOutOfBoundsException(index);
             }

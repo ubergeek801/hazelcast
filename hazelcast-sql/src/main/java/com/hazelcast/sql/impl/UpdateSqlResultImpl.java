@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public final class UpdateSqlResultImpl extends AbstractSqlResult {
     }
 
     @Nullable
+    @Override
     public QueryId getQueryId() {
         throw new IllegalStateException("This result contains only update count");
     }

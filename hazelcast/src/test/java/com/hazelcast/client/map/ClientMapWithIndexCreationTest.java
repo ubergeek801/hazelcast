@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client.map;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.client.util.StaticLB;
 import com.hazelcast.config.Config;
@@ -51,7 +52,8 @@ public class ClientMapWithIndexCreationTest extends HazelcastTestSupport {
     }
 
     /**
-     * Given a two members (A, B) cluster, a non-smart client connected to B attempts to create a map proxy targeting member A.
+     * Given a two member (A, B) cluster, a SINGLE_MEMBER routing client connected to B,
+     * attempts to create a map proxy targeting member A.
      */
     @Test
     public void test_createMapWithIndexes_whenProxyCreatedOnMemberOtherThanClientOwner() {
@@ -72,7 +74,7 @@ public class ClientMapWithIndexCreationTest extends HazelcastTestSupport {
         // ProxyManager#findNextAddressToSendCreateRequest uses the configured load balancer to find the next address
         // to which proxy creation request will be sent. We want this to be member hz1.
         clientConfig.setLoadBalancer(new StaticLB((Member) hz1.getLocalEndpoint()));
-        clientConfig.getNetworkConfig().setSmartRouting(false);
+        clientConfig.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         // the client only connects to member hz2.
         clientConfig.getNetworkConfig().addAddress(hz2.getCluster().getLocalMember().getAddress().getHost() + ":"
                 + hz2.getCluster().getLocalMember().getAddress().getPort());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,16 @@ import java.util.Properties;
 
 // Test ConnectorWrapper that passes topic directly to task runners
 public class TestSourceConnectorWrapper extends SourceConnectorWrapper {
-    public TestSourceConnectorWrapper(Properties propertiesFromUser) {
+    public TestSourceConnectorWrapper(Properties propertiesFromUser, HazelcastInstance instance) {
         // int processorOrder is 0 to make it master processor
-        super(propertiesFromUser, 0, new TestProcessorContext());
+        super(propertiesFromUser, 0, new TestProcessorContext()
+                .setHazelcastInstance(instance));
     }
 
     @Override
     protected void publishMessage(TaskConfigMessage taskConfigMessage) {
         // Instead of publishing the message, pass it directly to processing function
         processMessage(taskConfigMessage);
-    }
-
-    @Override
-    void createTopic(HazelcastInstance hazelcastInstance, long executionId) {
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class JsonObjectFunction extends VariExpression<HazelcastJsonValue> {
     }
 
     private boolean keepNulls() {
-        return nullClause.equals(SqlJsonConstructorNullClause.NULL_ON_NULL);
+        return nullClause == SqlJsonConstructorNullClause.NULL_ON_NULL;
     }
 
     @Override

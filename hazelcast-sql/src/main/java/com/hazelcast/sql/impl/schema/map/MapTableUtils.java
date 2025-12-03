@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,8 +159,8 @@ public final class MapTableUtils {
             return Collections.emptyList();
         }
 
-        if (converter instanceof CompositeConverter) {
-            CompositeConverter converter0 = ((CompositeConverter) converter);
+        if (converter instanceof CompositeConverter compositeConverter) {
+            CompositeConverter converter0 = compositeConverter;
 
             List<QueryDataType> res = new ArrayList<>(converter0.getComponentCount());
 
@@ -240,7 +240,7 @@ public final class MapTableUtils {
     }
 
     public static boolean isCompatibleForIndexRequest(QueryDataType columnType, QueryDataType indexConverterType) {
-        if (columnType.getTypeFamily().equals(indexConverterType.getTypeFamily())) {
+        if (columnType.getTypeFamily() == indexConverterType.getTypeFamily()) {
             return true;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,12 +117,14 @@ public class Query implements IdentifiedDataSerializable, Versioned {
         return partitionIdSet;
     }
 
-    public Result createResult(SerializationService serializationService, long limit) {
+    public Result createResult(SerializationService serializationService, QueryResultSizeLimiter qrsl, int partitions) {
         if (isAggregationQuery()) {
             Aggregator aggregatorClone = serializationService.toObject(serializationService.toData(aggregator));
             return new AggregationResult(aggregatorClone, serializationService);
         } else {
-            return new QueryResult(iterationType, projection, serializationService, limit, predicate instanceof PagingPredicate);
+            return new QueryResult(iterationType, projection, serializationService, qrsl.getNodeResultLimit(partitions),
+                    predicate instanceof PagingPredicate,
+                    qrsl.getMapServiceContext().getLocalMapStatsProvider().getLocalMapStatsImpl(getMapName()));
         }
     }
 

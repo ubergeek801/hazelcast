@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.hazelcast.internal.util.ServiceLoader;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.properties.ClusterProperty;
 
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -94,7 +93,6 @@ public class PhoneHome {
 
     private void postPhoneHomeData(String requestBody) {
         HttpURLConnection conn = null;
-        OutputStreamWriter writer = null;
         try {
             URL url = URI.create(basePhoneHomeUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
@@ -103,18 +101,14 @@ public class PhoneHome {
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.connect();
-            writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
-            writer.write(requestBody);
-            writer.flush();
+            try (OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8)) {
+                writer.write(requestBody);
+                writer.flush();
+            }
             conn.getContent();
         } catch (Exception ignored) {
             // no-op
         } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException ignored) { }
-            }
             if (conn != null) {
                 conn.disconnect();
             }

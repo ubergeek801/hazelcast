@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,12 @@ import com.hazelcast.query.impl.Comparables;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import static com.hazelcast.function.ComparatorEx.nullsFirst;
 import static com.hazelcast.function.ComparatorEx.nullsLast;
@@ -75,7 +72,7 @@ public class ComparatorExTest {
 
     @Test
     public void when_nullsFirst_withoutWrapped() {
-        ComparatorEx c = nullsFirst(null);
+        ComparatorEx<Comparable<Integer>> c = nullsFirst(null);
         assertEquals(0, c.compare(1, 2));
         assertEquals(0, c.compare(2, 1));
         assertEquals(1, c.compare(0, null));
@@ -84,7 +81,7 @@ public class ComparatorExTest {
 
     @Test
     public void when_nullsLast_withoutWrapped() {
-        ComparatorEx c = nullsLast(null);
+        ComparatorEx<Comparable<Integer>> c = nullsLast(null);
         assertEquals(0, c.compare(1, 2));
         assertEquals(0, c.compare(2, 1));
         assertEquals(-1, c.compare(0, null));
@@ -189,31 +186,19 @@ public class ComparatorExTest {
     }
 
     @Test
-    public void testSerializableSingleton_naturalOrder()
-            throws IOException, ClassNotFoundException {
+    public void testSerializableSingleton_naturalOrder() {
         testSerializableSingletonIsSame(NATURAL_ORDER);
     }
 
     @Test
-    public void testSerializableSingleton_reverseOrder()
-            throws IOException, ClassNotFoundException {
+    public void testSerializableSingleton_reverseOrder() {
         testSerializableSingletonIsSame(REVERSE_ORDER);
     }
 
-    private void testSerializableSingletonIsSame(Object singleton)
-            throws IOException, ClassNotFoundException {
-        byte[] serialized;
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream)) {
-            objectOutputStream.writeObject(singleton);
-            objectOutputStream.flush();
-            serialized = outputStream.toByteArray();
-        }
+    private void testSerializableSingletonIsSame(Serializable singleton) {
+        byte[] serialized = SerializationUtils.serialize(singleton);
 
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(serialized);
-             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
-            Object deserialized = objectInputStream.readObject();
-            assertSame(singleton, deserialized);
-        }
+        Object deserialized = SerializationUtils.deserialize(serialized);
+        assertSame(singleton, deserialized);
     }
 }

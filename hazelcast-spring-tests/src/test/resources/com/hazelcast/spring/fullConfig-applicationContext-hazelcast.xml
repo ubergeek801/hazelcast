@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+  ~ Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.hazelcast.com/schema/spring
-        http://www.hazelcast.com/schema/spring/hazelcast-spring-5.5.xsd">
+        http://www.hazelcast.com/schema/spring/hazelcast-spring-5.7.xsd">
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
           p:systemPropertiesModeName="SYSTEM_PROPERTIES_MODE_OVERRIDE">
@@ -733,7 +733,7 @@
                     <hz:realm name="r3">
                         <hz:authentication>
                             <hz:jaas>
-                                <hz:login-module class-name="com.example.LoginModule" usage="REQUIRED"/>
+                                <hz:login-module class-name="org.example.EmptyLoginModule" usage="REQUIRED"/>
                             </hz:jaas>
                         </hz:authentication>
                         <hz:identity>
@@ -1189,16 +1189,19 @@
             <hz:tpc enabled="false">
                 <hz:eventloop-count>12</hz:eventloop-count>
             </hz:tpc>
-            <hz:vector-collection name="vector-collection-1">
+            <hz:vector-collection name="vector-collection-1" backup-count="1" async-backup-count="0">
                 <hz:indexes>
                     <hz:index name="index-1" dimension="2" metric="DOT"/>
-                    <hz:index dimension="20" metric="EUCLIDEAN" max-degree="10" ef-construction="11" use-deduplication="true"/>
+                    <hz:index name="index-2" dimension="20" metric="EUCLIDEAN" max-degree="10" ef-construction="11" use-deduplication="true"/>
                 </hz:indexes>
             </hz:vector-collection>
-            <hz:vector-collection name="vector-collection-2">
+            <hz:vector-collection name="vector-collection-2" backup-count="2" async-backup-count="1">
                 <hz:indexes>
                     <hz:index name="index-1" dimension="200" metric="COSINE" max-degree="12" ef-construction="13" use-deduplication="false"/>
                 </hz:indexes>
+                <hz:split-brain-protection-ref>my-split-brain-protection</hz:split-brain-protection-ref>
+                <hz:merge-policy batch-size="132">CustomMergePolicy</hz:merge-policy>
+                <hz:user-code-namespace>ns1</hz:user-code-namespace>
             </hz:vector-collection>
         </hz:config>
     </hz:hazelcast>

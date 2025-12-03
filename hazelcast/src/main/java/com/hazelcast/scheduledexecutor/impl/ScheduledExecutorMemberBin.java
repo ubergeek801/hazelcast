@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class ScheduledExecutorMemberBin
         this.logger = nodeEngine.getLogger(getClass());
         this.containerConstructorFunction = name -> {
             if (logger.isFinestEnabled()) {
-                logger.finest("[Partition: -1] Create new scheduled executor container with name: " + name);
+                logger.finest("[Partition: -1] Create new scheduled executor container with name: %s", name);
             }
 
             ScheduledExecutorConfig config = nodeEngine.getConfig().findScheduledExecutorConfig(name);

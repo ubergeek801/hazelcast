@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class EntryProcessorOffloadableBouncingNodesTest extends HazelcastTestSup
     private static final int CONCURRENCY = RuntimeAvailableProcessors.get() - 1;
 
     @Rule
-    public BounceMemberRule bounceMemberRule = BounceMemberRule.with(() -> getBouncingTestConfig())
+    public BounceMemberRule bounceMemberRule = BounceMemberRule.with(this::getBouncingTestConfig)
             .driverType(BounceTestConfiguration.DriverType.MEMBER)
             .clusterSize(2)
             .driverCount(2)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,6 @@ public interface SupplierEx<T> extends Supplier<T>, Serializable, SecuredFunctio
      * @since 5.4
      */
     default <V> SupplierEx<V> andThen(FunctionEx<? super T, ? extends V> after) {
-        return new FunctionsImpl.ComposedSupplierEx(this, after);
+        return new FunctionsImpl.ComposedSupplierEx<>(this, after);
     }
 }

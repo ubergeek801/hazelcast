@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.jet.impl.client.protocol.task;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.jet.core.JobStatus;
 import com.hazelcast.jet.impl.JobAndSqlSummary;
+import com.hazelcast.jet.impl.JobAndSqlSummaryIds;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
@@ -36,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class JetGetJobAndSqlSummaryListMessageTaskExceptionTest extends AbstractJetMultiTargetMessageTaskTest {
-    private static final JobAndSqlSummary SUMMARY = new JobAndSqlSummary(true, 0, 0, "", JobStatus.RUNNING, 0, 0, "", null, "", false);
+    private static final JobAndSqlSummary SUMMARY = new JobAndSqlSummaryIds(true, 0, 0, "", JobStatus.RUNNING, 0, 0, "", null, "", false);
 
     @Test
     public void when_reducingWithIgnoredExceptions_then_exceptionIsNotRethrown() throws Throwable {

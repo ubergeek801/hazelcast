@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,7 @@ public class TestIgnoreRuleAccordingToUnalignedMemoryAccessSupport implements Te
             return new Statement() {
                 @Override
                 public void evaluate() throws Throwable {
-                    LOGGER.finest("Ignoring `" + description.getClassName()
-                            + "` because unaligned memory access is not supported in this platform");
+                    LOGGER.finest("Ignoring `%s` because unaligned memory access is not supported in this platform", description.getClassName());
                 }
             };
         }

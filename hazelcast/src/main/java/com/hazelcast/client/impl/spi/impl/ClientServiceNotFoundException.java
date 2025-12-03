@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.hazelcast.client.impl.spi.impl;
 
 /**
  * A {@link IllegalArgumentException} that indicates that a requested client service doesn't exist.
- *
+ * <p>
  * The previous implementation was throwing {@link IllegalArgumentException}
  * but we need a specific exception type for client service not available case.
  * Therefore, for keeping backward compatibility throwing exception is still an {@link IllegalArgumentException}

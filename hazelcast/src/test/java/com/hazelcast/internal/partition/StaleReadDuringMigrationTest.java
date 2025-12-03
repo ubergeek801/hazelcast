@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class StaleReadDuringMigrationTest extends HazelcastTestSupport {
 
     @Test
     public void testReadOperationFailsWhenStaleReadDisabledDuringMigration()
-            throws ExecutionException, InterruptedException {
+            throws InterruptedException {
         final Config config = new Config();
         config.setProperty(ClusterProperty.DISABLE_STALE_READ_ON_PARTITION_MIGRATION.getName(), "true");
 
@@ -90,7 +90,7 @@ public class StaleReadDuringMigrationTest extends HazelcastTestSupport {
     private static class DummyOperation extends Operation implements ReadonlyOperation {
 
         @Override
-        public void run() throws Exception {
+        public void run() {
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,8 +130,9 @@ public final class PartitionBackupReplicaAntiEntropyOperation
         if (!startCompleted) {
             ILogger logger = getLogger();
             if (logger.isFinestEnabled()) {
-                logger.finest("Anti-entropy operation for partitionId=" + getPartitionId()
-                        + ", replicaIndex=" + getReplicaIndex() + " is received before startup is completed.");
+                logger.finest(
+                        "Anti-entropy operation for partitionId=%s, replicaIndex=%s is received before startup is completed.",
+                        getPartitionId(), getReplicaIndex());
             }
         }
         return startCompleted;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class SlidingWindowCalcSplitLogicalRule extends RelRule<Config> implement
         final boolean[] mustNotExecute = {false};
 
         RexProgram program = calc.getProgram();
-        RexVisitorImpl<Void> visitor = new RexVisitorImpl<Void>(true) {
+        RexVisitorImpl<Void> visitor = new RexVisitorImpl<>(true) {
             @Override
             public Void visitInputRef(RexInputRef ref) {
                 int index = ref.getIndex();

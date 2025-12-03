@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Adds an item listener for this collection. Listener will be notified for all collection add/remove events.
  */
 @SuppressWarnings("unused")
-@Generated("da9349d6073dc0be678a47f715d8500f")
+@Generated("efad929c9e959170be8d8265535b0ed9")
 public final class SetAddListenerCodec {
     //hex: 0x060B00
     public static final int REQUEST_MESSAGE_TYPE = 396032;
@@ -58,7 +58,6 @@ public final class SetAddListenerCodec {
     private SetAddListenerCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -130,7 +129,7 @@ public final class SetAddListenerCodec {
         encodeInt(initialFrame.content, EVENT_ITEM_EVENT_TYPE_FIELD_OFFSET, eventType);
         clientMessage.add(initialFrame);
 
-        CodecUtil.encodeNullable(clientMessage, item, DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, item);
         return clientMessage;
     }
 
@@ -143,7 +142,7 @@ public final class SetAddListenerCodec {
                 ClientMessage.Frame initialFrame = iterator.next();
                 java.util.UUID uuid = decodeUUID(initialFrame.content, EVENT_ITEM_UUID_FIELD_OFFSET);
                 int eventType = decodeInt(initialFrame.content, EVENT_ITEM_EVENT_TYPE_FIELD_OFFSET);
-                com.hazelcast.internal.serialization.Data item = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+                com.hazelcast.internal.serialization.Data item = DataCodec.decodeNullable(iterator);
                 handleItemEvent(item, uuid, eventType);
                 return;
             }

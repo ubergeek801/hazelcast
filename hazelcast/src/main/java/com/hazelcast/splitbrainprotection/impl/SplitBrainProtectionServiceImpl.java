@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class SplitBrainProtectionServiceImpl implements EventPublishingService<S
 
     public void start() {
         // before starting, no splitBrainProtections are used, just SplitBrainProtectionService dependency is
-        // provided to services which depend on it so it's safe to initialize splitBrainProtections here (and we have
+        // provided to services which depend on it, so it's safe to initialize splitBrainProtections here (and we have
         // ClusterService already constructed)
         this.splitBrainProtections = Collections.unmodifiableMap(initializeSplitBrainProtections());
         scanSplitBrainProtections();
@@ -240,6 +240,7 @@ public class SplitBrainProtectionServiceImpl implements EventPublishingService<S
         splitBrainProtection.ensureNoSplitBrain(op);
     }
 
+    @Override
     public void ensureNoSplitBrain(@Nullable String splitBrainProtectionName,
                                    @Nonnull SplitBrainProtectionOn requiredSplitBrainProtectionPermissionType) {
         checkNotNull(requiredSplitBrainProtectionPermissionType,
@@ -255,17 +256,17 @@ public class SplitBrainProtectionServiceImpl implements EventPublishingService<S
         SplitBrainProtectionOn definedSplitBrainProtectionOn = definedSplitBrainProtection.getConfig().getProtectOn();
         switch (requiredSplitBrainProtectionPermissionType) {
             case WRITE:
-                if (definedSplitBrainProtectionOn.equals(WRITE) || definedSplitBrainProtectionOn.equals(READ_WRITE)) {
+                if (definedSplitBrainProtectionOn == WRITE || definedSplitBrainProtectionOn == READ_WRITE) {
                     definedSplitBrainProtection.ensureNoSplitBrain();
                 }
                 break;
             case READ:
-                if (definedSplitBrainProtectionOn.equals(READ) || definedSplitBrainProtectionOn.equals(READ_WRITE)) {
+                if (definedSplitBrainProtectionOn == READ || definedSplitBrainProtectionOn == READ_WRITE) {
                     definedSplitBrainProtection.ensureNoSplitBrain();
                 }
                 break;
             case READ_WRITE:
-                if (definedSplitBrainProtectionOn.equals(READ_WRITE)) {
+                if (definedSplitBrainProtectionOn == READ_WRITE) {
                     definedSplitBrainProtection.ensureNoSplitBrain();
                 }
                 break;

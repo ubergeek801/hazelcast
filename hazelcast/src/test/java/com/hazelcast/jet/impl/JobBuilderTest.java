@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.hazelcast.jet.core.JobSuspensionCause;
 import com.hazelcast.jet.core.TestProcessors.MockP;
 import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.core.metrics.JobMetrics;
+import com.hazelcast.jet.impl.operation.GetJobIdsOperation;
 import com.hazelcast.jet.impl.pipeline.PipelineImpl;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
@@ -69,6 +70,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -156,7 +158,7 @@ public class JobBuilderTest {
 
         assertTrue(builderSupplier.test(job));
         EnumSet.allOf(BuilderParameter.class).forEach(param ->
-                assertTrue(param.test(job) == parameters.contains(param)));
+                assertEquals(param.test(job), parameters.contains(param)));
     }
 
     private static JobBuilder newJobBuilderFromDag() {
@@ -230,20 +232,53 @@ public class JobBuilderTest {
                     : ((PipelineImpl) jobDefinition).memberSelector();
         }
 
-        @Nonnull public CompletableFuture<Void> getFuture() { throw uoe(); }
+        @Nonnull
+        @Override
+        public CompletableFuture<Void> getFuture() { throw uoe(); }
+
+        @Override
         public void cancel() { throw uoe(); }
+
+        @Override
         public long getSubmissionTime() { throw uoe(); }
-        @Nonnull public JobStatus getStatus() { throw uoe(); }
+
+        @Nonnull
+        @Override
+        public JobStatus getStatus() { throw uoe(); }
+
+        @Override
         public boolean isUserCancelled() { throw uoe(); }
+
+        @Override
         public UUID addStatusListener(@Nonnull JobStatusListener listener) { throw uoe(); }
+
+        @Override
         public boolean removeStatusListener(@Nonnull UUID id) { throw uoe(); }
+
+        @Override
         public JobConfig updateConfig(@Nonnull DeltaJobConfig deltaConfig) { throw uoe(); }
-        @Nonnull public JobSuspensionCause getSuspensionCause() { throw uoe(); }
-        @Nonnull public JobMetrics getMetrics() { throw uoe(); }
+
+        @Nonnull
+        @Override
+        public JobSuspensionCause getSuspensionCause() { throw uoe(); }
+
+        @Nonnull
+        @Override
+        public JobMetrics getMetrics() { throw uoe(); }
+
+        @Override
         public void restart() { throw uoe(); }
+
+        @Override
         public void suspend() { throw uoe(); }
+
+        @Override
         public void resume() { throw uoe(); }
+
+        @Override
         public JobStateSnapshot cancelAndExportSnapshot(String name) { throw uoe(); }
+
+        @Override
         public JobStateSnapshot exportSnapshot(String name) { throw uoe(); }
     }
 
@@ -266,11 +301,28 @@ public class JobBuilderTest {
             return new MockJobProxy(jobId, isLightJob, jobDefinition, config, subject);
         }
 
+        @Override
+        protected GetJobIdsOperation.GetJobIdsResult getJobByName(String onlyName) { throw uoe(); }
+
+        @Override
+        protected Map getJobsById(Long onlyJobId) { throw uoe(); }
+
+        @Override
+        protected Map getAllJobs() { throw uoe(); }
+
         public Job newJobProxy(long jobId, Object lightJobCoordinator) { throw uoe(); }
+
+        @Override
         public boolean existsDistributedObject(@Nonnull String serviceName, @Nonnull String objectName) { throw uoe(); }
+
+        @Override
         public ILogger getLogger() { throw uoe(); }
-        public Map getJobsInt(String onlyName, Long onlyJobId) { throw uoe(); }
+
+        @Override
         public Object getMasterId() { throw uoe(); }
-        @Nonnull public JetConfig getConfig() { throw uoe(); }
+
+        @Nonnull
+        @Override
+        public JetConfig getConfig() { throw uoe(); }
     }
 }

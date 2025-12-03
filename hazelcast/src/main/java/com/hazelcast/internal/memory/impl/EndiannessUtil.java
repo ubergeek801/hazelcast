@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -318,17 +318,10 @@ public final class EndiannessUtil {
     public static char readUtf8CharCompatibility(DataInput in, byte firstByte) throws IOException {
         int b = firstByte & 0xFF;
         switch (b >> 4) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
+            case 0, 1, 2, 3, 4, 5, 6:
             case 7:
                 return (char) b;
-            case 12:
-            case 13:
+            case 12, 13:
                 int first = (b & 0x1F) << 6;
                 int second = in.readByte() & 0x3F;
                 return (char) (first | second);

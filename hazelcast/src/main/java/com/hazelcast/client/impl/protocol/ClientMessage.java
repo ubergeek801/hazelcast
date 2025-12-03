@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.Objects;
  * Any request parameter, response or event data will be carried in
  * the payload.
  *
+ * <pre>
  * client-message               = message-first-frame *var-sized-param
  * message-first-frame          = frame-length flags message-type correlation-id *fix-sized-param
  * first-frame-flags            = %b1 %b1 %b0 13unused ; begin-fragment:1 end-fragment:1 final:0 ......
@@ -95,6 +96,7 @@ import java.util.Objects;
  * ;int32                   = 32BIT
  * ;int64                   = 64BIT
  * ;UUID                    = int64 int64
+ * </pre>
  */
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class ClientMessage implements OutboundFrame {
@@ -197,10 +199,28 @@ public final class ClientMessage implements OutboundFrame {
         return this;
     }
 
+    /**
+     * This ID correlates the request to responses. It should be unique to identify
+     * one message in the communication. This ID is used to track the request-response
+     * cycle of a client operation. Members send response messages with the same ID as
+     * the request message. The uniqueness is per connection. If the client receives
+     * the response to a request and the request is not a multi-response
+     * request (i.e. not a request for event transmission), then the correlation ID for
+     * the request can be reused by the subsequent requests. Note that once a correlation
+     * ID is used to register for an event, it SHOULD NOT be used again unless the client
+     * unregisters (stops listening) for that event.
+     *
+     * @return the correlation id of the message
+     */
     public long getCorrelationId() {
         return Bits.readLongL(startFrame.content, CORRELATION_ID_FIELD_OFFSET);
     }
 
+    /**
+     * Sets the correlation id of the message. This ID correlates the request to responses.
+     * @param correlationId the correlation id of the message
+     * @return the ClientMessage with the new correlation id
+     */
     public ClientMessage setCorrelationId(long correlationId) {
         Bits.writeLongL(startFrame.content, CORRELATION_ID_FIELD_OFFSET, correlationId);
         return this;
@@ -274,6 +294,7 @@ public final class ClientMessage implements OutboundFrame {
         return connection;
     }
 
+    @Override
     public int getFrameLength() {
         int frameLength = 0;
         Frame currentFrame = startFrame;
@@ -294,6 +315,8 @@ public final class ClientMessage implements OutboundFrame {
         }
         return length;
     }
+
+    @Override
     public boolean isUrgent() {
         return false;
     }
@@ -496,7 +519,7 @@ public final class ClientMessage implements OutboundFrame {
         }
 
         public int getSize() {
-            return SIZE_OF_FRAME_LENGTH_AND_FLAGS + content.length;
+            return SIZE_OF_FRAME_LENGTH_AND_FLAGS + (content != null ? content.length : 0);
         }
 
         @Override

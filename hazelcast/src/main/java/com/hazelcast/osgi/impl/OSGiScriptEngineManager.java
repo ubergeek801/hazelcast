@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,8 +136,6 @@ public class OSGiScriptEngineManager extends ScriptEngineManager {
     /**
      * Follows the same behavior of @link javax.script.ScriptEngineManager#setBindings(Bindings)
      * This means that the same bindings are applied to all the underlying managers.
-     *
-     * @param bindings
      */
     @Override
     public void setBindings(Bindings bindings) {

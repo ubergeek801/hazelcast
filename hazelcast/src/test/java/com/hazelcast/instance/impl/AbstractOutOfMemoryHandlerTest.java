@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public abstract class AbstractOutOfMemoryHandlerTest extends HazelcastTestSuppor
         }
         if (hazelcastInstanceThrowsException != null) {
             Server server = hazelcastInstanceThrowsException.node.getServer();
-            // Failing connection manager throws error, so we should disable this behaviour to shutdown instance properly
+            // Failing connection manager throws error, so we should disable this behaviour to shut down instance properly
             ((FailingServer) server).switchToDummyMode();
             hazelcastInstanceThrowsException.shutdown();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public final class UnsafeUtil {
         try {
             return Unsafe.getUnsafe();
         } catch (SecurityException se) {
-            return AccessController.doPrivileged(new PrivilegedAction<Unsafe>() {
+            return AccessController.doPrivileged(new PrivilegedAction<>() {
                 @Override
                 public Unsafe run() {
                     try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,7 +276,7 @@ public class ExecutionContext implements DynamicMetricsProvider {
                 try {
                     ClassLoader processorCl = isLightJob ?
                             null : jobClassloaderService.getProcessorClassLoader(jobId, vertex.name());
-                    doWithClassLoader(processorCl, () ->  processorSupplier.close(error));
+                    doWithClassLoader(processorCl, () -> processorSupplier.close(error));
                 } catch (Throwable e) {
                     logger.severe(jobNameAndExecutionId()
                             + " encountered an exception in ProcessorSupplier.close(), ignoring it", e);

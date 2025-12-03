@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,17 +42,21 @@ import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.hazelcast.internal.journal.EventJournalReadOperation.NEWEST_INITIAL_SEQUENCE;
+import static com.hazelcast.internal.journal.EventJournalReadOperation.OLDEST_INITIAL_SEQUENCE;
 import static com.hazelcast.internal.util.ExceptionUtil.rethrow;
 import static com.hazelcast.internal.util.MapUtil.createHashMap;
 import static com.hazelcast.journal.EventJournalEventAdapter.EventType.ADDED;
 import static com.hazelcast.journal.EventJournalEventAdapter.EventType.EVICTED;
 import static com.hazelcast.journal.EventJournalEventAdapter.EventType.LOADED;
 import static com.hazelcast.test.Accessors.getNode;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -65,6 +69,7 @@ import static org.junit.Assert.assertTrue;
  * @param <EJ_TYPE> the type of the event journal event
  */
 public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTestSupport {
+    protected static final int JOURNAL_CAPACITY_PER_PARTITION = 500;
     private static final Random RANDOM = new Random();
 
     protected HazelcastInstance[] instances;
@@ -74,7 +79,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
     private Function<EJ_TYPE, EJ_TYPE> IDENTITY_FUNCTION = new IdentityFunction<>();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         instances = createInstances();
         partitionId = 1;
         warmUpPartitions(instances);
@@ -85,7 +90,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
         int defaultPartitionCount = Integer.parseInt(ClusterProperty.PARTITION_COUNT.getDefaultValue());
         EventJournalConfig eventJournalConfig = new EventJournalConfig()
                 .setEnabled(true)
-                .setCapacity(500 * defaultPartitionCount);
+                .setCapacity(JOURNAL_CAPACITY_PER_PARTITION * defaultPartitionCount);
         Config config = super.getConfig();
         config.getMapConfig("default").setEventJournalConfig(eventJournalConfig);
         config.getCacheConfig("default").setEventJournalConfig(eventJournalConfig);
@@ -242,7 +247,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
     public void receiveExpirationEventsWhenPutOnExpiringStructure() {
         final EventJournalTestContext<String, Integer, EJ_TYPE> context = createContext();
         final EventJournalDataStructureAdapter<String, Integer, EJ_TYPE> adapter = context.dataAdapterWithExpiration;
-        testExpiration(context, adapter, (k, i) -> adapter.put(k, i));
+        testExpiration(context, adapter, adapter::put);
     }
 
     @Test
@@ -357,12 +362,12 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
 
         for (Entry<String, Integer> e : evenMap.entrySet()) {
             final Integer v = e.getValue();
-            assertTrue(v % 2 == 0);
+            assertEquals(0, v % 2);
             assertEquals(context.dataAdapter.get(e.getKey()), v);
         }
         for (Entry<String, Integer> e : oddMap.entrySet()) {
             final Integer v = e.getValue();
-            assertTrue(v % 2 == 1);
+            assertEquals(1, v % 2);
             assertEquals(context.dataAdapter.get(e.getKey()), v);
         }
     }
@@ -379,7 +384,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
 
 
         final ReadResultSet<Integer> resultSet = getAllEvents(context.dataAdapter, TRUE_PREDICATE,
-                new NewValueIncrementingFunction<EJ_TYPE>(100, context.eventJournalAdapter));
+                new NewValueIncrementingFunction<>(100, context.eventJournalAdapter));
         final ArrayList<Integer> ints = new ArrayList<>(count);
         for (Integer i : resultSet) {
             ints.add(i);
@@ -496,6 +501,86 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
         callbackStage.toCompletableFuture().join();
     }
 
+    @Test
+    public void someEventLostThenNotify() throws ExecutionException, InterruptedException {
+        final EventJournalTestContext<String, Integer, EJ_TYPE> context = createContext();
+
+        var key = generateKeyForPartition(instances[0], 0);
+        for (int i = 0; i < JOURNAL_CAPACITY_PER_PARTITION + 1; i++) {
+            context.dataAdapter.put(key, i);
+        }
+        var expectedSize = JOURNAL_CAPACITY_PER_PARTITION / 2;
+        var result = readFromEventJournal(context.dataAdapter, 0,
+                expectedSize, 0, TRUE_PREDICATE, IDENTITY_FUNCTION);
+        ReadResultSet<EJ_TYPE> items = result.toCompletableFuture().get();
+
+        assertThat(items.size()).isEqualTo(expectedSize);
+        assertThat(isAfterLostEvents(items.get(0))).isTrue();
+        for (int i = 1; i < items.size(); i++) {
+            assertThat(isAfterLostEvents(items.get(i))).isFalse();
+        }
+    }
+
+    @Test
+    public void noEventLostThenNoEventLostMarker() throws ExecutionException, InterruptedException {
+        final EventJournalTestContext<String, Integer, EJ_TYPE> context = createContext();
+
+        var key = generateKeyForPartition(instances[0], 0);
+        for (int i = 0; i < JOURNAL_CAPACITY_PER_PARTITION; i++) {
+            context.dataAdapter.put(key, i);
+        }
+        var expectedSize = JOURNAL_CAPACITY_PER_PARTITION / 2;
+        var result = readFromEventJournal(context.dataAdapter, 0,
+                expectedSize, 0, TRUE_PREDICATE, IDENTITY_FUNCTION);
+        ReadResultSet<EJ_TYPE> items = result.toCompletableFuture().get();
+
+        assertThat(items.size()).isEqualTo(expectedSize);
+        for (int i = 0; i < items.size(); i++) {
+            assertThat(isAfterLostEvents(items.get(i))).isFalse();
+        }
+    }
+
+    @Test
+    public void startFromOldestSequence() throws ExecutionException, InterruptedException {
+        final EventJournalTestContext<String, Integer, EJ_TYPE> context = createContext();
+
+        var key = generateKeyForPartition(instances[0], 0);
+        for (int i = 0; i < JOURNAL_CAPACITY_PER_PARTITION; i++) {
+            context.dataAdapter.put(key, i);
+        }
+        var result = readFromEventJournal(context.dataAdapter, OLDEST_INITIAL_SEQUENCE,
+                1, 0, TRUE_PREDICATE, IDENTITY_FUNCTION);
+        ReadResultSet<EJ_TYPE> items = result.toCompletableFuture().get();
+
+        assertThat(items.size()).isEqualTo(1);
+        assertValueEquals(items.get(0), 0);
+    }
+
+    @Test(timeout = 5000)
+    public void startFromNewestSequence() throws ExecutionException, InterruptedException {
+        final EventJournalTestContext<String, Integer, EJ_TYPE> context = createContext();
+
+        var key = generateKeyForPartition(instances[0], 0);
+        for (int i = 0; i < JOURNAL_CAPACITY_PER_PARTITION; i++) {
+            context.dataAdapter.put(key, i);
+        }
+        var result = readFromEventJournal(context.dataAdapter, NEWEST_INITIAL_SEQUENCE,
+                1, 0, TRUE_PREDICATE, IDENTITY_FUNCTION);
+        var future = result.toCompletableFuture();
+        // A put operation may occur before the read operation actually starts,
+        // so to avoid race conditions, we repeat the put until the read is completed.
+        while (!future.isDone()) {
+            context.dataAdapter.put(key, JOURNAL_CAPACITY_PER_PARTITION);
+        }
+        ReadResultSet<EJ_TYPE> items = future.get();
+
+        assertThat(items.size()).isEqualTo(1);
+        assertValueEquals(items.get(0), JOURNAL_CAPACITY_PER_PARTITION);
+    }
+
+    protected abstract boolean isAfterLostEvents(EJ_TYPE event);
+
+    protected abstract void assertValueEquals(EJ_TYPE event, Object expectedValue);
     /**
      * Returns an execution callback for an event journal read operation. The
      * callback expects a single
@@ -557,9 +642,9 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
             final HashMap<String, Integer> added = new HashMap<>();
             final HashMap<String, Integer> evicted = new HashMap<>();
             for (EJ_TYPE e : set) {
-                if (ADDED.equals(journalAdapter.getType(e))) {
+                if (ADDED == journalAdapter.getType(e)) {
                     added.put(journalAdapter.getKey(e), journalAdapter.getNewValue(e));
-                } else if (EVICTED.equals(journalAdapter.getType(e))) {
+                } else if (EVICTED == journalAdapter.getType(e)) {
                     evicted.put(journalAdapter.getKey(e), journalAdapter.getOldValue(e));
                 }
             }
@@ -690,7 +775,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
      *                      May be {@code null} in which case the event is returned without being
      *                      projected
      * @param <K>           the data structure entry key type
-     * @param <V>the        data structure entry value type
+     * @param <V>           the data structure entry value type
      * @param <PROJ_TYPE>   the return type of the projection. It is equal to the journal event type
      *                      if the projection is {@code null} or it is the identity projection
      * @return the future with the filtered and projected journal items
@@ -719,7 +804,7 @@ public abstract class AbstractEventJournalBasicTest<EJ_TYPE> extends HazelcastTe
      *                      May be {@code null} in which case the event is returned without being
      *                      projected
      * @param <K>           the data structure entry key type
-     * @param <V>the        data structure entry value type
+     * @param <V>           the data structure entry value type
      * @param <PROJ_TYPE>   the return type of the projection. It is equal to the journal event type
      *                      if the projection is {@code null} or it is the identity projection
      * @return the future with the filtered and projected journal items

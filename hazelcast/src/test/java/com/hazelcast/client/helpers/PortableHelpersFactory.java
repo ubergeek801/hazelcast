@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public class PortableHelpersFactory implements PortableFactory {
 
     public static final int ID = 666;
 
+    @Override
     public Portable create(int classId) {
         if (classId == SimpleClientInterceptor.ID) {
             return new SimpleClientInterceptor();

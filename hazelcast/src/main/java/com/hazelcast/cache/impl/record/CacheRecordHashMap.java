@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.internal.util.SampleableConcurrentHashMap;
 
 import javax.cache.expiry.ExpiryPolicy;
+
+import java.io.Serial;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,7 @@ public class CacheRecordHashMap
         extends SampleableConcurrentHashMap<Data, CacheRecord>
         implements SampleableCacheRecordMap<Data, CacheRecord> {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private final transient SerializationService serializationService;

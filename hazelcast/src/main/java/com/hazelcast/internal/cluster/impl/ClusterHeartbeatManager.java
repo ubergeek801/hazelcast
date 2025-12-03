@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,7 +237,7 @@ public class ClusterHeartbeatManager {
         try {
             if (!clusterService.isJoined()) {
                 if (clusterService.getThisUuid().equals(receiverUuid)) {
-                    logger.fine("Ignoring heartbeat of sender: " + senderMembersViewMetadata + ", because node is not joined!");
+                    logger.fine("Ignoring heartbeat of sender: %s, because node is not joined!", senderMembersViewMetadata);
                 } else {
                     // we know that sender version is 3.9, so we send explicit suspicion back even if we are not joined...
                     logger.fine("Sending explicit suspicion to " + senderAddress + " for heartbeat " + senderMembersViewMetadata
@@ -284,8 +284,8 @@ public class ClusterHeartbeatManager {
         } else {
             MemberImpl master = clusterService.getMember(clusterService.getMasterAddress());
             if (clusterService.getMembershipManager().isMemberSuspected(master)) {
-                logger.fine("Not sending heartbeat complaint for " + senderMembersViewMetadata
-                        + " to suspected master: " + master.getAddress());
+                logger.fine("Not sending heartbeat complaint for %s to suspected master: %s", senderMembersViewMetadata,
+                        master.getAddress());
                 return;
             }
 
@@ -304,8 +304,8 @@ public class ClusterHeartbeatManager {
 
         Address masterAddress = clusterService.getMasterAddress();
         if (masterAddress == null) {
-            logger.fine("Cannot send heartbeat complaint for " + senderMembersViewMetadata.getMemberAddress()
-                    + ", master address is not set.");
+            logger.fine("Cannot send heartbeat complaint for %s, master address is not set.",
+                    senderMembersViewMetadata.getMemberAddress());
             return;
         }
 
@@ -332,8 +332,9 @@ public class ClusterHeartbeatManager {
                         + " for sender: " + senderMVMetadata + " because this node is not master");
                 return;
             } else if (clusterJoinManager.isMastershipClaimInProgress()) {
-                logger.fine("Ignoring heartbeat complaint of receiver: " + receiverMVMetadata
-                        + " for sender: " + senderMVMetadata + " because mastership claim process is ongoing");
+                logger.fine(
+                        "Ignoring heartbeat complaint of receiver: %s for sender: %s because mastership claim process is ongoing",
+                        receiverMVMetadata, senderMVMetadata);
                 return;
             } else if (senderMVMetadata.getMemberAddress().equals(receiverMVMetadata.getMemberAddress())) {
                 logger.warning("Ignoring heartbeat complaint of receiver: " + receiverMVMetadata
@@ -343,8 +344,8 @@ public class ClusterHeartbeatManager {
 
             if (membershipManager.validateMembersViewMetadata(senderMVMetadata)) {
                 if (membershipManager.validateMembersViewMetadata(receiverMVMetadata)) {
-                    logger.fine("Sending latest member list to " + senderMVMetadata.getMemberAddress()
-                            + " and " + receiverMVMetadata.getMemberAddress() + " after heartbeat complaint.");
+                    logger.fine("Sending latest member list to %s and %s after heartbeat complaint.",
+                            senderMVMetadata.getMemberAddress(), receiverMVMetadata.getMemberAddress());
                     membershipManager.sendMemberListToMember(senderMVMetadata.getMemberAddress());
                     membershipManager.sendMemberListToMember(receiverMVMetadata.getMemberAddress());
                 } else {
@@ -386,8 +387,8 @@ public class ClusterHeartbeatManager {
         }
         long clusterTime = clusterClock.getClusterTime();
         if (logger.isFineEnabled()) {
-            logger.fine(format("Received heartbeat from %s (now: %s, timestamp: %s)",
-                    member, timeToString(clusterTime), timeToString(timestamp)));
+            logger.fine("Received heartbeat from %s (now: %s, timestamp: %s)",
+                    member, timeToString(clusterTime), timeToString(timestamp));
         }
 
         if (clusterTime - timestamp > maxNoHeartbeatMillis / 2) {
@@ -529,8 +530,8 @@ public class ClusterHeartbeatManager {
         }
         if (logger.isFineEnabled() && (now - lastHeartbeat) > heartbeatIntervalMillis * HEART_BEAT_INTERVAL_FACTOR) {
             double suspicionLevel = heartbeatFailureDetector.suspicionLevel(member, now);
-            logger.fine(format("Not receiving any heartbeats from %s since %s, suspicion level: %.2f",
-                    member, timeToString(lastHeartbeat), suspicionLevel));
+            logger.fine("Not receiving any heartbeats from %s since %s, suspicion level: %.2f",
+                    member, timeToString(lastHeartbeat), suspicionLevel);
         }
         return false;
     }
@@ -635,7 +636,7 @@ public class ClusterHeartbeatManager {
             node.nodeEngine.getOperationService().send(op, target.getAddress());
         } catch (Exception e) {
             if (logger.isFineEnabled()) {
-                logger.fine(format("Error while sending heartbeat -> %s[%s]", e.getClass().getName(), e.getMessage()));
+                logger.fine("Error while sending heartbeat -> %s[%s]", e.getClass().getName(), e.getMessage());
             }
         }
     }
@@ -688,6 +689,7 @@ public class ClusterHeartbeatManager {
             this.member = member;
         }
 
+        @Override
         public void run() {
             Address address = member.getAddress();
             logger.warning(format("%s will ping %s", node.getThisAddress(), address));
@@ -733,7 +735,7 @@ public class ClusterHeartbeatManager {
         @Override
         public void run() {
             Address address = member.getAddress();
-            logger.fine(format("%s will ping %s", node.getThisAddress(), address));
+            logger.fine("%s will ping %s", node.getThisAddress(), address);
             if (doPing(address, Level.FINE)) {
                 boolean pingRestored = (icmpFailureDetector.heartbeat(member) > 0);
                 if (pingRestored) {

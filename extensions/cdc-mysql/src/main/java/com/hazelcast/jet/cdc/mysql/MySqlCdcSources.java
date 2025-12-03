@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,7 +256,7 @@ public final class MySqlCdcSources {
          * The <em>verify_ca</em> option behaves like <em>required</em> but
          * additionally it verifies the server TLS certificate against the
          * configured Certificate Authority (CA) certificates and will fail if
-         * it doesn’t match any valid CA certificates.
+         * it doesn't match any valid CA certificates.
          * <p>
          * The <em>verify_identity</em> option behaves like <em>verify_ca</em> but
          * additionally verifies that the server certificate matches the host of
@@ -372,8 +372,9 @@ public final class MySqlCdcSources {
             properties.setProperty("connect.keep.alive.interval.ms", intervalMs);
             properties.setProperty("connect.timeout.ms", intervalMs);
 
+            String name = properties.getProperty(CdcSourceP.NAME_PROPERTY);
             return Sources.streamFromProcessorWithWatermarks(
-                    properties.getProperty(CdcSourceP.NAME_PROPERTY),
+                    name,
                     true,
                     eventTimePolicy -> ProcessorMetaSupplier.forceTotalParallelismOne(
                             ProcessorSupplier.of(() -> new ChangeRecordCdcSourceP(properties, eventTimePolicy))));

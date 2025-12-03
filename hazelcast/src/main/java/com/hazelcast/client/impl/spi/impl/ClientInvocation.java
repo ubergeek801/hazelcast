@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package com.hazelcast.client.impl.spi.impl;
 import com.hazelcast.client.HazelcastClientNotActiveException;
 import com.hazelcast.client.impl.clientside.HazelcastClientInstance;
 import com.hazelcast.client.impl.connection.ClientConnection;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.spi.EventHandler;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.LifecycleService;
 import com.hazelcast.core.OperationTimeoutException;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.spi.exception.RetryableException;
 import com.hazelcast.spi.exception.TargetDisconnectedException;
 import com.hazelcast.spi.exception.TargetNotMemberException;
@@ -33,13 +34,12 @@ import com.hazelcast.spi.impl.operationservice.impl.BaseInvocation;
 import com.hazelcast.spi.impl.sequence.CallIdSequence;
 
 import java.io.IOException;
+import java.lang.invoke.VarHandle;
 import java.util.UUID;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import static com.hazelcast.internal.util.Clock.currentTimeMillis;
 import static com.hazelcast.internal.util.StringUtil.timeToString;
 
 /**
@@ -50,8 +50,7 @@ import static com.hazelcast.internal.util.StringUtil.timeToString;
  * 3) How many times is it retried?
  */
 public class ClientInvocation extends BaseInvocation implements Runnable {
-    private static final AtomicReferenceFieldUpdater<ClientInvocation, ClientConnection> SENT_CONNECTION
-            = AtomicReferenceFieldUpdater.newUpdater(ClientInvocation.class, ClientConnection.class, "sentConnection");
+    private static final VarHandle SENT_CONNECTION = ReflectionUtil.findVarHandle("sentConnection", ClientConnection.class);
     private static final int MAX_FAST_INVOCATION_COUNT = 5;
     private static final int UNASSIGNED_PARTITION = -1;
     private static final AtomicLongFieldUpdater<ClientInvocation> INVOKE_COUNT
@@ -189,7 +188,7 @@ public class ClientInvocation extends BaseInvocation implements Runnable {
             }
 
             boolean invoked;
-            if (routingMode != RoutingMode.UNISOCKET) {
+            if (routingMode != RoutingMode.SINGLE_MEMBER) {
                 if (partitionId != -1) {
                     invoked = invocationService.invokeOnPartitionOwner(this, partitionId);
                 } else if (uuid != null) {
@@ -281,7 +280,7 @@ public class ClientInvocation extends BaseInvocation implements Runnable {
     }
 
     public ClientConnection getSentConnection() {
-        return SENT_CONNECTION.get(this);
+        return (ClientConnection) SENT_CONNECTION.get(this);
     }
 
     @Override
@@ -329,7 +328,8 @@ public class ClientInvocation extends BaseInvocation implements Runnable {
             return;
         }
 
-        long timePassed = System.currentTimeMillis() - startTimeMillis;
+        long currentTimeMillis = System.currentTimeMillis();
+        long timePassed = currentTimeMillis - startTimeMillis;
         if (timePassed > invocationTimeoutMillis) {
             if (logger.isFinestEnabled()) {
                 logger.finest("Exception will not be retried because invocation timed out", exception);
@@ -338,10 +338,10 @@ public class ClientInvocation extends BaseInvocation implements Runnable {
             StringBuilder sb = new StringBuilder();
             sb.append(this);
             sb.append(" timed out because exception occurred after client invocation timeout ");
-            sb.append(invocationService.getInvocationTimeoutMillis()).append(" ms. ");
-            sb.append("Current time: ").append(timeToString(currentTimeMillis())).append(". ");
+            sb.append(invocationTimeoutMillis).append(" ms. ");
+            sb.append("Current time: ").append(timeToString(currentTimeMillis)).append(". ");
             sb.append("Start time: ").append(timeToString(startTimeMillis)).append(". ");
-            sb.append("Total elapsed time: ").append(currentTimeMillis() - startTimeMillis).append(" ms. ");
+            sb.append("Total elapsed time: ").append(timePassed).append(" ms. ");
             String msg = sb.toString();
             completeExceptionally(new OperationTimeoutException(msg, exception));
             return;

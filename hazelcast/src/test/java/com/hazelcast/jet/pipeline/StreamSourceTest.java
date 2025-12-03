@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.junit.experimental.categories.Category;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.core.EventTimePolicy.DEFAULT_IDLE_TIMEOUT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -71,7 +71,7 @@ public class StreamSourceTest extends PipelineTestSupport {
         if (idleTimeout > 10_000) {
             assertTrueAllTheTime(() -> assertEquals("unexpected sink size", 0, sinkList.size()), 5);
         } else if (idleTimeout < 1000) {
-            assertTrueEventually(() -> assertTrue("sink empty", sinkList.size() > 0));
+            assertTrueEventually(() -> assertFalse("sink empty", sinkList.isEmpty()));
         } else {
             fail("test not designed for idleTimeout=" + idleTimeout);
         }

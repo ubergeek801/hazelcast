@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.testcontainers.containers.MongoDBContainer;
 import java.util.Properties;
 
 import static com.hazelcast.internal.nio.IOUtil.closeResource;
-import static com.hazelcast.jet.TestedVersions.MONGO_VERSION;
+import static com.hazelcast.jet.TestedVersions.MONGO_IMAGE;
 import static com.hazelcast.jet.mongodb.impl.Mappers.defaultCodecRegistry;
 
 public class MongoDatabaseProvider implements TestDatabaseProvider {
@@ -36,7 +36,7 @@ public class MongoDatabaseProvider implements TestDatabaseProvider {
 
     @Override
     public String createDatabase(String dbName) {
-        mongoContainer  = new MongoDBContainer("mongo:" + MONGO_VERSION);
+        mongoContainer  = new MongoDBContainer(MONGO_IMAGE);
         mongoContainer.start();
         String connectionString = mongoContainer.getConnectionString();
         mongoClient = MongoClients.create(connectionString);

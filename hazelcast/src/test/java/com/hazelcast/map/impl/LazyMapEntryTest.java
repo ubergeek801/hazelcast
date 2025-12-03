@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotSame;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -55,7 +55,7 @@ public class LazyMapEntryTest extends HazelcastTestSupport {
     }
 
     @Test
-    public void testIdentifiedDataSerializableSerialization() throws IOException, ClassNotFoundException {
+    public void testIdentifiedDataSerializableSerialization() {
         Data keyData = serializationService.toData("keyData");
         Data valueData = serializationService.toData("valueData");
         entry.init(serializationService, keyData, valueData, null);
@@ -74,7 +74,7 @@ public class LazyMapEntryTest extends HazelcastTestSupport {
 
         entry.init(serializationService, keyData, valueObject, null);
 
-        assertTrue("Old valueData should not be here", valueData != entry.getValueData());
+        assertNotSame("Old valueData should not be here", valueData, entry.getValueData());
     }
 
     @Test

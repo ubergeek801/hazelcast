@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import static com.hazelcast.internal.ascii.rest.RestCallExecution.ObjectType.QUE
 import static com.hazelcast.internal.util.ExceptionUtil.peel;
 import static com.hazelcast.internal.util.StringUtil.equalsIgnoreCase;
 
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public class HttpGetCommandProcessor extends HttpCommandProcessor<HttpGetCommand> {
 
     public static final String QUEUE_SIZE_COMMAND = "size";
@@ -71,7 +71,7 @@ public class HttpGetCommandProcessor extends HttpCommandProcessor<HttpGetCommand
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:cyclomaticcomplexity"})
+    @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     public void handle(HttpGetCommand command) {
         boolean sendResponse = true;
         try {
@@ -146,7 +146,7 @@ public class HttpGetCommandProcessor extends HttpCommandProcessor<HttpGetCommand
 
         String healthParameter = uri.substring(URI_HEALTH_URL.length());
         if (healthParameter.equals(HEALTH_PATH_PARAM_NODE_STATE)) {
-            if (NodeState.SHUT_DOWN.equals(nodeState)) {
+            if (NodeState.SHUT_DOWN == nodeState) {
                 command.send503();
             } else {
                 prepareResponse(command, Json.value(nodeState.toString()));

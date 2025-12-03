@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,23 +30,24 @@ public final class RuleBasedQueryOptimizer implements QueryOptimizer {
     private final Visitor compositeIndexVisitor = new CompositeIndexVisitor();
     private final Visitor evaluateVisitor = new EvaluateVisitor();
 
+    @Override
     @SuppressWarnings("unchecked")
     public <K, V> Predicate<K, V> optimize(Predicate<K, V> predicate, IndexRegistry indexes) {
         Predicate optimized = predicate;
-        if (optimized instanceof VisitablePredicate) {
-            optimized = ((VisitablePredicate) optimized).accept(flatteningVisitor, indexes);
+        if (optimized instanceof VisitablePredicate visitablePredicate) {
+            optimized = visitablePredicate.accept(flatteningVisitor, indexes);
         }
-        if (optimized instanceof VisitablePredicate) {
-            optimized = ((VisitablePredicate) optimized).accept(rangeVisitor, indexes);
+        if (optimized instanceof VisitablePredicate visitablePredicate) {
+            optimized = visitablePredicate.accept(rangeVisitor, indexes);
         }
-        if (optimized instanceof VisitablePredicate) {
-            optimized = ((VisitablePredicate) optimized).accept(orToInVisitor, indexes);
+        if (optimized instanceof VisitablePredicate visitablePredicate) {
+            optimized = visitablePredicate.accept(orToInVisitor, indexes);
         }
-        if (optimized instanceof VisitablePredicate) {
-            optimized = ((VisitablePredicate) optimized).accept(compositeIndexVisitor, indexes);
+        if (optimized instanceof VisitablePredicate visitablePredicate) {
+            optimized = visitablePredicate.accept(compositeIndexVisitor, indexes);
         }
-        if (optimized instanceof VisitablePredicate) {
-            optimized = ((VisitablePredicate) optimized).accept(evaluateVisitor, indexes);
+        if (optimized instanceof VisitablePredicate visitablePredicate) {
+            optimized = visitablePredicate.accept(evaluateVisitor, indexes);
         }
         return optimized;
     }

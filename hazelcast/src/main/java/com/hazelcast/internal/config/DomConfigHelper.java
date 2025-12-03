@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -239,6 +239,7 @@ public final class DomConfigHelper {
             private int index;
             private Node next;
 
+            @Override
             public boolean hasNext() {
                 next = null;
                 for (; index < maximum; index++) {
@@ -258,6 +259,7 @@ public final class DomConfigHelper {
                   : ConfigUtils.matches(nodeName, cleanNodeName(item));
             }
 
+            @Override
             public Node next() {
                 if (hasNext()) {
                     index++;

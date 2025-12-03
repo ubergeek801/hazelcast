@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package com.hazelcast.map.impl.journal;
 
-import com.hazelcast.map.impl.MapDataSerializerHook;
 import com.hazelcast.internal.serialization.SerializableByConvention;
+import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.map.EventJournalMapEvent;
+import com.hazelcast.map.impl.MapDataSerializerHook;
 import com.hazelcast.projection.Projection;
 import com.hazelcast.ringbuffer.impl.ReadResultSetImpl;
-import com.hazelcast.internal.serialization.SerializationService;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -49,7 +48,7 @@ public class MapEventJournalReadResultSetImpl<K, V, T> extends ReadResultSetImpl
         // the event journal ringbuffer supports only OBJECT format for now
         final InternalEventJournalMapEvent e = (InternalEventJournalMapEvent) item;
         final DeserializingEventJournalMapEvent<K, V> deserialisingEvent
-                = new DeserializingEventJournalMapEvent<>(serializationService, e);
+                = new DeserializingEventJournalMapEvent<>(serializationService, e, getAndClearLostEventsFlag());
         super.addItem(seq, deserialisingEvent);
     }
 
@@ -74,7 +73,6 @@ public class MapEventJournalReadResultSetImpl<K, V, T> extends ReadResultSetImpl
 
         @Override
         @SuppressWarnings("unchecked")
-        @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
         public T transform(InternalEventJournalMapEvent e) {
             return projection.apply((DeserializingEventJournalMapEvent<K, V>) e);
         }

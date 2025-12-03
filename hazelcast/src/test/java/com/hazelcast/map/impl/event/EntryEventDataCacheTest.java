@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.map.impl.event;
 
 import com.hazelcast.cluster.Address;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.internal.serialization.impl.HeapData;
 import com.hazelcast.map.impl.EventListenerFilter;
@@ -209,11 +208,8 @@ public class EntryEventDataCacheTest {
     }
 
     private static EventListenerFilter createInvalidationEventRejectingFilter() {
-        ListenerAdapter listenerAdapter = createListenerAdapter(new EntryAddedListener() {
-            @Override
-            public void entryAdded(EntryEvent event) {
+        ListenerAdapter<Object> listenerAdapter = createListenerAdapter((EntryAddedListener<Object, Object>) event -> {
 
-            }
         });
 
         int flags = setAndGetListenerFlags(listenerAdapter);

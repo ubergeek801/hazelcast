@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.query.impl.Comparables;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.util.MapUtil;
 
 import java.io.IOException;
@@ -79,10 +80,7 @@ public final class CanonicalizingHashSet<E> implements Set<E>, IdentifiedDataSer
 
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeInt(size());
-        for (Object element : this) {
-            out.writeObject(element);
-        }
+        SerializationUtil.writeCollection(this, out);
     }
 
     @Override
@@ -190,10 +188,9 @@ public final class CanonicalizingHashSet<E> implements Set<E>, IdentifiedDataSer
             return true;
         }
 
-        if (!(obj instanceof Set)) {
+        if (!(obj instanceof Set that)) {
             return false;
         }
-        Set that = (Set) obj;
 
         return containsAll(that);
     }

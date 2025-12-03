@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,14 @@ import java.util.UUID;
 
 /**
  * Partition service for Hazelcast clients.
- *
+ * <p>
  * Allows to retrieve information about the partition count, the partition owner or the partitionId of a key.
  */
 public interface ClientPartitionService {
 
     /**
      * Updates the partition table with the new partition table information.
-     *
+     * <p>
      * Note: The partitions can be empty on the response, client will not apply the empty partition table.
      *
      * @param connection the connection which the partition table is received from
@@ -46,7 +46,6 @@ public interface ClientPartitionService {
                                    int partitionStateVersion);
 
     /**
-     * @param partitionId
      * @return the owner of the partition or null if a partition is not assigned yet
      */
     UUID getPartitionOwner(int partitionId);

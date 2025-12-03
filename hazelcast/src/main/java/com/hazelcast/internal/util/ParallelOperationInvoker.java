@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class ParallelOperationInvoker {
     private final Supplier<Operation> operationSupplier;
     private final int maxRetries;
     private final long retryDelayMillis;
-    private final AtomicInteger retryCount = new AtomicInteger(0);
+    private final AtomicInteger retryCount = new AtomicInteger();
     private final InternalCompletableFuture<Collection<UUID>> future = new InternalCompletableFuture<>();
     private final Predicate<Member> memberFilter;
     private volatile Set<Member> members;

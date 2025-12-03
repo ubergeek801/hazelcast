@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * Defines the name and default value for Hazelcast properties.
  */
-@SuppressWarnings({"checkstyle:magicnumber"})
+@SuppressWarnings("checkstyle:magicnumber")
 public final class ClusterProperty {
     /*
      * NETWORKING / TCP PROPERTIES
@@ -238,9 +238,9 @@ public final class ClusterProperty {
      * </ul>
      *
      * @since 5.3.0
-     * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/api/jdk.net/jdk/net/
-     ExtendedSocketOptions.html#TCP_KEEPINTERVAL">
-     *     jdk.net.ExtendedSocketOptions#TCP_KEEPINTERVAL</a>
+     * @see <a href=
+     *      "https://docs.oracle.com/en/java/javase/11/docs/api/jdk.net/jdk/net/ExtendedSocketOptions.html#TCP_KEEPINTERVAL">
+     *      jdk.net.ExtendedSocketOptions#TCP_KEEPINTERVAL</a>
      */
     public static final HazelcastProperty SOCKET_KEEP_INTERVAL
             = new HazelcastProperty("hazelcast.socket.keep.interval", 75);
@@ -256,8 +256,6 @@ public final class ClusterProperty {
      *     <li>Requires a recent JDK 8, JDK 11 or greater version that includes the required
      *     <a href="https://bugs.openjdk.org/browse/JDK-8194298">JDK support</a>.</li>
      * </ul>
-     *
-     * @return the configured value of Keep-Alive probe count.
      * @since 5.3.0
      * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/api/jdk.net/jdk/net/ExtendedSocketOptions.html#TCP_KEEPCOUNT">
      *     jdk.net.ExtendedSocketOptions#TCP_KEEPCOUNT</a>
@@ -279,7 +277,7 @@ public final class ClusterProperty {
      * output. For individual control, check {@link #IO_INPUT_THREAD_COUNT} and
      * {@link #IO_OUTPUT_THREAD_COUNT}.
      * <p>
-     * The default is depends on the number of available processors. If the
+     * The default depends on the number of available processors. If the
      * available processors count is smaller than 20, there will be 3+3 io threads,
      * otherwise 4+4.
      * <p>
@@ -370,7 +368,7 @@ public final class ClusterProperty {
      * that concurrency has been detected, even if there are no further updates
      * in that window.
      * <p>
-     * Normally in a concurrent system the window keeps sliding forward so it
+     * Normally in a concurrent system the window keeps sliding forward, so it
      * will always remain concurrent.
      * <p>
      * Setting it too high effectively disables the optimization because once
@@ -552,6 +550,8 @@ public final class ClusterProperty {
      * introduce any more waiting and join requests will be processed as they arrive.
      * The only exception to this is if the master state is reset, which may happen
      * in some cases like split-brain healing.
+     * <p>
+     * See {@link #ASYNC_JOIN_STRATEGY_ENABLED} for how this behaviour can change.
      */
     public static final HazelcastProperty WAIT_SECONDS_BEFORE_JOIN
             = new HazelcastProperty("hazelcast.wait.seconds.before.join", 5, SECONDS);
@@ -577,6 +577,8 @@ public final class ClusterProperty {
      * introduce any more waiting and join requests will be processed as they arrive.
      * The only exception to this is if the master state is reset, which may happen
      * in some cases like split-brain healing.
+     * <p>
+     * See {@link #ASYNC_JOIN_STRATEGY_ENABLED} for how this behaviour can change.
      */
     public static final HazelcastProperty MAX_WAIT_SECONDS_BEFORE_JOIN
             = new HazelcastProperty("hazelcast.max.wait.seconds.before.join", 20, SECONDS);
@@ -651,7 +653,7 @@ public final class ClusterProperty {
      * If this configuration option is set to 0, this functionality is disabled.
      * It is recommended to be set to at least 3 or 5 so that the master will
      * wait long enough to collect heartbeat problem reports. Otherwise, the
-     * master member can make sub-optimal decisions.
+     * master member can make suboptimal decisions.
      */
     public static final HazelcastProperty PARTIAL_MEMBER_DISCONNECTION_RESOLUTION_HEARTBEAT_COUNT
             = new HazelcastProperty("hazelcast.partial.member.disconnection.resolution.heartbeat.count", 0);
@@ -745,7 +747,7 @@ public final class ClusterProperty {
 
     /**
      * Maximum number of anti-entropy partition replications to be executed on a member.
-     * By default equals to {@link #PARTITION_MAX_PARALLEL_MIGRATIONS}.
+     * By default, equals to {@link #PARTITION_MAX_PARALLEL_MIGRATIONS}.
      */
     public static final HazelcastProperty PARTITION_MAX_PARALLEL_REPLICATIONS
             = new HazelcastProperty("hazelcast.partition.max.parallel.replications", PARTITION_MAX_PARALLEL_MIGRATIONS);
@@ -1097,7 +1099,7 @@ public final class ClusterProperty {
      * <li>NONE - optimization are disabled</li>
      * </ul>
      * <p>
-     * Values are case sensitive
+     * Values are case-sensitive
      */
     public static final HazelcastProperty QUERY_OPTIMIZER_TYPE
             = new HazelcastProperty("hazelcast.query.optimizer.type", QueryOptimizerFactory.Type.RULES.toString());
@@ -1264,8 +1266,8 @@ public final class ClusterProperty {
     /**
      * Maximum number of IMap entries Hazelcast will evict during a
      * single eviction cycle. Eviction cycle is triggered by a map
-     * mutation. Typically it's OK to evict at most a single entry.
-     * However imagine the scenario where you are inserting values in a
+     * mutation. Typically, it's OK to evict at most a single entry.
+     * However, imagine the scenario where you are inserting values in a
      * loop and in each iteration you double entry size. In this
      * situation Hazelcast has to evict more than just a single entry -
      * as all existing entries are smaller than the entry which is about
@@ -1304,7 +1306,7 @@ public final class ClusterProperty {
     /**
      * Setting this capacity is valid if you set {@code writeCoalescing} to {@code false}
      * (see {@link com.hazelcast.config.MapStoreConfig#setWriteCoalescing(boolean)}).
-     * Otherwise its value will not be taken into account.
+     * Otherwise, its value will not be taken into account.
      * <p>
      * The per node maximum write-behind queue capacity is the total of all
      * write-behind queue sizes in a node, including backups.
@@ -1313,6 +1315,32 @@ public final class ClusterProperty {
      */
     public static final HazelcastProperty MAP_WRITE_BEHIND_QUEUE_CAPACITY
             = new HazelcastProperty("hazelcast.map.write.behind.queue.capacity", 50000);
+
+    /**
+     * The cleanup threshold for the event journal, expressed as a fraction of its capacity.
+     * <p>
+     * When the remaining capacity of the event journal drops below this threshold,
+     * a cleanup task may be triggered to remove <b>expired</b> events and reclaim space.
+     * Cleanup triggered by put operation.
+     * Cleanup is performed only if the journal has a configured
+     * {@link com.hazelcast.config.EventJournalConfig#setTimeToLiveSeconds(int) time-to-live (TTL)} value,
+     * since only expired items are eligible for removal.
+     * <p>
+     * For example, with the value of {@code 0.3}, cleanup triggers by put operation when
+     * less than 30% of the total journal capacity remains available.
+     * <p>
+     * This property affects the event journal used by both IMap and ICache.
+     * This property helps balance memory usage and cleanup frequency.
+     * Setting a lower value delays cleanup (potentially increasing memory pressure),
+     * while a higher value triggers cleanup more aggressively.
+     * <p>
+     * Applicable only when {@code timeToLiveSeconds > 0}.
+     * Default value: {@code 1f}, meaning cleanup is triggered after each put operation.
+     *
+     * @since 5.7
+     */
+    public static final HazelcastProperty EVENT_JOURNAL_CLEANUP_THRESHOLD
+            = new HazelcastProperty("hazelcast.journal.cleanup.threshold", 1f);
 
     /*
      * INVOCATION / OPERATION SYSTEM PROPERTIES
@@ -1372,7 +1400,7 @@ public final class ClusterProperty {
      * <p>
      * To deal with overloads of backups, the property
      * {@link #OPERATION_BACKUP_TIMEOUT_MILLIS} should be set to a larger value;
-     * above 60000 is recommended. Otherwise it can still happen backups
+     * above 60000 is recommended. Otherwise, it can still happen backups
      * accumulate.
      */
     public static final HazelcastProperty BACKPRESSURE_ENABLED
@@ -1422,13 +1450,13 @@ public final class ClusterProperty {
      * exponential back-off is applied till eventually a timeout happens or there
      * is room for the invocation.
      * <p>
-     * By default it is configured as 100. With 271 partitions, that would give
+     * By default, it is configured as 100. With 271 partitions, that would give
      * (271 + 1) * 100 = 27200 concurrent invocations from a single member. The
      * +1 is for generic operations. The reasons why 100 is chosen are:
      * - there can be concurrent operations that touch a lot of partitions which
      * consume more than 1 invocation, and
-     * - certain methods like those from the IExecutor are also invocations and
-     * they can be very long running.
+     * - certain methods like those from the IExecutor are also invocations, and
+     * they can be very long-running.
      * <p>
      * No promise is made for the invocations being tracked per partition, or
      * if there is a general pool of invocations.
@@ -1474,7 +1502,7 @@ public final class ClusterProperty {
      * The default is 1.
      * <p>
      * Having at least 1 priority generic operation thread helps to improve cluster
-     * stability since a lot of cluster operations are generic priority operations
+     * stability since a lot of cluster operations are generic priority operations,
      * and they should get executed as soon as possible. If there is a dedicated
      * generic operation thread then these operations don't get delayed because
      * the generic threads are busy executing regular user operations. So unless
@@ -1486,7 +1514,7 @@ public final class ClusterProperty {
     /**
      * The number of threads that process responses.
      * <p>
-     * By default there are 2 response threads; this gives stable and good performance.
+     * By default, there are 2 response threads; this gives stable and good performance.
      * <p>
      * If set to 0, the response threads are bypassed and the response handling is done
      * on the IO threads. Under certain conditions this can give a higher throughput, but
@@ -1586,7 +1614,7 @@ public final class ClusterProperty {
 
     /**
      * The timeout for offering an event to the event executor for processing.
-     * If the event queue is full, the event might not be accepted to the queue
+     * If the event queue is full, the event might not be accepted to the queue,
      * and it will be dropped.
      * This applies only to processing of local events. Remote events (events
      * on a remote subscriber) have no timeout, meaning that the event can be
@@ -1617,7 +1645,7 @@ public final class ClusterProperty {
 
     /**
      * Enable Hazelcast shutdownhook thread. When this is enabled, this thread
-     * terminates the Hazelcast instance without waiting to shutdown gracefully.
+     * terminates the Hazelcast instance without waiting to shut down gracefully.
      */
     public static final HazelcastProperty SHUTDOWNHOOK_ENABLED
             = new HazelcastProperty("hazelcast.shutdownhook.enabled", true);
@@ -1627,12 +1655,12 @@ public final class ClusterProperty {
      * <p>
      * Possible values:
      * TERMINATE: Terminate Hazelcast immediately
-     * GRACEFUL:  Initiate graceful shutdown. This can significantly slow-down
+     * GRACEFUL:  Initiate graceful shutdown. This can significantly slow down
      * JVM exit process, but it's tries to retain data safety.
      * <p>
      * Default: TERMINATE
      * <p>
-     * You should always shutdown Hazelcast explicitly via {@link HazelcastInstance#shutdown()}
+     * You should always shut down Hazelcast explicitly via {@link HazelcastInstance#shutdown()}
      * It's not recommended to rely on shutdown hook, this is a last-effort measure.
      */
     public static final HazelcastProperty SHUTDOWNHOOK_POLICY
@@ -1652,7 +1680,7 @@ public final class ClusterProperty {
             = new HazelcastProperty("hazelcast.logging.details.enabled", true);
 
     /**
-     * Controls whether Hazelcast will explicitly shutdown the logging implementation as part of
+     * Controls whether Hazelcast will explicitly shut down the logging implementation as part of
      * Hazelcast graceful shutdown procedure. Default value is {@code false}.
      * <p/>
      * This property can be enabled when Hazelcast is the only application being executed in the JVM,
@@ -1725,7 +1753,7 @@ public final class ClusterProperty {
      * If set to {@code true}, Moby Name will be chosen, otherwise a name that
      * is concatenation of static prefix, number and cluster name.
      * <p>
-     * By default is {@code true}.
+     * By default, is {@code true}.
      */
     public static final HazelcastProperty MOBY_NAMING_ENABLED
             = new HazelcastProperty("hazelcast.member.naming.moby.enabled", true);
@@ -1988,6 +2016,18 @@ public final class ClusterProperty {
      */
     public static final HazelcastProperty DEMOTE_MAX_WAIT
             = new HazelcastProperty("hazelcast.member.demote.max.wait", 600, SECONDS);
+
+    /**
+     * Defines the results threshold at or above which logging is produced for expensive {@link IMap} invocations.
+     * If an implementing invocation returns results totalling equal to or above this threshold, it is logged on the member side.
+     * <p>
+     * Currently only implemented for client invocations of the following methods:
+     * {@link IMap#entrySet()}, and {@link IMap#values()}.
+     *
+     * @since 5.6
+     */
+    public static final HazelcastProperty EXPENSIVE_IMAP_INVOCATION_REPORTING_THRESHOLD
+            = new HazelcastProperty("hazelcast.expensive.imap.invocation.reporting.threshold", 100);
 
     private ClusterProperty() {
     }

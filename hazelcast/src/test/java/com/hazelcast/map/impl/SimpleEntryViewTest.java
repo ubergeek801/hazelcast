@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,12 @@ public class SimpleEntryViewTest extends HazelcastTestSupport {
         IMap<Integer, Integer> map = instance.getMap("test");
         map.put(1, 1);
 
-        EntryView entryView = map.getEntryView(1);
+        EntryView<Integer, Integer> entryView = map.getEntryView(1);
 
         assertEquals(stringify(entryView), entryView.toString());
     }
 
-    private String stringify(EntryView entryView) {
+    private String stringify(EntryView<Integer, Integer> entryView) {
         return "EntryView{"
                 + "key=" + entryView.getKey()
                 + ", value=" + entryView.getValue()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public abstract class GeneralHashJoinBuilder<T0> {
 
     /**
      * Adds another contributing pipeline stage to the hash-join operation.
-     *
+     * <p>
      * If no matching items for returned {@linkplain Tag tag} is found, no
      * records for given key will be added.
      *

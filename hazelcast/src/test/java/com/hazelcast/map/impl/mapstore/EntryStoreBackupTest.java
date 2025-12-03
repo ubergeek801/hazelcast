@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static junit.framework.TestCase.assertNull;
+import static com.hazelcast.instance.impl.TestUtil.terminateInstance;
+import static org.junit.Assert.assertNull;
 
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
@@ -61,7 +62,7 @@ public class EntryStoreBackupTest extends HazelcastTestSupport {
             keys.add(i);
         }
         map.loadAll(keys, false);
-        factory.terminate(instances[1]);
+        terminateInstance(instances[1]);
         entryLoader.disable();
 
         sleepAtLeastMillis(TTL_MILLIS);
@@ -87,7 +88,7 @@ public class EntryStoreBackupTest extends HazelcastTestSupport {
             keys.add(i);
         }
         map.getAll(keys);
-        factory.terminate(instances[1]);
+        terminateInstance(instances[1]);
         entryLoader.disable();
 
         sleepAtLeastMillis(TTL_MILLIS);
@@ -111,7 +112,7 @@ public class EntryStoreBackupTest extends HazelcastTestSupport {
         for (int i = 0; i < entryCount; i++) {
             map.get(i);
         }
-        factory.terminate(instances[1]);
+        terminateInstance(instances[1]);
         entryLoader.disable();
 
         sleepAtLeastMillis(TTL_MILLIS);

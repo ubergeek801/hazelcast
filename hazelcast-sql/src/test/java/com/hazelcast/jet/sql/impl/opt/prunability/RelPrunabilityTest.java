@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@ public class RelPrunabilityTest extends OptimizerTestSupport {
         createMapping(mapName, CompoundKey.class, String.class);
         createIndex(indexName, mapName, IndexType.HASH, "comp1");
         for (int i = 0; i < 100; ++i) {
-            map.put(new CompoundKey(i, i), "" + i);
+            map.put(new CompoundKey(i, i), String.valueOf(i));
         }
 
         table = partitionedTable(

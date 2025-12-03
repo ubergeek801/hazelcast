@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public class ReadKafkaConnectP<T> extends AbstractProcessor implements DynamicMe
         long start = Timer.nanos();
         List<SourceRecord> sourceRecords = sourceConnectorWrapper.poll();
 
-        logger.fine("Total polled record size " + counter.addAndGet(sourceRecords.size()));
+        logger.fine("Total polled record size %s", counter.addAndGet(sourceRecords.size()));
 
         long durationInNanos = Timer.nanosElapsed(start);
         localKafkaConnectStats.addSourceRecordPollDuration(Duration.ofNanos(durationInNanos));

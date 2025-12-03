@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * Applies the projection logic on all map entries and returns the result
  */
 @SuppressWarnings("unused")
-@Generated("daf637e96ca0943173db6ca348243b24")
+@Generated("313ac5e36c34b72f9afece523eff7a9c")
 public final class MapProjectCodec {
     //hex: 0x013B00
     public static final int REQUEST_MESSAGE_TYPE = 80640;
@@ -49,7 +49,6 @@ public final class MapProjectCodec {
     private MapProjectCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -93,7 +92,7 @@ public final class MapProjectCodec {
         encodeInt(initialFrame.content, TYPE_FIELD_OFFSET, RESPONSE_MESSAGE_TYPE);
         clientMessage.add(initialFrame);
 
-        ListMultiFrameCodec.encodeContainsNullable(clientMessage, response, DataCodec::encode);
+        ListMultiFrameCodec.encodeContainsNullable(clientMessage, response, DataCodec::encodeNullable);
         return clientMessage;
     }
 
@@ -104,6 +103,6 @@ public final class MapProjectCodec {
         ClientMessage.ForwardFrameIterator iterator = clientMessage.frameIterator();
         //empty initial frame
         iterator.next();
-        return ListMultiFrameCodec.decodeContainsNullable(iterator, DataCodec::decode);
+        return ListMultiFrameCodec.decodeContainsNullable(iterator, DataCodec::decodeNullable);
     }
 }

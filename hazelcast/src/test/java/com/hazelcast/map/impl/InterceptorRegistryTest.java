@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 @RunWith(HazelcastParallelClassRunner.class)
@@ -140,7 +140,7 @@ public class InterceptorRegistryTest extends HazelcastTestSupport {
     @Test
     @Category(NightlyTest.class)
     public void test_afterConcurrentRegisterDeregister_thenInternalStructuresAreEmpty() throws Exception {
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
 
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

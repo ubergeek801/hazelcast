@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ public class WriteKafkaPTest extends SimpleTestInClusterSupport {
 
     private void when_processingGuaranteeOn_then_lingeringRecordsSentOnSnapshot(boolean exactlyOnce) {
         // When
-        properties.setProperty("linger.ms", "" + HOURS.toMillis(1));
+        properties.setProperty("linger.ms", String.valueOf(HOURS.toMillis(1)));
 
         // Given
         Pipeline p = Pipeline.create();

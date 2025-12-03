@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class RestCallCollector {
                 return false;
             }
             RequestIdentifier that = (RequestIdentifier) o;
-            return method.equals(that.method) && path.equals(that.path);
+            return method == that.method && path.equals(that.path);
         }
 
         @Override

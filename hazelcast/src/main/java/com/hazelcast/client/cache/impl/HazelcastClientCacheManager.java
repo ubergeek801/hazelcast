@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.hazelcast.client.impl.clientside.HazelcastClientProxy;
 import com.hazelcast.client.impl.spi.ProxyManager;
 import com.hazelcast.config.CacheConfig;
 import com.hazelcast.core.HazelcastInstance;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.net.URI;
 import java.util.Iterator;
@@ -89,7 +88,6 @@ public final class HazelcastClientCacheManager extends AbstractHazelcastCacheMan
         ClientCacheHelper.enableStatisticManagementOnNodes(client, getCacheNameWithPrefix(cacheName), statOrMan, enabled);
     }
 
-    @SuppressFBWarnings("RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
     @Override
     protected <K, V> void addCacheConfigIfAbsent(CacheConfig<K, V> cacheConfig) {
         clientCacheProxyFactory.addCacheConfig(cacheConfig.getNameWithPrefix(), cacheConfig);

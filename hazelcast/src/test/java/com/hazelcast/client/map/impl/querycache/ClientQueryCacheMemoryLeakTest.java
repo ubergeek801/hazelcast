@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class ClientQueryCacheMemoryLeakTest extends HazelcastTestSupport {
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         factory.shutdownAll();
     }
 
@@ -96,7 +96,7 @@ public class ClientQueryCacheMemoryLeakTest extends HazelcastTestSupport {
 
         final HazelcastInstance client = factory.newHazelcastClient();
 
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
         ArrayList<Thread> threads = new ArrayList<>();
         for (int i = 0; i < STRESS_TEST_THREAD_COUNT; i++) {
             Thread thread = new Thread(() -> {
@@ -174,7 +174,7 @@ public class ClientQueryCacheMemoryLeakTest extends HazelcastTestSupport {
         final IMap<Integer, Integer> map = client.getMap(mapName);
         populateMap(map);
 
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
         ArrayList<Thread> threads = new ArrayList<>();
         for (int i = 0; i < STRESS_TEST_THREAD_COUNT; i++) {
             Thread thread = new Thread(() -> {
@@ -239,7 +239,7 @@ public class ClientQueryCacheMemoryLeakTest extends HazelcastTestSupport {
         final String mapName = "test";
 
         ExecutorService pool = Executors.newFixedThreadPool(STRESS_TEST_THREAD_COUNT);
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
 
         for (int i = 0; i < 1000; i++) {
             Runnable runnable = () -> {

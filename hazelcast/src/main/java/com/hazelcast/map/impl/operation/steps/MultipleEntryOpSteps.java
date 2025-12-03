@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,12 +76,12 @@ public enum MultipleEntryOpSteps implements IMapOpStep {
             Collection<Data> keysToLoad = state.getKeysToLoad();
             DefaultRecordStore recordStore = ((DefaultRecordStore) state.getRecordStore());
             List keyBiTupleList = recordStore.loadMultipleKeys(keysToLoad);
-            state.setLoadedKeyAndOldValueWithExpiryPairs(keyBiTupleList);
+            state.setLoadedKeyAndOldValueWithTtlPairs(keyBiTupleList);
         }
 
         @Override
         public Step nextStep(State state) {
-            return state.loadedKeyAndOldValueWithExpiryPairs().isEmpty()
+            return state.loadedKeyAndOldValueWithTtlPairs().isEmpty()
                     ? MultipleEntryOpSteps.PROCESS : MultipleEntryOpSteps.ON_LOAD_ALL;
         }
     },
@@ -91,10 +91,10 @@ public enum MultipleEntryOpSteps implements IMapOpStep {
         public void runStep(State state) {
             RecordStore recordStore = state.getRecordStore();
             // create record for loaded records.
-            List loadedKeyAndOldValueWithExpiryPairs = state.loadedKeyAndOldValueWithExpiryPairs();
+            List loadedKeyAndOldValueWithTtlPairs = state.loadedKeyAndOldValueWithTtlPairs();
             ((DefaultRecordStore) recordStore)
-                    .putAndGetLoadedEntries(loadedKeyAndOldValueWithExpiryPairs,
-                            state.getCallerAddress(), state.getNow());
+                    .putAndGetLoadedEntries(loadedKeyAndOldValueWithTtlPairs,
+                            state.getCallerAddress());
         }
 
         @Override

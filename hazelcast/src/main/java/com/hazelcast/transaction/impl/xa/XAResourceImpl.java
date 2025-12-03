@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,7 @@ public final class XAResourceImpl extends AbstractDistributedObject<XAService> i
                 contexts.add(context);
                 threadContextMap.put(threadId, context);
                 break;
-            case TMRESUME:
-            case TMJOIN:
+            case TMRESUME, TMJOIN:
                 List<TransactionContext> contextList = xidContextMap.get(xid);
                 if (contextList == null) {
                     throw new XAException("There is no TransactionContexts for the given xid: " + xid);
@@ -123,11 +122,11 @@ public final class XAResourceImpl extends AbstractDistributedObject<XAService> i
         long threadId = currentThreadId();
         TransactionContext threadContext = threadContextMap.remove(threadId);
         if (threadContext == null && logger.isFinestEnabled()) {
-            logger.finest("There is no TransactionContext for the current thread: " + threadId);
+            logger.finest("There is no TransactionContext for the current thread: %s", threadId);
         }
         List<TransactionContext> contexts = xidContextMap.get(xid);
         if (contexts == null && logger.isFinestEnabled()) {
-            logger.finest("There is no TransactionContexts for the given xid: " + xid);
+            logger.finest("There is no TransactionContexts for the given xid: %s", xid);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,11 @@ public abstract class TcpServerConnection_AbstractTransferStressTest extends Tcp
     // we create the payloads up front and select randomly from them. This is the number of payloads we are creating
     private static final int payloadCount = 10000;
 
-    private final AtomicBoolean stop = new AtomicBoolean(false);
+    private final AtomicBoolean stop = new AtomicBoolean();
     private DummyPayload[] payloads;
 
     @Before
+    @Override
     public void setup() throws Exception {
         super.setup();
         startAllTcpServers();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.partition.Partition;
 import com.hazelcast.security.PermissionsUtil;
 import com.hazelcast.spi.annotation.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -260,6 +259,26 @@ public interface ProcessorMetaSupplier extends Serializable {
         return new MetaSupplierFromProcessorSupplier(preferredLocalParallelism, permission, procSupplier);
     }
 
+
+    /**
+     * Factory method that wraps the given {@code ProcessorSupplier} and
+     * returns the same instance for each given {@code Address}.
+     *
+     * @param preferredLocalParallelism the value to return from {@link #preferredLocalParallelism()}
+     * @param permission                the required permission to run the processor
+     * @param procSupplier              the processor supplier
+     * @param connectorName             connector name
+     */
+    @Nonnull
+    static ProcessorMetaSupplier of(
+            int preferredLocalParallelism,
+            @Nullable Permission permission,
+            @Nonnull ProcessorSupplier procSupplier,
+            @Nullable String connectorName
+    ) {
+        return new MetaSupplierFromProcessorSupplier(preferredLocalParallelism, permission, procSupplier, connectorName);
+    }
+
     /**
      * Variant of {@link #of(int, Permission, ProcessorSupplier)} where
      * the processor does not require any permission to run.
@@ -426,7 +445,20 @@ public interface ProcessorMetaSupplier extends Serializable {
             @Nullable Permission permission,
             @Nonnull SupplierEx<? extends Processor> procSupplier
     ) {
-        return of(1, permission, ProcessorSupplier.of(procSupplier));
+        return preferLocalParallelismOne(permission, procSupplier, null);
+    }
+
+    /**
+     * Variant of {@link #preferLocalParallelismOne(SupplierEx)} where the
+     * processor requires given permission to run.
+     */
+    @Nonnull
+    static ProcessorMetaSupplier preferLocalParallelismOne(
+            @Nullable Permission permission,
+            @Nonnull SupplierEx<? extends Processor> procSupplier,
+            @Nullable String connectorName
+    ) {
+        return of(1, permission, ProcessorSupplier.of(procSupplier), connectorName);
     }
 
     /**
@@ -592,10 +624,11 @@ public interface ProcessorMetaSupplier extends Serializable {
      * on a node with given {@link Address} or random member if address is not given.
      * Additionally, it ensures that total parallelism is 1.
      */
-    @SuppressFBWarnings(value = "SE_BAD_FIELD", justification = "the class is never java-serialized")
+    //@SuppressFBWarnings(value = "SE_BAD_FIELD", justification = "the class is never java-serialized")
     @SerializableByConvention
     class SpecificMemberPms implements ProcessorMetaSupplier, IdentifiedDataSerializable {
-
+        @Serial
+        private static final long serialVersionUID = 1L;
         protected ProcessorSupplier supplier;
         protected Address memberAddress;
 
@@ -679,7 +712,8 @@ public interface ProcessorMetaSupplier extends Serializable {
     }
 
     class RandomMemberPms implements ProcessorMetaSupplier, IdentifiedDataSerializable {
-
+        @Serial
+        private static final long serialVersionUID = 1L;
         private ProcessorSupplier supplier;
 
         RandomMemberPms() {
@@ -738,6 +772,9 @@ public interface ProcessorMetaSupplier extends Serializable {
     }
 
     class ExpectNothingProcessorSupplier implements ProcessorSupplier, IdentifiedDataSerializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         @Override
         @Nonnull
         public Collection<? extends Processor> get(int count) {

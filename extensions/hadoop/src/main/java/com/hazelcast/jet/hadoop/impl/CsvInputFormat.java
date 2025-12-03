@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class CsvInputFormat extends FileInputFormat<NullWritable, Object> {
     @SuppressWarnings("AnonInnerLength")
     public RecordReader<NullWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context) {
 
-        return new RecordReader<NullWritable, Object>() {
+        return new RecordReader<>() {
 
             private Class<?> formatClazz;
             private final LineRecordReader reader = new LineRecordReader();

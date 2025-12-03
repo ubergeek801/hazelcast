@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.hazelcast.client;
 
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.config.RoutingStrategy;
 import com.hazelcast.core.HazelcastException;
 
@@ -24,8 +24,8 @@ import com.hazelcast.core.HazelcastException;
  * An UnsupportedRoutingModeException is thrown when a Hazelcast Client
  * is configured with a {@link RoutingMode} that is not supported by the cluster.
  * <p>
- * For example, a client configured with routing mode :
- * {@link RoutingMode#SUBSET}
+ * For example, a client configured with routing mode:
+ * {@link RoutingMode#MULTI_MEMBER}
  * and RoutingStrategy
  * {@link RoutingStrategy#PARTITION_GROUPS}
  * will be unable to connect to a cluster that is not correctly licensed

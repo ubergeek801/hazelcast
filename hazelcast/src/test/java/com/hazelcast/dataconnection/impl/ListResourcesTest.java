@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,10 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
 import static com.hazelcast.dataconnection.impl.JdbcDataConnection.OBJECT_TYPE_TABLE;
+import static com.hazelcast.dataconnection.impl.DataConnectionTestUtil.executeJdbc;
 import static com.hazelcast.test.DockerTestUtil.assumeTestDatabaseProviderCanLaunch;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,8 +60,8 @@ public class ListResourcesTest {
                 {
                         new PostgresDatabaseProvider(),
                         new DataConnectionResource[]{
-                                new DataConnectionResource(OBJECT_TYPE_TABLE, "public", "my_table"),
-                                new DataConnectionResource(OBJECT_TYPE_TABLE, "my_schema", "my_table")
+                                new DataConnectionResource(OBJECT_TYPE_TABLE, "testdb", "public", "my_table"),
+                                new DataConnectionResource(OBJECT_TYPE_TABLE, "testdb", "my_schema", "my_table")
                         }
                 },
                 {
@@ -111,13 +108,5 @@ public class ListResourcesTest {
 
         List<DataConnectionResource> dataConnectionResources = dataConnection.listResources();
         assertThat(dataConnectionResources).containsExactlyInAnyOrder(expectedResources);
-    }
-
-    public static void executeJdbc(String url, String sql) throws SQLException {
-        try (Connection conn = DriverManager.getConnection(url);
-             Statement stmt = conn.createStatement()
-        ) {
-            stmt.execute(sql);
-        }
     }
 }

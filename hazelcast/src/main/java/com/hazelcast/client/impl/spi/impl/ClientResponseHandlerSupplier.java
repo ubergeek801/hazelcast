@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import com.hazelcast.internal.util.ThreadAffinity;
 import com.hazelcast.internal.util.concurrent.MPSCQueue;
 import com.hazelcast.internal.util.executor.HazelcastManagedThread;
 import com.hazelcast.logging.ILogger;
+import com.hazelcast.spi.impl.operationservice.impl.InboundResponseHandlerSupplier;
 import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,7 +55,7 @@ import static com.hazelcast.spi.impl.operationservice.impl.InboundResponseHandle
  * to a pool of ResponseThreads.</li>
  * </ol>
  * <p>
- * {@see InboundResponseHandlerSupplier}.
+ * @see InboundResponseHandlerSupplier
  */
 public class ClientResponseHandlerSupplier implements Supplier<Consumer<ClientMessage>> {
 
@@ -63,12 +63,7 @@ public class ClientResponseHandlerSupplier implements Supplier<Consumer<ClientMe
     private static final HazelcastProperty IDLE_STRATEGY
             = new HazelcastProperty("hazelcast.client.responsequeue.idlestrategy", "block");
 
-    private static final ThreadLocal<MutableInteger> INT_HOLDER = new ThreadLocal<>() {
-        @Override
-        protected MutableInteger initialValue() {
-            return new MutableInteger();
-        }
-    };
+    private static final ThreadLocal<MutableInteger> INT_HOLDER = ThreadLocal.withInitial(() -> new MutableInteger());
 
     private final ClientInvocationServiceImpl invocationService;
     private final ResponseThread[] responseThreads;
@@ -214,11 +209,11 @@ public class ClientResponseHandlerSupplier implements Supplier<Consumer<ClientMe
             responseQueue.add(message);
         }
 
-        @SuppressFBWarnings(value = "IA_AMBIGUOUS_INVOCATION_OF_INHERITED_OR_OUTER_METHOD",
-                justification = "The thread.start method is the one we want to call")
+//        @SuppressFBWarnings(value = "IA_AMBIGUOUS_INVOCATION_OF_INHERITED_OR_OUTER_METHOD",
+//                justification = "The thread.start method is the one we want to call")
         private void ensureStarted() {
             if (!started.get() && started.compareAndSet(false, true)) {
-                start();
+                super.start();
             }
         }
     }

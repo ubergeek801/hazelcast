@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,12 +118,12 @@ public final class ExecutionServiceImpl implements ExecutionService {
         String hzName = nodeEngine.getHazelcastInstance().getName();
         ClassLoader configClassLoader = nodeEngine.getConfigClassLoader();
         ThreadFactory threadFactory = new PoolExecutorThreadFactory(createThreadPoolName(hzName, "cached"),
-                configClassLoader);
+                configClassLoader, nodeEngine);
         this.cachedExecutorService = new ThreadPoolExecutor(
                 CORE_POOL_SIZE, Integer.MAX_VALUE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new SynchronousQueue<>(),
                 threadFactory, (r, executor) -> {
             if (logger.isFinestEnabled()) {
-                logger.finest("Node is shutting down; discarding the task: " + r);
+                logger.finest("Node is shutting down; discarding the task: %s", r);
             }
         });
 
@@ -200,7 +200,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
             if (threadFactory != null) {
                 throw new IllegalArgumentException("Cached executor can not be used with external thread factory");
             }
-            executor = new CachedExecutorServiceDelegate(name, cachedExecutorService, poolSize, queueCapacity, nodeEngine);
+            executor = new CachedExecutorServiceDelegate(name, cachedExecutorService, poolSize, queueCapacity);
         } else if (type == ExecutorType.CONCRETE) {
             if (threadFactory == null) {
                 ClassLoader classLoader = nodeEngine.getConfigClassLoader();

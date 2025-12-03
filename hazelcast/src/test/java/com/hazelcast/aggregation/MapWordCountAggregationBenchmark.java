@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,37 +114,6 @@ public class MapWordCountAggregationBenchmark extends HazelcastTestSupport {
                 sb.append(line).append("\n");
             }
             map.put(UuidUtil.newSecureUuidString(), sb.toString());
-
-            is.close();
-            reader.close();
-        }
-    }
-
-    private static void fillMapWithDataEachLineNewEntry(HazelcastInstance hazelcastInstance) throws Exception {
-
-        IMap<String, String> map = hazelcastInstance.getMap(MAP_NAME);
-        for (String file : DATA_RESOURCES_TO_LOAD) {
-            InputStream is = MapWordCountAggregationBenchmark.class.getResourceAsStream("/wordcount/" + file);
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(is));
-
-            int batchSize = 10000;
-            int batchSizeCount = 0;
-            Map<String, String> batch = new HashMap<>(batchSize);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                batch.put(UuidUtil.newSecureUuidString(), line);
-                batchSizeCount++;
-                if (batchSizeCount == batchSize) {
-                    map.putAll(batch);
-                    batchSizeCount = 0;
-                    batch.clear();
-                }
-            }
-
-            if (batchSizeCount > 0) {
-                map.putAll(batch);
-                batch.clear();
-            }
 
             is.close();
             reader.close();

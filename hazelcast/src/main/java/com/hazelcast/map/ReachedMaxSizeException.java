@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package com.hazelcast.map;
 
+import java.io.Serial;
+
 /**
  * Exception thrown when a write-behind {@link MapStore} rejects to accept a new element.
  * Used when {@link com.hazelcast.config.MapStoreConfig#writeCoalescing} is set to {@code false}.
  */
 public class ReachedMaxSizeException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = -2352370861668557606L;
 
     public ReachedMaxSizeException(String msg) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ public final class SimpleMapTest {
     /**
      * Expects the Management Center to be running.
      *
-     * @param input
      * @throws InterruptedException
      */
     public static void main(String[] input) throws InterruptedException {
@@ -185,6 +184,7 @@ public final class SimpleMapTest {
                 setName("PrintStats." + instance.getName());
             }
 
+            @Override
             public void run() {
                 while (true) {
                     try {
@@ -204,9 +204,9 @@ public final class SimpleMapTest {
      */
     private class Stats {
 
-        private AtomicLong gets = new AtomicLong();
-        private AtomicLong puts = new AtomicLong();
-        private AtomicLong removes = new AtomicLong();
+        private final AtomicLong gets = new AtomicLong();
+        private final AtomicLong puts = new AtomicLong();
+        private final AtomicLong removes = new AtomicLong();
 
         public void printAndReset() {
             long getsNow = gets.getAndSet(0);

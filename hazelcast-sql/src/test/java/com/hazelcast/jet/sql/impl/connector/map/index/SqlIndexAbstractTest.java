@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -750,7 +750,7 @@ public abstract class SqlIndexAbstractTest extends SqlIndexTestSupport {
                         "expected map keys"
                 );
             }
-        }).as("Test failed for query " + sql).doesNotThrowAnyException();
+        }).as("Test failed for query %s", sql).doesNotThrowAnyException();
     }
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")

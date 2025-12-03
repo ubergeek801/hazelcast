@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.internal.metrics.MetricConsumer;
 import com.hazelcast.internal.metrics.MetricDescriptor;
 import com.hazelcast.internal.metrics.MetricTarget;
 import com.hazelcast.internal.metrics.ProbeUnit;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
@@ -66,7 +65,7 @@ import static java.lang.Math.multiplyExact;
  * <p>
  * After both the metrics and the dictionary blob is constructed, they
  * are copied into a final blob in the following structure:
- *
+ * <p>
  * +--------------------------------+--------------------+
  * | Compressor version             |   2 bytes (short)  |
  * +--------------------------------+--------------------+
@@ -396,7 +395,6 @@ public class MetricsCompressor {
         extractMetrics(blob, consumer, DEFAULT_DESCRIPTOR_SUPPLIER);
     }
 
-    @SuppressFBWarnings("RR_NOT_CHECKED")
     public static void extractMetrics(byte[] blob, MetricConsumer consumer, Supplier<? extends MetricDescriptor> supplier) {
         ByteArrayInputStream bais = new ByteArrayInputStream(blob);
         int version = (bais.read() << BITS_IN_BYTE) + bais.read();

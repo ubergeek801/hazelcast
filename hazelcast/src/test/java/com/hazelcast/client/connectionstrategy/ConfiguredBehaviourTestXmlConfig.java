@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class ConfiguredBehaviourTestXmlConfig extends ClientTestSupport {
     private static class AsyncStartListener implements LifecycleListener {
         @Override
         public void stateChanged(LifecycleEvent event) {
-            if (event.getState().equals(CLIENT_CONNECTED)) {
+            if (event.getState() == CLIENT_CONNECTED) {
                 asyncStartFromXmlLatch.countDown();
             }
         }

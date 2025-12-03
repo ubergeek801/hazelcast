@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,6 @@ public abstract class AbstractSerializationService implements InternalSerializat
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public final <B extends Data> B toData(Object obj, PartitioningStrategy strategy) {
         if (obj == null) {
             return null;
@@ -418,10 +417,12 @@ public abstract class AbstractSerializationService implements InternalSerializat
         return inputOutputFactory.createOutput(outputBufferSize, this);
     }
 
+    @Override
     public final ClassLoader getClassLoader() {
         return classLoader;
     }
 
+    @Override
     public final ManagedContext getManagedContext() {
         return managedContext;
     }
@@ -436,6 +437,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
         return version;
     }
 
+    @Override
     public void dispose() {
         active = false;
         for (SerializerAdapter serializer : typeMap.values()) {
@@ -616,6 +618,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
         return includeSchema ? compactWithSchemaSerializerAdapter : compactSerializerAdapter;
     }
 
+    @Override
     public boolean isCompactSerializable(Object object) {
         return serializerFor(object, false) == compactSerializerAdapter;
     }
@@ -672,7 +675,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
     private SerializerAdapter lookupGlobalSerializer(Class type) {
         SerializerAdapter serializer = global.get();
         if (serializer != null) {
-            logger.fine("Registering global serializer for: " + type.getName());
+            logger.fine("Registering global serializer for: %s", type.getName());
             safeRegister(type, serializer);
         }
         return serializer;
@@ -724,7 +727,6 @@ public abstract class AbstractSerializationService implements InternalSerializat
         }
     }
 
-    @SuppressWarnings("rawtypes")
     public abstract static class Builder<T extends Builder<T>> {
         private InputOutputFactory inputOutputFactory;
         private byte version;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.internal.namespace.impl.NodeEngineThreadLocalContext;
 import com.hazelcast.internal.nio.Bits;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.impl.Versioned;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.spi.impl.SerializationServiceSupport;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nullable;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
@@ -84,7 +84,6 @@ public class CacheConfig<K, V> extends AbstractCacheConfig<K, V> implements Vers
     //      * ENTRY_COUNT with 10000 max entry count
     //      * LRU as eviction policy
     private EvictionConfig evictionConfig = new EvictionConfig();
-    @SuppressFBWarnings("SE_BAD_FIELD")
     private MergePolicyConfig mergePolicyConfig = new MergePolicyConfig();
     private MerkleTreeConfig merkleTreeConfig = new MerkleTreeConfig();
     private List<CachePartitionLostListenerConfig> partitionLostListenerConfigs;
@@ -538,6 +537,7 @@ public class CacheConfig<K, V> extends AbstractCacheConfig<K, V> implements Vers
      * @return the updated {@link ExecutorConfig} instance
      * @since 5.4
      */
+    @Override
     public CacheConfig<K, V> setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;
@@ -595,10 +595,7 @@ public class CacheConfig<K, V> extends AbstractCacheConfig<K, V> implements Vers
             return;
         }
 
-        out.writeInt(partitionLostListenerConfigs.size());
-        for (CachePartitionLostListenerConfig partitionLostListenerConfig : partitionLostListenerConfigs) {
-            out.writeObject(partitionLostListenerConfig);
-        }
+        SerializationUtil.writeList(partitionLostListenerConfigs, out);
     }
 
     @Override
@@ -681,11 +678,10 @@ public class CacheConfig<K, V> extends AbstractCacheConfig<K, V> implements Vers
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof CacheConfig)) {
+        if (!(o instanceof CacheConfig that)) {
             return false;
         }
 
-        final CacheConfig that = (CacheConfig) o;
         if (!Objects.equals(managerPrefix, that.managerPrefix)) {
             return false;
         }
@@ -746,10 +742,7 @@ public class CacheConfig<K, V> extends AbstractCacheConfig<K, V> implements Vers
     }
 
     protected void writeListenerConfigurations(ObjectDataOutput out) throws IOException {
-        out.writeInt(getListenerConfigurations().size());
-        for (CacheEntryListenerConfiguration<K, V> cc : getListenerConfigurations()) {
-            out.writeObject(cc);
-        }
+        SerializationUtil.writeCollection(getListenerConfigurations(), out);
     }
 
     protected void readListenerConfigurations(ObjectDataInput in) throws IOException {

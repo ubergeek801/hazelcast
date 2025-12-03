@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ public final class FinalizeMigrationOperation extends AbstractPartitionOperation
         }
 
         if (success) {
-            nodeEngine.onPartitionMigrate(migrationInfo);
+            nodeEngine.onPartitionMigrate(getPartitionMigrationEvent());
         }
     }
 
@@ -154,7 +154,7 @@ public final class FinalizeMigrationOperation extends AbstractPartitionOperation
         if (sourceNewReplicaIndex < 0) {
             clearPartitionReplicaVersions(partitionId);
             if (logger.isFinestEnabled()) {
-                logger.finest("Replica versions are cleared in source after migration. partitionId=" + partitionId);
+                logger.finest("Replica versions are cleared in source after migration. partitionId=%s", partitionId);
             }
         } else if (migrationInfo.getSourceCurrentReplicaIndex() != sourceNewReplicaIndex && sourceNewReplicaIndex > 1) {
             for (ServiceNamespace namespace : replicaManager.getNamespaces(partitionId)) {
@@ -188,8 +188,7 @@ public final class FinalizeMigrationOperation extends AbstractPartitionOperation
         if (destinationCurrentReplicaIndex == -1) {
             clearPartitionReplicaVersions(partitionId);
             if (logger.isFinestEnabled()) {
-                logger.finest("Replica versions are cleared in destination after failed migration. partitionId="
-                        + partitionId);
+                logger.finest("Replica versions are cleared in destination after failed migration. partitionId=%s", partitionId);
             }
         } else {
             int replicaOffset = Math.max(migrationInfo.getDestinationCurrentReplicaIndex(), 1);

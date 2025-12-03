@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,12 +212,6 @@ public class SqlServiceImpl implements InternalSqlService {
 
             Util.checkJetIsEnabled(nodeEngine);
 
-            long timeout = statement.getTimeoutMillis();
-
-            if (timeout == SqlStatement.TIMEOUT_NOT_SET) {
-                timeout = queryTimeout;
-            }
-
             if (queryId == null) {
                 queryId = QueryId.create(nodeServiceProvider.getLocalMemberId());
             }
@@ -227,7 +221,7 @@ public class SqlServiceImpl implements InternalSqlService {
                     statement.getSchema(),
                     statement.getSql(),
                     statement.getParameters(),
-                    timeout,
+                    statement.getTimeoutMillis(),
                     statement.getCursorBufferSize(),
                     statement.getExpectedResultType(),
                     securityContext
@@ -244,8 +238,8 @@ public class SqlServiceImpl implements InternalSqlService {
     }
 
     private void updateSqlStreamingQueriesExecuted(SqlResult sqlResult) {
-        if (sqlResult instanceof AbstractSqlResult) {
-            if (((AbstractSqlResult) sqlResult).isInfiniteRows()) {
+        if (sqlResult instanceof AbstractSqlResult result) {
+            if (result.isInfiniteRows()) {
                 sqlStreamingQueriesExecuted.inc();
             }
         }
@@ -256,7 +250,7 @@ public class SqlServiceImpl implements InternalSqlService {
             String schema,
             String sql,
             List<Object> args,
-            long timeout,
+            long statementTimeout,
             int pageSize,
             SqlExpectedResultType expectedResultType,
             SqlSecurityContext securityContext
@@ -268,8 +262,8 @@ public class SqlServiceImpl implements InternalSqlService {
 
         List<Object> args0 = new ArrayList<>(args);
 
-        if (timeout < 0) {
-            throw QueryException.error("Timeout cannot be negative: " + timeout);
+        if (statementTimeout != SqlStatement.TIMEOUT_NOT_SET && statementTimeout < 0) {
+            throw QueryException.error("Timeout cannot be negative: " + statementTimeout);
         }
 
         if (pageSize <= 0) {
@@ -281,6 +275,13 @@ public class SqlServiceImpl implements InternalSqlService {
 
         if (securityContext.isSecurityEnabled()) {
             plan.checkPermissions(securityContext);
+        }
+
+        long timeout = 0;
+        if (statementTimeout != SqlStatement.TIMEOUT_NOT_SET) {
+            timeout = statementTimeout;
+        } else if (plan.supportsTimeout()) {
+            timeout = queryTimeout;
         }
 
         // TODO: pageSize ?

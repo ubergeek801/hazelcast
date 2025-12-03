@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public interface Evictor {
      * Evict supplied record-store.
      *
      * @param recordStore the recordStore
-     * @param excludedKey this key has lowest priority
-     *                    to be selected for eviction and it is nullable.
+     * @param excludedKey this key has the lowest priority
+     *                    to be selected for eviction, and it is nullable.
      */
     void evict(RecordStore recordStore, Data excludedKey);
 

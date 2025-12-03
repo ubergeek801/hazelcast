@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import static com.hazelcast.internal.serialization.impl.SerializationUtil.writeM
 
 /**
  * Simple HashMap adapter class to implement DataSerializable serialization semantics
- * to not loose hands on serialization while sending intermediate results.
+ * to not lose hands on serialization while sending intermediate results.
  *
  * @param <K> key type
  * @param <V> value type

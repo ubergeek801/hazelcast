@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.services.NodeAware;
 import com.hazelcast.nio.serialization.DataSerializable;
+import com.hazelcast.spi.annotation.NamespacesSupported;
 
 /**
  * Policy for merging data structure values
@@ -63,8 +64,8 @@ import com.hazelcast.nio.serialization.DataSerializable;
  * @param <R> the type of the merged value as returned by {@link #merge(MergingValue, MergingValue)}
  * @since 3.10
  */
-public interface SplitBrainMergePolicy<V, T extends MergingValue<V>, R>
-        extends DataSerializable {
+@NamespacesSupported
+public interface SplitBrainMergePolicy<V, T extends MergingValue<V>, R> extends DataSerializable {
 
     /**
      * Selects the value of either the merging or the

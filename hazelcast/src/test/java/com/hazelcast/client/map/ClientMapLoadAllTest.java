@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class ClientMapLoadAllTest extends AbstractMapStoreTest {
         final int itemCount = 1000;
         final String mapName = randomMapName();
 
-        final AtomicBoolean breakMe = new AtomicBoolean(false);
+        final AtomicBoolean breakMe = new AtomicBoolean();
 
         final Config config = createNewConfig(mapName, new BrokenLoadSimpleStore(breakMe));
         final HazelcastInstance server = hazelcastFactory.newHazelcastInstance(config);

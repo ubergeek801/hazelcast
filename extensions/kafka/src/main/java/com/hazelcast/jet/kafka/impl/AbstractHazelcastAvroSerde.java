@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ public abstract class AbstractHazelcastAvroSerde {
         Object schema = configs.get(isKey ? OPTION_KEY_AVRO_SCHEMA : OPTION_VALUE_AVRO_SCHEMA);
         if (schema == null) {
             throw new IllegalArgumentException("Schema must be provided for " + (isKey ? "key" : "value"));
-        } else if (schema instanceof Schema) {
-            return (Schema) schema;
-        } else if (schema instanceof String) {
-            return new Schema.Parser().parse((String) schema);
+        } else if (schema instanceof Schema schemaObject) {
+            return schemaObject;
+        } else if (schema instanceof String string) {
+            return new Schema.Parser().parse(string);
         } else {
             throw new IllegalArgumentException("Provided schema cannot be recognized");
         }

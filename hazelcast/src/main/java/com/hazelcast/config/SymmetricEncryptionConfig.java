@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import static java.util.Arrays.copyOf;
 
 /**
  * Contains configuration for symmetric encryption
- * @deprecated since 4.2
+ * @deprecated
  */
-@Deprecated
+@Deprecated(since = "4.2")
 public class SymmetricEncryptionConfig
         extends AbstractSymmetricEncryptionConfig<SymmetricEncryptionConfig> {
 

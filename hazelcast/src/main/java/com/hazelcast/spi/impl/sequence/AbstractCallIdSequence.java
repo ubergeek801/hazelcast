@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ public abstract class AbstractCallIdSequence implements CallIdSequence {
         assert newTail <= longs.get(INDEX_HEAD);
     }
 
+    @Override
     public long forceNext() {
         long l = longs.incrementAndGet(INDEX_HEAD);
         // we don't want to check for every call, so we'll check 1 in 8 calls. If there is sufficient concurrency

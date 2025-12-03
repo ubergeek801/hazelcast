@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class ClientSchemaService implements SchemaService {
             return schema;
         }
         if (logger.isFinestEnabled()) {
-            logger.finest("Could not find schema id  " + schemaId + " locally, will search on the cluster" + schemaId);
+            logger.finest("Could not find schema id  %s locally, will search on the cluster%s", schemaId, schemaId);
         }
         ClientInvocation invocation = new ClientInvocation(client, ClientFetchSchemaCodec.encodeRequest(schemaId), SERVICE_NAME);
         ClientMessage message = invocation.invoke().joinInternal();
@@ -123,7 +123,7 @@ public class ClientSchemaService implements SchemaService {
             return;
         }
         if (logger.isFinestEnabled()) {
-            logger.finest("Sending schemas to the cluster " + schemas);
+            logger.finest("Sending schemas to the cluster %s", schemas);
         }
         ClientMessage clientMessage = ClientSendAllSchemasCodec.encodeRequest(new ArrayList<>(schemas.values()));
         ClientInvocation invocation = new ClientInvocation(client, clientMessage, SERVICE_NAME);

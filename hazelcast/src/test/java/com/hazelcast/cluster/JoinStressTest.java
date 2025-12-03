@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.hazelcast.internal.util.RuntimeAvailableProcessors;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.map.IMap;
+import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
@@ -173,7 +174,7 @@ public class JoinStressTest extends HazelcastTestSupport {
 
         final Map<String, AtomicInteger> groups = new HashMap<>(groupCount);
         for (int i = 0; i < groupCount; i++) {
-            groups.put("group-" + i, new AtomicInteger(0));
+            groups.put("group-" + i, new AtomicInteger());
         }
 
         ExecutorService ex = Executors.newFixedThreadPool(RuntimeAvailableProcessors.get() * 2);
@@ -304,6 +305,7 @@ public class JoinStressTest extends HazelcastTestSupport {
 
         final Config config = new Config();
         config.setProperty(WAIT_SECONDS_BEFORE_JOIN.getName(), WAIT_SECONDS_BEFORE_JOIN.getDefaultValue());
+        config.setProperty(ClusterProperty.ASYNC_JOIN_STRATEGY_ENABLED.getName(), "false");
         config.setProperty(TCP_JOIN_PORT_TRY_COUNT.getName(), String.valueOf(nodeCount));
         JoinConfig join = config.getNetworkConfig().getJoin();
         join.getMulticastConfig().setEnabled(multicast);

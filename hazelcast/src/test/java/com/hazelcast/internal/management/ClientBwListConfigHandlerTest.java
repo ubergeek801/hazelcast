@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,6 +189,18 @@ public class ClientBwListConfigHandlerTest extends HazelcastTestSupport {
         when(mockConnection.getConnectionType()).thenReturn(ConnectionType.MC_JAVA_CLIENT);
         ClientEndpointImpl mcClient = new ClientEndpointImpl(clientEngine, getNodeEngineImpl(instance), mockConnection);
         assertTrue(clientEngine.isClientAllowed(mcClient));
+    }
+
+    @Test
+    public void testApplyConfig_whenMCCLCAddressIsBlacklisted_alwaysAllow() {
+        handler.applyConfig(createConfig(Mode.BLACKLIST, new ClientBwListEntryDTO(Type.IP_ADDRESS, "1.2.3.4")));
+        ServerConnection mockConnection = mock(ServerConnection.class);
+        when(mockConnection.getRemoteSocketAddress()).thenReturn(new InetSocketAddress("1.2.3.4", 1234));
+        when(mockConnection.getConnectionType()).thenReturn(ConnectionType.MC_CL_CLIENT);
+
+        ClientEndpointImpl mcClc = new ClientEndpointImpl(clientEngine, getNodeEngineImpl(instance), mockConnection);
+
+        assertTrue(clientEngine.isClientAllowed(mcClc));
     }
 
     private ClientBwListDTO createConfig(Mode mode, ClientBwListEntryDTO... entries) {

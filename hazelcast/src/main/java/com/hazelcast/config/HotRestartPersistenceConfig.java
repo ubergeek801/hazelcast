@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ import static com.hazelcast.internal.util.Preconditions.checkPositive;
  * configuration. hot-restart-persistence element (and thus {@code HotRestartPersistenceConfig})
  * will be removed in a future release.
  *
- * @deprecated since 5.0 use {@link PersistenceConfig}
+ * @deprecated use {@link PersistenceConfig}
  */
-@Deprecated
+@Deprecated(since = "5.0")
 public class HotRestartPersistenceConfig {
     /** Default directory name for the Hot Restart store's home */
     public static final String HOT_RESTART_BASE_DIR_DEFAULT = "hot-restart";

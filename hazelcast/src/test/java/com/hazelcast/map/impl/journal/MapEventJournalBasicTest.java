@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.journal.EventJournalDataStructureAdapter;
-import com.hazelcast.map.MapStore;
+import com.hazelcast.internal.util.MapUtil;
 import com.hazelcast.journal.AbstractEventJournalBasicTest;
+import com.hazelcast.journal.EventJournalDataStructureAdapter;
 import com.hazelcast.journal.EventJournalTestContext;
 import com.hazelcast.map.EventJournalMapEvent;
+import com.hazelcast.map.MapStore;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
-import com.hazelcast.internal.util.MapUtil;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -50,8 +50,8 @@ public class MapEventJournalBasicTest<K, V> extends AbstractEventJournalBasicTes
     private static final String NON_EXPIRING_MAP = "mappy";
     private static final String EXPIRING_MAP = "expiring";
 
-    public final AtomicBoolean isPredicateContextInjected = new AtomicBoolean(false);
-    public final AtomicBoolean isProjectionContextInjected = new AtomicBoolean(false);
+    public final AtomicBoolean isPredicateContextInjected = new AtomicBoolean();
+    public final AtomicBoolean isProjectionContextInjected = new AtomicBoolean();
     @Override
     protected Config getConfig() {
         Config config = super.getConfig();
@@ -85,9 +85,9 @@ public class MapEventJournalBasicTest<K, V> extends AbstractEventJournalBasicTes
     @Override
     protected EventJournalTestContext<K, V, EventJournalMapEvent<K, V>> createContext() {
         return new EventJournalTestContext<>(
-                new EventJournalMapDataStructureAdapter<K, V>(getRandomInstance().<K, V>getMap(NON_EXPIRING_MAP)),
-                new EventJournalMapDataStructureAdapter<K, V>(getRandomInstance().<K, V>getMap(EXPIRING_MAP)),
-                new EventJournalMapEventAdapter<K, V>()
+                new EventJournalMapDataStructureAdapter<>(getRandomInstance().getMap(NON_EXPIRING_MAP)),
+                new EventJournalMapDataStructureAdapter<>(getRandomInstance().getMap(EXPIRING_MAP)),
+                new EventJournalMapEventAdapter<>()
         );
     }
 
@@ -168,5 +168,14 @@ public class MapEventJournalBasicTest<K, V> extends AbstractEventJournalBasicTes
         public Object apply(Object o) {
             return null;
         }
+    }
+
+    protected boolean isAfterLostEvents(EventJournalMapEvent event) {
+        return event.isAfterLostEvents();
+    }
+
+    @Override
+    protected void assertValueEquals(EventJournalMapEvent event, Object expectedValue) {
+        assert event.getNewValue().equals(expectedValue);
     }
 }

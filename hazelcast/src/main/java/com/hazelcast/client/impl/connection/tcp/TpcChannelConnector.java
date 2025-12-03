@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.client.impl.connection.ClientConnection;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.ClientTpcAuthenticationCodec;
 import com.hazelcast.client.impl.spi.impl.ClientInvocation;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.core.HazelcastException;
 import com.hazelcast.internal.networking.Channel;
@@ -189,10 +190,10 @@ public final class TpcChannelConnector {
             closeAllChannels();
         }
 
-        logger.warning("TPC channel establishments for the " + connection + " have failed. "
+        logger.warning(String.format("TPC channel establishments for the " + connection + " have failed. "
                 + "The client will not be using the TPC channels to route partition specific invocations, "
-                + "and fallback to the smart routing mode for this connection. Check the firewall settings "
-                + "to make sure the TPC channels are accessible from the client.");
+                + "and fallback to the %s routing mode for this connection. Check the firewall settings "
+                + "to make sure the TPC channels are accessible from the client.", RoutingMode.ALL_MEMBERS));
     }
 
     private boolean connectionFailed() {

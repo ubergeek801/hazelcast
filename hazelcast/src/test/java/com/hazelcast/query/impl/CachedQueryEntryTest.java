@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +40,7 @@ import static org.mockito.Mockito.when;
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class CachedQueryEntryTest extends QueryEntryTest {
 
+    @Override
     @Test
     public void getKey_caching() {
         QueryableEntry entry = createEntry("key", "value");
@@ -48,6 +48,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         assertSame(entry.getKey(), entry.getKey());
     }
 
+    @Override
     @Test
     public void getValue_caching() {
         QueryableEntry entry = createEntry("key", "value");
@@ -55,6 +56,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         assertSame(entry.getValue(), entry.getValue());
     }
 
+    @Override
     @Test
     public void getKeyData_caching() {
         QueryableEntry entry = createEntry("key", "value");
@@ -62,6 +64,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         assertSame(entry.getKeyData(), entry.getKeyData());
     }
 
+    @Override
     @Test
     public void getValueData_caching() {
         QueryableEntry entry = createEntry("key", "value");
@@ -69,6 +72,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         assertSame(entry.getValueData(), entry.getValueData());
     }
 
+    @Override
     @Test(expected = IllegalArgumentException.class)
     public void testInit_whenKeyIsNull_thenThrowIllegalArgumentException() {
         createEntry(null, new Object(), newExtractor());
@@ -168,7 +172,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
     public void testEquals_givenSameInstance_thenReturnTrue() {
         CachedQueryEntry entry1 = createEntry("key");
 
-        assertTrue(entry1.equals(entry1));
+        assertEquals(entry1, entry1);
     }
 
     @Test
@@ -177,7 +181,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         CachedQueryEntry entry1 = createEntry("key");
         CachedQueryEntry entry2 = null;
 
-        assertFalse(entry1.equals(entry2));
+        assertNotEquals(entry1, entry2);
     }
 
     @Test
@@ -185,7 +189,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         CachedQueryEntry entry1 = createEntry("key");
         Object entry2 = new Object();
 
-        assertFalse(entry1.equals(entry2));
+        assertNotEquals(entry1, entry2);
     }
 
     @Test
@@ -193,7 +197,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         CachedQueryEntry entry1 = createEntry("key1");
         CachedQueryEntry entry2 = createEntry("key2");
 
-        assertFalse(entry1.equals(entry2));
+        assertNotEquals(entry1, entry2);
     }
 
     @Test
@@ -201,7 +205,7 @@ public class CachedQueryEntryTest extends QueryEntryTest {
         CachedQueryEntry entry1 = createEntry("key");
         CachedQueryEntry entry2 = createEntry("key");
 
-        assertTrue(entry1.equals(entry2));
+        assertEquals(entry1, entry2);
     }
 
     @Test

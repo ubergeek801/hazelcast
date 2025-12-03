@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,8 +179,8 @@ public final class QueryUtils {
 
         for (final RelDataTypeField field : type.getFieldList()) {
             final RelDataType fieldType = field.getType();
-            if (fieldType instanceof HazelcastObjectType
-                    && containsCycles((HazelcastObjectType) fieldType, discovered)) {
+            if (fieldType instanceof HazelcastObjectType objectType
+                    && containsCycles(objectType, discovered)) {
                 return true;
             }
         }

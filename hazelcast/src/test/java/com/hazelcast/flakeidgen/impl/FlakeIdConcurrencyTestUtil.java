@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public final class FlakeIdConcurrencyTestUtil {
             ids.addAll(f.get());
         }
 
-        // if there were duplicate IDs generated, there will be less items in the set than expected
+        // if there were duplicate IDs generated, there will be fewer items in the set than expected
         assertEquals(NUM_THREADS * IDS_IN_THREAD, ids.size());
         return ids;
     }

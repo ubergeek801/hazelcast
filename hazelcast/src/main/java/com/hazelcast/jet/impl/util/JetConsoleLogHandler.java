@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,8 +86,8 @@ public class JetConsoleLogHandler extends StreamHandler {
             return name.replaceAll("\\B\\w+\\.", ".");
         }
 
-        private static String getExceptionString(LogRecord record) {
-            return System.lineSeparator() + ANSI_RED + ExceptionUtil.toString(record.getThrown()) + ANSI_RESET;
+        private static String getExceptionString(LogRecord logRecord) {
+            return System.lineSeparator() + ANSI_RED + ExceptionUtil.toString(logRecord.getThrown()) + ANSI_RESET;
         }
 
         private static String getLevelColor(Level level) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 package com.hazelcast.internal.util.phonehome;
 
 import com.hazelcast.client.impl.ClientEndpoint;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.instance.impl.Node;
 
 import java.util.EnumMap;
 import java.util.Map;
 
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SMART;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.SUBSET;
-import static com.hazelcast.client.impl.connection.tcp.RoutingMode.UNISOCKET;
+import static com.hazelcast.client.config.RoutingMode.ALL_MEMBERS;
+import static com.hazelcast.client.config.RoutingMode.MULTI_MEMBER;
+import static com.hazelcast.client.config.RoutingMode.SINGLE_MEMBER;
 
 public class ClientRoutingModeMetricsProvider implements MetricsProvider {
 
@@ -41,8 +41,8 @@ public class ClientRoutingModeMetricsProvider implements MetricsProvider {
             }
         }
 
-        context.collect(PhoneHomeMetrics.SMART_CLIENTS_COUNT, routingModeCounts.getOrDefault(SMART, 0));
-        context.collect(PhoneHomeMetrics.UNISOCKET_CLIENTS_COUNT, routingModeCounts.getOrDefault(UNISOCKET, 0));
-        context.collect(PhoneHomeMetrics.SUBSET_CLIENTS_COUNT, routingModeCounts.getOrDefault(SUBSET, 0));
+        context.collect(PhoneHomeMetrics.ALL_MEMBERS_CLIENTS_COUNT, routingModeCounts.getOrDefault(ALL_MEMBERS, 0));
+        context.collect(PhoneHomeMetrics.SINGLE_MEMBER_CLIENTS_COUNT, routingModeCounts.getOrDefault(SINGLE_MEMBER, 0));
+        context.collect(PhoneHomeMetrics.MULTI_MEMBER_CLIENTS_COUNT, routingModeCounts.getOrDefault(MULTI_MEMBER, 0));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -232,11 +231,11 @@ public class HazelcastProxyFactory {
         return (T) Proxy.newProxyInstance(proxyTargetClassloader, expectedInterfaces, myInvocationHandler);
     }
 
-    private static boolean isJDKClass(Class clazz) {
+    private static boolean isJDKClass(Class<?> clazz) {
         return clazz.getClassLoader() == String.class.getClassLoader();
     }
 
-    private static boolean isHazelcastAPIDelegatingClassloader(Class clazz) {
+    private static boolean isHazelcastAPIDelegatingClassloader(Class<?> clazz) {
         return HazelcastAPIDelegatingClassloader.class.equals(clazz);
     }
 
@@ -335,7 +334,7 @@ public class HazelcastProxyFactory {
      * {@code type} itself if it's an interface.
      */
     private static Class<?>[] getAllInterfacesIncludingSelf(Class<?> type) {
-        Set<Class<?>> interfaces = new HashSet<>(Arrays.asList(getAllInterfaces(type)));
+        Set<Class<?>> interfaces = Set.of(getAllInterfaces(type));
         //if the return type itself is an interface then we have to add it
         //to the list of interfaces implemented by the proxy
         if (type.isInterface()) {
@@ -425,7 +424,7 @@ public class HazelcastProxyFactory {
 
         @Override
         public MethodRegistry inject(TypeDescription instrumentedType, MethodRegistry methodRegistry) {
-            return methodRegistry.append(new LatentMatcher.Resolved<MethodDescription>(isConstructor()),
+            return methodRegistry.append(new LatentMatcher.Resolved<>(isConstructor()),
                     new MethodRegistry.Handler.ForImplementation(SuperMethodCall.INSTANCE),
                     MethodAttributeAppender.NoOp.INSTANCE,
                     Transformer.NoOp.<MethodDescription>make());

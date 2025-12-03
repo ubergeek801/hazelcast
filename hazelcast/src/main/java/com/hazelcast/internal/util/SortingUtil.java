@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public final class SortingUtil {
      * i2 = 2.000.000.000
      * <p>
      * Normally "i1 < i2", but if we use "i1 - i2" for comparison,
-     * i1 - i2 = -500.000.000 - 2.000.000.000 and we may accept the result as "-2.500.000.000".
+     * i1 - i2 = -500.000.000 - 2.000.000.000, and we may accept the result as "-2.500.000.000".
      * But the actual result is "1.794.967.296" because of overflow between
      * positive and negative integer bounds.
      * <p>
@@ -110,7 +110,7 @@ public final class SortingUtil {
      * @return +1 if i1 > i2, -1 if i2 > i1, 0 if i1 and i2 are equals
      */
     private static int compareIntegers(int i1, int i2) {
-        // i1 - i2 is not good way for comparison
+        // i1 - i2 is not a good way for comparison
         if (i1 > i2) {
             return +1;
         } else if (i2 > i1) {
@@ -126,8 +126,9 @@ public final class SortingUtil {
     }
 
     private static Comparator<QueryableEntry> newComparator(final PagingPredicateImpl pagingPredicate) {
-        return NamespaceUtil.callWithNamespace(pagingPredicate.getUserCodeNamespace(), () -> (entry1, entry2) ->
-                SortingUtil.compare(pagingPredicate.getComparator(), pagingPredicate.getIterationType(), entry1, entry2));
+        return (entry1, entry2) ->
+                NamespaceUtil.callWithNamespace(pagingPredicate.getUserCodeNamespace(), () ->
+                        SortingUtil.compare(pagingPredicate.getComparator(), pagingPredicate.getIterationType(), entry1, entry2));
     }
 
     public static List<QueryableEntry> getSortedSubList(List<QueryableEntry> list, PagingPredicate pagingPredicate,

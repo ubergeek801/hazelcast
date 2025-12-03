@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,10 @@ public class HazelcastVersionLocator {
             this.artifactId = artifactId;
         }
 
+        public boolean isEnterprise() {
+            return enterprise;
+        }
+
         private org.eclipse.aether.artifact.Artifact toAetherArtifact(final String version) {
             return new DefaultArtifact(GROUP_ID, artifactId, test ? "tests" : null, null, version);
         }
@@ -53,17 +57,18 @@ public class HazelcastVersionLocator {
 
     public static Map<Artifact, File> locateVersion(final String version, final boolean enterprise) {
         final Stream.Builder<Artifact> files = Stream.builder();
-        files.add(Artifact.OS_JAR);
         files.add(Artifact.OS_TEST_JAR);
         if (Version.of(version).isGreaterOrEqual(Versions.V5_0)) {
             files.add(Artifact.SQL_JAR);
         }
         if (enterprise) {
             files.add(Artifact.EE_JAR);
+        } else {
+            files.add(Artifact.OS_JAR);
         }
         return files.build().collect(Collectors.toMap(Function.identity(),
                 artifact -> MavenInterface.locateArtifact(artifact.toAetherArtifact(version),
-                        artifact.enterprise ? new String[] {"https://repository.hazelcast.com/release"} : new String[] {})
+                        artifact.isEnterprise() ? new String[] {"https://repository.hazelcast.com/release"} : new String[] {})
                         .toFile()));
     }
 }

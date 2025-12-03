@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCod
  * javax.cache.integration.CacheWriter might be called to store the value of the key to any kind of external resource.
  */
 @SuppressWarnings("unused")
-@Generated("afae2ac8e2daec164b20d9bc2e69d9fc")
+@Generated("9eb7cc9495bfb667c380c0ad5310c133")
 public final class CachePutIfAbsentCodec {
     //hex: 0x131200
     public static final int REQUEST_MESSAGE_TYPE = 1249792;
@@ -53,7 +53,6 @@ public final class CachePutIfAbsentCodec {
     private CachePutIfAbsentCodec() {
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class RequestParameters {
 
         /**
@@ -97,7 +96,7 @@ public final class CachePutIfAbsentCodec {
         StringCodec.encode(clientMessage, name);
         DataCodec.encode(clientMessage, key);
         DataCodec.encode(clientMessage, value);
-        CodecUtil.encodeNullable(clientMessage, expiryPolicy, DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, expiryPolicy);
         return clientMessage;
     }
 
@@ -109,7 +108,7 @@ public final class CachePutIfAbsentCodec {
         request.name = StringCodec.decode(iterator);
         request.key = DataCodec.decode(iterator);
         request.value = DataCodec.decode(iterator);
-        request.expiryPolicy = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+        request.expiryPolicy = DataCodec.decodeNullable(iterator);
         return request;
     }
 

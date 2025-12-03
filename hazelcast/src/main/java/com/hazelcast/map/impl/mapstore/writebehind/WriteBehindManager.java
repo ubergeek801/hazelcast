@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class WriteBehindManager implements MapStoreManager {
 
     /**
      * Store listener which is responsible for
-     * {@link com.hazelcast.map.impl.mapstore.writebehind.WriteBehindStore#stagingArea cleaning.
+     * {@link com.hazelcast.map.impl.mapstore.writebehind.WriteBehindStore#stagingArea} cleaning.
      */
     private static class InternalStoreListener implements StoreListener<DelayedEntry> {
 

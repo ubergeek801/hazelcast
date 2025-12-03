@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.hazelcast.internal.util.collection;
 
 import com.hazelcast.internal.util.QuickMath;
 import com.hazelcast.internal.util.function.LongLongConsumer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -237,6 +236,7 @@ public class Long2LongHashMap implements Map<Long, Long> {
         return put(key.longValue(), value.longValue());
     }
 
+    @Override
     public void forEach(final BiConsumer<? super Long, ? super Long> action) {
         longForEach(new UnboxingBiConsumer(action));
     }
@@ -463,8 +463,8 @@ public class Long2LongHashMap implements Map<Long, Long> {
         }
     }
 
-    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS",
-            justification = "deliberate, documented choice")
+//    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS",
+//            justification = "deliberate, documented choice")
     private final class EntryIterator
             extends AbstractIterator implements Iterator<Entry<Long, Long>>, Entry<Long, Long> {
         private long key;
@@ -534,8 +534,9 @@ public class Long2LongHashMap implements Map<Long, Long> {
     }
 
     private MapDelegatingSet<Long> valuesSingleton() {
-        return new MapDelegatingSet<>(this, new Supplier<Iterator<Long>>() {
-            @Override public Iterator<Long> get() {
+        return new MapDelegatingSet<>(this, new Supplier<>() {
+            @Override
+            public Iterator<Long> get() {
                 return valueIterator.reset();
             }
         }, new Predicate() {

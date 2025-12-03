@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.UUID;
  * From the Raft consensus algorithm's point of view, the only important
  * property of a Raft endpoint is its identity. All other properties are
  * implementation details of a Raft endpoint and can be handled inside the
- * {@link RaftIntegration} abstraction.
+ * {@code RaftIntegration} abstraction.
  */
 public interface RaftEndpoint {
 

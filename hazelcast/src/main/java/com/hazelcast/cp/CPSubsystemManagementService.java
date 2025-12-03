@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,4 +260,14 @@ public interface CPSubsystemManagementService {
      * @see #isDiscoveryCompleted()
      */
     boolean awaitUntilDiscoveryCompleted(long timeout, TimeUnit timeUnit) throws InterruptedException;
+
+    /**
+     * Creates a {@link CPGroupsSnapshot} based on the internal
+     * CP group view tracker's current view of all groups. This
+     * snapshot will always be empty if the ADVANCED_CP license
+     * component is not present.
+     *
+     * @return a new {@link CPGroupsSnapshot}
+     */
+    CPGroupsSnapshot getCurrentGroupsSnapshot();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HazelcastSerialClassRunner.class)
@@ -60,7 +61,7 @@ public class HazelcastConnector_RestartTest extends JetTestSupport {
                 .writeTo(Sinks.list(sinkList));
 
         Job job = instance1.getJet().newJob(p);
-        assertTrueEventually(() -> assertTrue("no output to sink", sinkList.size() > 0), 10);
+        assertTrueEventually(() -> assertFalse("no output to sink", sinkList.isEmpty()), 10);
 
         Long executionId = executionId(instance1, job);
         if (executionId == null) {

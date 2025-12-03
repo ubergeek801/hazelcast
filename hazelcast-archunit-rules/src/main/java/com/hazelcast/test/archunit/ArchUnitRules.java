@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import com.tngtech.archunit.lang.ArchRule;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
+import static com.hazelcast.test.archunit.BackupOperationShouldNotImplementMutatingOperation.notImplementMutatingOperation;
 import static com.hazelcast.test.archunit.CompletableFutureUsageCondition.useExplicitExecutorServiceInCFAsyncMethods;
 import static com.hazelcast.test.archunit.MatchersUsageCondition.notUseHamcrestMatchers;
-import static com.hazelcast.test.archunit.MixTestAnnotationsCondition.notMixJUnit4AndJUnit5Annotations;
+import static com.hazelcast.test.archunit.MixTestAnnotationsCondition.notMixDifferentJUnitVersionsAnnotations;
+import static com.hazelcast.test.archunit.OperationShouldNotImplementReadonlyAndMutatingOperation.notImplementReadonlyAndMutatingOperation;
 import static com.hazelcast.test.archunit.SerialVersionUidFieldCondition.haveValidSerialVersionUid;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
@@ -37,7 +39,6 @@ public final class ArchUnitRules {
             .areNotEnums()
             .and().doNotHaveModifier(JavaModifier.ABSTRACT)
             .and().implement(Serializable.class)
-            .and().doNotImplement("com.hazelcast.nio.serialization.DataSerializable")
             .should(haveValidSerialVersionUid())
             .allowEmptyShould(true);
 
@@ -60,7 +61,7 @@ public final class ArchUnitRules {
      */
     public static final ArchRule NO_JUNIT_MIXING = classes()
             .that().haveSimpleNameEndingWith("Test")
-            .should(notMixJUnit4AndJUnit5Annotations());
+            .should(notMixDifferentJUnitVersionsAnnotations());
 
     /** @see TestsHaveRunnersCondition */
     public static final ArchRule TESTS_HAVE_RUNNNERS = classes().that()
@@ -68,6 +69,33 @@ public final class ArchUnitRules {
             .and()
             .doNotHaveModifier(JavaModifier.ABSTRACT)
             .should(new TestsHaveRunnersCondition());
+
+    /**
+     * Operations should not implement both {@code ReadonlyOperation} and {@code MutatingOperation} interfaces, otherwise
+     * split brain protection may not work as expected.
+     */
+    public static final ArchRule OPERATIONS_SHOULD_NOTIMPL_BOTH_READONLY_AND_MUTATINGOPERATION = classes()
+            .that()
+            .areAssignableTo("com.hazelcast.spi.impl.operationservice.Operation")
+            .should(notImplementReadonlyAndMutatingOperation());
+
+    /**
+     * Backup operations should not implement {@code MutatingOperation} interface, otherwise there may be failures
+     * to apply backups.
+     */
+    public static final ArchRule BACKUP_OPERATIONS_SHOULD_NOTIMPL_MUTATINGOPERATION = classes()
+            .that()
+            .areAssignableTo("com.hazelcast.spi.impl.operationservice.Operation")
+            .and().haveSimpleNameContaining("Backup")
+            .should(notImplementMutatingOperation());
+
+    /** @see PublicApiClassesExposingInternalImplementationCondition */
+    public static final ArchRule PUBLIC_API_CLASSES_EXPOSING_INTERNAL_IMPLEMENTATION = classes().that()
+            .resideOutsideOfPackages("..internal..", "..impl..", "..util..", "..test..")
+            .and().haveSimpleNameNotContaining("Impl")
+            .and().haveSimpleNameNotEndingWith("Test")
+            .and().haveSimpleNameNotEndingWith("Util")
+            .should(new PublicApiClassesExposingInternalImplementationCondition());
 
     private ArchUnitRules() {
     }

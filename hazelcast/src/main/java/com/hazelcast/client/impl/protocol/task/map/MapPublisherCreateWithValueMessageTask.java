@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import static com.hazelcast.map.impl.MapService.SERVICE_NAME;
 
 /**
  * Client Protocol Task for handling messages with type ID:
- * {@link com.hazelcast.client.impl.protocol.codec.ContinuousQueryMessageType#CONTINUOUSQUERY_PUBLISHERCREATEWITHVALUE}
+ * {@link com.hazelcast.client.impl.protocol.codec.ContinuousQueryPublisherCreateWithValueCodec#REQUEST_MESSAGE_TYPE}
  */
 public class MapPublisherCreateWithValueMessageTask
         extends AbstractCallableMessageTask<ContinuousQueryPublisherCreateWithValueCodec.RequestParameters>
@@ -121,7 +121,7 @@ public class MapPublisherCreateWithValueMessageTask
         InflatableSet.Builder<Map.Entry<Data, Data>> builder = InflatableSet.newBuilder(numOfEntries);
         for (Object result : results) {
             for (QueryResultRow row : (QueryResult) result) {
-                builder.add(new AbstractMap.SimpleEntry<Data, Data>(row.getKey(), row.getValue()));
+                builder.add(new AbstractMap.SimpleEntry<>(row.getKey(), row.getValue()));
             }
         }
         return builder.build();

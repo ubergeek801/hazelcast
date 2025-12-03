@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.junit.runners.model.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import static com.hazelcast.test.JenkinsDetector.isOnJenkins;
 import static com.hazelcast.internal.util.QuickMath.nextPowerOfTwo;
+import static com.hazelcast.test.CiExecutionDetector.isOnCi;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -83,7 +83,7 @@ public class JitterRule implements TestRule {
             case ENABLED:
                 return true;
             case JENKINS:
-                return isOnJenkins();
+                return isOnCi();
             default:
                 throw new IllegalArgumentException("Unknown mode: " + mode);
         }

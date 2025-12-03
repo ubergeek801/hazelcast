@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ public abstract class PartitionAwareOperationFactory implements OperationFactory
      * If {@link PartitionAwareOperationFactory} needs to have runner-side state different from caller-side one,
      * this method can be used to create it. Otherwise, stateful factories may cause JMM problems.
      *
-     * @param nodeEngine nodeEngine
      * @param partitions the partitions provided to an operation which use this
      *                   factory. The operation factory may decide to use this
      *                   externally provided partition set if it doesn't manage

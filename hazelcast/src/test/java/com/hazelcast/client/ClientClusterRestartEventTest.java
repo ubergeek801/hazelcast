@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -123,9 +122,9 @@ public class ClientClusterRestartEventTest {
         Member oldMember2 = instance2.getCluster().getLocalMember();
 
         final CountDownLatch memberAdded = new CountDownLatch(2);
-        final Set<Member> addedMembers = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        final Set<Member> addedMembers = ConcurrentHashMap.newKeySet();
         final CountDownLatch memberRemoved = new CountDownLatch(2);
-        final Set<Member> removedMembers = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        final Set<Member> removedMembers = ConcurrentHashMap.newKeySet();
         client.getCluster().addMembershipListener(new MembershipListener() {
             @Override
             public void memberAdded(MembershipEvent membershipEvent) {

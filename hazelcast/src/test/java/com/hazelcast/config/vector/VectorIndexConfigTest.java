@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,5 +41,29 @@ public class VectorIndexConfigTest {
     @Test
     public void constructorNameValidation_success() {
         assertThatNoException().isThrownBy(() -> new VectorIndexConfig().setName("index_234-ANY"));
+    }
+
+    @Test
+    public void dimensionValidation_failed() {
+        assertThatThrownBy(
+                () -> new VectorIndexConfig(
+                        "index",
+                        Metric.EUCLIDEAN,
+                        0,
+                        1,
+                        1,
+                        true
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("dimension must be positive");
+
+        assertThatThrownBy(() -> new VectorIndexConfig("index", Metric.EUCLIDEAN, 0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("dimension must be positive");
+
+        assertThatThrownBy(() -> new VectorIndexConfig().setDimension(0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("dimension must be positive");
     }
 }

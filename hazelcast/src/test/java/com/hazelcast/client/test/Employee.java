@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,14 +63,17 @@ public class Employee implements Portable {
         this.name = name;
     }
 
+    @Override
     public int getFactoryId() {
         return PortableFactory.FACTORY_ID;
     }
 
+    @Override
     public int getClassId() {
         return CLASS_ID;
     }
 
+    @Override
     public void writePortable(PortableWriter writer) throws IOException {
         writer.writeString("n", name);
         writer.writeInt("a", age);
@@ -106,6 +109,7 @@ public class Employee implements Portable {
         out.writeObject(utfStr);
     }
 
+    @Override
     public void readPortable(PortableReader reader) throws IOException {
         name = reader.readString("n");
         age = reader.readInt("a");

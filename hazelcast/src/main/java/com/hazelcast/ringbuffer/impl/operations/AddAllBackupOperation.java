@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.ringbuffer.impl.RingbufferContainer;
 import com.hazelcast.spi.impl.operationservice.BackupOperation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 
@@ -38,7 +37,6 @@ public class AddAllBackupOperation extends AbstractRingBufferOperation implement
     public AddAllBackupOperation() {
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public AddAllBackupOperation(String name, long lastSequenceId, Data[] items) {
         super(name);
         this.items = items;

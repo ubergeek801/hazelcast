@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.HttpURLConnection;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -163,7 +164,7 @@ public class AwsEcsApiTest {
     @Test
     public void awsError() {
         // given
-        int errorCode = 401;
+        int errorCode = HttpURLConnection.HTTP_UNAUTHORIZED;
         String errorMessage = "Error message retrieved from AWS";
         stubFor(post(urlMatching("/.*"))
                 .willReturn(aResponse().withStatus(errorCode).withBody(errorMessage)));
@@ -212,7 +213,7 @@ public class AwsEcsApiTest {
                 .withHeader("Accept-Encoding", equalTo("identity"))
                 .withHeader("X-Amz-Security-Token", equalTo(TOKEN))
                 .withRequestBody(equalToJson(requestBody, true, false))
-                .willReturn(aResponse().withStatus(200).withBody(responseBody)));
+                .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(responseBody)));
     }
 
     private static void stubListTasks(String cluster, String familyName) {
@@ -236,6 +237,6 @@ public class AwsEcsApiTest {
                 .withHeader("Accept-Encoding", equalTo("identity"))
                 .withHeader("X-Amz-Security-Token", equalTo(TOKEN))
                 .withRequestBody(equalToJson(requestBody.toString()))
-                .willReturn(aResponse().withStatus(200).withBody(response)));
+                .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(response)));
     }
 }

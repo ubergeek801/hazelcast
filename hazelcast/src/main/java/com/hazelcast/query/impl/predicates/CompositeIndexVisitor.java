@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.query.Predicate;
 import com.hazelcast.query.impl.CompositeValue;
 import com.hazelcast.query.impl.IndexRegistry;
 import com.hazelcast.query.impl.InternalIndex;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -396,7 +395,6 @@ public class CompositeIndexVisitor extends AbstractVisitor {
         return output == null ? new Output(capacity) : output;
     }
 
-    @SuppressFBWarnings(value = "EQ_DOESNT_OVERRIDE_EQUALS")
     private static class Output extends ArrayList<Predicate> {
 
         private boolean requiresGeneration;

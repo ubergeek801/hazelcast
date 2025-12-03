@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import static java.lang.String.format;
 /**
  * Runs on Near Cache side, an instance of this task is responsible for fetching of all Near Caches' remote metadata like last
  * sequence numbers and partition UUIDs. To see usage of this metadata visit: {@link MetaDataGenerator}.
- *
+ * <p>
  * This class is abstract to provide different implementations on client and member sides.
  */
 public abstract class InvalidationMetaDataFetcher {
@@ -44,7 +44,7 @@ public abstract class InvalidationMetaDataFetcher {
 
     protected final ILogger logger;
 
-    public InvalidationMetaDataFetcher(ILogger logger) {
+    protected InvalidationMetaDataFetcher(ILogger logger) {
         this.logger = logger;
     }
 

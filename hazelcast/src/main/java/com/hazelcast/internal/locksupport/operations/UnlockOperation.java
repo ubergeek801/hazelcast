@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,11 +71,13 @@ public class UnlockOperation extends AbstractLockOperation implements Notifier, 
         if (!unlocked) {
             // we can not check for retry here, hence just throw the exception
             String ownerInfo = lockStore.getOwnerInfo(key);
-            throw new IllegalMonitorStateException("Current thread is not owner of the lock! -> " + ownerInfo);
+            throw new IllegalMonitorStateException(
+                    String.format("Current thread is not owner of the lock! Key: %s, TID: %d, Name: %s, Owner info: %s",
+                            key, threadId, namespace.getObjectName(), ownerInfo));
         } else {
             ILogger logger = getLogger();
             if (logger.isFinestEnabled()) {
-                logger.finest("Released lock " + namespace.getObjectName());
+                logger.finest("Released lock %s", namespace.getObjectName());
             }
         }
     }
@@ -88,9 +90,9 @@ public class UnlockOperation extends AbstractLockOperation implements Notifier, 
         ILogger logger = getLogger();
         if (logger.isFinestEnabled()) {
             if (unlocked) {
-                logger.finest("Released lock " + namespace.getObjectName());
+                logger.finest("Released lock %s", namespace.getObjectName());
             } else {
-                logger.finest("Could not release lock " + namespace.getObjectName() + " as it is not locked");
+                logger.finest("Could not release lock %s as it is not locked", namespace.getObjectName());
             }
         }
     }

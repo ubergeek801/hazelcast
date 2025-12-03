@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public abstract class AggregateAbstractPhysicalRule extends RelRule<Config> {
                 case JSON_ARRAYAGG:
                     int arrayAggIndex = aggregateCallArguments.get(0);
                     List<RelFieldCollation> colls = aggregateCall.getCollation().getFieldCollations();
-                    if (colls.size() > 0) {
+                    if (!colls.isEmpty()) {
                         ExpressionUtil.SqlRowComparator comparator = new ExpressionUtil.SqlRowComparator(convertCollation(colls));
                         HazelcastJsonArrayAggFunction agg = (HazelcastJsonArrayAggFunction) aggregateCall.getAggregation();
                         aggregationProviders.add(new AggregateArrayAggSupplier(comparator, agg.isAbsentOnNull(), arrayAggIndex));

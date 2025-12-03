@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -865,18 +865,18 @@ public class XmlClientConfigBuilderTest extends AbstractClientConfigBuilderTest 
     }
 
     @Override
-    public void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToSubsetRoutingConfig() {
+    public void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToMultiMemberRoutingConfig() {
         String xml = HAZELCAST_CLIENT_START_TAG
                 + "     <network>\n"
-                + "         <subset-routing enabled=\"true\" />\n"
+                + "         <cluster-routing mode=\"MULTI_MEMBER\" />\n"
                 + "     </network>\n"
                 + HAZELCAST_CLIENT_END_TAG;
 
         ClientConfig clientConfig = buildConfig(xml);
 
-        assertTrue(clientConfig.getNetworkConfig().getSubsetRoutingConfig().isEnabled());
-        assertEquals(SubsetRoutingConfig.DEFAULT_ROUTING_STRATEGY,
-                clientConfig.getNetworkConfig().getSubsetRoutingConfig().getRoutingStrategy());
+        assertEquals(RoutingMode.MULTI_MEMBER, clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingMode());
+        assertEquals(ClusterRoutingConfig.DEFAULT_ROUTING_STRATEGY,
+                clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingStrategy());
     }
 
     static ClientConfig buildConfig(String xml, Properties properties) {

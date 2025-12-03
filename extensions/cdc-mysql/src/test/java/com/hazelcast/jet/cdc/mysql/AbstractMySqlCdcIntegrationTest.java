@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.cdc.mysql;
 
 import com.hazelcast.jet.cdc.AbstractCdcIntegrationTest;
+import com.hazelcast.jet.cdc.mysql.MySqlCdcSources.Builder;
 import com.hazelcast.jet.retry.RetryStrategies;
 import com.hazelcast.jet.test.IgnoreInJenkinsOnWindows;
 import com.hazelcast.test.HazelcastSerialClassRunner;
@@ -25,31 +26,27 @@ import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import static com.hazelcast.jet.cdc.MySQLTestUtils.getMySqlConnection;
+import static com.hazelcast.jet.TestedVersions.DEBEZIUM_MYSQL_IMAGE;
 import static org.testcontainers.containers.MySQLContainer.MYSQL_PORT;
 
 @Category({ParallelJVMTest.class, IgnoreInJenkinsOnWindows.class})
 @RunWith(HazelcastSerialClassRunner.class)
 public abstract class AbstractMySqlCdcIntegrationTest extends AbstractCdcIntegrationTest {
-
-    public static final DockerImageName DOCKER_IMAGE = DockerImageName.parse("debezium/example-mysql:2.3.0.Final")
-            .asCompatibleSubstituteFor("mysql");
-
     @Rule
     @SuppressWarnings("resource")
     public MySQLContainer<?> mysql = namedTestContainer(
-            new MySQLContainer<>(DOCKER_IMAGE)
+            new MySQLContainer<>(DEBEZIUM_MYSQL_IMAGE)
                     .withUsername("mysqluser")
                     .withPassword("mysqlpw")
     );
 
-    protected MySqlCdcSources.Builder sourceBuilder(String name) {
+    protected Builder sourceBuilder(String name) {
         return MySqlCdcSources.mysql(name)
                 .setDatabaseAddress(mysql.getHost())
                 .setDatabasePort(mysql.getMappedPort(MYSQL_PORT))

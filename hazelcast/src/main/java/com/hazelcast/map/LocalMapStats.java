@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import java.util.Map;
  * member may also hold backup entries of other members. LocalMapStats
  * provides the count of owned and backup entries besides their size in memory.
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public interface LocalMapStats extends LocalInstanceStats {
 
     /**
@@ -78,6 +78,7 @@ public interface LocalMapStats extends LocalInstanceStats {
      *
      * @return creation time of this map on this member.
      */
+    @Override
     long getCreationTime();
 
     /**
@@ -162,6 +163,20 @@ public interface LocalMapStats extends LocalInstanceStats {
      * @return number of remove operations
      */
     long getRemoveOperationCount();
+
+    /**
+     * Returns the number of <code>Map#values</code> calls
+     *
+     * @return number of <code>Map#values</code> calls
+     */
+    long getValuesCallCount();
+
+    /**
+     * Returns the number of <code>Map#entrySet</code> calls
+     *
+     * @return the number of <code>Map#entrySet</code> calls
+     */
+    long getEntrySetCallCount();
 
     /**
      * Returns the total latency of put operations. To get the average latency, divide by the number of puts
@@ -282,6 +297,15 @@ public interface LocalMapStats extends LocalInstanceStats {
      * @see #getQueryCount()
      */
     long getIndexedQueryCount();
+
+    /**
+     * Get throw count of {@link QueryResultSizeExceededException}
+     *
+     * @since 5.6
+     */
+    default long getQueryResultSizeExceededCount() {
+        return 0L;
+    }
 
     /**
      * Returns the per-index statistics map keyed by the index name.

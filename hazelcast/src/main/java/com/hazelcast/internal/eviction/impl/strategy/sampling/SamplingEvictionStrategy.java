@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public final class SamplingEvictionStrategy<A, E extends Evictable, S extends Sa
      *
      * @return true is an entry was evicted, otherwise false
      */
-    protected boolean evictInternal(S sampleableEvictableStore,
+    private boolean evictInternal(S sampleableEvictableStore,
             EvictionPolicyEvaluator<A, E> evictionPolicyEvaluator,
             EvictionListener<A, E> evictionListener) {
         final Iterable<EvictionCandidate<A, E>> samples = sampleableEvictableStore.sample(SAMPLE_COUNT);

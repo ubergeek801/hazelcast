@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public class SqlCreateMapping extends SqlCreate {
             externalName.unparse(writer, leftPrec, rightPrec);
         }
 
-        if (columns.size() > 0) {
+        if (!columns.isEmpty()) {
             SqlWriter.Frame frame = writer.startList("(", ")");
             for (SqlNode column : columns) {
                 printIndent(writer);

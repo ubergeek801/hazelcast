@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public final class ClientTpcConfig {
      * Enables or disables the TPC-aware mode.
      * <p>
      * When enabled, the configuration option set by the
-     * {@link ClientNetworkConfig#setSmartRouting(boolean)} is ignored.
+     * {@link ClusterRoutingConfig#setRoutingMode(RoutingMode)}} is ignored.
      *
      * @param enabled flag to enable or disable TPC-aware mode
      * @return this configuration for chaining.

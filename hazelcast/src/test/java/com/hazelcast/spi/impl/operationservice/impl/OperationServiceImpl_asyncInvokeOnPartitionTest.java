@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class OperationServiceImpl_asyncInvokeOnPartitionTest extends HazelcastTe
             PutOperation op = new PutOperation((String) entry.getValue(), key, val);
             int partitionId = nodeEngine.getPartitionService().getPartitionId(key);
             operationService.invokeOnPartitionAsync(MapService.SERVICE_NAME, op, partitionId)
-                    .thenRun(() -> latch.countDown());
+                    .thenRun(latch::countDown);
             return null;
         }
 

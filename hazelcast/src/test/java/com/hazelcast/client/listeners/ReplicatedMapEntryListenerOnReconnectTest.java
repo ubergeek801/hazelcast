@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.hazelcast.client.listeners;
 
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
@@ -49,7 +49,7 @@ public class ReplicatedMapEntryListenerOnReconnectTest extends AbstractListeners
 
     @Parameterized.Parameters(name = "{index}: routingMode={0}")
     public static Iterable<?> parameters() {
-        return Arrays.asList(RoutingMode.UNISOCKET, RoutingMode.SMART);
+        return Arrays.asList(RoutingMode.SINGLE_MEMBER, RoutingMode.ALL_MEMBERS);
     }
 
     @Override
@@ -79,6 +79,7 @@ public class ReplicatedMapEntryListenerOnReconnectTest extends AbstractListeners
         return replicatedMap.removeEntryListener(registrationId);
     }
 
+    @Override
     protected void validateRegistrationsOnMembers(final TestHazelcastFactory factory, int expected) {
         assertTrueEventually(() -> {
             boolean found = false;

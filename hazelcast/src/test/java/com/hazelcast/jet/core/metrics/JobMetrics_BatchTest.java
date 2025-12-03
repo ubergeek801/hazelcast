@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Locale;
 
 import static com.hazelcast.function.Functions.wholeItem;
@@ -38,7 +38,6 @@ import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.core.metrics.MetricNames.EMITTED_COUNT;
 import static com.hazelcast.jet.core.metrics.MetricNames.RECEIVED_COUNT;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -165,7 +164,7 @@ public class JobMetrics_BatchTest extends TestInClusterSupport {
 
         String[] words = originalText.split("\\W+");
         int wordCount = words.length;
-        int uniqueWordCount = new HashSet<>(asList(words)).size();
+        long uniqueWordCount = Arrays.stream(words).distinct().count();
 
         assertEquals(1, sumValueFor(metrics, SOURCE_VERTEX, EMITTED_COUNT));
         assertEquals(1, sumValueFor(metrics, FLAT_MAP_AND_FILTER_VERTEX, RECEIVED_COUNT));

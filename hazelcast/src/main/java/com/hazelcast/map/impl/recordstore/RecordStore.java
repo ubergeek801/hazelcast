@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.internal.iteration.IterationPointer;
 import com.hazelcast.internal.monitor.LocalRecordStoreStats;
 import com.hazelcast.internal.monitor.impl.LocalRecordStoreStatsImpl;
 import com.hazelcast.internal.nearcache.impl.invalidation.InvalidationQueue;
+import com.hazelcast.internal.nio.Disposable;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.util.comparators.ValueComparator;
 import com.hazelcast.map.IMap;
@@ -49,6 +50,7 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -83,13 +85,15 @@ public interface RecordStore<R extends Record> {
     Object putIfAbsent(Data dataKey, Object value, long ttl, long maxIdle, Address callerAddress);
 
     /**
+     * Called only by backup {@link com.hazelcast.map.EntryProcessor}
+     *
      * @param key        the key
      * @param value      the value to put backup
      * @param provenance origin of call to this method.
      * @return current record after put.
      */
-    R putBackup(Data key, Object value, boolean changeExpiryOnUpdate,
-                long ttl, long maxIdle, long nowOrExpiryTime, CallerProvenance provenance);
+    R putBackupForEntryProcessor(Data key, Object value, boolean changeExpiryOnUpdate,
+                                 long ttl, long maxIdle, long nowOrExpiryTime, CallerProvenance provenance);
 
     /**
      * @return current record after put.
@@ -138,9 +142,8 @@ public interface RecordStore<R extends Record> {
      * <p>
      * An implementation is not supposed to be thread safe.
      *
-     * @param dataKey
-     * @param record  the accessed record
-     * @param now     the current time
+     * @param record the accessed record
+     * @param now    the current time
      */
     void accessRecord(Data dataKey, Record record, long now);
 
@@ -449,8 +452,7 @@ public interface RecordStore<R extends Record> {
     /**
      * Does post eviction operations like sending events
      *
-     * @param dataValue    record to process
-     * @param expiryReason
+     * @param dataValue record to process
      */
     void doPostEvictionOperations(@Nonnull Data dataKey, @Nonnull Object dataValue,
                                   @Nonnull ExpiryReason expiryReason);
@@ -627,10 +629,12 @@ public interface RecordStore<R extends Record> {
      *                             MapService shutdown, false otherwise.
      * @param onRecordStoreDestroy true if record-store will be destroyed,
      *                             otherwise false.
+     * @param disposables          disposable like freeing
+     *                             memory can be added this queue to make actual disposal later
      */
     @SuppressWarnings("JavadocReference")
-    void clearPartition(boolean onShutdown,
-                        boolean onRecordStoreDestroy);
+    void clearPartition(boolean onShutdown, boolean onRecordStoreDestroy,
+                        @Nullable Queue<Disposable> disposables);
 
     /**
      * Called by {@link IMap#clear()}.

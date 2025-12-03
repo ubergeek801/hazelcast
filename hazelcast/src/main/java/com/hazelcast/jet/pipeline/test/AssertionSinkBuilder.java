@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public final class AssertionSinkBuilder<S, T> {
     /**
      * Sets the function Jet will call upon receiving every item. The function
      * receives two arguments: the state object (as provided by the {@link
-     * #createFn} and the received item. It may assert the item
+     * #createFn}) and the received item. It may assert the item
      * directly or push it to the state object.
      *
      * @param receiveFn the function to execute upon receiving an item

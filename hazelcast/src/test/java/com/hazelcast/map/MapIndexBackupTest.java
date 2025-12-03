@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,11 +90,7 @@ public class MapIndexBackupTest extends HazelcastTestSupport {
         Map<Member, Set<Object>> foundByPredicateByMember = new HashMap<>();
         for (Object key : foundByPredicate) {
             Member owner = instance1.getPartitionService().getPartition(key).getOwner();
-            Set<Object> keys = foundByPredicateByMember.get(owner);
-            if (keys == null) {
-                keys = new HashSet<>();
-                foundByPredicateByMember.put(owner, keys);
-            }
+            Set<Object> keys = foundByPredicateByMember.computeIfAbsent(owner, k -> new HashSet<>());
             keys.add(key);
         }
 

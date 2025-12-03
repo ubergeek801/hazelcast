@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,7 @@ public class MongoSqlConnectorIT extends MongoSqlIT {
     }
 
 
+    @Override
     protected void execute(String sql, Object... arguments) {
         sqlService.execute(sql, arguments).close();
     }
@@ -161,7 +162,7 @@ public class MongoSqlConnectorIT extends MongoSqlIT {
         collection.insertOne(new Document("firstName", "Luke").append("lastName", "Skywalker").append("jedi", "true"));
 
         Pattern parallelismDagPattern = Pattern.compile("\\[localParallelism=(\\d)+]");
-        AtomicBoolean otherFound = new AtomicBoolean(false);
+        AtomicBoolean otherFound = new AtomicBoolean();
         LogListener lookForProjectAndFilterStep = log -> {
             String message = log.getLogRecord().getMessage();
             Matcher matcher = parallelismDagPattern.matcher(message);
@@ -202,7 +203,7 @@ public class MongoSqlConnectorIT extends MongoSqlIT {
         collection.insertOne(new Document("firstName", "Luke").append("lastName", "Skywalker").append("jedi", "true"));
 
         Pattern parallelismDagPattern = Pattern.compile("\\[localParallelism=(\\d)+]");
-        AtomicBoolean otherFound = new AtomicBoolean(false);
+        AtomicBoolean otherFound = new AtomicBoolean();
         LogListener lookForProjectAndFilterStep = log -> {
             String message = log.getLogRecord().getMessage();
             Matcher matcher = parallelismDagPattern.matcher(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.ClientRemovePartitionLostListenerCodec;
 import com.hazelcast.instance.impl.Node;
 import com.hazelcast.internal.nio.Connection;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.InternalPartitionService;
 
 import java.security.Permission;
@@ -35,7 +36,7 @@ public class RemovePartitionLostListenerMessageTask
 
     @Override
     protected Future<Boolean> deRegisterListener() {
-        final InternalPartitionService service = getService(InternalPartitionService.SERVICE_NAME);
+        final InternalPartitionService service = getService(IPartitionService.SERVICE_NAME);
         return service.removePartitionLostListenerAsync(parameters);
     }
 
@@ -56,7 +57,7 @@ public class RemovePartitionLostListenerMessageTask
 
     @Override
     public String getServiceName() {
-        return InternalPartitionService.SERVICE_NAME;
+        return IPartitionService.SERVICE_NAME;
     }
 
     @Override

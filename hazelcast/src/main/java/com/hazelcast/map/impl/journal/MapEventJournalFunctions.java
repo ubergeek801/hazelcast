@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ package com.hazelcast.map.impl.journal;
 
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.internal.journal.DeserializingEntry;
+import com.hazelcast.internal.journal.DeserializingJournalEntry;
 import com.hazelcast.internal.serialization.SerializableByConvention;
+import com.hazelcast.jet.pipeline.JournalSourceEntry;
 import com.hazelcast.map.EventJournalMapEvent;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -42,6 +45,20 @@ public final class MapEventJournalFunctions {
         return new MapEventToEntryProjection<>();
     }
 
+    /**
+     * Returns a projection function that converts a Hazelcast
+     * {@link EventJournalMapEvent} into a {@link JournalSourceEntry}.
+     *
+     * @param <K> the key type of the map
+     * @param <V> the value type of the map
+     * @return a function mapping {@link  EventJournalMapEvent} to
+     *         {@link  JournalSourceEntry}
+     * @since 5.7
+     */
+    public static <K, V> Function<EventJournalMapEvent<K, V>, JournalSourceEntry<K, V>> mapEventToJournalEntry() {
+        return new MapEventToJournalEntryProjection<>();
+    }
+
     @SuppressWarnings("unchecked")
     public static <K, V> Function<EventJournalMapEvent<K, V>, V> mapEventNewValue() {
         return new MapEventNewValueProjection();
@@ -49,6 +66,7 @@ public final class MapEventJournalFunctions {
 
     @SerializableByConvention
     private static class MapPutEventsPredicate<K, V> implements Predicate<EventJournalMapEvent<K, V>>, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -60,6 +78,7 @@ public final class MapEventJournalFunctions {
     @SerializableByConvention
     private static class MapEventToEntryProjection<K, V>
             implements Function<EventJournalMapEvent<K, V>, Entry<K, V>>, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -70,7 +89,21 @@ public final class MapEventJournalFunctions {
     }
 
     @SerializableByConvention
+    private static class MapEventToJournalEntryProjection<K, V>
+            implements Function<EventJournalMapEvent<K, V>, JournalSourceEntry<K, V>>, Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public JournalSourceEntry<K, V> apply(EventJournalMapEvent<K, V> e) {
+            DeserializingEventJournalMapEvent<K, V> casted = (DeserializingEventJournalMapEvent<K, V>) e;
+            return new DeserializingJournalEntry<>(casted.getDataKey(), casted.getDataNewValue(), casted.isAfterLostEvents());
+        }
+    }
+
+    @SerializableByConvention
     private static class MapEventNewValueProjection implements Function, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Override

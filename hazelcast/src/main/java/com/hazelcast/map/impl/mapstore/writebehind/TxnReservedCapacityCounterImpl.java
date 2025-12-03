@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,11 @@ import java.util.concurrent.ConcurrentMap;
  * is node-wide capacity counter, other one is record-store's
  * reserved capacity counter. Depending on the context
  * we operate on a single counter or both.
- *
+ * <p>
  * Note that record-store's reserved capacity counter
  * is only used with transactions and when {@link
  * com.hazelcast.config.MapStoreConfig#writeCoalescing} is off.
- *
+ * <p>
  * Every record-store has its own counter instance.
  *
  * @see TxnReservedCapacityCounter
@@ -76,11 +76,11 @@ public class TxnReservedCapacityCounterImpl implements TxnReservedCapacityCounte
 
     /**
      * Increments 2 counters with supplied txn reserved capacity counts.
-     *
+     * <p>
      * One is record-store's reserved capacity counter
      * and other one is node-wide capacity counter.
-     *
-     * Note that this method is only used with migrations
+     * <p>
+     * Note that this method is only used with migrations,
      * and it doesn't throw ReachedMaxSizeException.
      *
      * @param reservedCapacityPerTxnId reserved capacities per txnId

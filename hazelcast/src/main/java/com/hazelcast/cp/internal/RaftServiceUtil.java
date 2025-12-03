@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.cp.internal;
 public class RaftServiceUtil {
 
     public static final String SERVICE_NAME = "hz:core:raft";
+    public static final String CP_SUBSYSTEM_EXECUTOR = "hz:cpSubsystem";
 
     private RaftServiceUtil() {
     }

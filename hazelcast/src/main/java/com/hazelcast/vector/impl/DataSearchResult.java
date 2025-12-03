@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class DataSearchResult implements InternalSearchResult<Data, Data>, Ident
         IOUtil.writeData(out, key);
         out.writeFloat(score);
         IOUtil.writeData(out, value);
-        out.writeObject(vectors);
+        VectorIOUtils.writeSingleVectorValue(out, vectors);
     }
 
     @Override
@@ -105,7 +105,8 @@ public class DataSearchResult implements InternalSearchResult<Data, Data>, Ident
         key = IOUtil.readData(in);
         score = in.readFloat();
         value = IOUtil.readData(in);
-        vectors = in.readObject();
+        // vector data is always deserialized as a SingleIndexVectorValues.
+        vectors = VectorIOUtils.readSingleVectorValue(in);
     }
 
     @Override
@@ -149,6 +150,6 @@ public class DataSearchResult implements InternalSearchResult<Data, Data>, Ident
 
     @Override
     public int hashCode() {
-        return Objects.hash(key);
+        return Objects.hash(key, score, id, value, vectors);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package com.hazelcast.test;
 
+import com.hazelcast.internal.util.ConcurrencyUtil;
 import org.apache.logging.log4j.ThreadContext;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 
-import static com.hazelcast.test.JenkinsDetector.isOnJenkins;
+import static com.hazelcast.test.CiExecutionDetector.isOnCi;
 
 public final class TestLoggingUtils {
 
@@ -69,7 +69,7 @@ public final class TestLoggingUtils {
         if (!IS_LOG4J2_AVAILABLE) {
             return false;
         }
-        if (isOnJenkins()) {
+        if (isOnCi()) {
             return true;
         }
         if (System.getProperty(LOGGING_TYPE_PROP_NAME) == null && System.getProperty(LOGGING_CLASS_PROP_NAME) == null) {
@@ -80,7 +80,7 @@ public final class TestLoggingUtils {
 
     public static class CustomTestNameAwareForkJoinPool implements Executor {
 
-        private final Executor defaultExecutor = ForkJoinPool.commonPool();
+        private final Executor defaultExecutor = ConcurrencyUtil.getDefaultAsyncExecutor();
 
         @Override
         public void execute(@Nonnull Runnable task) {

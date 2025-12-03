@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import static com.hazelcast.spi.impl.AbstractInvocationFuture.wrapOrPeel;
 @SuppressWarnings("checkstyle:methodcount")
 public class InternalCompletableFuture<V> extends CompletableFuture<V> {
 
+    @Override
     public Executor defaultExecutor() {
         return ConcurrencyUtil.getDefaultAsyncExecutor();
     }
@@ -329,7 +330,6 @@ public class InternalCompletableFuture<V> extends CompletableFuture<V> {
 
     /**
      *
-     * @param future
      * @return  a {@link BiConsumer} to be used with {@link CompletableFuture#whenComplete(BiConsumer)} and variants
      *          that completes the {@code future} given as argument normally or exceptionally, depending on whether
      *          {@code Throwable} argument is {@code null}

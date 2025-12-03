@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,43 +43,43 @@ public class CompositeCacheRSMutationObserver implements CacheRSMutationObserver
 
     @Override
     public void onCreate(Data key, Object value) {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onCreate(key, value);
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onCreate(key, value);
         }
     }
 
     @Override
     public void onRemove(Data key, Object value) {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onRemove(key, value);
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onRemove(key, value);
         }
     }
 
     @Override
     public void onUpdate(Data key, Object oldValue, Object value) {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onUpdate(key, oldValue, value);
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onUpdate(key, oldValue, value);
         }
     }
 
     @Override
     public void onEvict(Data key, Object value) {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onEvict(key, value);
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onEvict(key, value);
         }
     }
 
     @Override
     public void onExpire(Data key, Object value) {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onExpire(key, value);
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onExpire(key, value);
         }
     }
 
     @Override
     public void onDestroy() {
-        for (int i = 0; i < mutationObservers.size(); i++) {
-            mutationObservers.get(i).onDestroy();
+        for (CacheRSMutationObserver mutationObserver : mutationObservers) {
+            mutationObserver.onDestroy();
         }
     }
 }

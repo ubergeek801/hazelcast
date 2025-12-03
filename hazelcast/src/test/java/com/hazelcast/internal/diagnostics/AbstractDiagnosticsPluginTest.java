@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class AbstractDiagnosticsPluginTest extends HazelcastTestSupport {
         assertNotContains(getContent(), expected);
     }
 
-    static Diagnostics getDiagnostics(HazelcastInstance hazelcastInstance) {
+    protected static Diagnostics getDiagnostics(HazelcastInstance hazelcastInstance) {
         NodeEngineImpl nodeEngine = getNodeEngineImpl(hazelcastInstance);
         try {
             Field field = NodeEngineImpl.class.getDeclaredField("diagnostics");
@@ -72,13 +72,13 @@ public class AbstractDiagnosticsPluginTest extends HazelcastTestSupport {
         if (diagnostics == null) {
             return;
         }
-        File[] files = diagnostics.directory.listFiles();
+        File[] files = diagnostics.getLoggingDirectory().listFiles();
         if (files == null) {
             return;
         }
         for (File file : files) {
             String name = file.getName();
-            if (name.startsWith(diagnostics.baseFileName) && name.endsWith(".log")) {
+            if (name.startsWith(diagnostics.getBaseFileNameWithTime()) && name.endsWith(".log")) {
                 deleteQuietly(file);
             }
         }

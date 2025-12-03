@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+# Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -643,7 +643,7 @@ hazelcast:
   native-memory:
     allocator-type: STANDARD
     enabled: true
-    size:
+    capacity:
       unit: MEGABYTES
       value: 256
     min-block-size: 128
@@ -677,7 +677,7 @@ hazelcast:
       - name: jaasRealm
         authentication:
           jaas:
-            - class-name: com.hazelcast.examples.MyRequiredLoginModule
+            - class-name: org.example.EmptyLoginModule
               usage: REQUIRED
               properties:
                 property: value
@@ -1146,6 +1146,8 @@ hazelcast:
 
   vector-collection:
     vector-1:
+      backup-count: 1
+      async-backup-count: 0
       indexes:
         - name: index-1
           dimension: 2
@@ -1153,4 +1155,9 @@ hazelcast:
           max-degree: 10
           ef-construction: 20
           use-deduplication: false
+      split-brain-protection-ref: splitBrainProtectionRuleWithThreeMembers
+      user-code-namespace: ns1
+      merge-policy:
+        batch-size: 1000
+        class-name: PutIfAbsentMergePolicy
 

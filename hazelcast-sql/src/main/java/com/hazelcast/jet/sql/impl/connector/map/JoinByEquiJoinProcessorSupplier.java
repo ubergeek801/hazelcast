@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import com.hazelcast.sql.impl.expression.Expression;
 import com.hazelcast.sql.impl.expression.ExpressionEvalContext;
 import com.hazelcast.sql.impl.extract.QueryPath;
 import com.hazelcast.sql.impl.row.JetSqlRow;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,10 +58,10 @@ import static com.hazelcast.security.permission.ActionConstants.ACTION_CREATE;
 import static com.hazelcast.security.permission.ActionConstants.ACTION_READ;
 import static java.util.Collections.singletonList;
 
-@SuppressFBWarnings(
-        value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
-        justification = "the class is never java-serialized"
-)
+//@SuppressFBWarnings(
+//        value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
+//        justification = "the class is never java-serialized"
+//)
 final class JoinByEquiJoinProcessorSupplier implements ProcessorSupplier, DataSerializable {
 
     private JetJoinInfo joinInfo;
@@ -112,7 +111,7 @@ final class JoinByEquiJoinProcessorSupplier implements ProcessorSupplier, DataSe
                     : new PartitionIdSet(partitionCount, this.partitions);
             QueryPath[] rightPaths = rightRowProjectorSupplier.paths();
             KvRowProjector rightProjector = rightRowProjectorSupplier.get(evalContext, extractors);
-            Processor processor = new TransformP<JetSqlRow, JetSqlRow>(
+            Processor processor = new TransformP<>(
                     joinFn(joinInfo, map, partitions, rightPaths, rightProjector, evalContext)
             ) {
                 @Override
@@ -209,10 +208,10 @@ final class JoinByEquiJoinProcessorSupplier implements ProcessorSupplier, DataSe
         return new Supplier(joinInfo, mapName, rightRowProjectorSupplier);
     }
 
-    @SuppressFBWarnings(
-            value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
-            justification = "the class is never java-serialized"
-    )
+//    @SuppressFBWarnings(
+//            value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
+//            justification = "the class is never java-serialized"
+//    )
     private static final class Supplier implements ProcessorMetaSupplier, DataSerializable {
 
         private JetJoinInfo joinInfo;

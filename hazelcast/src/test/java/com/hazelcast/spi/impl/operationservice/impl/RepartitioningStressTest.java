@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,11 +185,11 @@ public class RepartitioningStressTest extends HazelcastTestSupport {
 
     private void assertEqualsWithDuplicatesTolerance(String msg, long expected, long actual) {
         assertThat(actual)
-                .as(msg + ": number of actual events lost is outside of tolerance")
+                .as("%s: number of actual events lost is outside of tolerance", msg)
                 .isGreaterThan((long) (expected * LOST_EVENTS_TOLERANCE));
 
         assertThat(actual)
-                .as(msg + ": number of actual events duplicated is outside of tolerance")
+                .as("%s: number of actual events duplicated is outside of tolerance", msg)
                 .isLessThan(expected + DUPLICATE_OPS_TOLERANCE);
     }
 
@@ -261,7 +261,7 @@ public class RepartitioningStressTest extends HazelcastTestSupport {
             this.map = map;
             this.values = new AtomicInteger[itemCount];
             for (int i = 0; i < itemCount; i++) {
-                this.values[i] = new AtomicInteger(0);
+                this.values[i] = new AtomicInteger();
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,17 @@
 package com.hazelcast.cache.impl.operation;
 
 import com.hazelcast.cache.impl.CacheDataSerializerHook;
+import com.hazelcast.cache.impl.CacheService;
+import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.impl.operations.PartitionAwareOperationFactory;
 import com.hazelcast.spi.merge.SplitBrainMergePolicy;
 import com.hazelcast.spi.merge.SplitBrainMergeTypes.CacheMergeTypes;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,7 +45,6 @@ public class CacheMergeOperationFactory extends PartitionAwareOperationFactory {
     public CacheMergeOperationFactory() {
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public CacheMergeOperationFactory(String name, int[] partitions, List<CacheMergeTypes<Object, Object>>[] mergingEntries,
                                       SplitBrainMergePolicy<Object, CacheMergeTypes<Object, Object>, Object> mergePolicy) {
         this.name = name;
@@ -68,10 +68,7 @@ public class CacheMergeOperationFactory extends PartitionAwareOperationFactory {
         out.writeString(name);
         out.writeIntArray(partitions);
         for (List<CacheMergeTypes<Object, Object>> list : mergingEntries) {
-            out.writeInt(list.size());
-            for (CacheMergeTypes<Object, Object> mergingEntry : list) {
-                out.writeObject(mergingEntry);
-            }
+            SerializationUtil.writeList(list, out);
         }
         out.writeObject(mergePolicy);
     }
@@ -83,15 +80,10 @@ public class CacheMergeOperationFactory extends PartitionAwareOperationFactory {
         //noinspection unchecked
         mergingEntries = new List[partitions.length];
         for (int partitionIndex = 0; partitionIndex < partitions.length; partitionIndex++) {
-            int size = in.readInt();
-            List<CacheMergeTypes<Object, Object>> list = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                CacheMergeTypes<Object, Object> mergingEntry = in.readObject();
-                list.add(mergingEntry);
-            }
+            List<CacheMergeTypes<Object, Object>> list = SerializationUtil.readList(in);
             mergingEntries[partitionIndex] = list;
         }
-        mergePolicy = in.readObject();
+        mergePolicy = NamespaceUtil.callWithNamespace(in::readObject, name, CacheService::lookupNamespace);
     }
 
     @Override

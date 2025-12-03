@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,7 @@ import com.hazelcast.spi.impl.eventservice.EventFilter;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Clients which are AWARE of eventual consistent Near Cache should call this task.
- *
- * @see Pre38MapAddNearCacheEntryListenerMessageTask
- */
+/** Clients which are AWARE of eventual consistent Near Cache should call this task. */
 public class MapAddNearCacheInvalidationListenerMessageTask
         extends AbstractMapAddEntryListenerMessageTask<MapAddNearCacheInvalidationListenerCodec.RequestParameters> {
 

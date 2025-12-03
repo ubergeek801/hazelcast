@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ final class SlowOperationLog {
 
     private static final int SHORT_STACKTRACE_LENGTH = 200;
 
-    final AtomicInteger totalInvocations = new AtomicInteger(0);
+    final AtomicInteger totalInvocations = new AtomicInteger();
 
     final String operation;
     final String stackTrace;

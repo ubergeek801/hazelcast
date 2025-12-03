@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ public class ExecutorServiceTestSupport extends HazelcastTestSupport {
 
     public static class SerializationCountingCallable implements Callable<Void>, DataSerializable {
 
-        private AtomicInteger serializationCount = new AtomicInteger();
+        private final AtomicInteger serializationCount = new AtomicInteger();
 
         @Override
         public void writeData(ObjectDataOutput out) throws IOException {
@@ -302,7 +302,7 @@ public class ExecutorServiceTestSupport extends HazelcastTestSupport {
 
     public static class NullResponseCountingCallback<T> implements Consumer<T>, ExecutionCallback<T> {
 
-        private final AtomicInteger nullResponseCount = new AtomicInteger(0);
+        private final AtomicInteger nullResponseCount = new AtomicInteger();
 
         private final CountDownLatch responseLatch;
 
@@ -330,11 +330,6 @@ public class ExecutorServiceTestSupport extends HazelcastTestSupport {
 
         public int getNullResponseCount() {
             return nullResponseCount.get();
-        }
-
-        public boolean awaitResponseLatch(int seconds)
-                throws InterruptedException {
-            return responseLatch.await(seconds, TimeUnit.SECONDS);
         }
 
         public CountDownLatch getResponseLatch() {
@@ -374,7 +369,7 @@ public class ExecutorServiceTestSupport extends HazelcastTestSupport {
     public static class BooleanSuccessResponseCountingCallback
             implements Consumer<Boolean>, ExecutionCallback<Boolean> {
 
-        private final AtomicInteger successResponseCount = new AtomicInteger(0);
+        private final AtomicInteger successResponseCount = new AtomicInteger();
         private final CountDownLatch responseLatch;
 
         public BooleanSuccessResponseCountingCallback(int count) {

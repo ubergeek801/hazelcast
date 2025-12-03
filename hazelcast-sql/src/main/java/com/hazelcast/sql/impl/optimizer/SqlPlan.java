@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,8 @@ public abstract class SqlPlan {
      * @return {@code true} if the query produces rows, {@code false} otherwise
      */
     public abstract boolean producesRows();
+
+    public abstract boolean supportsTimeout();
 
     public abstract SqlResult execute(QueryId queryId, List<Object> arguments, long timeout, SqlSecurityContext ssc);
 }

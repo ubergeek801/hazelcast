@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ public abstract class AbstractBasicConfig<T extends AbstractBasicConfig>
      *
      * @return the name of this data structure
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -64,6 +65,7 @@ public abstract class AbstractBasicConfig<T extends AbstractBasicConfig>
      * @param name the name of this data structure
      * @return the updated configuration
      */
+    @Override
     public T setName(String name) {
         this.name = checkNotNull(name, "name cannot be null");
         //noinspection unchecked

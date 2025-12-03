@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,7 @@ public class ClientMultiMapListenerStressTest {
             mm.addEntryListener(listener, true);
         }
 
+        @Override
         public void run() {
             for (int i = 0; i < MAX_ITEMS; i++) {
                 mm.put(id + i, id + i);
@@ -120,7 +121,7 @@ public class ClientMultiMapListenerStressTest {
     }
 
     static class MyEntryListener extends EntryAdapter {
-        public AtomicInteger add = new AtomicInteger(0);
+        public AtomicInteger add = new AtomicInteger();
 
         public void entryAdded(EntryEvent event) {
             add.incrementAndGet();

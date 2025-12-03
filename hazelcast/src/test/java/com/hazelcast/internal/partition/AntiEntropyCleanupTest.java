@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import java.util.Collection;
 import static com.hazelcast.spi.properties.ClusterProperty.PARTITION_BACKUP_SYNC_INTERVAL;
 import static com.hazelcast.test.Accessors.getPartitionService;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 
 @RunWith(HazelcastParametrizedRunner.class)
 @UseParametersRunnerFactory(HazelcastParallelParametersRunnerFactory.class)
@@ -80,7 +80,7 @@ public class AntiEntropyCleanupTest extends HazelcastTestSupport {
             assertTrueEventually(() -> {
                 for (int partitionId = 0; partitionId < partitionService.getPartitionCount(); partitionId++) {
                     for (ServiceNamespace namespace : replicaVersionManager.getNamespaces(partitionId)) {
-                        assertFalse(namespace.getServiceName().equals(MapService.SERVICE_NAME));
+                        assertNotEquals(MapService.SERVICE_NAME, namespace.getServiceName());
                     }
                 }
             });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ public class TxnMapNearCacheSerializationCountTest extends AbstractNearCacheSeri
         NearCacheTestContextBuilder<K, V, Data, String> builder = createNearCacheContextBuilder();
         return builder
                 .setDataInstance(dataMember)
-                .setDataAdapter(new TransactionalMapDataStructureAdapter<K, V>(dataMember, DEFAULT_NEAR_CACHE_NAME))
+                .setDataAdapter(new TransactionalMapDataStructureAdapter<>(dataMember, DEFAULT_NEAR_CACHE_NAME))
                 .build();
     }
 
@@ -188,7 +188,7 @@ public class TxnMapNearCacheSerializationCountTest extends AbstractNearCacheSeri
 
         return new NearCacheTestContextBuilder<K, V, Data, String>(nearCacheConfig, getSerializationService(nearCacheMember))
                 .setNearCacheInstance(nearCacheMember)
-                .setNearCacheAdapter(new TransactionalMapDataStructureAdapter<K, V>(nearCacheMember, DEFAULT_NEAR_CACHE_NAME))
+                .setNearCacheAdapter(new TransactionalMapDataStructureAdapter<>(nearCacheMember, DEFAULT_NEAR_CACHE_NAME))
                 .setNearCache(nearCache)
                 .setNearCacheManager(nearCacheManager);
     }

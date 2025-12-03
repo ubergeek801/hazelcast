@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public final class Version implements IdentifiedDataSerializable, Comparable<Ver
     public static Version of(String version) {
         String[] tokens = StringUtil.tokenizeVersionString(version);
         if (tokens != null && tokens.length >= 2) {
-            return Version.of(Byte.valueOf(tokens[0]), Byte.valueOf(tokens[1]));
+            return Version.of(Byte.parseByte(tokens[0]), Byte.parseByte(tokens[1]));
         } else {
             throw new IllegalArgumentException("Cannot parse " + version + " to ClusterVersion.");
         }

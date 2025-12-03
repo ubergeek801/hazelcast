@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package com.hazelcast.jet.sql.impl.connector.kafka.model;
 
+import com.hazelcast.test.TestJavaSerializationUtils;
 import org.apache.kafka.common.serialization.Deserializer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.util.Map;
 
 /**
@@ -27,15 +26,14 @@ import java.util.Map;
  */
 public class JavaDeserializer implements Deserializer<Object> {
     public void configure(Map map, boolean b) { }
+
+    @Override
     public void close() { }
 
     @Override
     public Object deserialize(String topic, byte[] data) {
         try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(data);
-            try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-                return ois.readObject();
-            }
+            return TestJavaSerializationUtils.deserialize(data);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

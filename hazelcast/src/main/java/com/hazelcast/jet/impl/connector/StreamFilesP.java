@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.impl.connector;
 
 import com.hazelcast.function.BiFunctionEx;
+import com.hazelcast.jet.pipeline.impl.ConnectorNames;
 import com.hazelcast.security.impl.function.SecuredFunctions;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.core.AbstractProcessor;
@@ -101,7 +102,7 @@ public class StreamFilesP<R> extends AbstractProcessor {
     private final Queue<Path> eventQueue = new ArrayDeque<>();
 
     private WatchService watcher;
-    private StringBuilder lineBuilder = new StringBuilder();
+    private final StringBuilder lineBuilder = new StringBuilder();
     private R pendingItem;
     private Path currentFile;
     private String currentFileName;
@@ -260,6 +261,7 @@ public class StreamFilesP<R> extends AbstractProcessor {
         FileOffset offset = fileOffsets.getOrDefault(currentFile, FileOffset.ZERO);
         getLogger().fine("Processing file %s, previous offset: %s", currentFile, offset);
         try {
+            @SuppressWarnings("squid:S2095")
             FileInputStream fis = new FileInputStream(currentFile.toFile());
             fis.getChannel().position(offset.positiveOffset());
             BufferedReader r = new BufferedReader(new InputStreamReader(fis, charset));
@@ -365,12 +367,12 @@ public class StreamFilesP<R> extends AbstractProcessor {
 
         return ProcessorMetaSupplier.of(2, ConnectorPermission.file(watchedDirectory, ACTION_READ),
                 ProcessorSupplier.of(SecuredFunctions.streamFileProcessorFn(watchedDirectory, charset, glob,
-                        sharedFileSystem, mapOutputFn)));
+                        sharedFileSystem, mapOutputFn)), ConnectorNames.FILE_WATCHER);
     }
 
     private static WatchEvent.Modifier[] getHighSensitivityModifiers() {
         // Modifiers for file watch service to achieve the highest possible sensitivity.
-        // Background: Java 7 SE defines no standard modifiers for a watch service. However some JDKs use internal
+        // Background: Java 7 SE defines no standard modifiers for a watch service. However, some JDKs use internal
         // modifiers to increase sensitivity. This field contains modifiers to be used for highest possible sensitivity.
         // It's JVM-specific and hence it's just a best-effort.
         // I believe this is useful on platforms without native watch service (or where Java does not use it) e.g. MacOSX

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.hazelcast.client.impl;
 
 import com.hazelcast.internal.util.counters.MwCounter;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +32,7 @@ public class ClientEndpointStatistics {
     private final MwCounter connectionsOpened = MwCounter.newMwCounter();
     private final MwCounter connectionsClosed = MwCounter.newMwCounter();
     private final MwCounter totalConnectionDuration = MwCounter.newMwCounter();
-    private final Set<String> clientVersions = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<String> clientVersions = ConcurrentHashMap.newKeySet();
 
     public void incrementConnectionsOpenedCount() {
         connectionsOpened.inc();

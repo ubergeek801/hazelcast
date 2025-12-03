@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import org.w3c.dom.UserDataHandler;
 
 import static com.hazelcast.internal.config.yaml.EmptyNodeList.emptyNodeList;
 
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public class ScalarTextNodeAdapter implements Node {
-    private YamlScalar scalar;
+    private final YamlScalar scalar;
 
     ScalarTextNodeAdapter(YamlScalar scalar) {
         this.scalar = scalar;

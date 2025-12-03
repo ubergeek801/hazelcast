@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public class NotEqualPredicate extends AbstractPredicate implements NegatablePre
         return !super.apply(mapEntry);
     }
 
+    @Override
     protected boolean applyForSingleAttributeValue(Comparable attributeValue) {
         // XXX: The code below performs equality check, instead of inequality.
         // The result of this check is negated in NotEqualPredicate.apply method.

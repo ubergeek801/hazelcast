@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import com.hazelcast.security.permission.MapPermission;
 import com.hazelcast.sql.impl.expression.Expression;
 import com.hazelcast.sql.impl.expression.ExpressionEvalContext;
 import com.hazelcast.sql.impl.row.JetSqlRow;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -49,10 +48,10 @@ import static com.hazelcast.security.permission.ActionConstants.ACTION_CREATE;
 import static com.hazelcast.security.permission.ActionConstants.ACTION_READ;
 import static java.util.Collections.singletonList;
 
-@SuppressFBWarnings(
-        value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
-        justification = "the class is never java-serialized"
-)
+//@SuppressFBWarnings(
+//        value = {"SE_BAD_FIELD", "SE_NO_SERIALVERSIONID"},
+//        justification = "the class is never java-serialized"
+//)
 final class JoinScanProcessorSupplier implements ProcessorSupplier, DataSerializable {
 
     private JetJoinInfo joinInfo;
@@ -88,7 +87,7 @@ final class JoinScanProcessorSupplier implements ProcessorSupplier, DataSerializ
         List<Processor> processors = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             Processor processor =
-                    new TransformBatchedP<JetSqlRow, JetSqlRow>(
+                    new TransformBatchedP<>(
                             joinFn(joinInfo, map, rightRowProjectorSupplier, evalContext)
                     ) {
                         @Override

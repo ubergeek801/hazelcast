@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.spi.impl.SpiDataSerializerHook;
 
 import java.io.IOException;
+import java.io.Serial;
 
 /**
  * Simple implementation of {@link PasswordCredentials} using
@@ -31,6 +32,7 @@ import java.io.IOException;
 @BinaryInterface
 public class UsernamePasswordCredentials implements PasswordCredentials, IdentifiedDataSerializable {
 
+    @Serial
     private static final long serialVersionUID = -1508314631354255039L;
 
     private String name;

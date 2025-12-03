@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,10 @@ public class LiveOperationRegistry {
     // memberAddress -> callId -> operation
     private final ConcurrentHashMap<Address, Map<Long, Operation>> liveOperations = new ConcurrentHashMap<>();
 
-    public void register(Operation operation) {
+    public boolean register(Operation operation) {
         Map<Long, Operation> callIds = liveOperations.computeIfAbsent(operation.getCallerAddress(),
-                (key) -> new ConcurrentHashMap<>());
-        if (callIds.putIfAbsent(operation.getCallId(), operation) != null) {
-            throw new IllegalStateException("Duplicate operation during registration of operation=" + operation);
-        }
+                key -> new ConcurrentHashMap<>());
+        return callIds.putIfAbsent(operation.getCallId(), operation) == null;
     }
 
     public void deregister(Operation operation) {

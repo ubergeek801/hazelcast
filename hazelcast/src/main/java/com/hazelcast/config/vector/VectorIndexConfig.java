@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,18 @@ import static java.util.Objects.requireNonNull;
 @Beta
 public class VectorIndexConfig implements NamedConfig, IdentifiedDataSerializable {
 
-    private static final int DEFAULT_MAX_DEGREE = 16;
-    private static final int DEFAULT_EF_CONSTRUCTION = 100;
-    private static final boolean DEFAULT_USE_DEDUPLICATION = true;
+    /**
+     * Default max degree value
+     */
+    public static final int DEFAULT_MAX_DEGREE = 32;
+    /**
+     * Default efConstruction value
+     */
+    public static final int DEFAULT_EF_CONSTRUCTION = 100;
+    /**
+     * Default value of whether deduplication is enabled
+     */
+    public static final boolean DEFAULT_USE_DEDUPLICATION = true;
 
     /**
      * Name of index. Names of indexes within a single VectorCollection
@@ -60,11 +69,7 @@ public class VectorIndexConfig implements NamedConfig, IdentifiedDataSerializabl
      * @throws NullPointerException     if the metric is null.
      */
     public VectorIndexConfig(String indexName, Metric metric, int dimension) {
-        validateName(indexName);
-        requireNonNull(metric, "metric must not be null.");
-        this.indexName = indexName;
-        this.metric = metric;
-        this.dimension = dimension;
+        this(indexName, metric, dimension, DEFAULT_MAX_DEGREE, DEFAULT_EF_CONSTRUCTION, DEFAULT_USE_DEDUPLICATION);
     }
 
     /**
@@ -89,6 +94,9 @@ public class VectorIndexConfig implements NamedConfig, IdentifiedDataSerializabl
     ) {
         validateName(indexName);
         requireNonNull(metric, "metric must not be null.");
+        if (dimension <= 0) {
+            throw new IllegalArgumentException("dimension must be positive");
+        }
         if (maxDegree <= 0) {
             throw new IllegalArgumentException("max connections must be positive");
         }
@@ -164,6 +172,9 @@ public class VectorIndexConfig implements NamedConfig, IdentifiedDataSerializabl
      * @return this VectorIndexConfig instance
      */
     public VectorIndexConfig setDimension(int dimension) {
+        if (dimension <= 0) {
+            throw new IllegalArgumentException("dimension must be positive");
+        }
         this.dimension = dimension;
         return this;
     }

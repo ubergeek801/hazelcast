@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.hazelcast.internal.services.ObjectNamespace;
  * The event journal is a container for events related to a data structure.
  * This interface provides methods for cache event journals. This includes
  * events such as add, update, remove, evict and others. Each cache and
- * partition has it's own event journal.
+ * partition has its own event journal.
  * <p>
  * If a cache is destroyed or the migrated, the related event journal will be destroyed or
  * migrated as well. In this sense, the event journal is co-located with the cache partition

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class ClientSplitBrainTest extends ClientTestSupport {
     private final TestHazelcastFactory factory = new TestHazelcastFactory();
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         factory.terminateAll();
     }
 
@@ -99,7 +99,7 @@ public class ClientSplitBrainTest extends ClientTestSupport {
         assertOpenEventually(mergedLatch);
         assertClusterSize(2, h1, h2);
 
-        AtomicBoolean testFinished = new AtomicBoolean(false);
+        AtomicBoolean testFinished = new AtomicBoolean();
         final Thread clientThread = startClientPutThread(mapClient, testFinished);
 
         try {

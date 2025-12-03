@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,15 +225,23 @@ public final class WriteKafkaP<T, K, V> implements Processor {
         if (properties.containsKey("transactional.id")) {
             throw new IllegalArgumentException("Property `transactional.id` must not be set, Jet sets it as needed");
         }
-        return () -> new WriteKafkaP<>(s -> {
-            @SuppressWarnings({"rawtypes", "unchecked"})
-            Map<String, Object> castProperties = (Map) properties;
-            Map<String, Object> copy = new HashMap<>(castProperties);
-            if (s != null) {
-                copy.put("transactional.id", s);
+        return new SupplierEx<>() {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Processor getEx() {
+                return new WriteKafkaP<>(s -> {
+                    @SuppressWarnings({"rawtypes", "unchecked"})
+                    Map<String, Object> castProperties = (Map) properties;
+                    Map<String, Object> copy = new HashMap<>(castProperties);
+                    if (s != null) {
+                        copy.put("transactional.id", s);
+                    }
+                    return new KafkaProducer<>(copy);
+                }, toRecordFn, exactlyOnce);
             }
-            return new KafkaProducer<>(copy);
-        }, toRecordFn, exactlyOnce);
+        };
     }
 
     /**
@@ -264,7 +272,7 @@ public final class WriteKafkaP<T, K, V> implements Processor {
             public Collection<? extends Processor> get(int count) {
                 return IntStream.range(0, count)
                                 .mapToObj(i -> new WriteKafkaP<T, K, V>(
-                                        (txnId) -> kafkaDataConnection.getProducer(txnId),
+                                        txnId -> kafkaDataConnection.getProducer(txnId),
                                         toRecordFn,
                                         exactlyOnce
                                 ))
@@ -309,7 +317,7 @@ public final class WriteKafkaP<T, K, V> implements Processor {
             public Collection<? extends Processor> get(int count) {
                 return IntStream.range(0, count)
                         .mapToObj(i -> new WriteKafkaP<T, K, V>(
-                                (txnId) -> kafkaDataConnection.getProducer(txnId, properties),
+                                txnId -> kafkaDataConnection.getProducer(txnId, properties),
                                 toRecordFn,
                                 exactlyOnce
                         ))

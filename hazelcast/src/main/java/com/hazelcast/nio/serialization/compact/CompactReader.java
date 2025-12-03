@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ public interface CompactReader {
 
 
     /**
-     * Reads an UTF-8 encoded string.
+     * Reads a UTF-8 encoded string.
      *
      * @param fieldName name of the field.
      * @return the value of the field.
@@ -218,7 +218,7 @@ public interface CompactReader {
 
 
     /**
-     * Reads a time consisting of hour, minute, second, and nano seconds.
+     * Reads a time consisting of hour, minute, second, and nanoseconds.
      *
      * @param fieldName name of the field.
      * @return the value of the field.

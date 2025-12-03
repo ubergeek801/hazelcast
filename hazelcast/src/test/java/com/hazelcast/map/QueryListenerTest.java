@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,22 +60,26 @@ public class QueryListenerTest extends HazelcastTestSupport {
         final Object[] removedValue = new Object[1];
 
         EntryListener<Object, Object> listener = new EntryAdapter<>() {
+            @Override
             public void entryAdded(EntryEvent<Object, Object> event) {
                 addedKey[0] = event.getKey();
                 addedValue[0] = event.getValue();
             }
 
+            @Override
             public void entryRemoved(EntryEvent<Object, Object> event) {
                 removedKey[0] = event.getKey();
                 removedValue[0] = event.getOldValue();
             }
 
+            @Override
             public void entryUpdated(EntryEvent<Object, Object> event) {
                 updatedKey[0] = event.getKey();
                 oldValue[0] = event.getOldValue();
                 newValue[0] = event.getValue();
             }
 
+            @Override
             public void entryEvicted(EntryEvent<Object, Object> event) {
             }
 
@@ -113,10 +117,11 @@ public class QueryListenerTest extends HazelcastTestSupport {
         HazelcastInstance instance3 = nodeFactory.newHazelcastInstance(cfg);
 
         final IMap<Object, Object> map = instance1.getMap("testMapQueryListener2");
-        final AtomicInteger addCount = new AtomicInteger(0);
+        final AtomicInteger addCount = new AtomicInteger();
 
 
         EntryListener<Object, Object> listener = new EntryAdapter<>() {
+            @Override
             public void entryAdded(EntryEvent<Object, Object> event) {
                 addCount.incrementAndGet();
             }

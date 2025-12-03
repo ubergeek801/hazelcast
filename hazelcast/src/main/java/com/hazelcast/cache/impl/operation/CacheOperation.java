@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,11 @@ import com.hazelcast.cache.impl.event.CacheWanEventPublisher;
 import com.hazelcast.cache.impl.record.CacheRecord;
 import com.hazelcast.config.CacheConfig;
 import com.hazelcast.config.InMemoryFormat;
+import com.hazelcast.internal.util.ToHeapDataConverter;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.spi.impl.operationservice.BackupOperation;
 import com.hazelcast.spi.impl.operationservice.ExceptionAction;
@@ -42,8 +45,9 @@ import com.hazelcast.spi.tenantcontrol.TenantControl;
 
 import javax.annotation.Nullable;
 
+import java.io.IOException;
+
 import static com.hazelcast.cache.impl.CacheEntryViews.createDefaultEntryView;
-import static com.hazelcast.internal.util.ToHeapDataConverter.toHeapData;
 
 /**
  * Base Cache Operation. Cache operations are named operations. Key based operations are subclasses of this base
@@ -103,13 +107,13 @@ public abstract class CacheOperation extends AbstractNamedOperation
     @Override
     public void afterRun() throws Exception {
         // Cleanup Namespace awareness
-        getNodeEngine().getNamespaceService().setupNamespace(namespace);
+        getNodeEngine().getNamespaceService().cleanupNamespace(namespace);
     }
 
     /**
      * If a backup operation wants to get a deleted cache, swallows
      * exception by only logging it.
-     *
+     * <p>
      * If it is not a backup operation, just rethrows exception.
      */
     private void rethrowOrSwallowIfBackup(CacheNotExistsException e) throws Exception {
@@ -214,15 +218,15 @@ public abstract class CacheOperation extends AbstractNamedOperation
         publishWanUpdate(dataKey, dataValue, dataExpiryPolicy, record);
     }
 
-    protected final void publishWanUpdate(Data dataKey, Data dataValue, Data dataExpiryPolicy, CacheRecord record) {
+    protected final void publishWanUpdate(Data dataKey, Data dataValue, Data dataExpiryPolicy, CacheRecord cacheRecord) {
         assert dataValue != null;
 
-        if (!recordStore.isWanReplicationEnabled() || record == null) {
+        if (!recordStore.isWanReplicationEnabled() || cacheRecord == null) {
             return;
         }
 
         CacheEntryView<Data, Data> entryView = createDefaultEntryView(toHeapData(dataKey),
-                toHeapData(dataValue), toHeapData(dataExpiryPolicy), record);
+                toHeapData(dataValue), toHeapData(dataExpiryPolicy), cacheRecord);
         wanEventPublisher.publishWanUpdate(name, entryView);
     }
 
@@ -245,5 +249,19 @@ public abstract class CacheOperation extends AbstractNamedOperation
     public TenantControl getTenantControl() {
         return getNodeEngine().getTenantControlService()
                               .getTenantControl(ICacheService.SERVICE_NAME, name);
+    }
+
+    @Override
+    protected void writeInternal(ObjectDataOutput out) throws IOException {
+        super.writeInternal(out);
+    }
+
+    @Override
+    protected void readInternal(ObjectDataInput in) throws IOException {
+        super.readInternal(in);
+    }
+
+    Data toHeapData(Data data) {
+        return ToHeapDataConverter.toHeapData(data);
     }
 }

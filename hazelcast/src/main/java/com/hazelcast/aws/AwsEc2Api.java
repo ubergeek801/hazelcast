@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,14 +115,23 @@ class AwsEc2Api {
             .flatMap(e -> e.getSubNodes("item").stream())
             .filter(e -> e.getValue("privateipaddress") != null)
             .peek(AwsEc2Api::logInstanceName)
-            .forEach(e -> result.put(e.getValue("privateipaddress"), e.getValue("ipaddress")));
+            .forEach(e -> {
+                result.put(e.getValue("privateipaddress"), e.getValue("ipaddress"));
+                String ipv6address = e.getValue("ipv6address");
+                if (ipv6address != null) {
+                    // Amazon ec2 always assigns public ipv6 addresses from Amazon ipv6 pool,
+                    // and there is no field in response xml to tell if the returned ipv6address
+                    // is private or public, hence, it will be used as public ip mapping.
+                    result.put(ipv6address, ipv6address);
+                }
+            });
         return result;
     }
 
     private static void logInstanceName(XmlNode item) {
-        LOGGER.fine(String.format("Accepting EC2 instance [%s][%s]",
+        LOGGER.fine("Accepting EC2 instance [%s][%s]",
             parseInstanceName(item).orElse("<unknown>"),
-            item.getValue("privateipaddress")));
+            item.getValue("privateipaddress"));
     }
 
     private static Optional<String> parseInstanceName(XmlNode nodeHolder) {
@@ -165,7 +174,7 @@ class AwsEc2Api {
      * </ul>
      * <p>
      * This is performed regardless of the configured use-public-ip value
-     * to make external smart clients able to work properly when possible.
+     * to make external multi socket clients able to work properly when possible.
      */
     Map<String, String> describeNetworkInterfaces(List<String> privateAddresses, AwsCredentials credentials) {
         if (privateAddresses.isEmpty()) {
@@ -210,13 +219,25 @@ class AwsEc2Api {
             .getSubNodes("networkinterfaceset").stream()
             .flatMap(e -> e.getSubNodes("item").stream())
             .filter(e -> e.getValue("privateipaddress") != null)
-            .forEach(e -> result.put(
-                e.getValue("privateipaddress"),
-                e.getSubNodes("association").stream()
-                    .map(a -> a.getValue("publicip"))
-                    .findFirst()
-                    .orElse(null)
-            ));
+            .forEach(e -> {
+                String privateIp = e.getValue("privateipaddress");
+                String publicIp = e.getSubNodes("association").stream()
+                        .map(a -> a.getValue("publicip"))
+                        .findFirst().orElse(null);
+
+                result.put(privateIp, publicIp);
+
+                // put all found ipv6 addresses
+                e.getSubNodes("ipv6addressesset")
+                        .forEach(as -> as.getSubNodes("item")
+                                .forEach(a -> {
+                                    String ipv6address = a.getValue("ipv6address");
+                                    if (ipv6address != null) {
+                                        result.put(ipv6address, ipv6address);
+                                    }
+                                }));
+
+            });
         return result;
     }
 

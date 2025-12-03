@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ public class InvocationMonitor implements Consumer<Packet>, StaticMetricsProvide
     private long invocationTimeoutMillis(HazelcastProperties properties) {
         long invocationTimeoutMillis = properties.getMillis(OPERATION_CALL_TIMEOUT_MILLIS);
         if (logger.isFinestEnabled()) {
-            logger.finest("Operation invocation timeout is " + invocationTimeoutMillis + " ms");
+            logger.finest("Operation invocation timeout is %s ms", invocationTimeoutMillis);
         }
 
         return invocationTimeoutMillis;
@@ -165,7 +165,7 @@ public class InvocationMonitor implements Consumer<Packet>, StaticMetricsProvide
         long backupTimeoutMillis = properties.getMillis(OPERATION_BACKUP_TIMEOUT_MILLIS);
 
         if (logger.isFinestEnabled()) {
-            logger.finest("Operation backup timeout is " + backupTimeoutMillis + " ms");
+            logger.finest("Operation backup timeout is %s ms", backupTimeoutMillis);
         }
 
         return backupTimeoutMillis;
@@ -182,7 +182,7 @@ public class InvocationMonitor implements Consumer<Packet>, StaticMetricsProvide
         long periodMs = Math.max(SECONDS.toMillis(1), callTimeoutMs / HEARTBEAT_CALL_TIMEOUT_RATIO);
 
         if (logger.isFinestEnabled()) {
-            logger.finest("Operation heartbeat period is " + periodMs + " ms");
+            logger.finest("Operation heartbeat period is %s ms", periodMs);
         }
 
         return periodMs;
@@ -432,7 +432,9 @@ public class InvocationMonitor implements Consumer<Packet>, StaticMetricsProvide
         }
 
         private void onPotentialBackupLoss(Invocation invocation) {
-            invocation.notifyBackupComplete();
+            if (!invocation.shouldFailOnIndeterminateOperationState()) {
+                invocation.notifyBackupComplete();
+            }
         }
     }
 
@@ -504,7 +506,7 @@ public class InvocationMonitor implements Consumer<Packet>, StaticMetricsProvide
             CallsPerMember calls = populate();
             Set<Address> addresses = calls.addresses();
             if (logger.isFinestEnabled()) {
-                logger.finest("Broadcasting operation control packets to: " + addresses.size() + " members");
+                logger.finest("Broadcasting operation control packets to: %s members", addresses.size());
             }
             for (Address address : addresses) {
                 sendOpControlPacket(address, calls.toOpControl(address));

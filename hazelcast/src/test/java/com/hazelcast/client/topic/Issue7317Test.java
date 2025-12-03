@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,18 +93,22 @@ public class Issue7317Test extends HazelcastTestSupport {
             cdl.countDown();
         }
 
+        @Override
         public long retrieveInitialSequence() {
             return 0;
         }
 
+        @Override
         public void storeSequence(long sequence) {
             seq = sequence;
         }
 
+        @Override
         public boolean isLossTolerant() {
             return true;
         }
 
+        @Override
         public boolean isTerminal(Throwable failure) {
             return true;
         }

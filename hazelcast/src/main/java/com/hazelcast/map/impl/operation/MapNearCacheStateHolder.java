@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.map.impl.operation;
 
 import com.hazelcast.internal.nearcache.impl.invalidation.Invalidator;
 import com.hazelcast.internal.nearcache.impl.invalidation.MetaDataGenerator;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.services.ObjectNamespace;
 import com.hazelcast.internal.services.ServiceNamespace;
 import com.hazelcast.map.impl.MapDataSerializerHook;
@@ -112,10 +113,7 @@ public class MapNearCacheStateHolder implements IdentifiedDataSerializable {
             out.writeLong(partitionUuid.getLeastSignificantBits());
         }
 
-        out.writeInt(mapNameSequencePairs.size());
-        for (Object item : mapNameSequencePairs) {
-            out.writeObject(item);
-        }
+        SerializationUtil.writeList(mapNameSequencePairs, out);
     }
 
     @Override
@@ -123,11 +121,7 @@ public class MapNearCacheStateHolder implements IdentifiedDataSerializable {
         boolean nullUuid = in.readBoolean();
         partitionUuid = nullUuid ? null : new UUID(in.readLong(), in.readLong());
 
-        int size = in.readInt();
-        mapNameSequencePairs = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            mapNameSequencePairs.add(in.readObject());
-        }
+        mapNameSequencePairs = SerializationUtil.readList(in);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class BoundedRangePredicateQueriesTest extends HazelcastTestSupport {
 
     @Test
     public void testClosedRange() {
-        Predicate expected = new PersonPredicate(new java.util.function.Predicate<Integer>() {
+        Predicate expected = new PersonPredicate(new java.util.function.Predicate<>() {
             @Override
             public boolean test(Integer value) {
                 return value != null && value >= 1 && value <= 10;
@@ -104,7 +104,7 @@ public class BoundedRangePredicateQueriesTest extends HazelcastTestSupport {
 
     @Test
     public void testLeftOpenRange() {
-        Predicate expected = new PersonPredicate(new java.util.function.Predicate<Integer>() {
+        Predicate expected = new PersonPredicate(new java.util.function.Predicate<>() {
             @Override
             public boolean test(Integer value) {
                 return value != null && value > 1 && value <= 10;
@@ -118,7 +118,7 @@ public class BoundedRangePredicateQueriesTest extends HazelcastTestSupport {
 
     @Test
     public void testRightOpenRange() {
-        Predicate expected = new PersonPredicate(new java.util.function.Predicate<Integer>() {
+        Predicate expected = new PersonPredicate(new java.util.function.Predicate<>() {
             @Override
             public boolean test(Integer value) {
                 return value != null && value >= 1 && value < 10;
@@ -132,7 +132,7 @@ public class BoundedRangePredicateQueriesTest extends HazelcastTestSupport {
 
     @Test
     public void testOpenRange() {
-        Predicate expected = new PersonPredicate(new java.util.function.Predicate<Integer>() {
+        Predicate expected = new PersonPredicate(new java.util.function.Predicate<>() {
             @Override
             public boolean test(Integer value) {
                 return value != null && value > 1 && value < 10;
@@ -146,7 +146,7 @@ public class BoundedRangePredicateQueriesTest extends HazelcastTestSupport {
 
     @Test
     public void testDegenerateRange() {
-        Predicate expected = new PersonPredicate(new java.util.function.Predicate<Integer>() {
+        Predicate expected = new PersonPredicate(new java.util.function.Predicate<>() {
             @Override
             public boolean test(Integer value) {
                 return value != null && value >= 1 && value <= 1;

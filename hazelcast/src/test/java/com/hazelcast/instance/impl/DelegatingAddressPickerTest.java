@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class DelegatingAddressPickerTest {
     }
 
     @Test
-    public void testPickAddress_fromAdvancedNetworkConfig() throws Exception {
+    public void testPickAddress_fromAdvancedNetworkConfig() {
         Config config = createAdvancedNetworkConfig();
         picker = new DelegatingAddressPicker(new AnAddressProvider(), config, logger);
 
@@ -101,7 +101,7 @@ public class DelegatingAddressPickerTest {
     }
 
     @Test
-    public void testPickAddress_fromNetworkConfig() throws Exception {
+    public void testPickAddress_fromNetworkConfig() {
         Config config = createNetworkingConfig();
         picker = new DelegatingAddressPicker(new AnAddressProvider(), config, logger);
 

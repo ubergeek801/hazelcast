@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Iterator;
 /**
  * Iterates over supplied {@link InternalCompletableFuture} serially.
  * It advances to the next future only when the previous future is completed.
- *
+ * <p>
  * It completes when there is no other future available.
  *
  * @param <T>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,11 @@ class RingbufferContainerCollector extends AbstractContainerCollector<Ringbuffer
     @Override
     protected MergePolicyConfig getMergePolicyConfig(RingbufferContainer container) {
         return container.getConfig().getMergePolicyConfig();
+    }
+
+    @Override
+    protected String getUserNamespaceContainer(RingbufferContainer container) {
+        return container.getUserCodeNamespace();
     }
 
     @Override

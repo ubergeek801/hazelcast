@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import static com.hazelcast.internal.partition.TestPartitionUtils.getOngoingRepl
 import static com.hazelcast.internal.partition.TestPartitionUtils.getOwnedReplicaVersions;
 import static com.hazelcast.internal.partition.TestPartitionUtils.getScheduledReplicaSyncRequests;
 import static com.hazelcast.test.Accessors.getNode;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractPartitionLostListenerTest extends HazelcastTestSupport {

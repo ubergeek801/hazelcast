@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.spi.impl.operationservice.Operation;
 import com.hazelcast.spi.impl.operationservice.impl.OperationServiceImpl;
 import com.hazelcast.spi.properties.HazelcastProperties;
 import com.hazelcast.spi.properties.HazelcastProperty;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -46,7 +45,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Math.min;
 
 @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:methodcount"})
-@SuppressFBWarnings({"URF_UNREAD_FIELD"})
 public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
 
     private static final int DIFFERENCE_BETWEEN_TWO_SUBSEQUENT_PARTITION_CLEANUP_MILLIS = 1000;
@@ -64,7 +62,7 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
 
     private final Address thisAddress;
     private final OperationServiceImpl operationService;
-    private final AtomicBoolean singleRunPermit = new AtomicBoolean(false);
+    private final AtomicBoolean singleRunPermit = new AtomicBoolean();
     private final AtomicInteger lostPartitionCounter = new AtomicInteger();
     private final AtomicInteger nextExpiryQueueToScanIndex = new AtomicInteger();
 
@@ -72,7 +70,6 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
 
     private int runningCleanupOperationsCount;
 
-    @SuppressFBWarnings({"EI_EXPOSE_REP2"})
     protected ClearExpiredRecordsTask(String serviceName,
                                       T[] containers,
                                       HazelcastProperty cleanupEnabled,
@@ -197,13 +194,13 @@ public abstract class ClearExpiredRecordsTask<T, S> implements Runnable {
 
     /**
      * This method increments a counter to count partition lost events.
-     *
+     * <p>
      * After an ungraceful shutdown, backups can have expired entries.
      * And these entries can remain forever on them. Reason for this is,
      * the lost invalidations on a primary partition. During ungraceful
      * shutdown, these invalidations can be lost before sending them to
      * backups.
-     *
+     * <p>
      * Here, the counter in this method, is used to detect the lost
      * invalidations case. If it is detected, we send expiry operations to
      * remove leftover backup entries. Otherwise, leftover entries can remain on

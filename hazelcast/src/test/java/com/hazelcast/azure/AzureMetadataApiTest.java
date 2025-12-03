@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -53,7 +54,7 @@ public class AzureMetadataApiTest {
         //given
         stubFor(get(urlEqualTo(String.format("/metadata/instance/compute?api-version=%s", API_VERSION)))
                 .withHeader("Metadata", equalTo("true"))
-                .willReturn(aResponse().withStatus(200).withBody(metadataResponse())));
+                .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(metadataResponse())));
     }
 
     @Test
@@ -116,7 +117,7 @@ public class AzureMetadataApiTest {
         stubFor(get(urlEqualTo(String.format("/metadata/identity/oauth2/token?api-version=%s&resource=%s",
                 API_VERSION, RESOURCE)))
                 .withHeader("Metadata", equalTo("true"))
-                .willReturn(aResponse().withStatus(200).withBody(accessTokenResponse())));
+                .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(accessTokenResponse())));
 
         // when
         String result = azureMetadataApi.accessToken();

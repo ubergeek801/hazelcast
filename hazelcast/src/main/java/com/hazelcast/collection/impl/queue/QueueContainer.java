@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1122,7 +1122,7 @@ public class QueueContainer implements IdentifiedDataSerializable {
     }
 
     /**
-     * Schedules the queue for destruction if the queue is empty. Destroys the queue immediately the queue is empty and the
+     * Schedules the queue for destruction if the queue is empty. Destroys the queue immediately if the queue is empty and the
      * {@link QueueConfig#getEmptyQueueTtl()} is 0. Upon scheduled execution, the queue will be checked if it is still empty.
      */
     private void scheduleEvictionIfEmpty() {

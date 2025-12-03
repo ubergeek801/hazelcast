@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.serialization.impl.compact.schema;
 
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.serialization.impl.compact.SchemaService;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -24,22 +25,21 @@ import com.hazelcast.spi.impl.AllowedDuringPassiveState;
 import com.hazelcast.spi.impl.operationservice.Operation;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * Sent by the master member to the joining member to replay
  * replications occurred so far.
- *
+ * <p>
  * The joining member replays the preparation phase for the replications
  * and puts the schema replications to its local registry with the same
  * status.
- *
+ * <p>
  * For already {@link SchemaReplicationStatus#REPLICATED} replications,
  * replaying the preparation phase and then putting the replication with
  * the same status to the local registry is enough to maintain the same
  * status across the cluster.
- *
+ * <p>
  * For replications in the {@link SchemaReplicationStatus#PREPARED} status,
  * the joining member will eagerly replay the preparation phases again.
  * When the coordinator members start sending {@link AckSchemaReplicationOperation}
@@ -67,21 +67,12 @@ public class SendSchemaReplicationsOperation extends Operation implements Identi
 
     @Override
     protected void writeInternal(ObjectDataOutput out) throws IOException {
-        int size = replications.size();
-        out.writeInt(size);
-        for (SchemaReplication replication : replications) {
-            out.writeObject(replication);
-        }
+        SerializationUtil.writeCollection(replications, out);
     }
 
     @Override
     protected void readInternal(ObjectDataInput in) throws IOException {
-        int size = in.readInt();
-        replications = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            SchemaReplication replication = in.readObject();
-            replications.add(replication);
-        }
+        replications = SerializationUtil.readCollection(in);
     }
 
     @Override

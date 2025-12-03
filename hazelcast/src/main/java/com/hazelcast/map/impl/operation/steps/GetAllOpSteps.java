@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,9 @@ public enum GetAllOpSteps implements IMapOpStep {
 
             MapEntries mapEntries = state.getMapEntries();
 
-            List loadedKeyAndOldValueWithExpiryPairs = state.loadedKeyAndOldValueWithExpiryPairs();
-            Map loaded = recordStore.putAndGetLoadedEntries(loadedKeyAndOldValueWithExpiryPairs,
-                    state.getCallerAddress(), state.getNow());
+            List loadedKeyAndOldValueWithTtlPairs = state.loadedKeyAndOldValueWithTtlPairs();
+            Map loaded = recordStore.putAndGetLoadedEntries(loadedKeyAndOldValueWithTtlPairs,
+                    state.getCallerAddress());
 
             recordStore.addToMapEntrySet(mapEntries, loaded);
 

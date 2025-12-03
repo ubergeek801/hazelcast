@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.sql.impl.expression;
 
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
@@ -64,11 +65,7 @@ public class RowValue implements Serializable, IdentifiedDataSerializable {
 
     @Override
     public void readData(final ObjectDataInput in) throws IOException {
-        final int size = in.readInt();
-        this.values = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            this.values.add(in.readObject());
-        }
+        this.values = SerializationUtil.readList(in);
     }
 
     @Override

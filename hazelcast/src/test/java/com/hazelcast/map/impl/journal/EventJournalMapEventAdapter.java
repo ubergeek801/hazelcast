@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,13 @@ public class EventJournalMapEventAdapter<K, V> implements EventJournalEventAdapt
 
     @Override
     public EventType getType(EventJournalMapEvent<K, V> e) {
-        switch (e.getType()) {
-            case ADDED:
-                return EventType.ADDED;
-            case REMOVED:
-                return EventType.REMOVED;
-            case UPDATED:
-                return EventType.UPDATED;
-            case EVICTED:
-                return EventType.EVICTED;
-            case LOADED:
-                return EventType.LOADED;
-            default:
-                throw new IllegalArgumentException("Unknown event journal event type " + e.getType());
-        }
+        return switch (e.getType()) {
+            case ADDED -> EventType.ADDED;
+            case REMOVED -> EventType.REMOVED;
+            case UPDATED -> EventType.UPDATED;
+            case EVICTED -> EventType.EVICTED;
+            case LOADED -> EventType.LOADED;
+            default -> throw new IllegalArgumentException("Unknown event journal event type " + e.getType());
+        };
     }
 }

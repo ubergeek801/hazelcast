@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.hazelcast.collection.impl.collection.operations;
 import com.hazelcast.collection.impl.collection.CollectionContainer;
 import com.hazelcast.collection.impl.collection.CollectionDataSerializerHook;
 import com.hazelcast.collection.impl.collection.CollectionItem;
+import com.hazelcast.collection.impl.collection.CollectionService;
+import com.hazelcast.internal.namespace.NamespaceUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.spi.impl.operationservice.Operation;
@@ -125,7 +127,11 @@ public class CollectionMergeOperation extends CollectionBackupAwareOperation {
     @Override
     protected void readInternal(ObjectDataInput in) throws IOException {
         super.readInternal(in);
-        mergePolicy = in.readObject();
+        mergePolicy = NamespaceUtil.callWithNamespace(
+                in::readObject,
+                name,
+                (e, n) -> CollectionService.lookupNamespace(e, getServiceName(), n)
+        );
         mergingValue = in.readObject();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package com.hazelcast.kubernetes;
 
 import com.hazelcast.instance.impl.ClusterTopologyIntentTracker;
-import com.hazelcast.instance.impl.NoOpClusterTopologyIntentTracker;
 import com.hazelcast.internal.util.FutureUtil;
+import com.hazelcast.kubernetes.KubernetesClient.StsMonitorThread;
 import com.hazelcast.spi.utils.RestClient;
-import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.annotation.NightlyTest;
 import io.fabric8.kubernetes.api.model.ListMetaBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -32,15 +31,12 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetListBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatusBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.mockwebserver.dsl.ReturnOrWebsocketable;
 import io.fabric8.mockwebserver.dsl.TimesOnceableOrHttpHeaderable;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -50,44 +46,59 @@ import java.util.concurrent.TimeUnit;
 import static com.hazelcast.test.HazelcastTestSupport.assertTrueEventually;
 import static com.hazelcast.test.HazelcastTestSupport.sleepSeconds;
 import static com.hazelcast.test.HazelcastTestSupport.spawn;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-// test interaction of KubernetesClient with Kubernetes mock API server
-@RunWith(HazelcastSerialClassRunner.class)
-@Category(NightlyTest.class)
+/** test interaction of KubernetesClient with Kubernetes mock API server */
+@NightlyTest
+@EnableKubernetesMockClient(https = false)
 public class StsMonitorTest {
 
-    private static final String DEFAULT_STS_NAME = "hz-hazelcast";
+    private static final String SERVICE_NAME = "hz-hazelcast";
 
-    @Rule
-    public KubernetesServer kubernetesServer = new KubernetesServer(false);
+    public KubernetesMockServer kubernetesServer;
 
-    String apiServerBaseUrl;
     String namespace;
-    NamespacedKubernetesClient mockServerClient;
+    String apiServerBaseUrl;
     String token;
+    ClusterTopologyIntentTracker tracker;
+    KubernetesClient client;
+    StsMonitorThread stsMonitor;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        mockServerClient = kubernetesServer.getClient();
+        tracker = mock(ClusterTopologyIntentTracker.class);
+        when(tracker.isEnabled()).thenReturn(true);
+
+        NamespacedKubernetesClient mockServerClient = kubernetesServer.createClient();
         namespace = mockServerClient.getNamespace();
-        token = mockServerClient.getConfiguration().getOauthToken();
         apiServerBaseUrl = mockServerClient.getMasterUrl().toString();
         if (apiServerBaseUrl.endsWith("/")) {
             // our KubernetesClient expects a base url without trailing /
             apiServerBaseUrl = apiServerBaseUrl.substring(0, apiServerBaseUrl.length() - 1);
         }
+        token = mockServerClient.getConfiguration().getOauthToken();
+    }
+
+    private void buildKubernetesClient() {
+        StaticTokenProvider tokenProvider = new StaticTokenProvider(token);
+        client = new KubernetesClient(namespace, SERVICE_NAME + "-0", apiServerBaseUrl, tokenProvider, null,
+                3, KubernetesConfig.ExposeExternallyMode.DISABLED, false,
+                null, null, tracker, null);
+        stsMonitor = client.stsMonitorThread;
     }
 
     @Test
     public void testInitialStsList() {
         expectAndReturnStsList("1", "2").always();
 
-        KubernetesClient.StsMonitorThread stsMonitor = buildStsMonitor(namespace, apiServerBaseUrl, token);
-
+        buildKubernetesClient();
         stsMonitor.readInitialStsList();
         RuntimeContext runtimeContext = stsMonitor.latestRuntimeContext;
         assertEquals("1", runtimeContext.getResourceVersion());
@@ -100,18 +111,15 @@ public class StsMonitorTest {
     public void testWatchSts() throws IOException {
         expectAndReturnStsList("1", "2").once();
         kubernetesServer.expect().get()
-                .withPath("/apis/apps/v1/namespaces/" + namespace
-                        + "/statefulsets?fieldSelector=metadata.name%3D" + DEFAULT_STS_NAME
-                        + "&watch=1&resourceVersion=1")
+                .withPath("/apis/apps/v1/namespaces/" + namespace + "/statefulsets?watch=1&resourceVersion=1")
                 .andReturn(200, new WatchEvent(buildDefaultSts("4"), "MODIFIED"))
                 .always();
 
-        KubernetesClient.StsMonitorThread stsMonitor = buildStsMonitor(namespace, apiServerBaseUrl, token);
+        buildKubernetesClient();
         stsMonitor.readInitialStsList();
         RestClient.WatchResponse watchResponse = stsMonitor.sendWatchRequest();
-        String nextLine = watchResponse.nextLine();
-        stsMonitor.onMessage(nextLine);
-        assertEquals("4", stsMonitor.latestResourceVersion);
+        String message = watchResponse.nextLine();
+        stsMonitor.onWatchEventReceived(message);
         RuntimeContext runtimeContext = stsMonitor.latestRuntimeContext;
         assertEquals("4", runtimeContext.getResourceVersion());
         assertEquals(3, runtimeContext.getCurrentReplicas());
@@ -121,8 +129,7 @@ public class StsMonitorTest {
 
     @Test
     public void testWatchResumesAfter410Gone() {
-        ClusterTopologyIntentTracker tracker = Mockito.mock(ClusterTopologyIntentTracker.class);
-        KubernetesClient.StsMonitorThread stsMonitor = buildStsMonitor(namespace, apiServerBaseUrl, token, tracker);
+        buildKubernetesClient();
 
         // initial STS list
         expectAndReturnStsList("1", "2").once();
@@ -138,11 +145,11 @@ public class StsMonitorTest {
         expectWatch("5").andReturn(500, null).once();
         // attempts to initialize sts list again
         expectStsList().andReply(200, request -> {
-                    // after failure with HTTP code 500, stsMonitor retries reading the sts list
-                    // let's stop the stsMonitor run loop here
-                    stsMonitor.running = false;
-                    return buildDefaultStsList("1", "2");
-                }).once();
+            // after failure with HTTP code 500, stsMonitor retries reading the sts list
+            // let's stop the stsMonitor run loop here
+            stsMonitor.running = false;
+            return buildDefaultStsList("1", "2");
+        }).once();
 
         // stsMonitor.run():
         // - gets initial list of statefulsets
@@ -152,9 +159,9 @@ public class StsMonitorTest {
 
         // verify
         // 1st time initialization: StsMonitor reads initial statefulset list and provides update
-        Mockito.verify(tracker, Mockito.times(1)).update(-1, 3, -1, 3, -1, 3);
+        verify(tracker, times(1)).update(-1, 3, -1, 3, -1, 3);
         // during resume, tracker is updated
-        Mockito.verify(tracker, Mockito.times(3)).update(3, 3, 3, 3, 3, 3);
+        verify(tracker, times(3)).update(3, 3, 3, 3, 3, 3);
     }
 
     @Test
@@ -163,13 +170,13 @@ public class StsMonitorTest {
         expectAndReturnStsList("1", "2").always();
         expectWatch("1").andReturn(500, null).always();
 
-        KubernetesClient.StsMonitorThread stsMonitor = buildStsMonitor(namespace, apiServerBaseUrl, token);
+        buildKubernetesClient();
         Future<?> runFuture = spawn(stsMonitor::run);
         sleepSeconds(10);
         stsMonitor.running = false;
         FutureUtil.waitWithDeadline(Collections.singleton(runFuture), 5, TimeUnit.SECONDS);
-        assertTrue("Backoff should be triggered due to API faults and idleCount should be > 0",
-                stsMonitor.idleCount > 0);
+        assertThat(stsMonitor.idleCount).as("Backoff should be triggered due to API faults and idleCount should be > 0")
+                .isGreaterThan(0);
     }
 
     @Test
@@ -177,44 +184,37 @@ public class StsMonitorTest {
         // sts list fails
         expectStsList().andReturn(500, null).always();
 
-        KubernetesClient.StsMonitorThread stsMonitor = buildStsMonitor(namespace, apiServerBaseUrl, token);
+        buildKubernetesClient();
         Future<?> runFuture = spawn(stsMonitor::run);
         sleepSeconds(10);
         stsMonitor.running = false;
         FutureUtil.waitWithDeadline(Collections.singleton(runFuture), 5, TimeUnit.SECONDS);
-        assertTrue("Backoff should be triggered due to API faults and idleCount should be > 0",
-                stsMonitor.idleCount > 0);
+        assertThat(stsMonitor.idleCount).as("Backoff should be triggered due to API faults and idleCount should be > 0")
+                .isGreaterThan(0);
     }
 
     @Test
-    public void testStsMonitorThread_TerminatedPromptlyOnClientShutdown() {
+    public void testStsMonitorThread_terminatedPromptlyOnClientShutdown() {
         expectAndReturnStsList("1", "2").always();
         kubernetesServer.expect().get()
-                        .withPath("/apis/apps/v1/namespaces/" + namespace
-                                + "/statefulsets?fieldSelector=metadata.name%3D" + DEFAULT_STS_NAME
-                                + "&watch=1&resourceVersion=1")
-                        .andReturn(200, new WatchEvent(buildDefaultSts("4"), "MODIFIED"))
-                        .always();
+                .withPath("/apis/apps/v1/namespaces/" + namespace + "/statefulsets?watch=1&resourceVersion=1")
+                .andReturn(200, new WatchEvent(buildDefaultSts("4"), "MODIFIED"))
+                .always();
         kubernetesServer.expect().get()
-                        .withPath("/apis/discovery.k8s.io/v1/namespaces/" + namespace + "/endpointslices")
-                        .andReturn(200, "{}")
-                        .once();
+                .withPath("/apis/discovery.k8s.io/v1/namespaces/" + namespace + "/endpointslices")
+                .andReturn(200, "{}")
+                .once();
 
         // Create new client instance which uses the topology intent tracker
-        ClusterTopologyIntentTracker tracker = Mockito.mock(ClusterTopologyIntentTracker.class);
-        when(tracker.isEnabled()).thenReturn(true);
-        KubernetesClient client = buildKubernetesClient(namespace, apiServerBaseUrl, token, tracker);
+        buildKubernetesClient();
         client.start();
 
-        // Make sure the sts monitor thread exists within the client
-        assertNotNull(client.stsMonitorThread);
-
         // Wait until we've received some watch data (to ensure our thread is reading connections)
-        assertTrueEventually(() -> assertNotNull(client.stsMonitorThread.watchResponse));
+        assertTrueEventually(() -> assertNotNull(stsMonitor.watchResponse));
 
         // Trigger shutdown of the sts monitor thread and assert it has finished after call completion
         client.destroy();
-        assertTrue(client.stsMonitorThread.finished);
+        assertTrue(stsMonitor.finished);
     }
 
     // respond with 200 OK and statefulset list
@@ -235,14 +235,12 @@ public class StsMonitorTest {
     }
 
     private String watchUrl(String resourceVersion) {
-        return "/apis/apps/v1/namespaces/" + namespace
-                + "/statefulsets?fieldSelector=metadata.name%3D" + DEFAULT_STS_NAME
-                + "&watch=1&resourceVersion=" + resourceVersion;
+        return "/apis/apps/v1/namespaces/" + namespace + "/statefulsets"
+                + "?watch=1&resourceVersion=" + resourceVersion;
     }
 
     private String stsListUrl() {
-        return "/apis/apps/v1/namespaces/" + namespace
-                + "/statefulsets?fieldSelector=metadata.name%3D" + DEFAULT_STS_NAME;
+        return "/apis/apps/v1/namespaces/" + namespace + "/statefulsets";
     }
 
     StatefulSetList buildDefaultStsList(String resourceVersion, String stsResourceVersion) {
@@ -252,44 +250,23 @@ public class StsMonitorTest {
     }
 
     StatefulSet buildDefaultSts(String resourceVersion) {
-        return buildSts("default", DEFAULT_STS_NAME, 3, 3, 3, 3, resourceVersion);
+        return buildSts("default", SERVICE_NAME, 3, 3, 3, 3, resourceVersion);
     }
 
-    StatefulSet buildSts(String namespace,
-                         String name,
-                         int specReplicas,
-                         int replicas,
-                         int currentReplicas,
-                         int readyReplicas,
-                         String resourceVersion) {
-        StatefulSetSpecBuilder stsSpecBuilder = new StatefulSetSpecBuilder().withReplicas(specReplicas);
-        StatefulSetStatusBuilder stsStatusBuilder = new StatefulSetStatusBuilder().withReplicas(replicas)
-                .withCurrentReplicas(currentReplicas)
-                .withReadyReplicas(readyReplicas);
-        StatefulSetBuilder builder = new StatefulSetBuilder().withSpec(stsSpecBuilder.build())
-                .withStatus(stsStatusBuilder.build())
-                .withMetadata(
-                        new ObjectMetaBuilder().withName(name).withNamespace(namespace)
-                                                .withResourceVersion(resourceVersion).build());
-        return builder.build();
-    }
-
-    KubernetesClient.StsMonitorThread buildStsMonitor(String namespace, String masterUrl,
-                                                String oauthToken) {
-        return buildStsMonitor(namespace, masterUrl, oauthToken, new NoOpClusterTopologyIntentTracker());
-    }
-
-    KubernetesClient.StsMonitorThread buildStsMonitor(String namespace, String masterUrl,
-                                                      String oauthToken, ClusterTopologyIntentTracker tracker) {
-        return buildKubernetesClient(namespace, masterUrl, oauthToken, tracker).new StsMonitorThread();
-    }
-
-    KubernetesClient buildKubernetesClient(String namespace, String masterUrl,
-                                                      String oauthToken, ClusterTopologyIntentTracker tracker) {
-        StaticTokenProvider tokenProvider = new StaticTokenProvider(oauthToken);
-        return new KubernetesClient(namespace, masterUrl,
-                tokenProvider, null, 3,
-                KubernetesConfig.ExposeExternallyMode.DISABLED, false,
-                null, null, tracker, DEFAULT_STS_NAME);
+    StatefulSet buildSts(String namespace, String name, int specReplicas, int replicas,
+                         int currentReplicas, int readyReplicas, String resourceVersion) {
+        return new StatefulSetBuilder()
+                .withSpec(new StatefulSetSpecBuilder().withReplicas(specReplicas).build())
+                .withStatus(new StatefulSetStatusBuilder()
+                        .withReplicas(replicas)
+                        .withCurrentReplicas(currentReplicas)
+                        .withReadyReplicas(readyReplicas)
+                        .build())
+                .withMetadata(new ObjectMetaBuilder()
+                        .withNamespace(namespace)
+                        .withName(name)
+                        .withResourceVersion(resourceVersion)
+                        .build())
+                .build();
     }
 }

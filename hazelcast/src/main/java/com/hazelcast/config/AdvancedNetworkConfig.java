@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ public class AdvancedNetworkConfig {
      * @param restServerEndpointConfig the server socket endpoint configuration
      * @return this object for fluent chaining
      *
-     * @deprecated since 5.5, use RestConfig instead. Will be removed at 6.0.
+     * @deprecated use RestConfig instead. Will be removed at 6.0.
      * @see RestConfig
      */
     @Deprecated(since = "5.5", forRemoval = true)

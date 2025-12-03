@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class ExpirationManagerStressTest extends HazelcastTestSupport {
     public void ensure_expiration_task_started_after_many_concurrent_start_stops() {
         final ExpirationManager expirationManager = getExpirationManager(createHazelcastInstance());
 
-        final AtomicBoolean stop = new AtomicBoolean(false);
+        final AtomicBoolean stop = new AtomicBoolean();
         LinkedList<Thread> threads = new LinkedList<>();
 
         for (int j = 0; j < 2; j++) {

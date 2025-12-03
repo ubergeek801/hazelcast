@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Collection;
 
 import static com.hazelcast.jet.impl.util.Util.toList;
@@ -35,7 +36,8 @@ import static com.hazelcast.jet.impl.util.Util.toList;
  * with one that will wrap its processors using {@code wrapperSupplier}.
  */
 public final class WrappingProcessorSupplier implements ProcessorSupplier, IdentifiedDataSerializable {
-
+    @Serial
+    private static final long serialVersionUID = 1L;
     private ProcessorSupplier wrapped;
     private FunctionEx<Processor, Processor> wrapperSupplier;
 

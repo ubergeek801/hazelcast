@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -598,8 +598,8 @@ public class ObservableResultsTest extends TestInClusterSupport {
     }
 
     private void assertExecutionStarted(Job job) {
-        assertTrueEventually(() -> assertTrue(JobStatus.RUNNING.equals(job.getStatus())
-                || JobStatus.COMPLETED.equals(job.getStatus())));
+        assertTrueEventually(() -> assertTrue(JobStatus.RUNNING == job.getStatus()
+                || JobStatus.COMPLETED == job.getStatus()));
     }
 
     private static void assertSortedValues(TestObserver observer, Long... values) {

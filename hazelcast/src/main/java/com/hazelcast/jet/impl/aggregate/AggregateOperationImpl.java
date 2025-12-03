@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,14 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.Serial;
 
 import static com.hazelcast.internal.serialization.impl.SerializationUtil.checkSerializable;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 
 public class AggregateOperationImpl<A, R> implements AggregateOperation<A, R>, IdentifiedDataSerializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     BiConsumerEx<? super A, ?>[] accumulateFns;
     private SupplierEx<A> createFn;
     private BiConsumerEx<? super A, ? super A> combineFn;
@@ -67,6 +70,7 @@ public class AggregateOperationImpl<A, R> implements AggregateOperation<A, R>, I
     }
 
     @Nonnull
+    @Override
     public SupplierEx<A> createFn() {
         return createFn;
     }
@@ -82,16 +86,19 @@ public class AggregateOperationImpl<A, R> implements AggregateOperation<A, R>, I
     }
 
     @Nullable
+    @Override
     public BiConsumerEx<? super A, ? super A> combineFn() {
         return combineFn;
     }
 
     @Nullable
+    @Override
     public BiConsumerEx<? super A, ? super A> deductFn() {
         return deductFn;
     }
 
     @Nonnull
+    @Override
     public FunctionEx<? super A, ? extends R> exportFn() {
         return exportFn;
     }

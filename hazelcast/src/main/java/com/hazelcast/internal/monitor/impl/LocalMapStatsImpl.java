@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package com.hazelcast.internal.monitor.impl;
 
 import com.hazelcast.internal.metrics.Probe;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.internal.util.Clock;
 import com.hazelcast.map.LocalMapStats;
 import com.hazelcast.nearcache.NearCacheStats;
 import com.hazelcast.query.LocalIndexStats;
 
+import java.lang.invoke.VarHandle;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,22 +35,26 @@ import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRI
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_BACKUP_ENTRY_MEMORY_COST;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_CREATION_TIME;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_DIRTY_ENTRY_COUNT;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_ENTRYSET_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_EVICTION_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_EXPIRATION_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_GET_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_HEAP_COST;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_HITS;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_INDEXED_QUERY_COUNT;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_INDEXES_SKIPPED_QUERY_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_LAST_ACCESS_TIME;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_LAST_UPDATE_TIME;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_LOCKED_ENTRY_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_MERKLE_TREES_COST;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_NO_MATCHING_INDEX_QUERY_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_NUMBER_OF_EVENTS;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_NUMBER_OF_OTHER_OPERATIONS;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_OWNED_ENTRY_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_OWNED_ENTRY_MEMORY_COST;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_PUT_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_QUERY_COUNT;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_QUERY_LIMITER_HIT_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_REMOVE_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_SET_COUNT;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_TOTAL_GET_LATENCY;
@@ -59,6 +65,7 @@ import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRI
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_TOTAL_PUT_LATENCY;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_TOTAL_REMOVE_LATENCY;
 import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_TOTAL_SET_LATENCY;
+import static com.hazelcast.internal.metrics.MetricDescriptorConstants.MAP_METRIC_VALUES_COUNT;
 import static com.hazelcast.internal.metrics.ProbeUnit.BYTES;
 import static com.hazelcast.internal.metrics.ProbeUnit.MS;
 import static com.hazelcast.internal.util.ConcurrencyUtil.setMax;
@@ -68,13 +75,10 @@ import static java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater;
 /**
  * Default implementation of {@link LocalMapStats}
  */
-@SuppressWarnings({"checkstyle:methodcount"})
+@SuppressWarnings("checkstyle:methodcount")
 public class LocalMapStatsImpl implements LocalMapStats {
-
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> LAST_ACCESS_TIME =
-            newUpdater(LocalMapStatsImpl.class, "lastAccessTime");
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> LAST_UPDATE_TIME =
-            newUpdater(LocalMapStatsImpl.class, "lastUpdateTime");
+    private static final VarHandle LAST_ACCESS_TIME = ReflectionUtil.findVarHandle("lastAccessTime", long.class);
+    private static final VarHandle LAST_UPDATE_TIME = ReflectionUtil.findVarHandle("lastUpdateTime", long.class);
     private static final AtomicLongFieldUpdater<LocalMapStatsImpl> NUMBER_OF_OTHER_OPERATIONS =
             newUpdater(LocalMapStatsImpl.class, "numberOfOtherOperations");
     private static final AtomicLongFieldUpdater<LocalMapStatsImpl> NUMBER_OF_EVENTS =
@@ -87,6 +91,12 @@ public class LocalMapStatsImpl implements LocalMapStats {
             newUpdater(LocalMapStatsImpl.class, "setCount");
     private static final AtomicLongFieldUpdater<LocalMapStatsImpl> REMOVE_COUNT =
             newUpdater(LocalMapStatsImpl.class, "removeCount");
+    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> VALUES_COUNT =
+            newUpdater(LocalMapStatsImpl.class, "valuesCount");
+    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> ENTRYSET_COUNT =
+            newUpdater(LocalMapStatsImpl.class, "entrySetCount");
+    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> QUERY_LIMITER_HIT_COUNT =
+            newUpdater(LocalMapStatsImpl.class, "queryLimiterHitCount");
 
     // The resolution is in nanoseconds for the following latencies
     private static final AtomicLongFieldUpdater<LocalMapStatsImpl> TOTAL_GET_LATENCIES =
@@ -97,16 +107,12 @@ public class LocalMapStatsImpl implements LocalMapStats {
             newUpdater(LocalMapStatsImpl.class, "totalSetLatenciesNanos");
     private static final AtomicLongFieldUpdater<LocalMapStatsImpl> TOTAL_REMOVE_LATENCIES =
             newUpdater(LocalMapStatsImpl.class, "totalRemoveLatenciesNanos");
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> MAX_GET_LATENCY =
-            newUpdater(LocalMapStatsImpl.class, "maxGetLatency");
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> MAX_PUT_LATENCY =
-            newUpdater(LocalMapStatsImpl.class, "maxPutLatency");
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> MAX_SET_LATENCY =
-            newUpdater(LocalMapStatsImpl.class, "maxSetLatency");
-    private static final AtomicLongFieldUpdater<LocalMapStatsImpl> MAX_REMOVE_LATENCY =
-            newUpdater(LocalMapStatsImpl.class, "maxRemoveLatency");
+    private static final VarHandle MAX_GET_LATENCY = ReflectionUtil.findVarHandle("maxGetLatency", long.class);
+    private static final VarHandle MAX_PUT_LATENCY = ReflectionUtil.findVarHandle("maxPutLatency", long.class);
+    private static final VarHandle MAX_SET_LATENCY = ReflectionUtil.findVarHandle("maxSetLatency", long.class);
+    private static final VarHandle MAX_REMOVE_LATENCY = ReflectionUtil.findVarHandle("maxRemoveLatency", long.class);
 
-    private final ConcurrentMap<String, PartitionedIndexStatsImpl> mutableIndexStats =
+    private final ConcurrentMap<String, LocalIndexStatsImpl> mutableIndexStats =
             new ConcurrentHashMap<>();
     private final Map<String, LocalIndexStats> indexStats = Collections.unmodifiableMap(mutableIndexStats);
     private final LocalReplicationStatsImpl replicationStats = new LocalReplicationStatsImpl();
@@ -134,6 +140,13 @@ public class LocalMapStatsImpl implements LocalMapStats {
     private volatile long evictionCount;
     @Probe(name = MAP_METRIC_EXPIRATION_COUNT)
     private volatile long expirationCount;
+
+    @Probe(name = MAP_METRIC_VALUES_COUNT)
+    private volatile long valuesCount;
+    @Probe(name = MAP_METRIC_ENTRYSET_COUNT)
+    private volatile long entrySetCount;
+    @Probe(name = MAP_METRIC_QUERY_LIMITER_HIT_COUNT)
+    private volatile long queryLimiterHitCount;
 
     private volatile long totalGetLatenciesNanos;
     private volatile long totalPutLatenciesNanos;
@@ -174,6 +187,10 @@ public class LocalMapStatsImpl implements LocalMapStats {
     private volatile long queryCount;
     @Probe(name = MAP_METRIC_INDEXED_QUERY_COUNT)
     private volatile long indexedQueryCount;
+    @Probe(name = MAP_METRIC_INDEXES_SKIPPED_QUERY_COUNT)
+    private volatile long indexesSkippedQueryCount;
+    @Probe(name = MAP_METRIC_NO_MATCHING_INDEX_QUERY_COUNT)
+    private volatile long noMatchingIndexQueryCount;
 
     private final boolean ignoreMemoryCosts;
 
@@ -327,6 +344,16 @@ public class LocalMapStatsImpl implements LocalMapStats {
         return removeCount;
     }
 
+    @Override
+    public long getValuesCallCount() {
+        return valuesCount;
+    }
+
+    @Override
+    public long getEntrySetCallCount() {
+        return entrySetCount;
+    }
+
     @Probe(name = MAP_METRIC_TOTAL_PUT_LATENCY, unit = MS)
     @Override
     public long getTotalPutLatency() {
@@ -436,6 +463,22 @@ public class LocalMapStatsImpl implements LocalMapStats {
         return indexedQueryCount;
     }
 
+    public long getIndexesSkippedQueryCount() {
+        return indexesSkippedQueryCount;
+    }
+
+    public void setIndexesSkippedQueryCount(long indexesSkippedQueryCount) {
+        this.indexesSkippedQueryCount = indexesSkippedQueryCount;
+    }
+
+    public long getNoMatchingIndexQueryCount() {
+        return noMatchingIndexQueryCount;
+    }
+
+    public void setNoMatchingIndexQueryCount(long noMatchingIndexQueryCount) {
+        this.noMatchingIndexQueryCount = noMatchingIndexQueryCount;
+    }
+
     /**
      * Sets the indexed query count of this stats to the given indexed query
      * count value.
@@ -461,7 +504,7 @@ public class LocalMapStatsImpl implements LocalMapStats {
      *
      * @param indexStats the per-index stats to set.
      */
-    public void setIndexStats(Map<String, PartitionedIndexStatsImpl> indexStats) {
+    public void setIndexStats(Map<String, LocalIndexStatsImpl> indexStats) {
         this.mutableIndexStats.clear();
         if (indexStats != null) {
             this.mutableIndexStats.putAll(indexStats);
@@ -500,12 +543,29 @@ public class LocalMapStatsImpl implements LocalMapStats {
         setMax(this, MAX_REMOVE_LATENCY, latencyNanos);
     }
 
+    public void incrementValuesCallCount() {
+        VALUES_COUNT.incrementAndGet(this);
+    }
+
+    public void incrementEntrySetCallCount() {
+        ENTRYSET_COUNT.incrementAndGet(this);
+    }
+
     public void incrementOtherOperations() {
         NUMBER_OF_OTHER_OPERATIONS.incrementAndGet(this);
     }
 
     public void incrementReceivedEvents() {
         NUMBER_OF_EVENTS.incrementAndGet(this);
+    }
+
+    public void incrementQueryResultSizeExceededCount() {
+        QUERY_LIMITER_HIT_COUNT.incrementAndGet(this);
+    }
+
+    @Override
+    public long getQueryResultSizeExceededCount() {
+        return queryLimiterHitCount;
     }
 
     public void updateIndexStats(Map<String, OnDemandIndexStats> freshIndexStats) {
@@ -520,13 +580,13 @@ public class LocalMapStatsImpl implements LocalMapStats {
 
         for (Map.Entry<String, OnDemandIndexStats> freshIndexEntry : freshIndexStats.entrySet()) {
             String indexName = freshIndexEntry.getKey();
-            PartitionedIndexStatsImpl indexStats = mutableIndexStats.get(indexName);
-            if (indexStats == null) {
-                indexStats = new PartitionedIndexStatsImpl();
-                indexStats.setAllFrom(freshIndexEntry.getValue());
-                mutableIndexStats.putIfAbsent(indexName, indexStats);
+            LocalIndexStatsImpl indexStatsForName = mutableIndexStats.get(indexName);
+            if (indexStatsForName == null) {
+                indexStatsForName = new LocalIndexStatsImpl();
+                indexStatsForName.setAllFrom(freshIndexEntry.getValue());
+                mutableIndexStats.putIfAbsent(indexName, indexStatsForName);
             } else {
-                indexStats.setAllFrom(freshIndexEntry.getValue());
+                indexStatsForName.setAllFrom(freshIndexEntry.getValue());
             }
         }
     }
@@ -568,6 +628,8 @@ public class LocalMapStatsImpl implements LocalMapStats {
                 + ", indexedQueryCount=" + indexedQueryCount
                 + ", indexStats=" + indexStats
                 + ", replicationStats=" + replicationStats
+                + ", indexesSkippedQueryCount=" + indexesSkippedQueryCount
+                + ", noMatchingIndexQueryCount=" + noMatchingIndexQueryCount
                 + '}';
     }
 }

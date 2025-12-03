@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class PreconditionsTest {
 
     // =====================================================
 
-    @SuppressWarnings("deprecation")
     @Test
     public void checkNotNull_whenNull() {
         String msg = "Can't be null";
@@ -62,7 +61,6 @@ public class PreconditionsTest {
         assertEquals(msg, exception.getMessage());
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void checkNotNull_whenNotNull() {
         Object o = "foobar";

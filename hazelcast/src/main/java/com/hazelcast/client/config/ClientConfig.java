@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class ClientConfig {
 
     /**
      * The Network Configuration properties like:
-     * addresses to connect, smart-routing, subset-routing, socket-options...
+     * addresses to connect, cluster-routing, socket-options...
      */
     private ClientNetworkConfig networkConfig = new ClientNetworkConfig();
 
@@ -120,6 +120,7 @@ public class ClientConfig {
     private InstanceTrackingConfig instanceTrackingConfig = new InstanceTrackingConfig();
     private ClientSqlConfig sqlConfig = new ClientSqlConfig();
     private ClientTpcConfig tpcConfig = new ClientTpcConfig();
+    private boolean cpDirectToLeaderRoutingEnabled;
 
     public ClientConfig() {
         listenerConfigs = new LinkedList<>();
@@ -929,9 +930,9 @@ public class ClientConfig {
     }
 
     /**
-     * This feature reduces number of hops and increase performance for smart clients.
-     * It is enabled by default for smart clients.
-     * This config has no effect for unisocket clients.
+     * This feature reduces number of hops and increases performance for {@link RoutingMode#ALL_MEMBERS} routing clients.
+     * It is enabled by default for {@link RoutingMode#ALL_MEMBERS} routing clients.
+     * This config has no effect for {@link RoutingMode#MULTI_MEMBER} or {@link RoutingMode#SINGLE_MEMBER} routing clients.
      *
      * @param backupAckToClientEnabled enables client to get backup acknowledgements directly from the member
      *                                 that backups are applied
@@ -943,8 +944,8 @@ public class ClientConfig {
     }
 
     /**
-     * Note that backup acks to client can be enabled only for smart client.
-     * This config has no effect for unisocket or subset clients.
+     * Note that backup acks to client can be enabled only for all members routing client.
+     * This config has no effect for single member or multi member clients.
      *
      * @return {@code true} means backup acknowledgements
      * come to client, otherwise {@code false}
@@ -1037,13 +1038,39 @@ public class ClientConfig {
         return this;
     }
 
+    /**
+     * Returns whether CP direct-to-leader operation sending is enabled for this client.
+     * This functionality requires Hazelcast Enterprise license components.
+     * The default setting is {@code false}.
+     *
+     * @return {@code true} if CP direct-to-leader operation sending is enabled, otherwise {@code false}
+     * @since 5.5
+     */
+    public boolean isCPDirectToLeaderRoutingEnabled() {
+        return this.cpDirectToLeaderRoutingEnabled;
+    }
+
+    /**
+     * Sets whether CP direct-to-leader operation sending is enabled.
+     * See {@link #isCPDirectToLeaderRoutingEnabled()}.
+     *
+     * @param cpDirectToLeaderRoutingEnabled the boolean value to set
+     * @return configured {@link ClientConfig} for chaining
+     * @since 5.5
+     */
+    public ClientConfig setCPDirectToLeaderRoutingEnabled(boolean cpDirectToLeaderRoutingEnabled) {
+        this.cpDirectToLeaderRoutingEnabled = cpDirectToLeaderRoutingEnabled;
+        return this;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(backupAckToClientEnabled, classLoader, clusterName, configPatternMatcher, connectionStrategyConfig,
                 flakeIdGeneratorConfigMap, instanceName, labels, listenerConfigs, loadBalancer, loadBalancerClassName,
                 managedContext, metricsConfig, nativeMemoryConfig, nearCacheConfigMap, networkConfig, properties,
                 proxyFactoryConfigs, queryCacheConfigs, reliableTopicConfigMap, securityConfig, serializationConfig,
-                userCodeDeploymentConfig, userContext, instanceTrackingConfig, sqlConfig, tpcConfig);
+                userCodeDeploymentConfig, userContext, instanceTrackingConfig, sqlConfig, tpcConfig,
+                cpDirectToLeaderRoutingEnabled);
     }
 
     @Override
@@ -1080,7 +1107,8 @@ public class ClientConfig {
                 && Objects.equals(userContext, other.userContext)
                 && Objects.equals(instanceTrackingConfig, other.instanceTrackingConfig)
                 && Objects.equals(sqlConfig, other.sqlConfig)
-                && Objects.equals(tpcConfig, other.tpcConfig);
+                && Objects.equals(tpcConfig, other.tpcConfig)
+                && Objects.equals(cpDirectToLeaderRoutingEnabled, other.cpDirectToLeaderRoutingEnabled);
     }
 
     @Override
@@ -1110,6 +1138,7 @@ public class ClientConfig {
                 + ", instanceTrackingConfig=" + instanceTrackingConfig
                 + ", sqlConfig=" + sqlConfig
                 + ", tpcConfig=" + tpcConfig
+                + ", cpDirectToLeaderRoutingEnabled=" + cpDirectToLeaderRoutingEnabled
                 + '}';
     }
 }

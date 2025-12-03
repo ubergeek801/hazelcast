@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ class SystemPropertiesConfigParser {
     }
 
     private String processKey(Entry<String, ?> e) {
+        // we convert keys to lowercase for processing later; we parse the keys to find the correct
+        //  configuration objects to override, and all of our configuration keys are lowercase
         return StringUtil.lowerCaseInternal(e.getKey()
           .replace(" ", "")
           .replaceFirst(prefix, rootNode + "."));

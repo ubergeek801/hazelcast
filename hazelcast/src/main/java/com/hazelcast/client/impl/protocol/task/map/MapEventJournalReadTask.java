@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class MapEventJournalReadTask<K, V, T>
     protected Operation prepareOperation() {
         final Function<? super EventJournalMapEvent<K, V>, T> projection = serializationService.toObject(parameters.projection);
         final Predicate<? super EventJournalMapEvent<K, V>> predicate = serializationService.toObject(parameters.predicate);
-        return new MapEventJournalReadOperation<K, V, T>(
+        return new MapEventJournalReadOperation<>(
                 parameters.name, parameters.startSequence, parameters.minSize,
                 parameters.maxSize, predicate, projection);
     }
@@ -95,6 +95,7 @@ public class MapEventJournalReadTask<K, V, T>
         return MapService.SERVICE_NAME;
     }
 
+    @Override
     public Permission getRequiredPermission() {
         return new MapPermission(parameters.name, ActionConstants.ACTION_READ);
     }

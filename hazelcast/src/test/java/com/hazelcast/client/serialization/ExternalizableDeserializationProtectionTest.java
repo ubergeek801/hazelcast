@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.hazelcast.client.serialization;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
 
 import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.IndexType;
@@ -61,7 +59,7 @@ public class ExternalizableDeserializationProtectionTest extends HazelcastTestSu
     }
 
     @Before
-    public void killAllHazelcastInstances() throws IOException {
+    public void killAllHazelcastInstances() {
         hazelcastFactory.terminateAll();
         TestExternalizableDeserialized.isDeserialized = false;
     }

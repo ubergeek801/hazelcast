@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.internal.serialization.BinaryInterface;
 import com.hazelcast.internal.serialization.Data;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Implementation of {@link com.hazelcast.cache.impl.CacheEventData}.
@@ -138,19 +139,19 @@ public class CacheEventDataImpl
         if (isOldValueAvailable != that.isOldValueAvailable) {
             return false;
         }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
+        if (!Objects.equals(name, that.name)) {
             return false;
         }
         if (eventType != that.eventType) {
             return false;
         }
-        if (dataKey != null ? !dataKey.equals(that.dataKey) : that.dataKey != null) {
+        if (!Objects.equals(dataKey, that.dataKey)) {
             return false;
         }
-        if (dataNewValue != null ? !dataNewValue.equals(that.dataNewValue) : that.dataNewValue != null) {
+        if (!Objects.equals(dataNewValue, that.dataNewValue)) {
             return false;
         }
-        return dataOldValue != null ? dataOldValue.equals(that.dataOldValue) : that.dataOldValue == null;
+        return Objects.equals(dataOldValue, that.dataOldValue);
     }
 
     @Override

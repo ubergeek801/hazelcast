@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public class InboundResponseHandlerSupplierTest extends HazelcastTestSupport {
 
     private InboundResponseHandlerSupplier newSupplier(int threadCount) {
         Properties props = new Properties();
-        props.put(ClusterProperty.RESPONSE_THREAD_COUNT.getName(), "" + threadCount);
+        props.put(ClusterProperty.RESPONSE_THREAD_COUNT.getName(), String.valueOf(threadCount));
         HazelcastProperties properties = new HazelcastProperties(props);
         when(nodeEngine.getProperties()).thenReturn(properties);
 

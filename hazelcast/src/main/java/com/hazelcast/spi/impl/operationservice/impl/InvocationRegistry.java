@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.spi.impl.operationservice.impl;
 
+import com.hazelcast.client.impl.operations.OperationFactoryWrapper;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.HazelcastOverloadException;
 import com.hazelcast.core.MemberLeftException;
@@ -165,9 +166,12 @@ public class InvocationRegistry implements Iterable<Invocation>, StaticMetricsPr
         }
 
         Operation op = invocation.op;
-        Class c = op.getClass();
+        Class<?> c = op.getClass();
         if (op instanceof PartitionIteratingOperation operation) {
             c = operation.getOperationFactory().getClass();
+            if (operation.getOperationFactory() instanceof OperationFactoryWrapper wrapper) {
+                c = wrapper.getOperationFactory().getClass();
+            }
         }
         LatencyDistribution distribution = latencyDistributions.computeIfAbsent(c, k -> new LatencyDistribution());
         distribution.done(invocation.firstInvocationTimeNanos);

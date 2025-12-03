@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class CdcSinksTest extends PipelineTestSupport {
     private List<HazelcastInstance> remoteCluster;
 
     @After
+    @Override
     public void after() {
         if (remoteCluster != null) {
             for (HazelcastInstance instance : remoteCluster) {
@@ -305,8 +306,8 @@ public class CdcSinksTest extends PipelineTestSupport {
         assertEqualsEventually(getActualMap(instance), expectedMap);
     }
 
-    private Callable<Map<?, ?>> getActualMap(HazelcastInstance instace) {
-        return () -> instace.getMap(MAP).entrySet().stream()
+    private Callable<Map<?, ?>> getActualMap(HazelcastInstance instance) {
+        return () -> instance.getMap(MAP).entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 

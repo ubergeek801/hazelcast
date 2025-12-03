@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static com.hazelcast.function.FunctionEx.identity;
@@ -181,7 +182,7 @@ public class MetricsTest extends JetTestSupport {
         JobMetricsChecker checker = new JobMetricsChecker(job);
         checker.assertSummedMetricValue("mapped", 3L);
         assertEquals(
-                new HashSet<>(Arrays.asList(10L, 20L, 30L)),
+                Set.of(10L, 20L, 30L),
                 new HashSet<>(instance.getList("results"))
         );
     }

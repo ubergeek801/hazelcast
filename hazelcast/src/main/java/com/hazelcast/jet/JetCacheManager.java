@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ import com.hazelcast.cache.ICache;
 
 /**
  * @since Jet 3.0
- * @deprecated since 5.0
+ * @deprecated
  * Use {@link com.hazelcast.core.ICacheManager} instead.
  */
-@Deprecated
+@Deprecated(since = "5.0")
 public interface JetCacheManager {
 
     /**
      * @since Jet 3.0
-     * @deprecated since 5.0
+     * @deprecated
      * Use {@link com.hazelcast.core.ICacheManager#getCache(String)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     <K, V> ICache<K, V> getCache(String name);
 }

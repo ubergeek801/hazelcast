@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ public class DefaultNearCache<K, V> implements NearCache<K, V> {
         }
         switch (inMemoryFormat) {
             case BINARY:
-                return new NearCacheDataRecordStore<>(name, nearCacheConfig, serializationService, classLoader);
+                return new NearCacheDataRecordStore<>(name, nearCacheConfig, serializationService, classLoader, properties);
             case OBJECT:
-                return new NearCacheObjectRecordStore<>(name, nearCacheConfig, serializationService, classLoader);
+                return new NearCacheObjectRecordStore<>(name, nearCacheConfig, serializationService, classLoader, properties);
             default:
                 throw new IllegalArgumentException("Invalid in memory format: " + inMemoryFormat);
         }
@@ -224,7 +224,7 @@ public class DefaultNearCache<K, V> implements NearCache<K, V> {
 
     private class ExpirationTask implements Runnable {
 
-        private final AtomicBoolean expirationInProgress = new AtomicBoolean(false);
+        private final AtomicBoolean expirationInProgress = new AtomicBoolean();
 
         @Override
         public void run() {

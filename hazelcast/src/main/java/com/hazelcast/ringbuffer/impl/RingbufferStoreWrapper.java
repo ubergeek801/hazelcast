@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,7 +218,7 @@ public final class RingbufferStoreWrapper implements RingbufferStore<Data> {
     }
 
     private boolean isBinaryFormat() {
-        return inMemoryFormat.equals(BINARY) || inMemoryFormat.equals(NATIVE);
+        return inMemoryFormat == BINARY || inMemoryFormat == NATIVE;
     }
 
     @Override

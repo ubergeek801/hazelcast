@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ package com.hazelcast.internal.util.concurrent;
 public class BusySpinIdleStrategy implements IdleStrategy {
     private int dummyCounter;
 
+    @Override
     public boolean idle(final long n) {
         final int dummyValue = 64;
         // Trick speculative execution into not progressing

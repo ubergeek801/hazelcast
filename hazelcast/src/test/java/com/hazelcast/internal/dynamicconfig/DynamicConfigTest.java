@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import com.hazelcast.config.CacheSimpleEntryListenerConfig;
 import com.hazelcast.config.CardinalityEstimatorConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DataConnectionConfig;
+import com.hazelcast.internal.diagnostics.Diagnostics;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
+import com.hazelcast.internal.diagnostics.DiagnosticsOutputType;
 import com.hazelcast.config.DurableExecutorConfig;
 import com.hazelcast.config.EntryListenerConfig;
 import com.hazelcast.config.EventJournalConfig;
@@ -90,6 +93,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -117,7 +121,7 @@ public class DynamicConfigTest extends HazelcastTestSupport {
     private final String name = randomString();
     private HazelcastInstance[] members;
     // add***Config is invoked on driver instance
-    private HazelcastInstance driver;
+    protected HazelcastInstance driver;
 
     @Before
     public void setup() {
@@ -734,6 +738,22 @@ public class DynamicConfigTest extends HazelcastTestSupport {
                 .contains("Data connection name must be non-null and contain text");
     }
 
+    @Test
+    public void testDiagnosticsConfig() {
+        DiagnosticsConfig config = new DiagnosticsConfig()
+                .setEnabled(true)
+                .setMaxRolledFileSizeInMB(30)
+                .setMaxRolledFileCount(5)
+                .setIncludeEpochTime(false)
+                .setLogDirectory(Path.of(Diagnostics.DIRECTORY.getDefaultValue(), "logs").toString())
+                .setFileNamePrefix("fileNamePrefix")
+                .setAutoOffDurationInMinutes(5)
+                .setOutputType(DiagnosticsOutputType.STDOUT);
+
+        ((DynamicConfigurationAwareConfig) driver.getConfig()).setDiagnosticsConfig(config);
+        assertConfigurationsEqualOnAllMembers(config);
+    }
+
     private void assertConfigurationsEqualOnAllMembers(DataConnectionConfig expectedConfig) {
         assertConfigurationsEqualOnAllMembers(expectedConfig, Config::getDataConnectionConfig);
     }
@@ -798,6 +818,13 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         assertConfigurationsEqualOnAllMembers(reliableTopicConfig, Config::getReliableTopicConfig);
     }
 
+    private void assertConfigurationsEqualOnAllMembers(DiagnosticsConfig diagnosticsConfig) {
+        for (HazelcastInstance instance : members) {
+            DiagnosticsConfig registeredConfig = ((DynamicConfigurationAwareConfig) instance.getConfig()).getDiagnosticsConfig();
+            assertThat(registeredConfig).isEqualTo(diagnosticsConfig);
+        }
+    }
+
     private <T extends NamedConfig> void assertConfigurationsEqualOnAllMembers(T expectedConfig, BiFunction<Config, String, T> getterByName) {
         for (HazelcastInstance instance : members) {
             T registeredConfig = getterByName.apply(instance.getConfig(), expectedConfig.getName());
@@ -841,12 +868,6 @@ public class DynamicConfigTest extends HazelcastTestSupport {
         return new EvictionConfig().setSize(39)
                 .setMaxSizePolicy(ENTRY_COUNT)
                 .setEvictionPolicy(EvictionPolicy.RANDOM);
-    }
-
-    private EvictionConfig getEvictionConfigByClassName() {
-        return new EvictionConfig().setSize(39)
-                .setMaxSizePolicy(ENTRY_COUNT)
-                .setComparatorClassName("com.hazelcast.Comparator");
     }
 
     private EvictionConfig getEvictionConfigByImplementation() {

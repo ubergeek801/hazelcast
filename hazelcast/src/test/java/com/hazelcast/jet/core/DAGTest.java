@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import java.util.function.Supplier;
 import static com.hazelcast.jet.core.Edge.between;
 import static com.hazelcast.jet.core.Edge.from;
 import static com.hazelcast.jet.core.processor.Processors.noopP;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -172,7 +171,7 @@ public class DAGTest {
         Set<Edge> edges = new HashSet<>(dag.getInboundEdges("d"));
 
         // Then
-        assertEquals(new HashSet<>(asList(e1, e2, e3)), edges);
+        assertEquals(Set.of(e1, e2, e3), edges);
     }
 
     @Test
@@ -195,7 +194,7 @@ public class DAGTest {
         Set<Edge> edges = new HashSet<>(dag.getOutboundEdges("a"));
 
         // Then
-        assertEquals(new HashSet<>(asList(e1, e2, e3)), edges);
+        assertEquals(Set.of(e1, e2, e3), edges);
     }
 
     @Test

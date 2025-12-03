@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.hazelcast.internal.metrics.DoubleGauge;
 import com.hazelcast.internal.metrics.LongGauge;
 import com.hazelcast.internal.metrics.MetricsRegistry;
 import com.hazelcast.logging.ILogger;
+import com.hazelcast.spi.impl.executionservice.ExecutionService;
 import com.hazelcast.spi.properties.ClusterProperty;
 
 import static com.hazelcast.internal.diagnostics.HealthMonitorLevel.OFF;
@@ -64,14 +65,15 @@ public class HealthMonitor {
     private static final double THRESHOLD_PERCENTAGE_INVOCATIONS = 70;
     private static final double THRESHOLD_INVOCATIONS = 1000;
 
-    final HealthMetrics healthMetrics;
+    protected final Node node;
+
+    HealthMetrics healthMetrics;
+    final MetricsRegistry metricRegistry;
 
     private final ILogger logger;
-    private final Node node;
     private final HealthMonitorLevel monitorLevel;
     private final int thresholdMemoryPercentage;
     private final int thresholdCPUPercentage;
-    private final MetricsRegistry metricRegistry;
     private final HealthMonitorThread monitorThread;
 
     public HealthMonitor(Node node) {
@@ -210,7 +212,7 @@ public class HealthMonitor {
         final LongGauge executorIoQueueSize
                 = metricRegistry.newLongGauge("executor.hz:io.queueSize");
         final LongGauge executorQueryQueueSize
-                = metricRegistry.newLongGauge("executor.hz:query.queueSize");
+                = metricRegistry.newLongGauge("executor." + ExecutionService.QUERY_EXECUTOR + ".queueSize");
         final LongGauge executorMapLoadQueueSize
                 = metricRegistry.newLongGauge("executor.hz:map-load.queueSize");
         final LongGauge executorMapLoadAllKeysQueueSize
@@ -288,7 +290,7 @@ public class HealthMonitor {
         final LongGauge tcpConnectionClientCount
                 = metricRegistry.newLongGauge("tcp.connection.clientCount");
 
-        private final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         private double memoryUsedOfTotalPercentage;
         private double memoryUsedOfMaxPercentage;
         private long runtimeUsedMemory0;
@@ -325,10 +327,7 @@ public class HealthMonitor {
             if (operationServicePendingInvocationsPercentage0 > THRESHOLD_PERCENTAGE_INVOCATIONS) {
                 return true;
             }
-            if (operationServicePendingInvocationsCount0 > THRESHOLD_INVOCATIONS) {
-                return true;
-            }
-            return false;
+            return operationServicePendingInvocationsCount0 > THRESHOLD_INVOCATIONS;
         }
 
         public String render() {
@@ -480,7 +479,7 @@ public class HealthMonitor {
                     .append(percentageString(PERCENTAGE_MULTIPLIER * usedMeta / maxNative)).append(", ");
         }
 
-        private void renderExecutors() {
+        void renderExecutors() {
             sb.append("executor.q.async.size=")
                     .append(executorAsyncQueueSize.read()).append(", ");
             sb.append("executor.q.client.size=")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client.test.bounce;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.core.HazelcastInstance;
 
 /**
@@ -32,8 +33,9 @@ public class MultiSocketClientDriverFactory extends AbstractClientDriverFactory 
     }
 
     /**
-     * Creates client config for smart client
+     * Creates client config for {@link RoutingMode#ALL_MEMBERS} routing client
      */
+    @Override
     protected ClientConfig getClientConfig(HazelcastInstance member) {
         ClientConfig config = clientConfig == null ? new ClientConfig() : clientConfig;
         config.getNetworkConfig().setRedoOperation(true);

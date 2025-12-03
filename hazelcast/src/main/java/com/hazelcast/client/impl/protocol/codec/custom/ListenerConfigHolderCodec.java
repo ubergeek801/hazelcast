@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static com.hazelcast.client.impl.protocol.ClientMessage.*;
 import static com.hazelcast.client.impl.protocol.codec.builtin.FixedSizeTypesCodec.*;
 
 @SuppressWarnings("unused")
-@Generated("a581126717321a95efab984b2868b469")
+@Generated("cd2de6fe8d410031aaae14556564c205")
 public final class ListenerConfigHolderCodec {
     private static final int LISTENER_TYPE_FIELD_OFFSET = 0;
     private static final int INCLUDE_VALUE_FIELD_OFFSET = LISTENER_TYPE_FIELD_OFFSET + INT_SIZE_IN_BYTES;
@@ -44,7 +44,7 @@ public final class ListenerConfigHolderCodec {
         encodeBoolean(initialFrame.content, LOCAL_FIELD_OFFSET, listenerConfigHolder.isLocal());
         clientMessage.add(initialFrame);
 
-        CodecUtil.encodeNullable(clientMessage, listenerConfigHolder.getListenerImplementation(), DataCodec::encode);
+        DataCodec.encodeNullable(clientMessage, listenerConfigHolder.getListenerImplementation());
         CodecUtil.encodeNullable(clientMessage, listenerConfigHolder.getClassName(), StringCodec::encode);
 
         clientMessage.add(END_FRAME.copy());
@@ -59,7 +59,7 @@ public final class ListenerConfigHolderCodec {
         boolean includeValue = decodeBoolean(initialFrame.content, INCLUDE_VALUE_FIELD_OFFSET);
         boolean local = decodeBoolean(initialFrame.content, LOCAL_FIELD_OFFSET);
 
-        com.hazelcast.internal.serialization.Data listenerImplementation = CodecUtil.decodeNullable(iterator, DataCodec::decode);
+        com.hazelcast.internal.serialization.Data listenerImplementation = DataCodec.decodeNullable(iterator);
         java.lang.String className = CodecUtil.decodeNullable(iterator, StringCodec::decode);
 
         fastForwardToEndFrame(iterator);

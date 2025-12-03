@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ public class AwsDiscoveryStrategy
      * the group name. If it is Partition Placement Group, then returns the group name with the
      * partition number prefixed by '-' appended.
      * <p>
-     * When forming partition groups, this name should be combined with zone name. Otherwise
+     * When forming partition groups, this name should be combined with zone name. Otherwise,
      * two resources in different zones but in the same placement group will be assumed as
      * a single group.
      *
@@ -221,7 +221,7 @@ public class AwsDiscoveryStrategy
             isEmptyAddressListAlreadyLogged = true;
         }
 
-        LOGGER.fine(String.format("Found the following (private => public) addresses: %s", addresses));
+        LOGGER.fine("Found the following (private => public) addresses: %s", addresses);
     }
 
     private String getOrNull(AwsProperties awsProperties) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ public class ExecutorConfig implements IdentifiedDataSerializable, NamedConfig, 
      *
      * @return the name of the executor task
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -91,6 +92,7 @@ public class ExecutorConfig implements IdentifiedDataSerializable, NamedConfig, 
      * @param name the name of the executor task
      * @return this executor config instance
      */
+    @Override
     public ExecutorConfig setName(String name) {
         this.name = name;
         return this;
@@ -197,6 +199,7 @@ public class ExecutorConfig implements IdentifiedDataSerializable, NamedConfig, 
      * @return the updated {@link ExecutorConfig} instance
      * @since 5.4
      */
+    @Override
     public ExecutorConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;

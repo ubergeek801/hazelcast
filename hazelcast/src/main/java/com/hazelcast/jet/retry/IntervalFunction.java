@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public interface IntervalFunction extends Serializable {
      * interval, on the first attempt, and for each subsequent attempt uses
      * a longer interval, equal to the previous wait duration multiplied by the
      * provided scaling factor (so for example: 1, 2, 4, 8, ...). The wait
-     * interval increases only until a certain maximum value, ie. is capped. All
+     * interval increases only until a certain maximum value, i.e. is capped. All
      * subsequent wait intervals returned will be equal to the cap.
      */
     static IntervalFunction exponentialBackoffWithCap(long intervalMillis, double multiplier, long capMillis) {

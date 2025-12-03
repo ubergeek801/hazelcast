@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,7 @@ public class RingbufferConfig implements IdentifiedDataSerializable, NamedConfig
      * @return the updated {@link RingbufferConfig}
      * @throws IllegalArgumentException if name is {@code null} or an empty string
      */
+    @Override
     public RingbufferConfig setName(String name) {
         this.name = checkHasText(name, "name must contain text");
         return this;
@@ -143,6 +144,7 @@ public class RingbufferConfig implements IdentifiedDataSerializable, NamedConfig
      *
      * @return the name of the ringbuffer
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -404,6 +406,7 @@ public class RingbufferConfig implements IdentifiedDataSerializable, NamedConfig
      * @return the updated {@link RingbufferConfig} instance
      * @since 5.4
      */
+    @Override
     public RingbufferConfig setUserCodeNamespace(@Nullable String userCodeNamespace) {
         this.userCodeNamespace = userCodeNamespace;
         return this;

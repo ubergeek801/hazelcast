@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class BootstrappedInstanceProxyTest {
         bootstrappedInstanceProxy.shutdown();
 
         // Shutdown is not allowed so no exception should be thrown
-        assertThatCode(() -> bootstrappedInstanceProxy.shutdown())
+        assertThatCode(bootstrappedInstanceProxy::shutdown)
                 .doesNotThrowAnyException();
     }
 
@@ -59,7 +59,7 @@ public class BootstrappedInstanceProxyTest {
         bootstrappedInstanceProxy.setShutDownAllowed(true);
 
         // Shutdown is allowed so exception should be thrown
-        assertThatThrownBy(() -> bootstrappedInstanceProxy.shutdown())
+        assertThatThrownBy(bootstrappedInstanceProxy::shutdown)
                 .isInstanceOf(IllegalStateException.class);
     }
 }

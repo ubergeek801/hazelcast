@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -645,14 +645,15 @@ public class DynamicConfigYamlGeneratorTest extends AbstractDynamicConfigGenerat
                                         new VectorIndexConfig()
                                                 .setDimension(5)
                                                 .setMetric(Metric.DOT)
+                                                .setName("index-2-" + i)
                                 )
+                                .setUserCodeNamespace("ns1")
                 )
                 .collect(Collectors.toMap(VectorCollectionConfig::getName, identity()));
         config.setVectorCollectionConfigs(vectorCollection);
         var generatedConfig = getNewConfigViaGenerator(config).getVectorCollectionConfigs();
         assertThat(generatedConfig.entrySet()).containsExactlyInAnyOrderElementsOf(vectorCollection.entrySet());
     }
-
 
     @Override
     protected Config getNewConfigViaGenerator(Config config) {

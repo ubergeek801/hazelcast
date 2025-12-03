@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,7 @@ public class PartitionIdSet extends AbstractSet<Integer> implements IdentifiedDa
     }
 
     /**
-     * Mutates this set so it contains its complement with respect to the universe of all partition IDs.
+     * Mutates this set, so it contains its complement with respect to the universe of all partition IDs.
      */
     public void complement() {
         bitSet.flip(0, partitionCount);

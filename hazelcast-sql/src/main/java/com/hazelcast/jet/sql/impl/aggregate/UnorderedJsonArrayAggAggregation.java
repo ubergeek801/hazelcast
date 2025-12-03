@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.jet.sql.impl.aggregate;
 
 import com.hazelcast.core.HazelcastJsonValue;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.jet.sql.impl.expression.json.JsonCreationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -86,10 +87,7 @@ public final class UnorderedJsonArrayAggAggregation implements SqlAggregation {
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
         out.writeBoolean(isAbsentOnNull);
-        out.writeInt(values.size());
-        for (Object o : values) {
-            out.writeObject(o);
-        }
+        SerializationUtil.writeList(values, out);
     }
 
     @Override

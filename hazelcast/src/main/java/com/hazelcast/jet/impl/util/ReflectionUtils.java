@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package com.hazelcast.jet.impl.util;
 
+import com.hazelcast.core.HazelcastException;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.hazelcast.jet.JetException;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
 import static com.hazelcast.internal.util.ExceptionUtil.sneakyThrow;
 import static java.lang.Character.toUpperCase;
 import static java.util.Arrays.stream;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
@@ -74,16 +76,34 @@ public final class ReflectionUtils {
             throw sneakyThrow(e);
         }
     }
+    /**
+     * See {@link ClassLoaderUtil#newInstance(ClassLoader, String)}. Exceptions
+     * are sneakily thrown.
+     */
+    public static <T> T newInstance(ClassLoader classLoader, String  typeName) {
+        return newInstance(classLoader, typeName, typeName);
+    }
 
     /**
      * See {@link ClassLoaderUtil#newInstance(ClassLoader, String)}. Exceptions
      * are sneakily thrown.
      */
-    public static <T> T newInstance(ClassLoader classLoader, String name) {
+    public static <T> T newInstance(ClassLoader classLoader, String  typeName, String type) {
         try {
-            return ClassLoaderUtil.newInstance(classLoader, name);
+            return ClassLoaderUtil.newInstance(classLoader, typeName);
+        } catch (ClassNotFoundException e) {
+            throw new JetException(String.format("%s class %s not found", type, typeName));
+        } catch (InstantiationException e) {
+            throw new JetException(String.format("%s class %s can't be instantiated", type, typeName));
+        } catch (IllegalArgumentException | NoSuchMethodException e) {
+            throw new JetException(String.format("%s class %s has no default constructor", type, typeName));
+        } catch (IllegalAccessException e) {
+            throw new JetException(String.format("Default constructor of %s class %s is not accessible", type, typeName));
+        } catch (InvocationTargetException e) {
+            throw new JetException(
+                    String.format("%s class %s failed on construction: %s", type, typeName, e.getMessage()), e);
         } catch (Exception e) {
-            throw sneakyThrow(e);
+            throw new JetException(e);
         }
     }
 
@@ -94,17 +114,42 @@ public final class ReflectionUtils {
     public static <T> T readStaticFieldOrNull(String className, String fieldName) {
         try {
             Class<?> clazz = Class.forName(className);
-            return readStaticField(clazz, fieldName);
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | SecurityException e) {
+            return readStaticFieldOrNull(clazz, fieldName);
+        } catch (ClassNotFoundException | SecurityException e) {
             return null;
         }
     }
 
+    /**
+     * Reads a value of a static field. In case of any exceptions it returns
+     * null.
+     */
+    public static <T> T readStaticFieldOrNull(Class<?> clazz, String fieldName) {
+        try {
+            return readStaticFieldInternal(clazz, fieldName);
+        } catch (NoSuchFieldException | IllegalAccessException | SecurityException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Reads a value of a static field. In case of any exceptions it returns
+     * null.
+     */
+    @Nonnull
+    public static <T> T readStaticField(Class<?> clazz, String fieldName) {
+        try {
+            return requireNonNull(readStaticFieldInternal(clazz, fieldName), fieldName + " must be non-null");
+        } catch (NoSuchFieldException | IllegalAccessException | SecurityException e) {
+            throw new HazelcastException("Error when accessing field " + fieldName, e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private static <T> T readStaticField(Class<?> clazz, String fieldName) throws NoSuchFieldException,
+    private static <T> T readStaticFieldInternal(Class<?> clazz, String fieldName) throws NoSuchFieldException,
             IllegalAccessException {
         Field field = clazz.getDeclaredField(fieldName);
-        if (!field.isAccessible()) {
+        if (!field.canAccess(null)) {
             field.setAccessible(true);
         }
         return (T) field.get(null);
@@ -229,14 +274,14 @@ public final class ReflectionUtils {
     }
 
     @Nonnull
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification =
-            "False positive on try-with-resources as of JDK11")
+//    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification =
+//            "False positive on try-with-resources as of JDK11")
     public static Collection<Class<?>> nestedClassesOf(Class<?>... classes) {
         ClassGraph classGraph = new ClassGraph()
                 .enableClassInfo()
                 .ignoreClassVisibility();
         stream(classes).map(Class::getClassLoader).distinct().forEach(classGraph::addClassLoader);
-        stream(classes).map(ReflectionUtils::toPackageName).distinct().forEach(classGraph::whitelistPackages);
+        stream(classes).map(ReflectionUtils::toPackageName).distinct().forEach(classGraph::acceptPackages);
         try (ScanResult scanResult = classGraph.scan()) {
             Set<String> classNames = stream(classes).map(Class::getName).collect(toSet());
             return concat(
@@ -255,19 +300,21 @@ public final class ReflectionUtils {
     }
 
     @Nonnull
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification =
-            "False positive on try-with-resources as of JDK11")
+//    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification =
+//            "False positive on try-with-resources as of JDK11")
     public static Resources resourcesOf(String... packages) {
         String[] paths = stream(packages).map(ReflectionUtils::toPath).toArray(String[]::new);
         ClassGraph classGraph = new ClassGraph()
-                .whitelistPackages(packages)
-                .whitelistPaths(paths)
+                .acceptPackages(packages)
+                .acceptPaths(paths)
                 .ignoreClassVisibility();
         try (ScanResult scanResult = classGraph.scan()) {
             Collection<ClassResource> classes =
                     scanResult.getAllClasses().stream().map(ClassResource::new).collect(toList());
-            Collection<URL> nonClasses = scanResult.getAllResources().nonClassFilesOnly().getURLs();
-            return new Resources(classes, nonClasses);
+            try (var res = scanResult.getAllResources().nonClassFilesOnly()) {
+                Collection<URL> nonClasses = res.getURLs();
+                return new Resources(classes, nonClasses);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,12 +185,7 @@ public final class IntHashSet implements Set<Integer> {
     }
 
     private <E extends Integer> boolean addAllCapture(final Collection<E> coll) {
-        final Predicate<E> p = new Predicate<>() {
-            @Override
-            public boolean test(E x) {
-                return add(x);
-            }
-        };
+        final Predicate<E> p = this::add;
         return conjunction(coll, p);
     }
 
@@ -200,11 +195,7 @@ public final class IntHashSet implements Set<Integer> {
     }
 
     private <E> boolean containsAllCapture(Collection<E> coll) {
-        return conjunction(coll, new Predicate<E>() {
-            @Override public boolean test(E value) {
-                return contains(value);
-            }
-        });
+        return conjunction(coll, this::contains);
     }
 
     /**
@@ -258,11 +249,7 @@ public final class IntHashSet implements Set<Integer> {
     }
 
     private <E> boolean removeAllCapture(final Collection<E> coll) {
-        return conjunction(coll, new Predicate<E>() {
-            @Override public boolean test(E value) {
-                return remove(value);
-            }
-        });
+        return conjunction(coll, this::remove);
     }
 
     private static <E> boolean conjunction(final Collection<E> collection, final Predicate<E> predicate) {
@@ -344,6 +331,7 @@ public final class IntHashSet implements Set<Integer> {
         return (T[]) ret;
     }
 
+    @Override
     public boolean equals(final Object other) {
         if (other == this) {
             return true;
@@ -356,6 +344,7 @@ public final class IntHashSet implements Set<Integer> {
         return false;
     }
 
+    @Override
     public int hashCode() {
         final IntIterator iterator = iterator();
         int total = 0;

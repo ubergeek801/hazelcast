@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package com.hazelcast.scheduledexecutor.impl.operations;
 
+import com.hazelcast.internal.namespace.NamespaceUtil;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.scheduledexecutor.impl.DistributedScheduledExecutorService;
 import com.hazelcast.scheduledexecutor.impl.ScheduledExecutorContainer;
 import com.hazelcast.scheduledexecutor.impl.ScheduledTaskDescriptor;
 import com.hazelcast.spi.impl.operationservice.Operation;
@@ -86,22 +89,18 @@ public class MergeOperation
             throws IOException {
         super.writeInternal(out);
         out.writeObject(mergePolicy);
-        out.writeInt(mergingEntries.size());
-        for (ScheduledExecutorMergeTypes mergingEntry : mergingEntries) {
-            out.writeObject(mergingEntry);
-        }
+        SerializationUtil.writeList(mergingEntries, out);
     }
 
     @Override
     protected void readInternal(ObjectDataInput in)
             throws IOException {
         super.readInternal(in);
-        mergePolicy = in.readObject();
-        int size = in.readInt();
-        mergingEntries = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            ScheduledExecutorMergeTypes mergingEntry = in.readObject();
-            mergingEntries.add(mergingEntry);
-        }
+        mergePolicy = NamespaceUtil.callWithNamespace(
+                in::readObject,
+                schedulerName,
+                DistributedScheduledExecutorService::lookupNamespace
+        );
+        mergingEntries = SerializationUtil.readList(in);
     }
 }

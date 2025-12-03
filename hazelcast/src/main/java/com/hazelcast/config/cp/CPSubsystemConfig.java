@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.cp.lock.FencedLock;
 import com.hazelcast.cp.session.CPSession;
 import com.hazelcast.cp.session.CPSessionManagementService;
 import com.hazelcast.spi.annotation.PrivateApi;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.File;
 import java.util.Map;
@@ -402,7 +401,7 @@ public class CPSubsystemConfig {
      *
      * @return this config instance
      */
-    @SuppressFBWarnings(value = "IM_BAD_CHECK_FOR_ODD", justification = "It's obvious that groupSize is not negative.")
+    //@SuppressFBWarnings(value = "IM_BAD_CHECK_FOR_ODD", justification = "It's obvious that groupSize is not negative.")
     public CPSubsystemConfig setGroupSize(int groupSize) {
         checkTrue(groupSize == 0 || (groupSize >= MIN_GROUP_SIZE && groupSize <= MAX_GROUP_SIZE
                 && (groupSize % 2 == 1)), "Group size must be an odd value between 3 and 7");

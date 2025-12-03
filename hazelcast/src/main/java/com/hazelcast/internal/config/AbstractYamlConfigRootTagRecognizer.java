@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@ import com.hazelcast.internal.yaml.YamlLoader;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import org.snakeyaml.engine.v2.api.ConstructNode;
-import org.snakeyaml.engine.v2.api.LoadSettingsBuilder;
-
-import java.util.Optional;
 
 /**
  * Abstract {@link ConfigRecognizer} implementation that recognizes
@@ -37,7 +34,6 @@ import java.util.Optional;
  * document's internal Hazelcast YAML representation graph. This can be
  * prevented by creating and using custom {@link ConstructNode}
  * implementations for the tag types.
- * See {@link LoadSettingsBuilder#setRootConstructNode(Optional)}.
  * <p/>
  * If the provided configuration is not a valid YAML document, no exception
  * is thrown. Instead, the configuration is simply not recognized by this

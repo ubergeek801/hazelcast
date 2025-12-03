@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class JdbcJoinFullScanProcessorSupplier
         super(dataConnectionName, query, converters, joinInfo, projections);
     }
 
+    @Override
     protected AutoCloseableTraverser<JetSqlRow> joinRows(Iterable<JetSqlRow> leftRows) {
         return AutoCloseableTraversers.traverseAutoCloseableIterator(leftRows.iterator())
                   .flatMapAutoCloseable(jetSqlRow -> AutoCloseableTraversers.traverseAutoCloseableIterator(joinRow(jetSqlRow)));

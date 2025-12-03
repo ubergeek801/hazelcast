@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class PartitionServiceProxy implements PartitionService {
             final Address target = member.getAddress();
             final Operation operation = new SafeStateCheckOperation();
             final Future<Boolean> future = nodeEngine.getOperationService()
-                    .invokeOnTarget(InternalPartitionService.SERVICE_NAME, operation, target);
+                    .invokeOnTarget(IPartitionService.SERVICE_NAME, operation, target);
             futures.add(future);
         }
 
@@ -155,7 +155,7 @@ public class PartitionServiceProxy implements PartitionService {
         final Address target = member.getAddress();
         final Operation operation = new SafeStateCheckOperation();
         final InvocationFuture future = nodeEngine.getOperationService()
-                                                  .invokeOnTarget(InternalPartitionService.SERVICE_NAME, operation, target);
+                                                  .invokeOnTarget(IPartitionService.SERVICE_NAME, operation, target);
         boolean safe;
         try {
             final Object result = future.get(10, TimeUnit.SECONDS);

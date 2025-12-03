@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class JsonMetadataInitializer implements MetadataInitializer {
 
     private static final JsonFactory FACTORY = new JsonFactory();
 
+    @Override
     public Object createFromData(Data data) throws IOException {
         if (data.isJson()) {
             try (JsonParser parser = FACTORY.createParser(new ByteArrayInputStream(data.toByteArray(),
@@ -45,6 +46,7 @@ public class JsonMetadataInitializer implements MetadataInitializer {
         return null;
     }
 
+    @Override
     public Object createFromObject(Object obj) throws IOException {
         if (obj instanceof HazelcastJsonValue) {
             String str = obj.toString();

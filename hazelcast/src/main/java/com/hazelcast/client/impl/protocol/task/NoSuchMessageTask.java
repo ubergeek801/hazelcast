@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ import com.hazelcast.internal.nio.Connection;
 import java.security.Permission;
 import java.util.Set;
 
-import static com.hazelcast.cp.CPSubsystemStubImpl.CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS;
+import static com.hazelcast.cp.CPSubsystemStubImpl.CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS;
 
 public class NoSuchMessageTask extends AbstractMessageTask<ClientMessage> {
 
@@ -177,7 +177,7 @@ public class NoSuchMessageTask extends AbstractMessageTask<ClientMessage> {
         // TODO RU_COMPAT_5_4 added for Version 5.4 compatibility, to provide a meaningful error message
         //  to old clients after moving the CP subsystem to EE
         if (MOVED_CP_MESSAGE_TASKS.contains(messageType)) {
-            return CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS;
+            return CP_SUBSYSTEM_IS_NOT_AVAILABLE_IN_OS_CLIENTS;
         } else {
             return "Unrecognized client message received with type: 0x" + Integer.toHexString(messageType);
         }

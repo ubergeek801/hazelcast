@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,14 +78,14 @@ public class ClientClusterViewListenerService implements ConnectionListener {
         public void beforeListenerRegister(Connection connection) {
             clusterService.onClusterConnect();
             if (logger.isFinestEnabled()) {
-                logger.finest("Register attempt of ClusterViewListenerHandler to " + connection);
+                logger.finest("Register attempt of ClusterViewListenerHandler to %s", connection);
             }
         }
 
         @Override
         public void onListenerRegister(Connection connection) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Registered ClusterViewListenerHandler to " + connection);
+                logger.finest("Registered ClusterViewListenerHandler to %s", connection);
             }
         }
 

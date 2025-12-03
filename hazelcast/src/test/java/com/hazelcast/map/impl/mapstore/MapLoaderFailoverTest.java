@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class MapLoaderFailoverTest extends HazelcastTestSupport {
     public void testLoadsAll_whenInitialLoaderNodeRemovedWhileLoading() throws Exception {
         PausingMapLoader<Integer, Integer> pausingLoader = new PausingMapLoader<>(mapLoader, 5000);
         HazelcastInstance[] nodes
-                = nodeFactory.newInstances(() ->  newConfig(1, pausingLoader), 3);
+                = nodeFactory.newInstances(() -> newConfig(1, pausingLoader), 3);
         HazelcastInstance hz3 = nodes[2];
 
         String mapName = generateKeyOwnedBy(hz3);

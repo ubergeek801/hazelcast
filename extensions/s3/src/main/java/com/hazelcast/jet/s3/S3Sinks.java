@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,7 +147,7 @@ public final class S3Sinks {
                 FunctionEx<? super T, String> toStringFn,
                 SupplierEx<? extends S3Client> clientSupplier) {
             this.bucketName = bucketName;
-            String trimmedPrefix = StringUtil.trim(prefix);
+            String trimmedPrefix = StringUtil.strip(prefix);
             this.prefix = StringUtil.isNullOrEmpty(trimmedPrefix) ? "" : trimmedPrefix;
             this.processorIndex = processorIndex;
             this.s3Client = clientSupplier.get();

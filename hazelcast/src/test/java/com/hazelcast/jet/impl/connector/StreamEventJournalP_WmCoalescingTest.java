@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class StreamEventJournalP_WmCoalescingTest extends JetTestSupport {
         // insert to map in parallel to verifyProcessor so that the partition0 is not marked as idle
         // but partition1 is
         CountDownLatch productionStartedLatch = new CountDownLatch(1);
-        Future future = spawn(() -> {
+        Future<?> future = spawn(() -> {
             while (!Thread.interrupted()) {
                 LockSupport.parkNanos(MILLISECONDS.toNanos(500));
                 map.put(partitionKeys[0], 11);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import static com.hazelcast.internal.tpcengine.util.Preconditions.checkNotNull;
  * <p>
  * The Promise supports pooling. So when you get a promise, make sure you call {@link #release()}
  * when you are done with it.
- *
- * @param <E>
  */
 @SuppressWarnings("checkstyle:VisibilityModifier")
 public class Promise<E> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ public class ClusterMembershipListenerTest extends HazelcastTestSupport {
         return new MembershipAdapter() {
 
             // flag to check listener is not called concurrently
-            final AtomicBoolean flag = new AtomicBoolean(false);
+            final AtomicBoolean flag = new AtomicBoolean();
 
             public void memberAdded(MembershipEvent membershipEvent) {
                 if (flag.compareAndSet(false, true)) {
@@ -268,10 +268,12 @@ public class ClusterMembershipListenerTest extends HazelcastTestSupport {
     static class MembershipListenerImpl implements MembershipListener {
         final List<EventObject> events = Collections.synchronizedList(new ArrayList<>());
 
+        @Override
         public void memberAdded(MembershipEvent e) {
             events.add(e);
         }
 
+        @Override
         public void memberRemoved(MembershipEvent e) {
             events.add(e);
         }
@@ -283,6 +285,7 @@ public class ClusterMembershipListenerTest extends HazelcastTestSupport {
 
     private static class InitialMembershipListenerImpl extends MembershipListenerImpl implements InitialMembershipListener {
 
+        @Override
         public void init(InitialMembershipEvent e) {
             events.add(e);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.ByteArraySerializer;
 import com.hazelcast.nio.serialization.StreamSerializer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -58,9 +57,9 @@ public final class ConstantSerializers {
             return CONSTANT_TYPE_NULL;
         }
 
-        @SuppressFBWarnings(
-                value = "NP_NONNULL_RETURN_VIOLATION",
-                justification = "NullSerializer is only used for null values.")
+//        @SuppressFBWarnings(
+//                value = "NP_NONNULL_RETURN_VIOLATION",
+//                justification = "NullSerializer is only used for null values.")
         @Override
         public Object read(final ObjectDataInput in) throws IOException {
             return null;
@@ -250,9 +249,6 @@ public final class ConstantSerializers {
             return buffer;
         }
 
-        @Override
-        public void destroy() {
-        }
     }
 
     public static final class BooleanArraySerializer extends SingletonSerializer<boolean[]> {
@@ -458,9 +454,6 @@ public final class ConstantSerializers {
 
     private abstract static class SingletonSerializer<T> implements StreamSerializer<T> {
 
-        @Override
-        public void destroy() {
-        }
     }
 
     private ConstantSerializers() {

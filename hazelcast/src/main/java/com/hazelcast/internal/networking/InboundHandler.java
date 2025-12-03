@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public abstract class InboundHandler<S, D> extends ChannelHandler<InboundHandler
     /**
      * A callback to indicate that data is available in the src to be
      * processed.
-     *
+     * <p>
      * InboundHandlers should be able to deal with spurious onReads
      * (so a read even though there is nothing to be processed).
      *
@@ -58,7 +58,7 @@ public abstract class InboundHandler<S, D> extends ChannelHandler<InboundHandler
     /**
      * Initializes the src buffer. Should only be called by InboundHandler
      * implementations that have a ByteBuffer as source.
-     *
+     * <p>
      * The capacity of the src buffer will come from the {@link ChannelOptions} using
      * {@link ChannelOption#SO_RCVBUF}
      */

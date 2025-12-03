@@ -1,6 +1,6 @@
 /*
  * Original work Copyright 2015 Real Logic Ltd.
- * Modified work Copyright (c) 2015-2024, Hazelcast, Inc. All Rights Reserved.
+ * Modified work Copyright (c) 2015-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
@@ -281,8 +280,8 @@ public class LongHashSetTest {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray();
-        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
-        assertEquals(new HashSet<Object>(initial), fromArray);
+        final Set<Object> fromArray = Set.of(ary);
+        assertEquals(new HashSet<>(initial), fromArray);
     }
 
     @Test
@@ -291,8 +290,8 @@ public class LongHashSetTest {
         initial.add(1);
         initial.add(13);
         final Object[] ary = initial.toArray(new Long[0]);
-        final Set<Object> fromArray = new HashSet<>(Arrays.asList(ary));
-        assertEquals(new HashSet<Object>(initial), fromArray);
+        final Set<Object> fromArray = Set.of(ary);
+        assertEquals(new HashSet<>(initial), fromArray);
     }
 
     @Test

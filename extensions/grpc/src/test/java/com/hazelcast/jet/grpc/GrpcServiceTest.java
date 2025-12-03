@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,7 +391,7 @@ public class GrpcServiceTest extends SimpleTestInClusterSupport {
 
         @Override
         public StreamObserver<HelloRequest> sayHelloBidirectional(StreamObserver<HelloReply> responseObserver) {
-            return new StreamObserver<HelloRequest>() {
+            return new StreamObserver<>() {
                 @Override
                 public void onNext(HelloRequest value) {
                     responseObserver.onError(new RuntimeException("something went wrong"));
@@ -412,7 +412,7 @@ public class GrpcServiceTest extends SimpleTestInClusterSupport {
         @Override
         public StreamObserver<HelloRequestList> sayHelloRepeatedBidirectional(
                 StreamObserver<HelloReplyList> responseObserver) {
-            return new StreamObserver<HelloRequestList>() {
+            return new StreamObserver<>() {
                 @Override
                 public void onNext(HelloRequestList value) {
                     responseObserver.onError(new RuntimeException("something went wrong"));
@@ -448,7 +448,7 @@ public class GrpcServiceTest extends SimpleTestInClusterSupport {
 
         @Override
         public StreamObserver<HelloRequest> sayHelloBidirectional(StreamObserver<HelloReply> responseObserver) {
-            return new StreamObserver<HelloRequest>() {
+            return new StreamObserver<>() {
 
                 @Override
                 public void onNext(HelloRequest value) {
@@ -474,7 +474,7 @@ public class GrpcServiceTest extends SimpleTestInClusterSupport {
         @Override
         public StreamObserver<HelloRequestList> sayHelloRepeatedBidirectional(
                 StreamObserver<HelloReplyList> responseObserver) {
-            return new StreamObserver<HelloRequestList>() {
+            return new StreamObserver<>() {
 
                 @Override
                 public void onNext(HelloRequestList value) {

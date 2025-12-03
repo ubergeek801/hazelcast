@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class QueueTestsFrom2X extends HazelcastTestSupport {
 
         VersionedObject<String> value = new VersionedObject<>("hello");
         CountDownLatch latch = new CountDownLatch(8);
-        queue.addItemListener(new ItemListener<VersionedObject<String>>() {
+        queue.addItemListener(new ItemListener<>() {
             public void itemAdded(ItemEvent<VersionedObject<String>> itemEvent) {
                 assertEquals(value, itemEvent.getItem());
                 latch.countDown();
@@ -505,7 +505,7 @@ public class QueueTestsFrom2X extends HazelcastTestSupport {
                 context.rollbackTransaction();
             }
         });
-        AtomicBoolean fail = new AtomicBoolean(false);
+        AtomicBoolean fail = new AtomicBoolean();
         Thread t2 = new Thread(() -> {
             TransactionContext context = hz.newTransactionContext();
             try {
@@ -538,7 +538,7 @@ public class QueueTestsFrom2X extends HazelcastTestSupport {
 
         CountDownLatch offerLatch = new CountDownLatch(2);
         CountDownLatch pollLatch = new CountDownLatch(2);
-        testQueue.addItemListener(new ItemListener<VersionedObject<String>>() {
+        testQueue.addItemListener(new ItemListener<>() {
             public void itemAdded(ItemEvent<VersionedObject<String>> item) {
                 offerLatch.countDown();
             }

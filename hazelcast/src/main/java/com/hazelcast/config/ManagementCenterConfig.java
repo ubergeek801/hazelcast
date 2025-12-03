@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.hazelcast.config;
 
 import static com.hazelcast.internal.util.Preconditions.isNotNull;
-import static java.util.Collections.newSetFromMap;
 
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +33,7 @@ public final class ManagementCenterConfig implements TrustedInterfacesConfigurab
 
     private boolean dataAccessEnabled = true;
 
-    private final Set<String> trustedInterfaces = newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<String> trustedInterfaces = ConcurrentHashMap.newKeySet();
 
     public ManagementCenterConfig() {
     }
@@ -115,6 +114,7 @@ public final class ManagementCenterConfig implements TrustedInterfacesConfigurab
      * @return the trusted interfaces
      * @see #setTrustedInterfaces(java.util.Set)
      */
+    @Override
     public Set<String> getTrustedInterfaces() {
         return trustedInterfaces;
     }
@@ -128,6 +128,7 @@ public final class ManagementCenterConfig implements TrustedInterfacesConfigurab
      * @return the updated MulticastConfig
      * @see IllegalArgumentException if interfaces is {@code null}
      */
+    @Override
     public ManagementCenterConfig setTrustedInterfaces(Set<String> interfaces) {
         isNotNull(interfaces, "interfaces");
 
@@ -143,6 +144,7 @@ public final class ManagementCenterConfig implements TrustedInterfacesConfigurab
      * @throws IllegalArgumentException if IP is {@code null}
      * @see #setTrustedInterfaces(java.util.Set)
      */
+    @Override
     public ManagementCenterConfig addTrustedInterface(final String ip) {
         trustedInterfaces.add(isNotNull(ip, "ip"));
         return this;

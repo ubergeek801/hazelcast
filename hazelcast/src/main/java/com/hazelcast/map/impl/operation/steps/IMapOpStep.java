@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public interface IMapOpStep extends Step<State> {
      *     </li>
      * </ul>
      */
+    @Override
     default boolean isOffloadStep(State state) {
         if (state.getRecordStore()
                 .getMapDataStore().isNullImpl()) {
@@ -102,6 +103,7 @@ public interface IMapOpStep extends Step<State> {
     /**
      * @return name of the executor to execute this map operation step
      */
+    @Override
     default String getExecutorName(State state) {
         return MAP_STORE_OFFLOADABLE_EXECUTOR;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.internal.partition.operation;
 import com.hazelcast.cluster.Address;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.internal.partition.ChunkSupplier;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.InternalPartitionService;
 import com.hazelcast.internal.partition.MigrationEndpoint;
 import com.hazelcast.internal.partition.MigrationInfo;
@@ -167,7 +168,7 @@ public class MigrationRequestOperation extends BaseMigrationOperation {
 
         Address target = migrationInfo.getDestinationAddress();
         nodeEngine.getOperationService()
-                .createInvocationBuilder(InternalPartitionService.SERVICE_NAME, operation, target)
+                .createInvocationBuilder(IPartitionService.SERVICE_NAME, operation, target)
                 .setResultDeserialized(true)
                 .setCallTimeout(partitionService.getPartitionMigrationTimeout())
                 .invoke()
@@ -438,11 +439,11 @@ public class MigrationRequestOperation extends BaseMigrationOperation {
                 // ASYNC executor is of CONCRETE type (does not share threads with other executors)
                 // and is never used for user-supplied code.
                 getNodeEngine().getExecutionService().submit(ExecutionService.ASYNC_EXECUTOR,
-                        () -> trySendNewFragment());
+                        MigrationRequestOperation.this::trySendNewFragment);
             } else {
                 ILogger logger = getLogger();
                 if (logger.isFineEnabled()) {
-                    logger.fine("Received false response from migration destination -> " + migrationInfo);
+                    logger.fine("Received false response from migration destination -> %s", migrationInfo);
                 }
                 completeMigration(false);
             }

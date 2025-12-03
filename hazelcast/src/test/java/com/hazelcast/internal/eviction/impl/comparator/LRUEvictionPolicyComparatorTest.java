@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class LRUEvictionPolicyComparatorTest {
         Collections.sort(descOrderByIdleTimes, (o1, o2) -> -Long.compare(idleTime(o1), idleTime(o2)));
 
         // 2. Then sort given entries by using LRU eviction comparator.
-        Collections.sort(givenEntries, (o1, o2) -> LRUEvictionPolicyComparator.INSTANCE.compare(o1, o2));
+        Collections.sort(givenEntries, LRUEvictionPolicyComparator.INSTANCE::compare);
 
         // 3. Check both lists are equal
         assertEquals(descOrderByIdleTimes, givenEntries);
@@ -86,10 +86,6 @@ public class LRUEvictionPolicyComparatorTest {
         @Override
         public long getLastAccessTime() {
             return lastAccessTime;
-        }
-
-        public long getId() {
-            return id;
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.vector.SearchOptions;
+import com.hazelcast.vector.SearchOptionsBuilder;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -76,6 +77,15 @@ public class SearchOptionsImpl implements SearchOptions, IdentifiedDataSerializa
     }
 
     @Override
+    public SearchOptionsBuilder toBuilder() {
+        return new SearchOptionsBuilder()
+                .setIncludeValue(includeValue)
+                .setIncludeVectors(includeVectors)
+                .limit(limit)
+                .hints(hints);
+    }
+
+    @Override
     public void writeData(ObjectDataOutput out) throws IOException {
         out.writeBoolean(includeValue);
         out.writeBoolean(includeVectors);
@@ -111,12 +121,12 @@ public class SearchOptionsImpl implements SearchOptions, IdentifiedDataSerializa
         }
         SearchOptionsImpl that = (SearchOptionsImpl) o;
         return includeValue == that.includeValue && includeVectors == that.includeVectors
-                && limit == that.limit;
+                && limit == that.limit && Objects.equals(hints, that.hints);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(includeValue, includeVectors, limit);
+        return Objects.hash(includeValue, includeVectors, limit, hints);
     }
 
     @Override

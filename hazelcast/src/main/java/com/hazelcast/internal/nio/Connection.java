@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents a 'connection' between two machines.
- *
+ * <p>
  * There are 2 important sub-interfaces:
  * <ol>
  *     <li>{@link com.hazelcast.internal.server.ServerConnection}</li>
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * For client or server specific behavior it is best to add the logic to these interfaces instead of in
  * this common interface.
- *
+ * <p>
  * If you need to attach data to a connection, please consider using the attributeMap instead of adding
  * a lot of extra methods.
  */

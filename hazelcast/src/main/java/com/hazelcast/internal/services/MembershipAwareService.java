@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.hazelcast.internal.services;
 
 /**
- * An interface that can be implemented by a SPI service that needs to be notified members joining and leaving
+ * An interface that can be implemented by an SPI service that needs to be notified members joining and leaving
  * the cluster.
  *
  * @author mdogan 9/5/12

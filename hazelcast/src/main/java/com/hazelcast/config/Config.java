@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,7 +235,6 @@ public class Config {
     private TpcConfig tpcConfig = new TpcConfig();
 
     // @since 5.4
-    @Beta
     private RestConfig restConfig = new RestConfig();
 
     public Config() {
@@ -575,7 +574,7 @@ public class Config {
      * @param name property name
      * @return property value
      * @see #setProperty(String, String)
-     * @see <a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#system-properties">
+     * @see <a href="https://docs.hazelcast.com/hazelcast/latest/system-properties">
      * Hazelcast System Properties</a>
      */
     public String getProperty(String name) {
@@ -591,7 +590,7 @@ public class Config {
      * @return this config instance
      * @throws IllegalArgumentException if either {@code value} is {@code null} or if {@code name} is empty or
      *                                  {@code null}
-     * @see <a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#system-properties">
+     * @see <a href="https://docs.hazelcast.com/hazelcast/latest/system-properties">
      * Hazelcast System Properties</a>
      */
     public Config setProperty(@Nonnull String name, @Nonnull String value) {
@@ -2672,9 +2671,9 @@ public class Config {
      * @return this config instance
      * @throws NullPointerException if the {@code hrConfig} parameter is {@code null}
      *
-     * @deprecated since 5.0 use {@link Config#setPersistenceConfig(PersistenceConfig)}
+     * @deprecated use {@link Config#setPersistenceConfig(PersistenceConfig)}
      */
-    @Deprecated
+    @Deprecated(since = "5.0")
     public Config setHotRestartPersistenceConfig(HotRestartPersistenceConfig hrConfig) {
         checkNotNull(hrConfig, "Hot restart config cannot be null!");
         this.hotRestartPersistenceConfig = hrConfig;
@@ -3343,7 +3342,6 @@ public class Config {
      *
      * @return the RestConfig.
      */
-    @Beta
     public RestConfig getRestConfig() {
         return restConfig;
     }
@@ -3355,7 +3353,6 @@ public class Config {
      * @return this Config instance
      * @throws NullPointerException if restConfig is null
      */
-    @Beta
     public @Nonnull Config setRestConfig(@Nonnull RestConfig restConfig) {
         this.restConfig = checkNotNull(restConfig, "RestConfig cannot be null!");
         return this;

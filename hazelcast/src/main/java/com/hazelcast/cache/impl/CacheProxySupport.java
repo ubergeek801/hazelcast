@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,8 +107,8 @@ abstract class CacheProxySupport<K, V>
     private final CopyOnWriteArrayList<Future> loadAllTasks = new CopyOnWriteArrayList<>();
 
     private final AtomicReference<HazelcastServerCacheManager> cacheManagerRef = new AtomicReference<>();
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
-    private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
+    private final AtomicBoolean isClosed = new AtomicBoolean();
+    private final AtomicBoolean isDestroyed = new AtomicBoolean();
 
     private final CacheProxySyncListenerCompleter listenerCompleter = new CacheProxySyncListenerCompleter(this);
 
@@ -488,7 +488,7 @@ abstract class CacheProxySupport<K, V>
     }
 
     protected void putToAllPartitionsAndWaitForCompletion(List<Map.Entry<Data, Data>>[] entriesPerPartition,
-                                                        ExpiryPolicy expiryPolicy) throws Exception {
+                                                        ExpiryPolicy expiryPolicy) {
         List<Future> futures = new ArrayList<>(entriesPerPartition.length);
         for (int partitionId = 0; partitionId < entriesPerPartition.length; partitionId++) {
             List<Map.Entry<Data, Data>> entries = entriesPerPartition[partitionId];
@@ -515,7 +515,7 @@ abstract class CacheProxySupport<K, V>
             /*
              * There maybe multiple exceptions but we throw only the first one.
              * There are some ideas to throw all exceptions to caller but all of them have drawbacks:
-             *      - `Thread::addSuppressed` can be used to add other exceptions to the first one
+             *      - `Thread::addSuppressed` can be used to add other exceptions to the first one,
              *        but it is available since JDK 7.
              *      - `Thread::initCause` can be used but this is wrong as semantic
              *        since the other exceptions are not cause of the first one.

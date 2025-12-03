@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.hazelcast.client.HazelcastClientNotActiveException;
 import com.hazelcast.client.impl.clientside.HazelcastClientInstanceImpl;
 import com.hazelcast.client.impl.connection.ClientConnection;
 import com.hazelcast.client.impl.connection.ClientConnectionManager;
-import com.hazelcast.client.impl.connection.tcp.RoutingMode;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.ClientLocalBackupListenerCodec;
 import com.hazelcast.client.impl.spi.ClientInvocationService;
@@ -119,7 +119,7 @@ public class ClientInvocationServiceImpl implements ClientInvocationServiceInter
         this.connectionManager = client.getConnectionManager();
         this.partitionService = client.getClientPartitionService();
         this.routingMode = connectionManager.getRoutingMode();
-        this.isBackupAckToClientEnabled = routingMode == RoutingMode.SMART
+        this.isBackupAckToClientEnabled = routingMode == RoutingMode.ALL_MEMBERS
                 && client.getClientConfig().isBackupAckToClientEnabled();
     }
 

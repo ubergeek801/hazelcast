@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class CacheCreateUseDestroyTest extends HazelcastTestSupport {
     private static final Capacity NATIVE_MEMORY_SIZE = new Capacity(32, MemoryUnit.MEGABYTES);
 
     @Parameters(name = "{0}")
-    public static Collection parameters() {
+    public static Collection<Object[]> parameters() {
         return asList(
                 new Object[]{OBJECT},
                 new Object[]{BINARY},

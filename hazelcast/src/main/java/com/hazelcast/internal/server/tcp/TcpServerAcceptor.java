@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,12 +55,11 @@ import static java.lang.Math.max;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.currentThread;
 import static java.nio.channels.SelectionKey.OP_ACCEPT;
-import static java.util.Collections.newSetFromMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Contains the logic for accepting {@link TcpServerConnection}s.
- *
+ * <p>
  * The {@link TcpServerAcceptor} and {@link TcpServerConnector} are 2 sides of the same coin. The
  * {@link TcpServerConnector} take care of the 'client' side of a connection and the {@link TcpServerAcceptor}
  * is the 'server' side of a connection (each connection has a client and server-side)
@@ -93,7 +92,7 @@ public class TcpServerAcceptor implements DynamicMetricsProvider {
     private volatile boolean stop;
     private volatile Selector selector;
 
-    private final Set<SelectionKey> selectionKeys = newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<SelectionKey> selectionKeys = ConcurrentHashMap.newKeySet();
 
     TcpServerAcceptor(ServerSocketRegistry registry, TcpServer server, ServerContext serverContext) {
         this.registry = registry;
@@ -153,7 +152,7 @@ public class TcpServerAcceptor implements DynamicMetricsProvider {
         @Override
         public void run() {
             if (logger.isFinestEnabled()) {
-                logger.finest("Starting TcpIpAcceptor on " + registry);
+                logger.finest("Starting TcpIpAcceptor on %s", registry);
             }
 
             try {
@@ -245,7 +244,7 @@ public class TcpServerAcceptor implements DynamicMetricsProvider {
             while (it.hasNext()) {
                 SelectionKey sk = it.next();
                 it.remove();
-                // of course it is acceptable!
+                // of course, it is acceptable!
                 if (sk.isValid() && sk.isAcceptable()) {
                     eventCount.inc();
                     ServerSocketRegistry.Pair attachment = (ServerSocketRegistry.Pair) sk.attachment();
@@ -288,7 +287,7 @@ public class TcpServerAcceptor implements DynamicMetricsProvider {
             Channel channel = connectionManager.newChannel(socketChannel, false);
 
             if (logger.isFineEnabled()) {
-                logger.fine("Accepting socket connection from " + channel.socket().getRemoteSocketAddress());
+                logger.fine("Accepting socket connection from %s", channel.socket().getRemoteSocketAddress());
             }
             serverContext.getAuditLogService()
                 .eventBuilder(AuditlogTypeIds.NETWORK_CONNECT)
@@ -309,7 +308,7 @@ public class TcpServerAcceptor implements DynamicMetricsProvider {
                 connectionManager.newConnection(channel, null, true);
             } catch (Exception e) {
                 exceptionCount.inc();
-                logger.warning(e.getClass().getName() + ": " + e.getMessage(), e);
+                logger.warning(e.getClass().getName() + "%s: " + e.getMessage(), e);
                 closeResource(channel);
             }
         }

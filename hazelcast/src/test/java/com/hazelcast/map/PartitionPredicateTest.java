@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class PartitionPredicateTest extends HazelcastTestSupport {
     @Before
     public void setUp() {
         Config config = getConfig()
-                .setProperty(ClusterProperty.PARTITION_COUNT.getName(), "" + PARTITIONS);
+                .setProperty(ClusterProperty.PARTITION_COUNT.getName(), String.valueOf(PARTITIONS));
 
         TestHazelcastInstanceFactory nodeFactory = createHazelcastInstanceFactory(2);
 

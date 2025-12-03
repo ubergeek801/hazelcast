@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,8 @@ public class FailoverConfigTest {
                 "getOrCreateQueryCacheConfig", "getOrNullQueryCacheConfig", "addLabel", "setLabels", "setUserContext",
                 "getUserContext", "setMetricsConfig", "load", "setBackupAckToClientEnabled", "isBackupAckToClientEnabled",
                 "getMetricsConfig", "getSqlConfig", "setSqlConfig", "equals", "hashCode", "toString", "setInstanceTrackingConfig",
-                "getInstanceTrackingConfig", "getTpcConfig", "setTpcConfig");
+                "getInstanceTrackingConfig", "getTpcConfig", "setTpcConfig", "isCPDirectToLeaderRoutingEnabled",
+                "setCPDirectToLeaderRoutingEnabled");
         Method[] declaredMethods = ClientConfig.class.getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (Modifier.isPrivate(method.getModifiers())) {
@@ -89,8 +90,8 @@ public class FailoverConfigTest {
                 "setEurekaConfig", "getEurekaConfig", "setAutoDetectionConfig", "getAutoDetectionConfig", "isAutoDetectionEnabled",
                 "getCloudConfig", "setCloudConfig", "getOutboundPortDefinitions", "getOutboundPorts", "setOutboundPortDefinitions",
                 "setOutboundPorts", "addOutboundPort", "addOutboundPortDefinition", "getClientIcmpPingConfig",
-                "setClientIcmpPingConfig", "equals", "hashCode", "toString", "setSubsetRoutingConfig",
-                "getSubsetRoutingConfig");
+                "setClientIcmpPingConfig", "equals", "hashCode", "toString", "setClusterRoutingConfig",
+                "getClusterRoutingConfig");
         Method[] declaredMethods = ClientNetworkConfig.class.getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (!method.getName().startsWith("$") && !allClientNetworkConfigMethods.contains(method.getName())) {

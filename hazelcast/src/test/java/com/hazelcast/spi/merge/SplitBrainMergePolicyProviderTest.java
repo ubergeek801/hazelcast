@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,19 +43,19 @@ public class SplitBrainMergePolicyProviderTest extends HazelcastTestSupport {
 
     @Before
     public void setup() {
-        mergePolicyProvider = new SplitBrainMergePolicyProvider(getNode(createHazelcastInstance()).getConfigClassLoader());
+        mergePolicyProvider = new SplitBrainMergePolicyProvider(getNode(createHazelcastInstance()).getNodeEngine().getConfigClassLoader());
     }
 
     @Test
     public void getMergePolicy_withNotExistingMergePolicy() {
-        assertThatThrownBy(() -> mergePolicyProvider.getMergePolicy("No such policy!"))
+        assertThatThrownBy(() -> mergePolicyProvider.getMergePolicy("No such policy!", null))
                 .isInstanceOf(InvalidConfigurationException.class)
                 .hasCauseInstanceOf(ClassNotFoundException.class);
     }
 
     @Test
     public void getMergePolicy_withNullPolicy() {
-        assertThatThrownBy(() -> mergePolicyProvider.getMergePolicy(null))
+        assertThatThrownBy(() -> mergePolicyProvider.getMergePolicy(null, null))
                 .isInstanceOf(InvalidConfigurationException.class);
     }
 
@@ -70,9 +70,18 @@ public class SplitBrainMergePolicyProviderTest extends HazelcastTestSupport {
             assertMergePolicyCorrectlyInitialised(mergePolicyClass.getName(), mergePolicyClass);
         }
     }
+
+    @Test
+    public void getMergePolicyUCN_withPolicyExists() {
+        assertThatThrownBy(() -> mergePolicyProvider.getMergePolicy("No such policy!", "uc1"))
+                .isInstanceOf(InvalidConfigurationException.class)
+                .hasCauseInstanceOf(ClassNotFoundException.class);
+    }
+
+
     private void assertMergePolicyCorrectlyInitialised(String mergePolicyName,
                                                        Class<? extends SplitBrainMergePolicy> expectedMergePolicyClass) {
-        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(mergePolicyName);
+        SplitBrainMergePolicy mergePolicy = mergePolicyProvider.getMergePolicy(mergePolicyName, null);
 
         assertNotNull(mergePolicy);
         assertEquals(expectedMergePolicyClass, mergePolicy.getClass());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.hazelcast.spi.impl.operationservice.WrappableException;
 /**
  * An {@link RuntimeException} that is thrown when accessing an item in the {@link Ringbuffer} using a sequence that is smaller
  * than the current head sequence and that the ringbuffer store is disabled. This means that the item isn't available in the
- * ringbuffer and it cannot be loaded from the store either, thus being completely unavailable.
+ * ringbuffer, and it cannot be loaded from the store either, thus being completely unavailable.
  */
 public class StaleSequenceException extends RuntimeException implements SilentException,
         WrappableException<StaleSequenceException> {

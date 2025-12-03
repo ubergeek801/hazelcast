@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,8 +154,7 @@ public enum PartitionWideEntryOpSteps implements IMapOpStep {
                 }
             } else {
                 switch (eventType) {
-                    case ADDED:
-                    case UPDATED:
+                    case ADDED, UPDATED:
                         toStore.add(singleKeyState);
                         break;
                     case REMOVED:

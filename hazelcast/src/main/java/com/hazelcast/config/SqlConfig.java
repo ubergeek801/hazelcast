@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class SqlConfig {
      * Allows to configure reflection protection filter.
      * Enable the configuration of restrictions on class usage in SQL mapping and UDT.
      *
-     * @param JavaSerializationFilterConfig the filter config to set (may be {@code null})
+     * @param javaReflectionFilterConfig the filter config to set (may be {@code null})
      */
     public void setJavaReflectionFilterConfig(JavaSerializationFilterConfig javaReflectionFilterConfig) {
         this.javaReflectionFilterConfig = javaReflectionFilterConfig;

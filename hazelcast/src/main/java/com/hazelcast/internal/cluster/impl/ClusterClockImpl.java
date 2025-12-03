@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class ClusterClockImpl implements ClusterClock {
     /** Set the cluster time diff and records the maximum observed cluster time diff */
     void setClusterTimeDiff(long diff) {
         if (logger.isFineEnabled()) {
-            logger.fine("Setting cluster time diff to " + diff + "ms.");
+            logger.fine("Setting cluster time diff to %sms.", diff);
         }
 
         if (abs(diff) > abs(maxClusterTimeDiff)) {

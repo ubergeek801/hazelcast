@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ public final class FileSourceBuilder {
      *
      * @deprecated Use {@link FileSources#files}. Will be removed in Jet 5.0.
      */
-    @Deprecated
+    @Deprecated(since = "Jet 4.4", forRemoval = true)
     @Nonnull
     public BatchSource<String> build() {
         return build((filename, line) -> line);
@@ -133,7 +133,7 @@ public final class FileSourceBuilder {
      *
      * @deprecated Use {@link FileSources#files}. Will be removed in Jet 5.0.
      */
-    @Deprecated
+    @Deprecated(since = "Jet 4.4", forRemoval = true)
     @Nonnull
     public <T> BatchSource<T> build(@Nonnull BiFunctionEx<String, String, ? extends T> mapOutputFn) {
         String charsetName = charset.name();
@@ -163,7 +163,7 @@ public final class FileSourceBuilder {
      *
      * @deprecated Use {@link FileSources#files}. Will be removed in Jet 5.0.
      */
-    @Deprecated
+    @Deprecated(since = "Jet 4.4", forRemoval = true)
     @Nonnull
     public <T> BatchSource<T> build(@Nonnull FunctionEx<? super Path, ? extends Stream<T>> readFileFn) {
         return batchFromProcessor("filesSource(" + new File(directory, glob) + ')',

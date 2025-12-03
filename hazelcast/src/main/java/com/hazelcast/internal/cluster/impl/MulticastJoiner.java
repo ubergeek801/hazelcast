@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class MulticastJoiner extends AbstractJoiner {
     private static final int TRY_COUNT_MAX_LAST_DIGITS = 512;
     private static final int TRY_COUNT_MODULO = 10;
 
-    private final AtomicInteger currentTryCount = new AtomicInteger(0);
+    private final AtomicInteger currentTryCount = new AtomicInteger();
     private final AtomicInteger maxTryCount;
 
     // this deque is used as a stack, the SplitBrainMulticastListener adds to its head and the periodic split brain handler job
@@ -88,7 +88,7 @@ public class MulticastJoiner extends AbstractJoiner {
             Address master = clusterService.getMasterAddress();
             if (master != null) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Joining to master " + master);
+                    logger.fine("Joining to master %s", master);
                 }
                 clusterJoinManager.sendJoinRequest(master);
             } else {
@@ -115,12 +115,12 @@ public class MulticastJoiner extends AbstractJoiner {
         try {
             while ((splitBrainMsg = splitBrainJoinMessages.poll(3, TimeUnit.SECONDS)) != null) {
                 if (logger.isFineEnabled()) {
-                    logger.fine("Received  " + splitBrainMsg);
+                    logger.fine("Received  %s", splitBrainMsg);
                 }
                 Address targetAddress = splitBrainMsg.getAddress();
                 if (node.clusterService.getMember(targetAddress) != null) {
                     if (logger.isFineEnabled()) {
-                        logger.fine("Ignoring merge join response, since " + targetAddress + " is already a member.");
+                        logger.fine("Ignoring merge join response, since %s is already a member.", targetAddress);
                     }
                     continue;
                 }
@@ -172,7 +172,7 @@ public class MulticastJoiner extends AbstractJoiner {
     private Address findMasterWithMulticast() {
         try {
             if (logger.isFineEnabled()) {
-                logger.fine("Searching for master node. Max tries: " + maxTryCount.get());
+                logger.fine("Searching for master node. Max tries: %s", maxTryCount.get());
             }
             JoinRequest joinRequest = node.createJoinRequest(null);
             while (node.isRunning() && currentTryCount.incrementAndGet() <= maxTryCount.get()) {

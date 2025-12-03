@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public abstract class AbstractContainerMerger<C, V, T extends MergingValue<V>> i
                 logger.warning("Split-brain healing for " + getLabel() + " didn't finish within the timeout...");
             }
         } catch (InterruptedException e) {
-            logger.finest("Interrupted while waiting for split-brain healing of " + getLabel() + "...");
+            logger.finest("Interrupted while waiting for split-brain healing of %s...", getLabel());
             Thread.currentThread().interrupt();
         } finally {
             collector.destroy();
@@ -113,9 +113,9 @@ public abstract class AbstractContainerMerger<C, V, T extends MergingValue<V>> i
      * @param mergePolicyConfig the {@link MergePolicyConfig} to retrieve the merge policy from
      * @return the {@link SplitBrainMergePolicy} instance
      */
-    protected <R> SplitBrainMergePolicy<V, T, R> getMergePolicy(MergePolicyConfig mergePolicyConfig) {
+    protected <R> SplitBrainMergePolicy<V, T, R> getMergePolicy(MergePolicyConfig mergePolicyConfig, String namespace) {
         String mergePolicyName = mergePolicyConfig.getPolicy();
-        return splitBrainMergePolicyProvider.getMergePolicy(mergePolicyName);
+        return splitBrainMergePolicyProvider.getMergePolicy(mergePolicyName, namespace);
     }
 
     /**

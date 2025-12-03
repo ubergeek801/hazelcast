@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hazelcast.cache.impl.event;
 
 import com.hazelcast.cluster.Member;
 
+import java.io.Serial;
+
 /**
  * Used to provide information about the lost partition of a cache.
  *
@@ -26,6 +28,7 @@ import com.hazelcast.cluster.Member;
  */
 public class CachePartitionLostEvent extends AbstractICacheEvent {
 
+    @Serial
     private static final long serialVersionUID = -7445714640964238109L;
 
     private final int partitionId;

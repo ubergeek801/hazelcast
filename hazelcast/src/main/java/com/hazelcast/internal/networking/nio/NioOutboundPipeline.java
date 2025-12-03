@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.hazelcast.internal.networking.OutboundHandler;
 import com.hazelcast.internal.networking.OutboundPipeline;
 import com.hazelcast.internal.networking.nio.iobalancer.IOBalancer;
 import com.hazelcast.internal.util.ConcurrencyDetection;
+import com.hazelcast.internal.util.counters.MwCounter;
 import com.hazelcast.internal.util.counters.SwCounter;
 import com.hazelcast.logging.ILogger;
 
@@ -57,6 +58,7 @@ import static com.hazelcast.internal.util.EmptyStatement.ignore;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static com.hazelcast.internal.util.collection.ArrayUtils.append;
 import static com.hazelcast.internal.util.collection.ArrayUtils.replaceFirst;
+import static com.hazelcast.internal.util.counters.MwCounter.newMwCounter;
 import static com.hazelcast.internal.util.counters.SwCounter.newSwCounter;
 import static java.lang.Math.max;
 import static java.lang.System.currentTimeMillis;
@@ -125,6 +127,11 @@ public final class NioOutboundPipeline
     @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_PRIORITY_FRAMES_WRITTEN, level = DEBUG)
     private final SwCounter priorityFramesWritten = newSwCounter();
 
+    @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_WRITE_QUEUE_PENDING_BYTES, level = INFO, unit = BYTES)
+    private final MwCounter writeQueuePendingBytes = newMwCounter();
+    @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_PRIORITY_WRITE_QUEUE_PENDING_BYTES, level = INFO, unit = BYTES)
+    private final MwCounter priorityWriteQueuePendingBytes = newMwCounter();
+
     private volatile long lastWriteTime;
 
     private long bytesWrittenLastPublish;
@@ -171,24 +178,6 @@ public final class NioOutboundPipeline
         return lastWriteTime;
     }
 
-    @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_WRITE_QUEUE_PENDING_BYTES, level = DEBUG, unit = BYTES)
-    public long bytesPending() {
-        return bytesPending(writeQueue);
-    }
-
-    @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_PRIORITY_WRITE_QUEUE_PENDING_BYTES, level = DEBUG, unit = BYTES)
-    public long priorityBytesPending() {
-        return bytesPending(priorityWriteQueue);
-    }
-
-    private long bytesPending(Queue<OutboundFrame> writeQueue) {
-        long bytesPending = 0;
-        for (OutboundFrame frame : writeQueue) {
-            bytesPending += frame.getFrameLength();
-        }
-        return bytesPending;
-    }
-
     @Probe(name = NETWORKING_METRIC_NIO_OUTBOUND_PIPELINE_IDLE_TIME_MILLIS, unit = MS, level = INFO)
     private long idleTimeMillis() {
         return max(currentTimeMillis() - lastWriteTime, 0);
@@ -201,9 +190,13 @@ public final class NioOutboundPipeline
 
     public void write(OutboundFrame frame) {
         if (frame.isUrgent()) {
-            priorityWriteQueue.offer(frame);
+            if (priorityWriteQueue.offer(frame)) {
+                priorityWriteQueuePendingBytes.inc(frame.getFrameLength());
+            }
         } else {
-            writeQueue.offer(frame);
+            if (writeQueue.offer(frame)) {
+                writeQueuePendingBytes.inc(frame.getFrameLength());
+            }
         }
 
         // take care of the scheduling.
@@ -292,8 +285,10 @@ public final class NioOutboundPipeline
                 return null;
             }
             normalFramesWritten.inc();
+            writeQueuePendingBytes.inc(-frame.getFrameLength());
         } else {
             priorityFramesWritten.inc();
+            priorityWriteQueuePendingBytes.inc(-frame.getFrameLength());
         }
 
         return frame;
@@ -350,7 +345,7 @@ public final class NioOutboundPipeline
         }
     }
 
-    private void postProcessBlocked() throws IOException {
+    private void postProcessBlocked() {
         // pipeline is blocked; no point in receiving OP_WRITE events.
         unregisterOp(OP_WRITE);
 
@@ -366,7 +361,7 @@ public final class NioOutboundPipeline
                 // it is already blocked, so we are done.
                 break;
             } else if (state == State.RESCHEDULE) {
-                // rescheduling is requested, so lets do that. Once put to RESCHEDULE,
+                // rescheduling is requested, so let's do that. Once put to RESCHEDULE,
                 // only the thread running the process method will change the state, so we can safely call a set.
                 scheduled.set(State.SCHEDULED);
                 // this will cause the pipeline to be rescheduled.
@@ -378,7 +373,7 @@ public final class NioOutboundPipeline
         }
     }
 
-    private void postProcessDirty() throws IOException {
+    private void postProcessDirty() {
         // pipeline is dirty, so register for an OP_WRITE to write more data.
         registerOp(OP_WRITE);
 
@@ -393,7 +388,7 @@ public final class NioOutboundPipeline
         }
     }
 
-    private void postProcessClean() throws IOException {
+    private void postProcessClean() {
         // There is nothing left to be done; so lets unschedule this pipeline
         // since everything is written, we are not interested anymore in write-events, so lets unsubscribe
         unregisterOp(OP_WRITE);
@@ -402,7 +397,7 @@ public final class NioOutboundPipeline
             State state = scheduled.get();
             if (state == State.RESCHEDULE) {
                 // the pipeline needs to be rescheduled. The current thread is still owner of the pipeline,
-                // so lets remove the reschedule flag and return it to schedule and lets reprocess the pipeline.
+                // so lets remove the reschedule flag and return it to schedule and let's reprocess the pipeline.
                 scheduled.set(State.SCHEDULED);
                 owner().addTaskAndWakeup(this);
                 return;
@@ -445,6 +440,8 @@ public final class NioOutboundPipeline
     void drainWriteQueues() {
         writeQueue.clear();
         priorityWriteQueue.clear();
+        writeQueuePendingBytes.set(0);
+        priorityWriteQueuePendingBytes.set(0);
     }
 
     long bytesWritten() {
@@ -530,16 +527,16 @@ public final class NioOutboundPipeline
     }
 
     // useful for debugging
-    private String pipelineToString() {
-        StringBuilder sb = new StringBuilder("out-pipeline[");
-        OutboundHandler[] handlers = this.handlers;
-        for (int k = 0; k < handlers.length; k++) {
-            if (k > 0) {
-                sb.append("->-");
-            }
-            sb.append(handlers[k].getClass().getSimpleName());
-        }
-        sb.append(']');
-        return sb.toString();
-    }
+//    private String pipelineToString() {
+//        StringBuilder sb = new StringBuilder("out-pipeline[");
+//        OutboundHandler[] handlers = this.handlers;
+//        for (int k = 0; k < handlers.length; k++) {
+//            if (k > 0) {
+//                sb.append("->-");
+//            }
+//            sb.append(handlers[k].getClass().getSimpleName());
+//        }
+//        sb.append(']');
+//        return sb.toString();
+//    }
 }

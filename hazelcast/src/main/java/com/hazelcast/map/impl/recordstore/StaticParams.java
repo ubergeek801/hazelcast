@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ public final class StaticParams {
             .setPutVanilla(true)
             .setCountAsAccess(true)
             .setBackup(true);
+
+    public static final StaticParams PUT_BACKUP_FOR_ENTRY_PROCESSOR_PARAMS = new StaticParams()
+            .importFrom(PUT_BACKUP_PARAMS)
+            .setBackupEntryProcessor(true);
 
     public static final StaticParams PUT_IF_ABSENT_PARAMS = new StaticParams()
             .importFrom(PUT_PARAMS)
@@ -92,6 +96,7 @@ public final class StaticParams {
             .setPutIfEqual(true);
 
     private boolean backup;
+    private boolean backupEntryProcessor;
     private boolean load;
     private boolean store;
     // putVanilla: is for regular puts like IMap#set.
@@ -113,6 +118,7 @@ public final class StaticParams {
 
     private StaticParams importFrom(StaticParams importingFrom) {
         return setBackup(importingFrom.isBackup())
+                .setBackupEntryProcessor(importingFrom.isBackupEntryProcessor())
                 .setLoad(importingFrom.isLoad())
                 .setStore(importingFrom.isStore())
                 .setPutVanilla(importingFrom.isPutVanilla())
@@ -129,6 +135,11 @@ public final class StaticParams {
 
     public StaticParams setBackup(boolean backup) {
         this.backup = backup;
+        return this;
+    }
+
+    public StaticParams setBackupEntryProcessor(boolean backupEntryProcessor) {
+        this.backupEntryProcessor = backupEntryProcessor;
         return this;
     }
 
@@ -194,6 +205,10 @@ public final class StaticParams {
 
     public boolean isBackup() {
         return backup;
+    }
+
+    public boolean isBackupEntryProcessor() {
+        return backupEntryProcessor;
     }
 
     public boolean isLoad() {

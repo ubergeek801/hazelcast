@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public abstract class BaseInvocation {
 
         if (shouldCompleteWithoutBackups()) {
             if (logger.isFineEnabled()) {
-                logger.fine("Invocation " + this + " will be completed without backup acks.");
+                logger.fine("Invocation %s will be completed without backup acks.", this);
             }
             // the backups have not yet completed, but we are going to release the future anyway if a pendingResponse has been set
             completeWithPendingResponse();

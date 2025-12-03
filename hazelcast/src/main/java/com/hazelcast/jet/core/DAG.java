@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.hazelcast.jet.core;
 import com.hazelcast.function.SupplierEx;
 import com.hazelcast.internal.json.JsonArray;
 import com.hazelcast.internal.json.JsonObject;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.internal.util.IterableUtil;
 import com.hazelcast.internal.util.StringUtil;
 import com.hazelcast.jet.JetMemberSelector;
@@ -80,7 +81,7 @@ import static java.util.stream.Collectors.joining;
  * Data travels from sources to sinks and is transformed and reshaped
  * as it passes through the processors.
  * <p>
- * Note that {@link #iterator()) must be invoked at least once in order to
+ * Note that {@link #iterator()} must be invoked at least once in order to
  * validate the DAG and check against cycles.
  *
  * @since Jet 3.0
@@ -592,11 +593,7 @@ public class DAG implements IdentifiedDataSerializable, Iterable<Vertex> {
             out.writeObject(entry.getValue());
         }
 
-        out.writeInt(edges.size());
-
-        for (Edge edge : edges) {
-            out.writeObject(edge);
-        }
+        SerializationUtil.writeCollection(edges, out);
 
         out.writeObject(memberSelector);
     }

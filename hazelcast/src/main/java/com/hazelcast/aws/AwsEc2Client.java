@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class AwsEc2Client implements AwsClient {
             throw new InvalidConfigurationException("You must define 'cluster' property if not running inside ECS cluster");
         }
         List<String> taskAddresses = awsEcsApi.listTaskPrivateAddresses(awsConfig.getCluster(), credentials);
-        LOGGER.fine(String.format("AWS ECS DescribeTasks found the following addresses: %s", taskAddresses));
+        LOGGER.fine("AWS ECS DescribeTasks found the following addresses: %s", taskAddresses);
         return awsEc2Api.describeNetworkInterfaces(taskAddresses, credentials);
     }
 

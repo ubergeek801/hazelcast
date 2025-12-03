@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class QueryCacheNaturalFilteringStrategy extends AbstractFilteringStrateg
 
             // evaluate whether the filter matches the original event type
             originalFilterEventTypeMatches = filter.eval(type);
-            // hold a reference to the original event filter; this may be used later, in case there is a query event filter
+            // hold a reference to the original event filter; this may be used later, in case there is a query event filter,
             // and it alters the event type to be published
             filterAsEventListenerFilter = listenerFilter;
             filter = listenerFilter.getEventFilter();

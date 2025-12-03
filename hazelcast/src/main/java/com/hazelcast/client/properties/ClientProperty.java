@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client.properties;
 
 import com.hazelcast.client.config.ClientMetricsConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.config.MetricsJmxConfig;
 import com.hazelcast.core.IndeterminateOperationStateException;
 import com.hazelcast.spi.properties.HazelcastProperty;
@@ -125,7 +126,8 @@ public final class ClientProperty {
     /**
      * Controls the number of IO input threads. Defaults to -1, so the system will decide.
      * <p>
-     * If client is a smart client and processor count larger than 8, it will default to 3 otherwise it will default to 1.
+     * If client uses {@link RoutingMode#ALL_MEMBERS} routing and processor count larger than 8,
+     * it will default to 3 otherwise it defaults to 1.
      */
     public static final HazelcastProperty IO_INPUT_THREAD_COUNT
             = new HazelcastProperty("hazelcast.client.io.input.thread.count", -1);
@@ -133,7 +135,8 @@ public final class ClientProperty {
     /**
      * Controls the number of IO output threads. Defaults to -1, so the system will decide.
      * <p>
-     * If client is a smart client and processor count larger than 8 , it will default to 3 otherwise it will default to 1.
+     * If client use {@link RoutingMode#ALL_MEMBERS} routing and processor count larger than 8 ,
+     * it will default to 3 otherwise it defaults to 1.
      */
     public static final HazelcastProperty IO_OUTPUT_THREAD_COUNT
             = new HazelcastProperty("hazelcast.client.io.output.thread.count", -1);
@@ -239,10 +242,10 @@ public final class ClientProperty {
      * {@link #METRICS_COLLECTION_FREQUENCY} (5 seconds) will be used instead
      * of {@link #STATISTICS_PERIOD_SECONDS} (3 seconds), when not set
      * explicitly.
-     * @deprecated since 4.0. Use {@link #METRICS_ENABLED}
+     * @deprecated Use {@link #METRICS_ENABLED}
      * ({@code "hazelcast.client.metrics.enabled"}) instead.
      */
-    @Deprecated
+    @Deprecated(since = "4.0")
     public static final HazelcastProperty STATISTICS_ENABLED = new HazelcastProperty("hazelcast.client.statistics.enabled",
             false);
 
@@ -252,10 +255,10 @@ public final class ClientProperty {
      * The values set here is used as {@link #METRICS_COLLECTION_FREQUENCY} as instead.
      * If both this and {@link #METRICS_COLLECTION_FREQUENCY} are configured,
      * this is ignored.
-     * @deprecated since 4.0. Use {@link #METRICS_COLLECTION_FREQUENCY}
+     * @deprecated Use {@link #METRICS_COLLECTION_FREQUENCY}
      * ({@code "hazelcast.client.metrics.collection.frequency"}) instead.
      */
-    @Deprecated
+    @Deprecated(since = "4.0")
     public static final HazelcastProperty STATISTICS_PERIOD_SECONDS = new HazelcastProperty(
             "hazelcast.client.statistics.period.seconds", 3, SECONDS);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,10 +80,9 @@ public class LocalListenerTest extends HazelcastTestSupport {
         setFieldValueReflectively(mapEventPublisher, "logger", mapEventPublisherLogger);
     }
 
-    private class MapEventPublisherLogger extends AbstractLogger {
+    private static class MapEventPublisherLogger extends AbstractLogger {
 
-        private final CopyOnWriteArrayList logCollector
-                = new CopyOnWriteArrayList<>();
+        private final CopyOnWriteArrayList<Object> logCollector = new CopyOnWriteArrayList<>();
 
         @Override
         public void log(Level level, String message) {

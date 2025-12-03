@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.hazelcast.query.impl.QueryableEntry;
 import com.hazelcast.query.impl.getters.Extractors;
 import com.hazelcast.spi.eviction.EvictionPolicyComparator;
 import com.hazelcast.spi.impl.NodeEngine;
+import com.hazelcast.spi.properties.HazelcastProperties;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -108,6 +109,7 @@ public class MapContainerImpl implements MapContainer {
     private volatile Evictor evictor;
 
     private final MapWanContext wanContext;
+    private final boolean queryExpirationCheckEnabled;
 
     private volatile boolean destroyed;
 
@@ -133,12 +135,16 @@ public class MapContainerImpl implements MapContainer {
                 .build();
         this.queryEntryFactory = new QueryEntryFactory(mapConfig.getCacheDeserializedValues(),
                 serializationService, extractors);
+        // Read queryExpirationCheckEnabled before creating globalIndexRegistry
+        HazelcastProperties properties = nodeEngine.getProperties();
+        this.queryExpirationCheckEnabled = properties.getBoolean(QUERY_EXPIRATION_CHECK_ENABLED);
         this.globalIndexRegistry = shouldUseGlobalIndex()
                 ? createIndexRegistry(true, GLOBAL_INDEX_NOOP_PARTITION_ID) : null;
         this.mapStoreContext = createMapStoreContext(this);
         this.wanContext = new MapWanContext(this);
     }
 
+    @Override
     public void init() {
         initEvictor();
         mapStoreContext.start();
@@ -152,6 +158,7 @@ public class MapContainerImpl implements MapContainer {
      *                    for global indexes.
      * @return a new IndexRegistry object
      */
+    @Override
     public IndexRegistry createIndexRegistry(boolean global, int partitionId) {
         int partitionCount = mapServiceContext.getNodeEngine().getPartitionService().getPartitionCount();
 
@@ -166,7 +173,8 @@ public class MapContainerImpl implements MapContainer {
                 .usesCachedQueryableEntries(mapConfig.getCacheDeserializedValues() != CacheDeserializedValues.NEVER)
                 .partitionCount(partitionCount)
                 .partitionId(partitionId)
-                .resultFilterFactory(new IndexResultFilterFactory())
+                .resultFilterFactory(queryExpirationCheckEnabled
+                        ? new IndexResultFilterFactory() : null)
                 .build();
     }
 
@@ -184,6 +192,7 @@ public class MapContainerImpl implements MapContainer {
                 integer -> createIndexRegistry(false, partitionId));
     }
 
+    @Override
     public AtomicLong getLastInvalidMergePolicyCheckTime() {
         return lastInvalidMergePolicyCheckTime;
     }
@@ -221,6 +230,7 @@ public class MapContainerImpl implements MapContainer {
                 && !recordStore.isExpired(keyData, now, false);
     }
 
+    @Override
     public final void initEvictor() {
         NodeEngine nodeEngine = mapServiceContext.getNodeEngine();
         EvictionPolicyComparator evictionPolicyComparator
@@ -239,6 +249,7 @@ public class MapContainerImpl implements MapContainer {
         return new EvictorImpl(evictionPolicyComparator, evictionChecker, evictionBatchSize, partitionService);
     }
 
+    @Override
     public boolean shouldUseGlobalIndex() {
         return mapConfig.getInMemoryFormat() != NATIVE
                 || (!mapConfig.getTieredStoreConfig().isEnabled() && mapServiceContext.globalIndexEnabled())
@@ -275,10 +286,10 @@ public class MapContainerImpl implements MapContainer {
      * Used to get index registry of one
      * of global or partitioned indexes.
      *
-     * @param partitionId partitionId
      * @return by default always returns global-index
      * registry otherwise return partitioned-index registry
      */
+    @Override
     public IndexRegistry getOrCreateIndexRegistry(int partitionId) {
         if (globalIndexRegistry != null) {
             return globalIndexRegistry;
@@ -290,21 +301,25 @@ public class MapContainerImpl implements MapContainer {
     /**
      * @return the global index, if the global index is in use or null.
      */
+    @Override
     public IndexRegistry getGlobalIndexRegistry() {
         return globalIndexRegistry;
     }
 
     @Nullable
+    @Override
     public IndexRegistry getOrNullPartitionedIndexRegistry(int partitionId) {
         return partitionedIndexRegistry.get(partitionId);
     }
 
     // Only used for testing
+    @Override
     public ConcurrentMap<Integer, IndexRegistry> getPartitionedIndexRegistry() {
         return partitionedIndexRegistry;
     }
 
     // Only used for testing
+    @Override
     public boolean isEmptyIndexRegistry() {
         if (globalIndexRegistry != null) {
             return globalIndexRegistry.getIndexes().length == 0;
@@ -312,92 +327,114 @@ public class MapContainerImpl implements MapContainer {
         return partitionedIndexRegistry.isEmpty();
     }
 
+    @Override
     public MapWanContext getWanContext() {
         return wanContext;
     }
 
 
+    @Override
     public int getTotalBackupCount() {
         return getBackupCount() + getAsyncBackupCount();
     }
 
+    @Override
     public int getBackupCount() {
         return mapConfig.getBackupCount();
     }
 
+    @Override
     public int getAsyncBackupCount() {
         return mapConfig.getAsyncBackupCount();
     }
 
+    @Override
     public PartitioningStrategy getPartitioningStrategy() {
         return partitioningStrategy;
     }
 
+    @Override
     public MapServiceContext getMapServiceContext() {
         return mapServiceContext;
     }
 
+    @Override
     public MapStoreContext getMapStoreContext() {
         return mapStoreContext;
     }
 
+    @Override
     public MapConfig getMapConfig() {
         return mapConfig;
     }
 
+    @Override
     public void setMapConfig(MapConfig mapConfig) {
         this.mapConfig = mapConfig;
     }
 
+    @Override
     public EventJournalConfig getEventJournalConfig() {
         return eventJournalConfig;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getSplitBrainProtectionName() {
         return splitBrainProtectionName;
     }
 
+    @Override
     public Function<Object, Data> toData() {
         return toDataFunction;
     }
 
+    @Override
     public QueryableEntry newQueryEntry(Data key, Object value) {
         return queryEntryFactory.newEntry(key, value);
     }
 
+    @Override
     public Evictor getEvictor() {
         return evictor;
     }
 
     // only used for testing purposes
+    @Override
     public void setEvictor(Evictor evictor) {
         this.evictor = evictor;
     }
 
+    @Override
     public Extractors getExtractors() {
         return extractors;
     }
 
+    @Override
     public boolean hasInvalidationListener() {
         return invalidationListenerCount.get() > 0;
     }
 
+    @Override
     public AtomicInteger getInvalidationListenerCounter() {
         return invalidationListenerCount;
     }
 
+    @Override
     public void increaseInvalidationListenerCount() {
         invalidationListenerCount.incrementAndGet();
     }
 
+    @Override
     public void decreaseInvalidationListenerCount() {
         invalidationListenerCount.decrementAndGet();
     }
 
+    @Override
     public InterceptorRegistry getInterceptorRegistry() {
         return interceptorRegistry;
     }
@@ -406,12 +443,14 @@ public class MapContainerImpl implements MapContainer {
      * Callback invoked before record store and indexes are destroyed. Ensures that if map iterator observes a non-destroyed
      * state, then associated data structures are still valid.
      */
+    @Override
     public void onBeforeDestroy() {
         destroyed = true;
     }
 
     // callback called when the MapContainer is de-registered
     // from MapService and destroyed - basically on map-destroy
+    @Override
     public final void onDestroy() {
         if (!onDestroyCalled.compareAndSet(false, true)) {
             return;
@@ -433,19 +472,23 @@ public class MapContainerImpl implements MapContainer {
         getGlobalIndexRegistry().destroyIndexes();
     }
 
+    @Override
     public boolean isDestroyed() {
         return destroyed;
     }
 
+    @Override
     public boolean shouldCloneOnEntryProcessing(int partitionId) {
         return getOrCreateIndexRegistry(partitionId).haveAtLeastOneIndex()
-                && OBJECT.equals(mapConfig.getInMemoryFormat());
+                && OBJECT == mapConfig.getInMemoryFormat();
     }
 
+    @Override
     public ObjectNamespace getObjectNamespace() {
         return objectNamespace;
     }
 
+    @Override
     public Map<String, IndexConfig> getIndexDefinitions() {
         return shouldUseGlobalIndex()
                 ? getGlobalIndexDefinitions()
@@ -487,6 +530,7 @@ public class MapContainerImpl implements MapContainer {
 
     }
 
+    @Override
     public boolean isUseCachedDeserializedValuesEnabled(int partitionId) {
         switch (getMapConfig().getCacheDeserializedValues()) {
             case NEVER:
@@ -497,6 +541,11 @@ public class MapContainerImpl implements MapContainer {
                 //if index exists then cached value is already set -> let's use it
                 return getOrCreateIndexRegistry(partitionId).haveAtLeastOneIndex();
         }
+    }
+
+    // Only for testing purposes
+    public boolean isQueryExpirationCheckEnabled() {
+        return queryExpirationCheckEnabled;
     }
 
     @Override

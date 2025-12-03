@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public abstract class TestAbstractSqlConnector implements SqlConnector {
             @Nonnull NodeEngine nodeEngine,
             @Nonnull SqlExternalResource externalResource,
             @Nonnull List<MappingField> userFields) {
-        if (userFields.size() > 0) {
+        if (!userFields.isEmpty()) {
             throw QueryException.error("Don't specify external fields, they are fixed");
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public final class MPSCQueue<E> extends AbstractQueue<E> implements BlockingQueu
 
     /**
      * Sets the consumer thread.
-     *
+     * <p>
      * The consumer thread is needed for blocking, so that an offering known which thread
      * to wakeup. There can only be a single consumerThread and this method should be called
      * before the queue is safely published. It will not provide a happens before relation on
@@ -91,8 +91,8 @@ public final class MPSCQueue<E> extends AbstractQueue<E> implements BlockingQueu
 
     /**
      * {@inheritDoc}.
-     *
-     * This call is threadsafe; but it will only remove the items that are on the put-stack.
+     * <p>
+     * This call is thread safe; but it will only remove the items that are on the put-stack.
      */
     @Override
     public void clear() {
@@ -219,13 +219,13 @@ public final class MPSCQueue<E> extends AbstractQueue<E> implements BlockingQueu
                     continue;
                 }
 
-                // there is nothing to be take, so lets block.
+                // there is nothing to take, so lets block.
                 if (!putStack.compareAndSet(null, BLOCKED)) {
                     // we are lucky, something is available
                     continue;
                 }
 
-                // lets block for real.
+                // let's block for real.
                 park();
             } else if (currentPutStackHead == BLOCKED) {
                 park();
@@ -275,7 +275,7 @@ public final class MPSCQueue<E> extends AbstractQueue<E> implements BlockingQueu
 
     /**
      * {@inheritDoc}.
-     *
+     * <p>
      * Best effort implementation.
      */
     @Override

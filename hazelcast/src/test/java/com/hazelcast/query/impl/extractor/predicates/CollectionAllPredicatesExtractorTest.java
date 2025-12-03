@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,21 +91,21 @@ public class CollectionAllPredicatesExtractorTest extends CollectionAllPredicate
 
     public static class IndexOneLimbPowerExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             collector.addObject(target.limbs_list.get(1).power);
         }
     }
 
     public static class IndexOneLimbNameExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             collector.addObject(target.limbs_list.get(1).name);
         }
     }
 
     public static class ReducedLimbPowerExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             for (Limb limb : target.limbs_list) {
                 collector.addObject(limb.power);
             }
@@ -114,7 +114,7 @@ public class CollectionAllPredicatesExtractorTest extends CollectionAllPredicate
 
     public static class ReducedLimbNameExtractor implements ValueExtractor<Person, Object> {
         @Override
-        public void extract(Person target, Object arguments, ValueCollector collector) {
+        public void extract(Person target, Object arguments, ValueCollector<Object> collector) {
             for (Limb limb : target.limbs_list) {
                 collector.addObject(limb.name);
             }

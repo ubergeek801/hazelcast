@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.hazelcast.internal.monitor.impl;
 
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 
-import static java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater;
+import java.lang.invoke.VarHandle;
 
 /**
  * The implementation of internal indexes stats specialized for partitioned
@@ -29,13 +29,17 @@ import static java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater;
  */
 public class PartitionIndexesStats implements IndexesStats {
 
-    private static final AtomicLongFieldUpdater<PartitionIndexesStats> QUERY_COUNT = newUpdater(PartitionIndexesStats.class,
-            "queryCount");
-    private static final AtomicLongFieldUpdater<PartitionIndexesStats> INDEXED_QUERY_COUNT = newUpdater(
-            PartitionIndexesStats.class, "indexedQueryCount");
+    private static final VarHandle QUERY_COUNT = ReflectionUtil.findVarHandle("queryCount", long.class);
+    private static final VarHandle INDEXED_QUERY_COUNT = ReflectionUtil.findVarHandle("indexedQueryCount", long.class);
+    private static final VarHandle INDEXES_SKIPPED_QUERY_COUNT =
+            ReflectionUtil.findVarHandle("indexesSkippedQueryCount", long.class);
+    private static final VarHandle NO_MATCHING_INDEX_QUERY_COUNT =
+            ReflectionUtil.findVarHandle("noMatchingIndexQueryCount", long.class);
 
     private volatile long queryCount;
     private volatile long indexedQueryCount;
+    private volatile long indexesSkippedQueryCount;
+    private volatile long noMatchingIndexQueryCount;
 
     @Override
     public long getQueryCount() {
@@ -44,7 +48,7 @@ public class PartitionIndexesStats implements IndexesStats {
 
     @Override
     public void incrementQueryCount() {
-        QUERY_COUNT.lazySet(this, queryCount + 1);
+        QUERY_COUNT.setOpaque(this, queryCount + 1);
     }
 
     @Override
@@ -54,7 +58,27 @@ public class PartitionIndexesStats implements IndexesStats {
 
     @Override
     public void incrementIndexedQueryCount() {
-        INDEXED_QUERY_COUNT.lazySet(this, indexedQueryCount + 1);
+        INDEXED_QUERY_COUNT.setOpaque(this, indexedQueryCount + 1);
+    }
+
+    @Override
+    public long getIndexesSkippedQueryCount() {
+        return indexesSkippedQueryCount;
+    }
+
+    @Override
+    public void incrementIndexesSkippedQueryCount() {
+        INDEXES_SKIPPED_QUERY_COUNT.setOpaque(this, indexesSkippedQueryCount + 1);
+    }
+
+    @Override
+    public long getNoMatchingIndexQueryCount() {
+        return noMatchingIndexQueryCount;
+    }
+
+    @Override
+    public void incrementNoMatchingIndexQueryCount() {
+        NO_MATCHING_INDEX_QUERY_COUNT.setOpaque(this, noMatchingIndexQueryCount + 1);
     }
 
     @Override

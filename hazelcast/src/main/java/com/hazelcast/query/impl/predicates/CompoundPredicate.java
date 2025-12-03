@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,6 @@ public interface CompoundPredicate {
      * Set the sub-predicates of this {@code CompoundPredicate}. If a predicate should be treated as effectively
      * immutable, such as a {@link VisitablePredicate}, it is advised that this method throws
      * {@link IllegalStateException} when sub-predicates have already been defined.
-     * @param predicates
-     * @param <K>
-     * @param <V>
      */
     <K, V> void setPredicates(Predicate<K, V>[] predicates);
 

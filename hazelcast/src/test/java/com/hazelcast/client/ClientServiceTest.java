@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.hazelcast.client;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.spi.impl.ClientExecutionServiceImpl;
 import com.hazelcast.client.test.ClientTestSupport;
 import com.hazelcast.client.test.TestHazelcastFactory;
@@ -183,7 +184,7 @@ public class ClientServiceTest extends ClientTestSupport {
         final ClientService clientService = instance.getClientService();
         final CountDownLatch latchAdd = new CountDownLatch(2);
         final CountDownLatch latchRemove = new CountDownLatch(2);
-        final AtomicInteger totalAdd = new AtomicInteger(0);
+        final AtomicInteger totalAdd = new AtomicInteger();
 
         final ClientListener clientListener = new ClientListener() {
             @Override
@@ -390,7 +391,7 @@ public class ClientServiceTest extends ClientTestSupport {
     }
 
     @Test
-    public void testClientListener_withDummyClient() {
+    public void testClientListener_withSingleMemberClient() {
         Config config = new Config();
         final CountDownLatch latch = new CountDownLatch(2);
         final AtomicInteger eventCount = new AtomicInteger();
@@ -414,7 +415,7 @@ public class ClientServiceTest extends ClientTestSupport {
         hazelcastFactory.newHazelcastInstance(config);
 
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getNetworkConfig().setSmartRouting(false);
+        clientConfig.getNetworkConfig().getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         HazelcastInstance client = hazelcastFactory.newHazelcastClient(clientConfig);
         client.shutdown();
         assertOpenEventually(latch);

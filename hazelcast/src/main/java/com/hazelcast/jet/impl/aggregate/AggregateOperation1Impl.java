@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.Serial;
 
 import static com.hazelcast.internal.serialization.impl.SerializationUtil.checkSerializable;
 
@@ -36,6 +37,8 @@ import static com.hazelcast.internal.serialization.impl.SerializationUtil.checkS
 public class AggregateOperation1Impl<T0, A, R>
         extends AggregateOperationImpl<A, R>
         implements AggregateOperation1<T0, A, R> {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public AggregateOperation1Impl() {
     }
@@ -52,6 +55,7 @@ public class AggregateOperation1Impl<T0, A, R>
     }
 
     @Nonnull
+    @Override
     @SuppressWarnings("unchecked")
     public BiConsumerEx<? super A, ? super T0> accumulateFn() {
         return (BiConsumerEx<? super A, ? super T0>) accumulateFns[0];
@@ -97,6 +101,8 @@ public class AggregateOperation1Impl<T0, A, R>
     }
 
     public static class AggregateCombiningAccumulate<A, T> implements IdentifiedDataSerializable, BiConsumerEx<A, T> {
+        @Serial
+        private static final long serialVersionUID = 1L;
         private FunctionEx<T, A> getAccFn;
         private BiConsumerEx<? super A, ? super A> combineFn;
 

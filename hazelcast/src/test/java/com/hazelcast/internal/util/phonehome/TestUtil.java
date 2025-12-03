@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class TestUtil {
     public static final String CLIENT_VERSIONS_SEPARATOR = ",";
 
     public static class DummyClientFactory {
-        private final Set<DummyClient> clients = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        private final Set<DummyClient> clients = ConcurrentHashMap.newKeySet();
 
         public DummyClient newClient(String clientType, String clientVersion) {
             DummyClient client = new DummyClient(clientType, clientVersion);
@@ -70,7 +70,7 @@ public class TestUtil {
         private final String clientType;
         private final String clientVersion;
         private final UUID uuid;
-        private final Set<DummyConnection> connections = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        private final Set<DummyConnection> connections = ConcurrentHashMap.newKeySet();
 
         public DummyClient(String clientType, String clientVersion) {
             this.clientType = clientType;
@@ -82,7 +82,7 @@ public class TestUtil {
             String clusterName = node.getConfig().getClusterName();
             ClientMessage request = ClientAuthenticationCodec.encodeRequest(
                     clusterName, null, null, uuid,
-                    clientType, (byte) 1, clientVersion, uuid.toString(), Collections.emptyList(), (byte) 1);
+                    clientType, (byte) 1, clientVersion, uuid.toString(), Collections.emptyList(), (byte) 1, false);
             InetSocketAddress address = node.getLocalMember().getSocketAddress(EndpointQualifier.CLIENT);
             DummyConnection connection = new DummyConnection(address.getAddress(), address.getPort());
             connections.add(connection);

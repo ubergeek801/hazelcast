@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class MapExpirationBouncingMemberTest extends AbstractExpirationBouncingM
                     RecordStore recordStore = iterator.next();
                     boolean expirable = recordStore.isExpirable();
 
-                    if (recordStore.size() > 0 || recordStore.getExpiredKeysQueue().size() > 0) {
+                    if (recordStore.size() > 0 || !recordStore.getExpiredKeysQueue().isEmpty()) {
                         unexpiredMsg.add(recordStore.getPartitionId());
                         unexpiredMsg.add(recordStore.size());
                         unexpiredMsg.add(recordStore.getExpiredKeysQueue().size());

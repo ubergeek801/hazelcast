@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.record.Record;
 import com.hazelcast.map.impl.recordstore.expiry.ExpirySystem;
 
+import java.io.Serial;
+
 /**
  * An extended {@link SampleableConcurrentHashMap} with {@link IMap} specifics.
  *
@@ -32,6 +34,7 @@ import com.hazelcast.map.impl.recordstore.expiry.ExpirySystem;
 @SerializableByConvention
 public class StorageSCHM<R extends Record> extends SampleableConcurrentHashMap<Data, R> {
 
+    @Serial
     private static final long serialVersionUID = -1133966339806826032L;
     private static final int DEFAULT_INITIAL_CAPACITY = 256;
 

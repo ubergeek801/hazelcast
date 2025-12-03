@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public final class HazelcastCaseOperator extends SqlOperator {
         SqlNodeList thenList = sqlCall.getThenOperands();
         SqlNode elseOperand = sqlCall.getElseOperand();
 
-        assert whenList.size() > 0 : "no WHEN clause";
+        assert !whenList.isEmpty() : "no WHEN clause";
         assert whenList.size() == thenList.size();
 
         SqlValidatorScope scope = callBinding.getScope();

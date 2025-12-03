@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.hazelcast.jet.sql.impl.validate.operators.typeinference;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.sql.SqlCallBinding;
@@ -44,7 +43,6 @@ public class ReplaceUnknownOperandTypeInference implements SqlOperandTypeInferen
         this(null, defaultTypeName);
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ReplaceUnknownOperandTypeInference(SqlTypeName[] typeNames, SqlTypeName defaultTypeName) {
         this.typeNames = typeNames;
         this.defaultTypeName = defaultTypeName;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,20 +42,20 @@ import static com.hazelcast.spi.properties.ClusterProperty.IO_THREAD_COUNT;
 
 /**
  * It attempts to detect and fix a selector imbalance problem.
- *
+ * <p>
  * By default, Hazelcast uses 3 threads to read data from TCP connections and
  * 3 threads to write data to connections. We have measured significant fluctuations
  * of performance when the threads are not utilized equally.
- *
+ * <p>
  * <code>IOBalancer</code> tries to detect such situations and fix them by moving
  * {@link NioInboundPipeline} and {@link NioOutboundPipeline} between {@link NioThread}
  * instances.
- *
+ * <p>
  * It measures load serviced by each pipeline in a given interval and
  * if imbalance is detected then it schedules pipeline migration to fix the situation.
  * The exact migration strategy can be customized via
  * {@link com.hazelcast.internal.networking.nio.iobalancer.MigrationStrategy}.
- *
+ * <p>
  * Measuring interval can be customized via {@link ClusterProperty#IO_BALANCER_INTERVAL_SECONDS}
  *
  * It doesn't leverage {@link ConnectionListener} capability
@@ -161,10 +161,9 @@ public class IOBalancer {
                 long min = loadImbalance.minimumLoad;
                 long max = loadImbalance.maximumLoad;
                 if (max == Long.MIN_VALUE) {
-                    logger.finest("There is at most 1 pipeline associated with each thread. "
-                            + "There is nothing to balance");
+                    logger.finest("There is at most 1 pipeline associated with each thread. %s", "There is nothing to balance");
                 } else {
-                    logger.finest("No imbalance has been detected. Max. load: " + max + " Min load: " + min + ".");
+                    logger.finest("No imbalance has been detected. Max. load: %s Min load: %s.", max, min);
                 }
             }
         }
@@ -195,7 +194,7 @@ public class IOBalancer {
         }
 
         if (logger.isFinestEnabled()) {
-            logger.finest("I/O Balancer is enabled. Scanning every " + balancerIntervalSeconds + " seconds for imbalances.");
+            logger.finest("I/O Balancer is enabled. Scanning every %s seconds for imbalances.", balancerIntervalSeconds);
         }
 
         return true;
@@ -234,7 +233,7 @@ public class IOBalancer {
         @Override
         public void run() {
             if (logger.isFinestEnabled()) {
-                logger.finest("Removing pipelines: " + inboundPipeline + ", " + outboundPipeline);
+                logger.finest("Removing pipelines: %s, %s", inboundPipeline, outboundPipeline);
             }
 
             inLoadTracker.removePipeline(inboundPipeline);
@@ -255,7 +254,7 @@ public class IOBalancer {
         @Override
         public void run() {
             if (logger.isFinestEnabled()) {
-                logger.finest("Adding pipelines: " + inboundPipeline + ", " + outboundPipeline);
+                logger.finest("Adding pipelines: %s, %s", inboundPipeline, outboundPipeline);
             }
 
             inLoadTracker.addPipeline(inboundPipeline);

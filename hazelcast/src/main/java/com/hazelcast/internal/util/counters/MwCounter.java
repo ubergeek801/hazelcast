@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import static java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater;
 
 /**
  * A {@link Counter} that is thread-safe; so can be incremented by multiple threads concurrently.
- *
+ * <p>
  * The MwCounter is not meant for a huge amount of contention. In that case it would be better to create a counter
  * on the {@link java.util.concurrent.atomic.LongAdder}.
- *
+ * <p>
  * This counter does not provide padding to prevent false sharing.
  */
 public final class MwCounter implements Counter {

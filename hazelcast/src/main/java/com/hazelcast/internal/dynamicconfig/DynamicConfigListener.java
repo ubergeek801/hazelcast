@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,29 +27,21 @@ import com.hazelcast.config.UserCodeNamespaceConfig;
 public interface DynamicConfigListener {
     /**
      * Called when a {@link ClusterWideConfigurationService} is initialized. It allows to hook custom hooks.
-     *
-     * @param configurationService
      */
     void onServiceInitialized(ClusterWideConfigurationService configurationService);
 
     /**
      * Called when a new {@link MapConfig} object is created locally.
-     *
-     * @param configObject
      */
     void onConfigRegistered(MapConfig configObject, UserCodeNamespaceConfig ns);
 
     /**
      * Called when a new {@link com.hazelcast.config.CacheSimpleConfig} object is created locally.
-     *
-     * @param configObject
      */
     void onConfigRegistered(CacheSimpleConfig configObject, UserCodeNamespaceConfig ns);
 
     /**
      * Called when a {@link com.hazelcast.config.UserCodeNamespaceConfig} object is created locally.
-     *
-     * @param configObject
      */
     void onConfigRegistered(UserCodeNamespaceConfig configObject);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ public class TxnMapNearCacheLeakTest extends AbstractNearCacheLeakTest<Data, Str
 
         return new NearCacheTestContextBuilder<K, V, Data, String>(nearCacheConfig, getSerializationService(nearCacheInstance))
                 .setNearCacheInstance(nearCacheInstance)
-                .setNearCacheAdapter(new TransactionalMapDataStructureAdapter<K, V>(nearCacheInstance, DEFAULT_NEAR_CACHE_NAME))
+                .setNearCacheAdapter(new TransactionalMapDataStructureAdapter<>(nearCacheInstance, DEFAULT_NEAR_CACHE_NAME))
                 .setNearCache(nearCache)
                 .setNearCacheManager(nearCacheManager)
                 .setRepairingTask(repairingTask);

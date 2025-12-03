@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,6 @@ public interface PartitionReplicaVersionManager {
      * when syncing primary to backup replicas (anti-entropy, migration etc), otherwise there is
      * risk of perpetual attempts to sync partition data which may be already in sync.
      *
-     * @param partitionId
-     * @param namespace
-     * @return
      * @see     com.hazelcast.internal.partition.impl.PartitionReplicaManager#REQUIRES_SYNC
      */
     long[] getPartitionReplicaVersionsForSync(int partitionId, ServiceNamespace namespace);
@@ -96,7 +93,6 @@ public interface PartitionReplicaVersionManager {
      * {@link ServiceNamespaceAware} then {@link ServiceNamespaceAware#getServiceNamespace()}
      * will be used. Otherwise {@link NonFragmentedServiceNamespace} will be returned.
      *
-     * @param operation operation
      * @return service namespace for operation
      */
     ServiceNamespace getServiceNamespace(Operation operation);

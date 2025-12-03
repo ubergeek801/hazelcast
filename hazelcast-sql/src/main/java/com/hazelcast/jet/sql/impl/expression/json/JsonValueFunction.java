@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,7 +186,7 @@ public class JsonValueFunction<T> extends VariExpressionWithType<T> {
         if (result == null) {
             return null;
         }
-        if (resultType.getTypeFamily().equals(QueryDataTypeFamily.VARCHAR)) {
+        if (resultType.getTypeFamily() == QueryDataTypeFamily.VARCHAR) {
             return result.toString();
         }
 
@@ -260,7 +260,7 @@ public class JsonValueFunction<T> extends VariExpressionWithType<T> {
 
         JsonValueFunction<?> that = (JsonValueFunction<?>) o;
 
-        return this.onEmpty.equals(that.onEmpty) && this.onError.equals(that.onError);
+        return this.onEmpty == that.onEmpty && this.onError == that.onError;
     }
 
     @Override

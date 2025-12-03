@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ import static java.util.Collections.singletonList;
 /**
  * Factory methods for functions which requires a permission to run.
  */
-@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling"})
+@SuppressWarnings("checkstyle:ClassDataAbstractionCoupling")
 public final class SecuredFunctions {
 
     private SecuredFunctions() {

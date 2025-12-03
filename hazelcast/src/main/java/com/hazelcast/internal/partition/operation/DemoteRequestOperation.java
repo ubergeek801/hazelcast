@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.internal.cluster.ClusterService;
 import com.hazelcast.internal.cluster.impl.operations.DemoteDataMemberOp;
-import com.hazelcast.internal.partition.InternalPartitionService;
+import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.partition.MigrationCycleOperation;
 import com.hazelcast.internal.partition.impl.InternalPartitionServiceImpl;
 import com.hazelcast.internal.partition.impl.PartitionDataSerializerHook;
@@ -66,7 +66,7 @@ public class DemoteRequestOperation
             Member member = clusterService.getMember(caller);
             if (member != null) {
                 if (logger.isFinestEnabled()) {
-                    logger.finest("Received demote request from " + caller);
+                    logger.finest("Received demote request from %s", caller);
                 }
                 if (member.getUuid().equals(uuid)) {
                     response = partitionService.onDemoteRequest(member);
@@ -91,7 +91,7 @@ public class DemoteRequestOperation
 
     @Override
     public String getServiceName() {
-        return InternalPartitionService.SERVICE_NAME;
+        return IPartitionService.SERVICE_NAME;
     }
 
     @Override

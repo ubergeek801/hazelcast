@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.config.CacheSimpleConfig;
 import com.hazelcast.config.CardinalityEstimatorConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DataConnectionConfig;
+import com.hazelcast.internal.diagnostics.DiagnosticsConfig;
 import com.hazelcast.config.DurableExecutorConfig;
 import com.hazelcast.config.ExecutorConfig;
 import com.hazelcast.config.FlakeIdGeneratorConfig;
@@ -412,4 +413,11 @@ public interface ConfigurationService {
     VectorCollectionConfig findVectorCollectionConfig(String name);
 
     Map<String, VectorCollectionConfig> getVectorCollectionConfigs();
+
+    /**
+     * Returns registered diagnostics configuration.
+     *
+     * @return registered diagnostics configuration
+     */
+    DiagnosticsConfig getDiagnosticsConfig();
 }

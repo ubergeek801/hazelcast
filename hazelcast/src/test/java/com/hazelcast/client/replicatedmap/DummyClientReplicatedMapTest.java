@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hazelcast.client.replicatedmap;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.test.TestHazelcastFactory;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.replicatedmap.ReplicatedMap;
@@ -256,7 +257,7 @@ public class DummyClientReplicatedMapTest extends HazelcastTestSupport {
         String addressString = address.getHost() + ":" + address.getPort();
         ClientConfig dummyClientConfig = new ClientConfig();
         ClientNetworkConfig networkConfig = new ClientNetworkConfig();
-        networkConfig.setSmartRouting(false);
+        networkConfig.getClusterRoutingConfig().setRoutingMode(RoutingMode.SINGLE_MEMBER);
         networkConfig.addAddress(addressString);
         dummyClientConfig.setNetworkConfig(networkConfig);
         return dummyClientConfig;

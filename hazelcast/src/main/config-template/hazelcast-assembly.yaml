@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+# Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -800,6 +800,6 @@ hazelcast:
   # Some features of Hazelcast are configured through the system properties.
   # You can configure the same properties here. This configuration overrides the
   # system properties. For a full list of recognized properties see
-  # https://docs.hazelcast.org/docs/latest/manual/html-single/#system-properties
+  # https://docs.hazelcast.com/hazelcast/latest/system-properties
 #  properties:
 #    property.name: value

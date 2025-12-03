@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.newSetFromMap;
-
 /**
  * Serialization service that intercepts and samples serialized objects.
  * Employed to gather samples of serialized objects used in member-to-member communication during test suite
@@ -63,7 +61,7 @@ public class SamplingSerializationService implements InternalSerializationServic
     static final ConcurrentMap<String, List<byte[]>> SERIALIZED_SAMPLES_PER_CLASS_NAME =
             new ConcurrentHashMap<>(1000);
     // cache classes for which samples have already been captured
-    static final Set<String> SAMPLED_CLASSES = newSetFromMap(new ConcurrentHashMap<>(1000));
+    static final Set<String> SAMPLED_CLASSES = ConcurrentHashMap.newKeySet(1000);
     static final ConcurrentMap<String, Schema> SAMPLED_CLASSES_SCHEMAS = new ConcurrentHashMap<>(1000);
 
     private static final int MAX_SERIALIZED_SAMPLES_PER_CLASS = 5;
@@ -271,7 +269,7 @@ public class SamplingSerializationService implements InternalSerializationServic
 
     private static void addSerializedSample(Object obj, byte[] bytes) {
         String className = obj.getClass().getName();
-        SERIALIZED_SAMPLES_PER_CLASS_NAME.putIfAbsent(className, new CopyOnWriteArrayList<byte[]>());
+        SERIALIZED_SAMPLES_PER_CLASS_NAME.putIfAbsent(className, new CopyOnWriteArrayList<>());
         List<byte[]> samples = SERIALIZED_SAMPLES_PER_CLASS_NAME.get(className);
         if (samples.size() < MAX_SERIALIZED_SAMPLES_PER_CLASS) {
             samples.add(bytes);

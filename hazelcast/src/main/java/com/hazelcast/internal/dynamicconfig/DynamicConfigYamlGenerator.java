@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,7 +202,7 @@ public class DynamicConfigYamlGenerator {
             Map<String, Object> subConfigAsMap = new LinkedHashMap<>();
 
             String cacheDeserializedValues = subConfigAsObject.getCacheDeserializedValues() != null
-                    ? subConfigAsObject.getCacheDeserializedValues().name().replaceAll("_", "-")
+                    ? subConfigAsObject.getCacheDeserializedValues().name().replace('_', '-')
                     : null;
 
             addNonNullToMap(subConfigAsMap, "in-memory-format",
@@ -1026,7 +1026,7 @@ public class DynamicConfigYamlGenerator {
     private static void endpointConfigYamlGenerator(Map<String, Object> parent, EndpointConfig endpointConfig) {
         Map<String, Object> child = new LinkedHashMap<>();
 
-        if (endpointConfig.getName() != null && !endpointConfig.getProtocolType().equals(ProtocolType.WAN)) {
+        if (endpointConfig.getName() != null && endpointConfig.getProtocolType() != ProtocolType.WAN) {
             child.put("name", endpointConfig.getName());
         }
 
@@ -1072,7 +1072,7 @@ public class DynamicConfigYamlGenerator {
             addNonNullToMap(child, "reuse-address", serverSocketEndpointConfig.isReuseAddress());
             addNonNullToMap(child, "port", portCfg);
         }
-        if (endpointConfig.getName() != null && endpointConfig.getProtocolType().equals(ProtocolType.WAN)) {
+        if (endpointConfig.getName() != null && endpointConfig.getProtocolType() == ProtocolType.WAN) {
             parent.put(endpointConfigElementName(endpointConfig), wrapObjectWithMap(endpointConfig.getName(), child));
         } else {
             parent.put(endpointConfigElementName(endpointConfig), child);
@@ -1200,6 +1200,13 @@ public class DynamicConfigYamlGenerator {
                         VectorCollectionConfig::getName,
                         entry -> {
                             Map<String, Object> vectorConfigAsMap = new LinkedHashMap<>();
+                            addNonNullToMap(vectorConfigAsMap, "backup-count", entry.getBackupCount());
+                            addNonNullToMap(vectorConfigAsMap, "async-backup-count", entry.getAsyncBackupCount());
+                            addNonNullToMap(vectorConfigAsMap, "user-code-namespace", entry.getUserCodeNamespace());
+                            addNonNullToMap(vectorConfigAsMap, "split-brain-protection-ref",
+                                    entry.getSplitBrainProtectionName());
+                            addNonNullToMap(vectorConfigAsMap, "merge-policy",
+                                    getMergePolicyConfigAsMap(entry.getMergePolicyConfig()));
                             addNonNullToMap(
                                     vectorConfigAsMap,
                                     "indexes",
@@ -1418,7 +1425,7 @@ public class DynamicConfigYamlGenerator {
         }
         Map<String, Object> capacityAsMap = new LinkedHashMap<>();
         addNonNullToMap(capacityAsMap, "unit", capacity.getUnit().toString());
-        addNonNullToMap(capacityAsMap, "value", "" + capacity.getValue());
+        addNonNullToMap(capacityAsMap, "value", String.valueOf(capacity.getValue()));
 
         return capacityAsMap;
     }

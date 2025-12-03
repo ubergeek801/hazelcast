@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,8 +333,8 @@ public class HazelcastPropertiesTest {
         // https://github.com/hyperreality/American-British-English-Translator/
         final Map<String, String> rawMap = new ObjectMapper().readValue(URI.create(
                 "https://raw.githubusercontent.com/hyperreality/American-British-English-Translator/master/data/american_spellings.json")
-                .toURL(), new TypeReference<Map<String, String>>() {
-                });
+                .toURL(), new TypeReference<>() {
+        });
 
         final Map<String, String> americanToBritish = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 

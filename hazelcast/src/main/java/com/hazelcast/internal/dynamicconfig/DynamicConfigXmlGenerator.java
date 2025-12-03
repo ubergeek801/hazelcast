@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.config.CollectionConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.ConfigAccessor;
 import com.hazelcast.config.ConfigXmlGenerator;
+import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.DataPersistenceConfig;
 import com.hazelcast.config.DiscoveryConfig;
 import com.hazelcast.config.DiscoveryStrategyConfig;
@@ -35,7 +36,6 @@ import com.hazelcast.config.EntryListenerConfig;
 import com.hazelcast.config.EventJournalConfig;
 import com.hazelcast.config.EvictionConfig;
 import com.hazelcast.config.ExecutorConfig;
-import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.config.FlakeIdGeneratorConfig;
 import com.hazelcast.config.ItemListenerConfig;
 import com.hazelcast.config.ListenerConfig;
@@ -59,6 +59,7 @@ import com.hazelcast.config.ReplicatedMapConfig;
 import com.hazelcast.config.RingbufferConfig;
 import com.hazelcast.config.RingbufferStoreConfig;
 import com.hazelcast.config.ScheduledExecutorConfig;
+import com.hazelcast.config.SplitBrainPolicyAwareConfig;
 import com.hazelcast.config.TieredStoreConfig;
 import com.hazelcast.config.TopicConfig;
 import com.hazelcast.config.WanBatchPublisherConfig;
@@ -97,7 +98,7 @@ public final class DynamicConfigXmlGenerator {
         Collection<MapConfig> mapConfigs = config.getMapConfigs().values();
         for (MapConfig m : mapConfigs) {
             String cacheDeserializedVal = m.getCacheDeserializedValues() != null
-                    ? m.getCacheDeserializedValues().name().replaceAll("_", "-") : null;
+                    ? m.getCacheDeserializedValues().name().replace('_', '-') : null;
             MergePolicyConfig mergePolicyConfig = m.getMergePolicyConfig();
             gen.open("map", "name", m.getName())
                     .node("in-memory-format", m.getInMemoryFormat())
@@ -895,9 +896,15 @@ public final class DynamicConfigXmlGenerator {
     public static void vectorCollectionXmlGenerator(ConfigXmlGenerator.XmlGenerator gen, Config config) {
         Collection<VectorCollectionConfig> vectorCollectionConfigs = config.getVectorCollectionConfigs().values();
         for (VectorCollectionConfig collectionConfig : vectorCollectionConfigs) {
-            gen.open("vector-collection", "name", collectionConfig.getName());
+            gen.open("vector-collection", "name", collectionConfig.getName())
+                    .node("backup-count", collectionConfig.getBackupCount())
+                    .node("async-backup-count", collectionConfig.getAsyncBackupCount());
+            if (collectionConfig.getUserCodeNamespace() != null) {
+                gen.node("user-code-namespace", collectionConfig.getUserCodeNamespace());
+            }
+            appendSplitBrainPolicyAwareNodes(gen, collectionConfig);
             gen.open("indexes");
-            for (VectorIndexConfig index: collectionConfig.getVectorIndexConfigs()) {
+            for (VectorIndexConfig index : collectionConfig.getVectorIndexConfigs()) {
                 gen.open("index", "name", index.getName())
                         .node("dimension", index.getDimension())
                         .node("metric", index.getMetric())
@@ -909,5 +916,18 @@ public final class DynamicConfigXmlGenerator {
             gen.close();
             gen.close();
         }
+    }
+
+    /**
+     * Appends split brain protection and merge policy configuration nodes
+     *
+     * @param gen
+     * @param config
+     */
+    private static void appendSplitBrainPolicyAwareNodes(ConfigXmlGenerator.XmlGenerator gen,
+                                                         SplitBrainPolicyAwareConfig config) {
+        gen.node("merge-policy", config.getMergePolicyConfig().getPolicy(),
+                        "batch-size", config.getMergePolicyConfig().getBatchSize())
+                .node("split-brain-protection-ref", config.getSplitBrainProtectionName());
     }
 }

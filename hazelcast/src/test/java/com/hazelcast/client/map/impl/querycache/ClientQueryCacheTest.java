@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,14 @@ public class ClientQueryCacheTest extends HazelcastTestSupport {
     private static final TestHazelcastFactory factory = new TestHazelcastFactory();
 
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void setUp() {
         factory.newHazelcastInstance();
         factory.newHazelcastInstance();
         factory.newHazelcastInstance();
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
+    public static void tearDown() {
         factory.shutdownAll();
     }
 

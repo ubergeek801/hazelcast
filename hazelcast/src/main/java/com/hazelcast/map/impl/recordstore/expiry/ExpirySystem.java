@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,20 @@ package com.hazelcast.map.impl.recordstore.expiry;
 
 import com.hazelcast.internal.eviction.ExpiredKey;
 import com.hazelcast.internal.nearcache.impl.invalidation.InvalidationQueue;
+import com.hazelcast.internal.nio.Disposable;
 import com.hazelcast.internal.serialization.Data;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
  * The expiry system interface that has all logic to remove expired entries.
  */
 public interface ExpirySystem {
+
+    Disposable EMPTY_DISPOSABLE = () -> {
+        // no-op
+    };
 
     @SuppressWarnings("AnonInnerLength")
     ExpirySystem NULL = new ExpirySystem() {
@@ -96,8 +102,8 @@ public interface ExpirySystem {
         }
 
         @Override
-        public void destroy() {
-            // no-op
+        public Disposable createDisposable() {
+            return EMPTY_DISPOSABLE;
         }
     };
 
@@ -142,5 +148,10 @@ public interface ExpirySystem {
 
     void clear();
 
-    void destroy();
+    /**
+     * @return a new {@link Disposable} object to
+     * dispose this {@link ExpirySystem} internal state
+     */
+    @Nonnull
+    Disposable createDisposable();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ public class LifecycleServiceImplTest extends JetTestSupport {
         for (int i = 0; i < 3; i++) {
             HazelcastInstance inst = createHazelcastInstance();
 
-            Future f1 = spawn(() -> inst.getLifecycleService().terminate());
-            Future f2 = spawn(() -> inst.getLifecycleService().shutdown());
+            Future<?> f1 = spawn(() -> inst.getLifecycleService().terminate());
+            Future<?> f2 = spawn(() -> inst.getLifecycleService().shutdown());
 
             f1.get(5, TimeUnit.SECONDS);
             f2.get(5, TimeUnit.SECONDS);

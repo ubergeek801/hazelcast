@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,19 +165,17 @@ public class ClientConfigXmlGeneratorTest extends HazelcastTestSupport {
     @Test
     public void network() {
         ClientNetworkConfig expected = new ClientNetworkConfig();
-        expected.setSmartRouting(false)
-                .setRedoOperation(true)
+        expected.setRedoOperation(true)
                 .setConnectionTimeout(randomInt())
                 .addAddress(randomString())
                 .setOutboundPortDefinitions(Collections.singleton(randomString()))
-                .getSubsetRoutingConfig().setEnabled(true);
+                .getClusterRoutingConfig().setRoutingMode(RoutingMode.MULTI_MEMBER);
 
 
         clientConfig.setNetworkConfig(expected);
         ClientNetworkConfig actual = newConfigViaGenerator().getNetworkConfig();
 
-        assertFalse(actual.isSmartRouting());
-        assertTrue(actual.getSubsetRoutingConfig().isEnabled());
+        assertEquals(RoutingMode.MULTI_MEMBER, actual.getClusterRoutingConfig().getRoutingMode());
         assertTrue(actual.isRedoOperation());
         assertEquals(expected.getConnectionTimeout(), actual.getConnectionTimeout());
         assertCollection(expected.getAddresses(), actual.getAddresses());
@@ -305,7 +303,7 @@ public class ClientConfigXmlGeneratorTest extends HazelcastTestSupport {
         DiscoveryConfig actual = newConfigViaGenerator().getNetworkConfig().getDiscoveryConfig();
         assertEquals(expected.getNodeFilterClass(), actual.getNodeFilterClass());
         assertCollection(expected.getDiscoveryStrategyConfigs(), actual.getDiscoveryStrategyConfigs(),
-                new Comparator<DiscoveryStrategyConfig>() {
+                new Comparator<>() {
                     @Override
                     public int compare(DiscoveryStrategyConfig o1, DiscoveryStrategyConfig o2) {
                         assertMap(o1.getProperties(), o2.getProperties());

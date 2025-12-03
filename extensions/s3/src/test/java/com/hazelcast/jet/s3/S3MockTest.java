@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,6 +249,7 @@ public class S3MockTest extends S3TestBase {
         testSink(SINK_BUCKET_NONASCII, "fileWithNonAsciiSymbol", 10, "测试");
     }
 
+    @Override
     SupplierEx<S3Client> clientSupplier() {
         return () -> s3Client(s3MockContainer.getHttpEndpoint());
     }

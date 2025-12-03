@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public class ClientCacheClearTest extends CacheClearTest {
             assertEquals(expectedValue, actualValue);
         }
 
-        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger();
 
         CacheConfig config = cache.getConfiguration(CacheConfig.class);
 
@@ -134,7 +134,7 @@ public class ClientCacheClearTest extends CacheClearTest {
             assertEquals(expectedValue, actualValue);
         }
 
-        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger();
 
         CacheConfig config = cache.getConfiguration(CacheConfig.class);
 

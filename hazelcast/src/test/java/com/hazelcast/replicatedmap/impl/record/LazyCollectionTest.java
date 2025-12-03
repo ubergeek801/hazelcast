@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.hazelcast.replicatedmap.impl.record;
 
+import com.hazelcast.test.annotation.QuickTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Named;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,13 +29,13 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-@Tag("com.hazelcast.test.annotation.QuickTest")
+@QuickTest
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 class LazyCollectionTest {
     private static LazyCollection<?, ?> collection;
 
     @BeforeAll
-    public static void setUp() {
+    static void setUp() {
         collection = new LazyCollection<>(mock(), new InternalReplicatedMapStorage<>());
     }
 

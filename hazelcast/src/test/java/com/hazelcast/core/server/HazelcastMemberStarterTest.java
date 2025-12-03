@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ import static org.junit.Assert.assertTrue;
 public class HazelcastMemberStarterTest
         extends HazelcastTestSupport {
 
-    private File parent = new File("ports");
-    private File child = new File(parent, "hz.ports");
+    private final File parent = new File("ports");
+    private final File child = new File(parent, "hz.ports");
 
     @Before
     @SuppressWarnings("ResultOfMethodCallIgnored")

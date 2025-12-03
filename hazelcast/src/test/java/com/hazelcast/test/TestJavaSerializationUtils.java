@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,16 +35,16 @@ public final class TestJavaSerializationUtils {
 
     @SuppressWarnings("unchecked")
     public static <T> T deserialize(byte[] array) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(array);
-        ObjectInputStream ois = new ObjectInputStream(bis);
-        return (T) ois.readObject();
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(array); ObjectInputStream ois = new ObjectInputStream(bis)) {
+            return (T) ois.readObject();
+        }
     }
 
     public static byte[] serialize(Serializable entry) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(entry);
-        return bos.toByteArray();
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(entry);
+            return bos.toByteArray();
+        }
     }
 
     public static Serializable newSerializableObject(int id) {

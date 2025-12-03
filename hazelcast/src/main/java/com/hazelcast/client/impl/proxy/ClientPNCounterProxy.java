@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import com.hazelcast.cluster.impl.VectorClock;
 import com.hazelcast.cluster.memberselector.MemberSelectors;
 import com.hazelcast.core.HazelcastException;
 import com.hazelcast.crdt.pncounter.PNCounter;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 import com.hazelcast.internal.util.ThreadLocalRandomProvider;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.partition.NoDataMemberInClusterException;
 
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,18 +40,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Client proxy implementation for a {@link PNCounter}.
  */
 public class ClientPNCounterProxy extends ClientProxy implements PNCounter {
 
-    /**
-     * Atomic field updater for the observed clock field
-     */
-    private static final AtomicReferenceFieldUpdater<ClientPNCounterProxy, VectorClock> OBSERVED_TIMESTAMPS_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(ClientPNCounterProxy.class, VectorClock.class, "observedClock");
+    /** @see #observedClock */
+    private static final VarHandle OBSERVED_TIMESTAMPS = ReflectionUtil.findVarHandle("observedClock", VectorClock.class);
     private static final List<Member> EMPTY_ADDRESS_LIST = Collections.emptyList();
     private final ILogger logger;
     private volatile Member currentTargetReplicaAddress;
@@ -257,8 +255,8 @@ public class ClientPNCounterProxy extends ClientProxy implements PNCounter {
                     name, delta, getBeforeUpdate, observedClock.entrySet(), target.getUuid());
             return invokeOnMember(request, target.getUuid());
         } catch (HazelcastException e) {
-            logger.fine("Unable to provide session guarantees when sending operations to " + target
-                    + ", choosing different target");
+            logger.fine("Unable to provide session guarantees when sending operations to %s, choosing different target",
+                    target);
             if (excludedAddresses == EMPTY_ADDRESS_LIST) {
                 excludedAddresses = new ArrayList<>();
             }
@@ -415,7 +413,7 @@ public class ClientPNCounterProxy extends ClientProxy implements PNCounter {
             if (currentClock.isAfter(received)) {
                 break;
             }
-            if (OBSERVED_TIMESTAMPS_UPDATER.compareAndSet(this, currentClock, received)) {
+            if (OBSERVED_TIMESTAMPS.compareAndSet(this, currentClock, received)) {
                 break;
             }
         }

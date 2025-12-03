@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 import static com.hazelcast.test.ReflectionsHelper.REFLECTIONS;
-import static com.hazelcast.test.ReflectionsHelper.filterNonConcreteClasses;
+import static com.hazelcast.test.ReflectionsHelper.concreteSubTypesOf;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -57,21 +57,17 @@ import static org.mockito.Mockito.withSettings;
  */
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
-@SuppressWarnings("WeakerAccess")
 public class DataSerializableImplementsVersionedTest {
 
-    private InternalSerializationService serializationService = new DefaultSerializationServiceBuilder().build();
+    private final InternalSerializationService serializationService = new DefaultSerializationServiceBuilder().build();
     private Set<Class<? extends IdentifiedDataSerializable>> idsClasses;
     private Set<Class<? extends DataSerializable>> dsClasses;
 
     @Before
     public void setUp() {
-        idsClasses = REFLECTIONS.getSubTypesOf(IdentifiedDataSerializable.class);
-        filterNonConcreteClasses(idsClasses);
-
-        dsClasses = REFLECTIONS.getSubTypesOf(DataSerializable.class);
-        filterNonConcreteClasses(dsClasses);
-        dsClasses.removeAll(idsClasses);
+        idsClasses = REFLECTIONS.get(concreteSubTypesOf(IdentifiedDataSerializable.class));
+        dsClasses = REFLECTIONS.get(concreteSubTypesOf(DataSerializable.class)
+                .filter(c -> !IdentifiedDataSerializable.class.isAssignableFrom(c)));
     }
 
     @Test

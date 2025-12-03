@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import com.hazelcast.internal.networking.ChannelCloseListener;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.internal.nio.IOUtil;
+import com.hazelcast.internal.tpcengine.util.ReflectionUtil;
 
 import java.io.IOException;
+import java.lang.invoke.VarHandle;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -30,13 +32,10 @@ import java.nio.channels.SocketChannel;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static com.hazelcast.internal.util.Preconditions.checkNotNegative;
 import static com.hazelcast.internal.util.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static java.util.Collections.newSetFromMap;
 
 /**
  * An abstract {@link Channel} implementation. This class is a pure implementation
@@ -47,19 +46,15 @@ public abstract class AbstractChannel implements Channel {
 
     private static final int FALSE = 0;
     private static final int TRUE = 1;
-    private static final AtomicIntegerFieldUpdater<AbstractChannel> CLOSED
-            = AtomicIntegerFieldUpdater.newUpdater(AbstractChannel.class, "closed");
-    private static final AtomicReferenceFieldUpdater<AbstractChannel, SocketAddress> LOCAL_ADDRESS
-            = AtomicReferenceFieldUpdater.newUpdater(AbstractChannel.class, SocketAddress.class, "localAddress");
-    private static final AtomicReferenceFieldUpdater<AbstractChannel, SocketAddress> REMOTE_ADDRESS
-            = AtomicReferenceFieldUpdater.newUpdater(AbstractChannel.class, SocketAddress.class, "remoteAddress");
+    private static final VarHandle CLOSED = ReflectionUtil.findVarHandle("closed", int.class);
+    private static final VarHandle LOCAL_ADDRESS = ReflectionUtil.findVarHandle("localAddress", SocketAddress.class);
+    private static final VarHandle REMOTE_ADDRESS = ReflectionUtil.findVarHandle("remoteAddress", SocketAddress.class);
 
     protected final SocketChannel socketChannel;
     protected final ILogger logger;
 
-    private final ConcurrentMap<?, ?> attributeMap = new ConcurrentHashMap<Object, Object>();
-    private final Set<ChannelCloseListener> closeListeners
-            = newSetFromMap(new ConcurrentHashMap<ChannelCloseListener, Boolean>());
+    private final ConcurrentMap<?, ?> attributeMap = new ConcurrentHashMap<>();
+    private final Set<ChannelCloseListener> closeListeners = ConcurrentHashMap.newKeySet();
     private final boolean clientMode;
     @SuppressWarnings("FieldCanBeLocal")
     private volatile SocketAddress remoteAddress;
@@ -68,7 +63,7 @@ public abstract class AbstractChannel implements Channel {
     @SuppressWarnings("FieldCanBeLocal")
     private volatile int closed = FALSE;
 
-    public AbstractChannel(SocketChannel socketChannel, boolean clientMode) {
+    protected AbstractChannel(SocketChannel socketChannel, boolean clientMode) {
         this.socketChannel = socketChannel;
         this.clientMode = clientMode;
         this.logger = Logger.getLogger(getClass());
@@ -79,6 +74,7 @@ public abstract class AbstractChannel implements Channel {
         return clientMode;
     }
 
+    @Override
     public ConcurrentMap attributeMap() {
         return attributeMap;
     }
@@ -134,7 +130,7 @@ public abstract class AbstractChannel implements Channel {
             }
 
             if (logger.isFinestEnabled()) {
-                logger.finest("Successfully connected to: " + address + " using socket " + socketChannel.socket());
+                logger.finest("Successfully connected to: %s using socket %s", address, socketChannel.socket());
             }
         } catch (RuntimeException e) {
             IOUtil.closeResource(this);
@@ -163,7 +159,7 @@ public abstract class AbstractChannel implements Channel {
 
     /**
      * Template method that is called when the Channel is closed.
-     *
+     * <p>
      * It will be called only once.
      */
     protected void close0() throws IOException {

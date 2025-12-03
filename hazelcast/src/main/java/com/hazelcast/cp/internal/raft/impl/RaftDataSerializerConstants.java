@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,14 @@ public abstract class RaftDataSerializerConstants {
     public static final int APPEND_FAILURE_RESPONSE = 7;
     public static final int LOG_ENTRY = 8;
     public static final int SNAPSHOT_ENTRY = 9;
-    public static final int INSTALL_SNAPSHOT = 10;
+    public static final int V55_INSTALL_SNAPSHOT = 10;
     public static final int DESTROY_RAFT_GROUP_COMMAND = 11;
     public static final int UPDATE_RAFT_GROUP_MEMBERS_COMMAND = 12;
     public static final int TRIGGER_LEADER_ELECTION = 13;
+    public static final int SNAPSHOT_CHUNK = 14;
+    public static final int DATA_CHUNK_GROUP = 15;
+    public static final int KEY_VALUE_DATA_CHUNK = 16;
+    public static final int VALUE_DATA_CHUNK = 17;
+    public static final int INSTALL_SNAPSHOT_RESPONSE = 18;
+    public static final int INSTALL_SNAPSHOT_REQUEST = 19;
 }

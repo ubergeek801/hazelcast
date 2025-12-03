@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,9 @@ public final class SingleValueDataStructure {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof Person)) {
+            if (!(o instanceof Person other)) {
                 return false;
             }
-            Person other = (Person) o;
             return Objects.equals(this.brain, other.brain);
         }
 
@@ -53,10 +52,9 @@ public final class SingleValueDataStructure {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof Brain)) {
+            if (!(o instanceof Brain other)) {
                 return false;
             }
-            Brain other = (Brain) o;
             return Objects.equals(this.iq, other.iq);
         }
 

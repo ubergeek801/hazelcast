@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,14 +218,11 @@ public class SessionWindowPTest {
             }
             if (idx % wmInterval == 0) {
                 long wm = timestampBase - wmLag;
-                int winCount = 0;
                 while (!lastSuppliedProcessor.tryProcessWatermark(new Watermark(wm))) {
                     while (outbox.queue(0).poll() != null) {
-                        winCount++;
                     }
                 }
                 while (outbox.queue(0).poll() != null) {
-                    winCount++;
                 }
             }
         }

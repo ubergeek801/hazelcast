@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class MasterSplitTest extends HazelcastTestSupport {
         InvocationBuilder invocationBuilder = getOperationService(member1)
                 .createInvocationBuilder(SERVICE_NAME, op, getAddress(member2))
                 .setCallTimeout(TimeUnit.MINUTES.toMillis(1));
-        Future future = invocationBuilder.invoke();
+        Future<?> future = invocationBuilder.invoke();
 
         try {
             future.get();
@@ -127,7 +127,7 @@ public class MasterSplitTest extends HazelcastTestSupport {
         InvocationBuilder invocationBuilder = getOperationService(member1)
                 .createInvocationBuilder(SERVICE_NAME, op, getAddress(member2))
                 .setCallTimeout(TimeUnit.MINUTES.toMillis(1));
-        Future future = invocationBuilder.invoke();
+        Future<?> future = invocationBuilder.invoke();
 
         try {
             future.get();

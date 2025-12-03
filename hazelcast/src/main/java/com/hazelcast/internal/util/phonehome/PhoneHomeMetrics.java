@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ public enum PhoneHomeMetrics implements Metric {
     PYTHON_CLIENT_VERSIONS("cpycv"),
     GO_CLIENT_VERSIONS("cgocv"),
     CL_CLIENT_VERSIONS("cclcv"),
-    SMART_CLIENTS_COUNT("smartclients"),
-    UNISOCKET_CLIENTS_COUNT("unisocketclients"),
-    SUBSET_CLIENTS_COUNT("subsetclients"),
+    ALL_MEMBERS_CLIENTS_COUNT("allmembersclients"),
+    SINGLE_MEMBER_CLIENTS_COUNT("singlememberclients"),
+    MULTI_MEMBER_CLIENTS_COUNT("multimemberclients"),
 
     //CLUSTER INFO METRICS
     UUID_OF_CLUSTER("m"),
@@ -103,6 +103,9 @@ public enum PhoneHomeMetrics implements Metric {
     AVERAGE_PUT_LATENCY_OF_MAPS_WITHOUT_MAPSTORE("mpptla"),
     AVERAGE_GET_LATENCY_OF_MAPS_USING_MAPSTORE("mpgtlams"),
     AVERAGE_GET_LATENCY_OF_MAPS_WITHOUT_MAPSTORE("mpgtla"),
+    TOTAL_MAP_VALUES_CALLS("mpvaluesct"),
+    TOTAL_MAP_ENTRYSET_CALLS("mpentriesct"),
+    TOTAL_MAP_QUERY_SIZE_LIMITER_HITS("mpqslh"),
 
     //CACHE METRICS
     COUNT_OF_CACHES("cact"),
@@ -154,6 +157,7 @@ public enum PhoneHomeMetrics implements Metric {
     JET_ENABLED("jet"),
     JET_RESOURCE_UPLOAD_ENABLED("jetrsup"),
     JET_JOBS_SUBMITTED("jetjobss"),
+    JET_CONNECTOR_COUNTS("jetcc"),
 
     // SQL METRICS
     SQL_QUERIES_SUBMITTED("sqlqs"),
@@ -200,7 +204,10 @@ public enum PhoneHomeMetrics implements Metric {
 
     UCN_ENABLED("ucnenabled"),
     UCN_NAMESPACE_COUNT("ucncount"),
-    V_CPU_COUNT("vcpuct");
+    V_CPU_COUNT("vcpuct"),
+
+    DIAGNOSTICS_DYNAMIC_ENABLED_COUNT("diagdenbct"),
+    DIAGNOSTICS_DYNAMIC_AUTO_OFF_COUNT("diagdoffct");
 
     private final String query;
 

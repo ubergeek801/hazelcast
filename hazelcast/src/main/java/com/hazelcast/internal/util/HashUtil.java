@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  * Portions Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ package com.hazelcast.internal.util;
 import com.hazelcast.internal.memory.ByteAccessStrategy;
 import com.hazelcast.internal.memory.MemoryAccessor;
 import com.hazelcast.internal.memory.impl.EndiannessUtil;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Arrays;
 
@@ -31,7 +30,6 @@ import static java.lang.Math.abs;
 /**
  * Utility methods related to hash tables.
  */
-@SuppressFBWarnings({"SF_SWITCH_FALLTHROUGH", "SF_SWITCH_NO_DEFAULT"})
 @SuppressWarnings({
         "checkstyle:magicnumber",
         "checkstyle:methodname",

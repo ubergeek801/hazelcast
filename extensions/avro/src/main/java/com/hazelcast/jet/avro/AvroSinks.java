@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Hazelcast Inc.
+ * Copyright 2025 Hazelcast Inc.
  *
  * Licensed under the Hazelcast Community License (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ import javax.annotation.Nonnull;
  */
 public final class AvroSinks {
 
+    /**
+     * Ensure that this does not collide with any constants in {@link com.hazelcast.jet.pipeline.impl.ConnectorNames}
+     */
+    static final String AVRO_SINK_CONNECTOR_NAME = "avroSink";
+
     private AvroSinks() {
     }
 
@@ -70,7 +75,7 @@ public final class AvroSinks {
     ) {
 
         return Sinks.fromProcessor("avroFilesSink(" + directoryName + ')',
-                AvroProcessors.writeFilesP(directoryName, schema, datumWriterSupplier));
+                AvroProcessors.writeFilesP(directoryName, schema, datumWriterSupplier, AVRO_SINK_CONNECTOR_NAME));
     }
 
     /**

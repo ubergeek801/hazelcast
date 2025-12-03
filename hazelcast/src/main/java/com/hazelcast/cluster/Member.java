@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ public interface Member extends DataSerializable, Endpoint {
      *
      * @return the socket address of this member for member to member communications or unified depending on config.
      */
+    @Override
     InetSocketAddress getSocketAddress();
 
     /**
@@ -82,6 +83,7 @@ public interface Member extends DataSerializable, Endpoint {
      *
      * @return the UUID of this member.
      */
+    @Override
     UUID getUuid();
 
     /**

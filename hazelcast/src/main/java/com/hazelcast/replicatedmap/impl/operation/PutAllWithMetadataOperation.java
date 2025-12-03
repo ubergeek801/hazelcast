@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.hazelcast.cluster.Address;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.internal.partition.IPartitionService;
 import com.hazelcast.internal.serialization.Data;
+import com.hazelcast.internal.serialization.impl.SerializationUtil;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.replicatedmap.impl.ReplicatedMapEventPublishingService;
@@ -111,10 +112,7 @@ public class PutAllWithMetadataOperation extends AbstractNamedSerializableOperat
     @Override
     protected void writeInternal(ObjectDataOutput out) throws IOException {
         out.writeString(name);
-        out.writeInt(entryViewHolders.size());
-        for (ReplicatedMapEntryViewHolder entryViewHolder : entryViewHolders) {
-            out.writeObject(entryViewHolder);
-        }
+        SerializationUtil.writeList(entryViewHolders, out);
         out.writeInt(getPartitionId());
     }
 

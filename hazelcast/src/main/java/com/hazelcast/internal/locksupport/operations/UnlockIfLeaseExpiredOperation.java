@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,13 +50,13 @@ public final class UnlockIfLeaseExpiredOperation extends UnlockOperation impleme
         ILogger logger = getLogger();
         if (version == lockVersion) {
             if (logger.isFinestEnabled()) {
-                logger.finest("Releasing a lock owned by " + lockStore.getOwnerInfo(key) + " after lease timeout!");
+                logger.finest("Releasing a lock owned by %s after lease timeout!", lockStore.getOwnerInfo(key));
             }
             forceUnlock();
         } else {
             if (logger.isFinestEnabled()) {
-                logger.finest("Won't unlock since lock version is not matching expiration version: "
-                        + lockVersion + " vs " + version);
+                logger.finest("Won't unlock since lock version is not matching expiration version: %s vs %s", lockVersion,
+                        version);
             }
         }
     }
@@ -64,8 +64,6 @@ public final class UnlockIfLeaseExpiredOperation extends UnlockOperation impleme
     /**
      * This operation runs on both primary and backup
      * If it is running on backup we should not send a backup operation
-     *
-     * @return
      */
     @Override
     public boolean shouldBackup() {

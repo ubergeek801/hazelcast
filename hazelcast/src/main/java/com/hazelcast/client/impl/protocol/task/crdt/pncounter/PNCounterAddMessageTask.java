@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.hazelcast.client.impl.protocol.task.crdt.pncounter;
 
+import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.impl.protocol.ClientMessage;
 import com.hazelcast.client.impl.protocol.codec.PNCounterAddCodec;
 import com.hazelcast.client.impl.protocol.codec.PNCounterAddCodec.RequestParameters;
@@ -39,7 +40,7 @@ import java.util.UUID;
 /**
  * Task responsible for processing client messages for updating the
  * {@link PNCounter} state.
- * If this message was sent from a client with smart routing disabled, the
+ * If this message was sent from a client with {@link RoutingMode#ALL_MEMBERS} routing selected, the
  * member may forward the request to a different target member.
  */
 public class PNCounterAddMessageTask extends AbstractTargetMessageTask<RequestParameters> {
@@ -83,6 +84,7 @@ public class PNCounterAddMessageTask extends AbstractTargetMessageTask<RequestPa
         return SecurityInterceptorConstants.PN_COUNTER_SERVICE;
     }
 
+    @Override
     public Object[] getParameters() {
         return new Object[]{parameters.delta, parameters.getBeforeUpdate};
     }

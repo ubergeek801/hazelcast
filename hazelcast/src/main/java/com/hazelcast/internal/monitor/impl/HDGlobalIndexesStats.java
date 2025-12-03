@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,17 @@ public class HDGlobalIndexesStats implements IndexesStats {
 
     private static final AtomicLongFieldUpdater<HDGlobalIndexesStats> QUERY_COUNT = newUpdater(HDGlobalIndexesStats.class,
             "queryCount");
-    private static final AtomicLongFieldUpdater<HDGlobalIndexesStats> INDEXED_QUERY_COUNT = newUpdater(HDGlobalIndexesStats.class,
-            "indexedQueryCount");
+    private static final AtomicLongFieldUpdater<HDGlobalIndexesStats> INDEXED_QUERY_COUNT = newUpdater(
+            HDGlobalIndexesStats.class, "indexedQueryCount");
+    private static final AtomicLongFieldUpdater<HDGlobalIndexesStats> INDEXES_SKIPPED_QUERY_COUNT = newUpdater(
+            HDGlobalIndexesStats.class, "indexesSkippedQueryCount");
+    private static final AtomicLongFieldUpdater<HDGlobalIndexesStats> NO_MATCHING_INDEX_QUERY_COUNT = newUpdater(
+            HDGlobalIndexesStats.class, "noMatchingIndexQueryCount");
 
     private volatile long queryCount;
     private volatile long indexedQueryCount;
+    private volatile long indexesSkippedQueryCount;
+    private volatile long noMatchingIndexQueryCount;
 
     @Override
     public long getQueryCount() {
@@ -54,6 +60,26 @@ public class HDGlobalIndexesStats implements IndexesStats {
     @Override
     public void incrementIndexedQueryCount() {
         INDEXED_QUERY_COUNT.incrementAndGet(this);
+    }
+
+    @Override
+    public long getIndexesSkippedQueryCount() {
+        return indexesSkippedQueryCount;
+    }
+
+    @Override
+    public void incrementIndexesSkippedQueryCount() {
+        INDEXES_SKIPPED_QUERY_COUNT.incrementAndGet(this);
+    }
+
+    @Override
+    public long getNoMatchingIndexQueryCount() {
+        return noMatchingIndexQueryCount;
+    }
+
+    @Override
+    public void incrementNoMatchingIndexQueryCount() {
+        NO_MATCHING_INDEX_QUERY_COUNT.incrementAndGet(this);
     }
 
     @Override

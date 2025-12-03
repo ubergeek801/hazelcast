@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.internal.util.concurrent.BusySpinIdleStrategy;
 import com.hazelcast.internal.util.concurrent.IdleStrategy;
+import com.hazelcast.partition.Partition;
 import com.hazelcast.partition.PartitionService;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
@@ -133,13 +134,13 @@ public class PartitionsPredicatePerformanceTest extends HazelcastTestSupport {
         return partitionService.getPartitions().stream().limit(count)
                        .collect(Collectors.toMap(
                                p -> hzMap.keySet().stream().filter(k -> partitionService.getPartition(k).getPartitionId() == p.getPartitionId()).findFirst().get(),
-                               p -> p.getPartitionId()
+                               Partition::getPartitionId
                        ));
     }
 
     private Map<HazelcastInstance, IMap<String, Integer>> createCluster(TestHazelcastInstanceFactory nodeFactory, int partitionCount, int itemsPerPartition) {
         Config config = getConfig()
-                                .setProperty(ClusterProperty.PARTITION_COUNT.getName(), "" + partitionCount);
+                                .setProperty(ClusterProperty.PARTITION_COUNT.getName(), String.valueOf(partitionCount));
 
         HazelcastInstance[] instances = IntStream.range(0, nodeFactory.getCount())
                                                 .mapToObj(i -> nodeFactory.newHazelcastInstance(config))

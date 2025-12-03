@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package com.hazelcast.aws;
 import java.util.Objects;
 
 final class AwsCredentials {
-    private String accessKey;
-    private String secretKey;
-    private String token;
+    private final String accessKey;
+    private final String secretKey;
+    private final String token;
 
     private AwsCredentials(String accessKey, String secretKey, String token) {
         this.accessKey = accessKey;

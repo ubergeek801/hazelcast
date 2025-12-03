@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2024, Hazelcast, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2025, Hazelcast, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public class ComplexTestDataStructure {
             return Objects.hash(name, limbs_list);
         }
 
+        @Override
         public PersonPortable getPortable() {
             return portable;
         }
@@ -155,6 +156,7 @@ public class ComplexTestDataStructure {
             return Objects.hash(name, fingers_list, tattoos_list);
         }
 
+        @Override
         public LimbPortable getPortable() {
             return portable;
         }
@@ -243,6 +245,7 @@ public class ComplexTestDataStructure {
             return this.name.compareTo(o.name);
         }
 
+        @Override
         public FingerPortable getPortable() {
             return portable;
         }
